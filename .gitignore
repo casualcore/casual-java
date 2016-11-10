@@ -1,0 +1,6 @@
+[Bb]uild/
+.idea/
+*.iml
+*.class
+*.jar
+.gradle/
