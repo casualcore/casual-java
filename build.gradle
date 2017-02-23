@@ -1,6 +1,7 @@
 //-*- coding: utf-8 -*-
 plugins {
-  id "org.sonarqube" version "2.2"
+  id 'jacoco'
+  id 'org.sonarqube' version '2.2'
 }
 
 defaultTasks 'build'
