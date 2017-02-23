@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package se.kodarkatten.casual.inflow;
+package se.kodarkatten.casual.jca.inflow;
 
 import java.util.logging.Logger;
 
@@ -33,7 +33,7 @@ import javax.resource.spi.ResourceAdapter;
  *
  * @version $Revision: $
  */
-@Activation(messageListeners = { se.kodarkatten.casual.inflow.CasualMessageListener.class })
+@Activation(messageListeners = { CasualMessageListener.class })
 public class CasualActivationSpec implements ActivationSpec
 {
 

@@ -19,9 +19,9 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package se.kodarkatten.casual.inflow;
+package se.kodarkatten.casual.jca.inflow;
 
-import se.kodarkatten.casual.CasualResourceAdapter;
+import se.kodarkatten.casual.jca.CasualResourceAdapter;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.endpoint.MessageEndpointFactory;

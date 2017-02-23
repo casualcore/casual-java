@@ -19,18 +19,65 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package se.kodarkatten.casual.inflow;
+package se.kodarkatten.casual.jca;
+
+import java.util.logging.Logger;
 
 /**
- * CasualMessageListener
+ * CasualConnectionImpl
  *
  * @version $Revision: $
  */
-public interface CasualMessageListener
+public class CasualConnectionImpl implements CasualConnection
 {
+   /** The logger */
+   private static Logger log = Logger.getLogger(CasualConnectionImpl.class.getName());
+
+   /** ManagedConnection */
+   private CasualManagedConnection mc;
+
+   /** ManagedConnectionFactory */
+   private CasualManagedConnectionFactory mcf;
+
    /**
-    * Receive message
-    * @param msg String.
+    * Default constructor
+    * @param mc CasualManagedConnection
+    * @param mcf CasualManagedConnectionFactory
     */
-   public void onMessage(String msg);
+   public CasualConnectionImpl(CasualManagedConnection mc, CasualManagedConnectionFactory mcf)
+   {
+      this.mc = mc;
+      this.mcf = mcf;
+   }
+
+   /**
+    * Call me
+    */
+   public void callMe()
+   {
+      if (mc != null)
+         mc.callMe();
+   }
+
+   /**
+    * Close
+    */
+   public void close()
+   {
+      if (mc != null)
+      {
+         mc.closeHandle(this);
+         mc = null;
+      }
+
+   }
+
+   /**
+    * Set ManagedConnection
+    */
+   void setManagedConnection(CasualManagedConnection mc)
+   {
+      this.mc = mc;
+   }
+
 }

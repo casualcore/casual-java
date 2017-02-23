@@ -19,18 +19,21 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package se.kodarkatten.casual.mbean;
+package se.kodarkatten.casual.jca;
 
 /**
- * CasualMBean
+ * CasualConnection
  *
  * @version $Revision: $
  */
-public interface CasualMBean
+public interface CasualConnection
 {
    /**
     * Call me
-    * @throws Exception exception
     */
-   public void callMe() throws Exception;
+   public void callMe();
+   /**
+    * Close
+    */
+   public void close();
 }

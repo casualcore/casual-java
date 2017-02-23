@@ -30,7 +30,7 @@
   <transaction-support>XATransaction</transaction-support>
   
   <connection-definitions>
-    <connection-definition class-name="se.kodarkatten.casual.CasualManagedConnectionFactory" jndi-name="java:/eis/CasualConnectionFactory" pool-name="CasualConnectionFactory">
+    <connection-definition class-name="se.kodarkatten.casual.jca.CasualManagedConnectionFactory" jndi-name="java:/eis/CasualConnectionFactory" pool-name="CasualConnectionFactory">
       <recovery>
         <recover-credential>
           <user-name>user</user-name>

@@ -23,7 +23,7 @@
 -->
 
 <deployment>
-  <bean name="Casual" interface="se.kodarkatten.casual.mbean.CasualMBean" class="se.kodarkatten.casual.mbean.CasualMBeanImpl">
+  <bean name="Casual" interface="se.kodarkatten.casual.jca.mbean.CasualMBean" class="se.kodarkatten.casual.jca.mbean.CasualMBeanImpl">
     <property name="MBeanServer">
         <inject bean="Kernel" property="MBeanServer"/>
     </property>

@@ -19,65 +19,26 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package se.kodarkatten.casual;
+package se.kodarkatten.casual.jca;
 
-import java.util.logging.Logger;
+import java.io.Serializable;
+
+import javax.resource.Referenceable;
+import javax.resource.ResourceException;
 
 /**
- * CasualConnectionImpl
+ * CasualConnectionFactory
  *
  * @version $Revision: $
  */
-public class CasualConnectionImpl implements CasualConnection
+public interface CasualConnectionFactory extends Serializable, Referenceable
 {
-   /** The logger */
-   private static Logger log = Logger.getLogger(CasualConnectionImpl.class.getName());
-
-   /** ManagedConnection */
-   private CasualManagedConnection mc;
-
-   /** ManagedConnectionFactory */
-   private CasualManagedConnectionFactory mcf;
-
-   /**
-    * Default constructor
-    * @param mc CasualManagedConnection
-    * @param mcf CasualManagedConnectionFactory
+   /** 
+    * Get connection from factory
+    *
+    * @return CasualConnection instance
+    * @exception ResourceException Thrown if a connection can't be obtained
     */
-   public CasualConnectionImpl(CasualManagedConnection mc, CasualManagedConnectionFactory mcf)
-   {
-      this.mc = mc;
-      this.mcf = mcf;
-   }
-
-   /**
-    * Call me
-    */
-   public void callMe()
-   {
-      if (mc != null)
-         mc.callMe();
-   }
-
-   /**
-    * Close
-    */
-   public void close()
-   {
-      if (mc != null)
-      {
-         mc.closeHandle(this);
-         mc = null;
-      }
-
-   }
-
-   /**
-    * Set ManagedConnection
-    */
-   void setManagedConnection(CasualManagedConnection mc)
-   {
-      this.mc = mc;
-   }
+   public CasualConnection getConnection() throws ResourceException;
 
 }

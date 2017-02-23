@@ -19,10 +19,10 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package se.kodarkatten.casual;
+package se.kodarkatten.casual.jca;
 
-import se.kodarkatten.casual.inflow.CasualActivation;
-import se.kodarkatten.casual.inflow.CasualActivationSpec;
+import se.kodarkatten.casual.jca.inflow.CasualActivation;
+import se.kodarkatten.casual.jca.inflow.CasualActivationSpec;
 
 import java.util.concurrent.ConcurrentHashMap;
 

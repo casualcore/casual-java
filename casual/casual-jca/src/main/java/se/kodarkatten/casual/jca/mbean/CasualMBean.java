@@ -19,26 +19,18 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package se.kodarkatten.casual;
-
-import java.io.Serializable;
-
-import javax.resource.Referenceable;
-import javax.resource.ResourceException;
+package se.kodarkatten.casual.jca.mbean;
 
 /**
- * CasualConnectionFactory
+ * CasualMBean
  *
  * @version $Revision: $
  */
-public interface CasualConnectionFactory extends Serializable, Referenceable
+public interface CasualMBean
 {
-   /** 
-    * Get connection from factory
-    *
-    * @return CasualConnection instance
-    * @exception ResourceException Thrown if a connection can't be obtained
+   /**
+    * Call me
+    * @throws Exception exception
     */
-   public CasualConnection getConnection() throws ResourceException;
-
+   public void callMe() throws Exception;
 }

@@ -12,6 +12,7 @@ jar {
     manifest {
         attributes 'Implementation-Title': 'Ironjacamar Test', 'Implementation-Version': version
     }
+    extension = 'rar'
 }
 
 repositories {

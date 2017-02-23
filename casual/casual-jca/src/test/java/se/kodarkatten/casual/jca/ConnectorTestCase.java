@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package se.kodarkatten.casual;
+package se.kodarkatten.casual.jca;
 
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -35,6 +35,7 @@ import org.jboss.shrinkwrap.api.spec.ResourceAdapterArchive;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import static org.junit.Assert.*;
 
 /**
@@ -60,7 +61,7 @@ public class ConnectorTestCase
       ResourceAdapterArchive raa =
          ShrinkWrap.create(ResourceAdapterArchive.class, deploymentName + ".rar");
       JavaArchive ja = ShrinkWrap.create(JavaArchive.class, UUID.randomUUID().toString() + ".jar");
-      ja.addPackages(true, Package.getPackage("se.kodarkatten.casual"));
+      ja.addPackages(true, Package.getPackage("se.kodarkatten.casual.jca"));
       raa.addAsLibrary(ja);
 
       raa.addAsManifestResource("META-INF/ironjacamar.xml", "ironjacamar.xml");
