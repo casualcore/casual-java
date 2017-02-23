@@ -1,3 +1,4 @@
+//-*- coding: utf-8 -*-
 include 'casual:casual-jca'
 include 'casual:casual-api'
 include 'casual:casual-network'

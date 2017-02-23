@@ -1,3 +1,4 @@
+//-*- coding: utf-8 -*-
 plugins {
   id "org.sonarqube" version "2.2"
 }
