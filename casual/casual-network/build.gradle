@@ -1,0 +1,10 @@
+apply plugin: 'java'
+defaultTasks 'build'
+
+dependencies {
+    testCompile 'junit:junit:4.8.2+'
+}
+
+repositories {
+    mavenCentral()
+}

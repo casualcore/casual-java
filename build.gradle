@@ -1,0 +1,4 @@
+defaultTasks 'build'
+
+group = 'se.kodarkatten.casual'
+version = '0.0.1'
