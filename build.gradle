@@ -1,4 +1,11 @@
+plugins {
+  id "org.sonarqube" version "2.2"
+}
+
 defaultTasks 'build'
 
 group = 'se.kodarkatten.casual'
 version = '0.0.1'
+
+
+
