@@ -1,11 +1,25 @@
 //-*- coding: utf-8 -*-
-apply plugin: 'java'
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'org.sonarqube' version '2.2'
+}
+
 defaultTasks 'build'
 
 dependencies {
     testCompile 'junit:junit:4.8.2+'
 }
 
+sonarqube {
+    properties {
+        properties["sonar.host.url"] += "http://locahost:9000"
+        properties["sonar.verbose"] += "true"
+    }
+}
+
 repositories {
     mavenCentral()
 }
+
+   // mvn sonar:sonar -Dsonar.host.url=http://$(boot2docker ip):9000 -Dsonar.jdbc.url="jdbc:h2:tcp://$(boot2docker ip)/sonar"

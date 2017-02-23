@@ -8,6 +8,10 @@ import java.nio.ByteBuffer;
 public final class CasualNetworkReader
 {
 
+    private CasualNetworkReader() {
+        //no instances should be crated
+    }
+
     public static final CasualNWMessage networkMessageToCasualMessage(final byte[] message) {
 
         ByteBuffer bytebuffer = ByteBuffer.wrap(message);

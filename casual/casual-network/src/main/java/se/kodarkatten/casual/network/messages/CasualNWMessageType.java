@@ -20,7 +20,7 @@ public enum CasualNWMessageType
     private final int messageId;
 
     //Creating an immutable list of the enum values
-    private final static List<CasualNWMessageType> values =
+    private static final List<CasualNWMessageType> values =
             Collections.unmodifiableList(Arrays.asList(CasualNWMessageType.values()));
 
     CasualNWMessageType(int messageId)
@@ -28,7 +28,7 @@ public enum CasualNWMessageType
         this.messageId = messageId;
     }
 
-    public final static CasualNWMessageType unmarshal(int id)
+    public static final CasualNWMessageType unmarshal(int id)
     {
         for (CasualNWMessageType type : CasualNWMessageType.values)
         {
@@ -40,7 +40,7 @@ public enum CasualNWMessageType
         throw new IllegalArgumentException("Unknown message type:" + id);
     }
 
-    public final static int marshal(CasualNWMessageType messageType)
+    public static final int marshal(CasualNWMessageType messageType)
     {
         return messageType.messageId;
     }
