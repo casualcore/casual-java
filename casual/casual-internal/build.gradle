@@ -3,10 +3,12 @@ plugins {
     id 'java'
     id 'jacoco'
 }
-
 defaultTasks 'build'
 
 dependencies {
+    compile project(':casual:casual-api')
+    compileOnly 'javax:javaee-api:7.0'
+    testCompile 'javax:javaee-api:7.0'
     testCompile 'junit:junit:4.8.2+'
 }
 

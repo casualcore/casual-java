@@ -1,54 +1,58 @@
 //-*- coding: utf-8 -*-
-apply plugin: 'java'
+plugins {
+    id 'java'
+    id 'jacoco'
+}
+
 defaultTasks 'build'
 
 group = 'se.kodarkatten.casual'
 version = '0.0.1'
 
 ext {
-  ijversion = '1.2.7.Final'
+    ijversion = '1.2.7.Final'
 }
 
 jar {
-  manifest {
-    attributes 'Implementation-Title': 'Ironjacamar Test', 'Implementation-Version': version
-  }
-  extension = 'rar'
+    manifest {
+        attributes 'Implementation-Title': 'Ironjacamar Test', 'Implementation-Version': version
+    }
+    extension = 'rar'
 }
 
 repositories {
-  maven {
-    name 'jboss-nexus'
-    url "http://repository.jboss.org/nexus/content/groups/public/"
-  }
-  maven {
-    name "jboss-snapshots"
-    url "http://snapshots.jboss.org/maven2/"
-  }
-  mavenCentral()
-  maven {
-    name 'fungal'
-    url "http://jesperpedersen.github.com/fungal/maven2/"
-  }
+    maven {
+        name 'jboss-nexus'
+        url "http://repository.jboss.org/nexus/content/groups/public/"
+    }
+    maven {
+        name "jboss-snapshots"
+        url "http://snapshots.jboss.org/maven2/"
+    }
+    mavenCentral()
+    maven {
+        name 'fungal'
+        url "http://jesperpedersen.github.com/fungal/maven2/"
+    }
 }
 
 dependencies {
-  compile 'org.jboss.ironjacamar:ironjacamar-spec-api:1.2.7.Final'
-  testCompile files("${System.properties['java.home']}/../lib/tools.jar")
-  testCompile 'org.jboss.ironjacamar:ironjacamar-arquillian-embedded:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-arquillian-embedded-byteman:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-common-api:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-common-impl:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-common-spi:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-core-api:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-core-impl:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-depchain:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-deployers-common:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-deployers-fungal:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-embedded:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-test-eis:1.2.7.Final'
-  testCompile 'org.jboss.ironjacamar:ironjacamar-validator:1.2.7.Final'
-  testCompile 'junit:junit:4.8.2+'
+    compile 'org.jboss.ironjacamar:ironjacamar-spec-api:1.2.7.Final'
+    testCompile files("${System.properties['java.home']}/../lib/tools.jar")
+    testCompile 'org.jboss.ironjacamar:ironjacamar-arquillian-embedded:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-arquillian-embedded-byteman:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-common-api:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-common-impl:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-common-spi:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-core-api:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-core-impl:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-depchain:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-deployers-common:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-deployers-fungal:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-embedded:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-test-eis:1.2.7.Final'
+    testCompile 'org.jboss.ironjacamar:ironjacamar-validator:1.2.7.Final'
+    testCompile 'junit:junit:4.8.2+'
 }
 test {
 }

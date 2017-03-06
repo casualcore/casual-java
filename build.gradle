@@ -1,7 +1,6 @@
 //-*- coding: utf-8 -*-
 plugins {
-  id 'jacoco'
-  id 'org.sonarqube' version '2.2'
+    id 'org.sonarqube' version '2.2.1'
 }
 
 defaultTasks 'build'
@@ -10,4 +9,9 @@ group = 'se.kodarkatten.casual'
 version = '0.0.1'
 
 
-
+sonarqube {
+    properties {
+        properties["sonar.host.url"] = 'http://localhost:9000'
+        properties["sonar.verbose"] = "true"
+    }
+}
