@@ -1,26 +1,37 @@
 package se.kodarkatten.casual.network.io;
 
 
-import se.kodarkatten.casual.network.messages.CasualNWMessage;
+import se.kodarkatten.casual.network.io.readers.CasualDomainDiscoveryRequestMessageReader;
+import se.kodarkatten.casual.network.io.readers.CasualNWMessageHeaderReader;
+import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
+import se.kodarkatten.casual.network.messages.request.CasualDomainDiscoveryRequestMessage;
 
-import java.nio.ByteBuffer;
+import java.util.List;
 
 public final class CasualNetworkReader
 {
-
-    private CasualNetworkReader() {
+    private CasualNetworkReader()
+    {
         //no instances should be crated
     }
 
-    public static final CasualNWMessage networkMessageToCasualMessage(final byte[] message) {
+    public static CasualNWMessageHeader networkHeaderToCasualHeader(final byte[] message)
+    {
+        return CasualNWMessageHeaderReader.fromNetworkBytes(message);
+    }
 
-        ByteBuffer bytebuffer = ByteBuffer.wrap(message);
-
-        byte[] messagetypeidbyte = new byte[8];
-        bytebuffer.get(messagetypeidbyte,0,7);
-        int messagetypeid = ByteBuffer.wrap(messagetypeidbyte).getInt();
-
-        return new CasualNWMessage(messagetypeid);
+    /**
+     * When reading the bytes - if the payload in the header is less than Integer.MAX_VALUE
+     * then this list of bytes should only contain one byte[]
+     * If not, list should contain one byte[] per member of
+     * message::interdomain::domain::discovery::Request that contain dynamic arrays
+     * Other data may be packed into one byte[] but the format is not yet settled
+     * @param payload
+     * @return
+     */
+    public static CasualDomainDiscoveryRequestMessage networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(final List<byte[]> payload)
+    {
+        return CasualDomainDiscoveryRequestMessageReader.fromNetworkBytes(payload);
     }
 
 }

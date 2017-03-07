@@ -40,6 +40,11 @@ public enum CasualNWMessageType
         throw new IllegalArgumentException("Unknown message type:" + id);
     }
 
+    public int getMessageId()
+    {
+        return messageId;
+    }
+
     public static final int marshal(CasualNWMessageType messageType)
     {
         return messageType.messageId;
