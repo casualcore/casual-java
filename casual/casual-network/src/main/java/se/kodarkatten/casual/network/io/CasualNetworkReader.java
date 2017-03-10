@@ -1,9 +1,11 @@
 package se.kodarkatten.casual.network.io;
 
 
+import se.kodarkatten.casual.network.io.readers.CasualDomainDiscoveryReplyMessageReader;
 import se.kodarkatten.casual.network.io.readers.CasualDomainDiscoveryRequestMessageReader;
 import se.kodarkatten.casual.network.io.readers.CasualNWMessageHeaderReader;
 import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
+import se.kodarkatten.casual.network.messages.reply.CasualDomainDiscoveryReplyMessage;
 import se.kodarkatten.casual.network.messages.request.CasualDomainDiscoveryRequestMessage;
 
 import java.util.List;
@@ -33,5 +35,12 @@ public final class CasualNetworkReader
     {
         return CasualDomainDiscoveryRequestMessageReader.fromNetworkBytes(payload);
     }
+
+    public static CasualDomainDiscoveryReplyMessage networkDomainDiscoverReplyToCasualDomainDiscoveryReplyMessage(final List<byte[]> payload)
+    {
+        return CasualDomainDiscoveryReplyMessageReader.fromNetworkBytes(payload);
+    }
+
+
 
 }

@@ -1,5 +1,8 @@
 package se.kodarkatten.casual.network.messages.request;
 
+import se.kodarkatten.casual.network.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.messages.CasualNWMessageType;
+import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.messages.parseinfo.DiscoveryRequestSizes;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
@@ -16,8 +19,9 @@ import java.util.stream.Collectors;
  */
 // We suppress this since the builder code is much cleaner using the private setters of the class
 @SuppressWarnings("squid:S3398")
-public final class CasualDomainDiscoveryRequestMessage
+public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkTransmittable
 {
+    private static final CasualNWMessageType type = CasualNWMessageType.DOMAIN_DISCOVERY_REQUEST;
     private UUID execution;
     private UUID domainId;
     private String domainName;
@@ -41,6 +45,7 @@ public final class CasualDomainDiscoveryRequestMessage
      * May return several chunks since domainName, serviceNames and queueNames may all be of size Integer.MAX_VALUE
      * @return
      */
+    @Override
     public List<byte[]> toNetworkBytes()
     {
         final byte[] domainNameBytes = domainName.getBytes(StandardCharsets.UTF_8);
@@ -55,12 +60,17 @@ public final class CasualDomainDiscoveryRequestMessage
                                  DiscoveryRequestSizes.SERVICES_SIZE.getNetworkSize() +
                                  DiscoveryRequestSizes.SERVICES_ELEMENT_SIZE.getNetworkSize() * serviceNameBytes.size() + ByteUtils.sumNumberOfBytes(serviceNameBytes) +
                                  DiscoveryRequestSizes.QUEUES_SIZE.getNetworkSize() +
-                                 DiscoveryRequestSizes.QUEUES_ELEMENT_SIZE.getNetworkSize() * serviceNameBytes.size() + ByteUtils.sumNumberOfBytes(queueNameBytes);
+                                 DiscoveryRequestSizes.QUEUES_ELEMENT_SIZE.getNetworkSize() * queueNameBytes.size() + ByteUtils.sumNumberOfBytes(queueNameBytes);
 
         return (messageSize <= maxMessageSize) ? toNetworkBytesFitsInOneBuffer((int)messageSize, domainNameBytes, serviceNameBytes, queueNameBytes)
                                                   : toNetworkBytesMultipleBuffers(domainNameBytes, serviceNameBytes, queueNameBytes);
     }
 
+    @Override
+    public CasualNWMessageType getType()
+    {
+        return type;
+    }
 
     public UUID getExecution()
     {
@@ -164,10 +174,15 @@ public final class CasualDomainDiscoveryRequestMessage
         private UUID execution;
         private UUID domainId;
         private String domainName;
-        private List<String> serviceNames;
-        private List<String> queueNames;
+        // Initialized in case of only one but not the other actually being used
+        private List<String> serviceNames = new ArrayList<>();
+        private List<String> queueNames = new ArrayList<>();
         private int maxMessageSize = Integer.MAX_VALUE;
 
+        /**
+         * Only used for testing purposes
+         * Max message size is default Integer.MAX_VALUE
+         */
         public CasualDomainDiscoveryRequestMessageBuilder setMaxMessageSize(int maxMessageSize)
         {
             this.maxMessageSize = maxMessageSize;
@@ -222,19 +237,17 @@ public final class CasualDomainDiscoveryRequestMessage
     {
         List<byte[]> l = new ArrayList<>();
         ByteBuffer executionBuffer = ByteBuffer.allocate(DiscoveryRequestSizes.EXECUTION.getNetworkSize());
-        executionBuffer.putLong(execution.getMostSignificantBits())
-                       .putLong(execution.getLeastSignificantBits());
+        CasualNetworkWriterUtils.writeUUID(execution, executionBuffer);
         l.add(executionBuffer.array());
         ByteBuffer domainIdBuffer = ByteBuffer.allocate(DiscoveryRequestSizes.DOMAIN_ID.getNetworkSize());
-        domainIdBuffer.putLong(domainId.getMostSignificantBits())
-                      .putLong(domainId.getLeastSignificantBits());
+        CasualNetworkWriterUtils.writeUUID(domainId, domainIdBuffer);
         l.add(domainIdBuffer.array());
         ByteBuffer domainNameSizeBuffer = ByteBuffer.allocate(DiscoveryRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize());
         domainNameSizeBuffer.putLong(domainNameBytes.length);
         l.add(domainNameSizeBuffer.array());
         l.add(domainNameBytes);
-        addNameBytes(l, serviceNameBytes, DiscoveryRequestSizes.SERVICES_SIZE.getNetworkSize(), DiscoveryRequestSizes.SERVICES_ELEMENT_SIZE.getNetworkSize());
-        addNameBytes(l, queueNameBytes, DiscoveryRequestSizes.QUEUES_SIZE.getNetworkSize(), DiscoveryRequestSizes.QUEUES_ELEMENT_SIZE.getNetworkSize());
+        CasualNetworkWriterUtils.writeDynamicArray(l, serviceNameBytes, DiscoveryRequestSizes.SERVICES_SIZE.getNetworkSize(), DiscoveryRequestSizes.SERVICES_ELEMENT_SIZE.getNetworkSize());
+        CasualNetworkWriterUtils.writeDynamicArray(l, queueNameBytes, DiscoveryRequestSizes.QUEUES_SIZE.getNetworkSize(), DiscoveryRequestSizes.QUEUES_ELEMENT_SIZE.getNetworkSize());
         return l;
     }
 
@@ -242,47 +255,14 @@ public final class CasualDomainDiscoveryRequestMessage
     {
         List<byte[]> l = new ArrayList<>();
         ByteBuffer b = ByteBuffer.allocate(messageSize);
-        b.putLong(execution.getMostSignificantBits())
-         .putLong(execution.getLeastSignificantBits())
-         .putLong(domainId.getMostSignificantBits())
-         .putLong(domainId.getLeastSignificantBits())
-         .putLong(domainNameBytes.length)
+        CasualNetworkWriterUtils.writeUUID(execution, b);
+        CasualNetworkWriterUtils.writeUUID(domainId, b);
+        b.putLong(domainNameBytes.length)
          .put(domainNameBytes);
-        addNameBytes(b, serviceNameBytes);
-        addNameBytes(b, queueNameBytes);
+        CasualNetworkWriterUtils.writeDynamicArray(b, serviceNameBytes);
+        CasualNetworkWriterUtils.writeDynamicArray(b, queueNameBytes);
         l.add(b.array());
         return l;
-    }
-
-    private void addNameBytes(ByteBuffer b, List<byte[]> data)
-    {
-        if(!data.isEmpty())
-        {
-            b.putLong(data.size());
-            for(int i = 0; i < data.size(); ++i)
-            {
-                b.putLong(data.get(i).length);
-                b.put(data.get(i));
-            }
-        }
-    }
-
-    private void addNameBytes(List<byte[]> l, List<byte[]> data, int headerSize, int elementSize)
-    {
-        if(!data.isEmpty())
-        {
-            ByteBuffer header = ByteBuffer.allocate(headerSize);
-            header.putLong(data.size());
-            l.add(header.array());
-            for(int i = 0; i < data.size(); ++i)
-            {
-                ByteBuffer elementSizeBuffer = ByteBuffer.allocate(elementSize);
-                final byte[] elementData = data.get(i);
-                elementSizeBuffer.putLong(elementData.length);
-                l.add(elementSizeBuffer.array());
-                l.add(elementData);
-            }
-        }
     }
 
 }

@@ -69,7 +69,11 @@ public final class CasualDomainDiscoveryRequestMessageReader
                                                   .build();
     }
 
-    // Used when header payload > Integer.MAX_VALUE
+    /**
+     * Used when header payload > Integer.MAX_VALUE
+     * @see CasualDomainDiscoveryRequestMessage::toNetworkBytesMultipleBuffers
+     * to see how message should be structured
+     **/
     private static CasualDomainDiscoveryRequestMessage getMessage(List<byte[]> message)
     {
         int currentIndex = 0;
