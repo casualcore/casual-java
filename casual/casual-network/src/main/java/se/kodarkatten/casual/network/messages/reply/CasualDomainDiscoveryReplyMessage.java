@@ -8,6 +8,8 @@ import se.kodarkatten.casual.network.messages.queue.Queue;
 import se.kodarkatten.casual.network.messages.service.Service;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -200,5 +202,19 @@ public final class CasualDomainDiscoveryReplyMessage implements CasualNetworkTra
     public int hashCode()
     {
         return Objects.hash(execution, domainId, domainName, services, queues);
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("CasualDomainDiscoveryReplyMessage{");
+        sb.append("execution=").append(execution);
+        sb.append(", domainId=").append(domainId);
+        sb.append(", domainName='").append(domainName).append('\'');
+        sb.append(", services=").append(services);
+        sb.append(", queues=").append(queues);
+        sb.append(", maxMessageSize=").append(maxMessageSize);
+        sb.append('}');
+        return sb.toString();
     }
 }

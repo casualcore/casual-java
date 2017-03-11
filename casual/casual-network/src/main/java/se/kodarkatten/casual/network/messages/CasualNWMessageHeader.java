@@ -86,6 +86,17 @@ public final class CasualNWMessageHeader
         return Objects.hash(type, correlationId, payloadSize);
     }
 
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("CasualNWMessageHeader{");
+        sb.append("type=").append(type);
+        sb.append(", correlationId=").append(correlationId);
+        sb.append(", payloadSize=").append(payloadSize);
+        sb.append('}');
+        return sb.toString();
+    }
+
     public static class CasualNWMessageHeaderBuilder
     {
         private CasualNWMessageType type;

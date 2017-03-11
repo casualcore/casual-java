@@ -80,4 +80,14 @@ public class CasualNWMessage<T extends CasualNetworkTransmittable>
     {
         return Objects.hash(correlationId, message);
     }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("CasualNWMessage{");
+        sb.append("correlationId=").append(correlationId);
+        sb.append(", message=").append(message);
+        sb.append('}');
+        return sb.toString();
+    }
 }

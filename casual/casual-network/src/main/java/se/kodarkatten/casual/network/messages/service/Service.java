@@ -183,5 +183,19 @@ public final class Service
     {
         return Objects.hash(name, category, transactionType, timeout, hops, maxMessageSize);
     }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("Service{");
+        sb.append("name='").append(name).append('\'');
+        sb.append(", category='").append(category).append('\'');
+        sb.append(", transactionType=").append(transactionType);
+        sb.append(", timeout=").append(timeout);
+        sb.append(", hops=").append(hops);
+        sb.append(", maxMessageSize=").append(maxMessageSize);
+        sb.append('}');
+        return sb.toString();
+    }
 }
 

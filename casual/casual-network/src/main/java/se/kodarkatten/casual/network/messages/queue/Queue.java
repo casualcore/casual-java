@@ -85,4 +85,14 @@ public final class Queue
     {
         return Objects.hash(name, retries);
     }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("Queue{");
+        sb.append("name='").append(name).append('\'');
+        sb.append(", retries=").append(retries);
+        sb.append('}');
+        return sb.toString();
+    }
 }

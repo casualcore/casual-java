@@ -6,6 +6,8 @@ import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.messages.parseinfo.DiscoveryRequestSizes;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -109,6 +111,8 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
                          .collect(Collectors.toList());
     }
 
+
+
     private CasualDomainDiscoveryRequestMessage setMaxMessageSize(int maxMessageSize)
     {
         this.maxMessageSize = maxMessageSize;
@@ -167,6 +171,20 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
     public int hashCode()
     {
         return Objects.hash(execution, domainId);
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("CasualDomainDiscoveryRequestMessage{");
+        sb.append("execution=").append(execution);
+        sb.append(", domainId=").append(domainId);
+        sb.append(", domainName='").append(domainName).append('\'');
+        sb.append(", serviceNames=").append(serviceNames);
+        sb.append(", queueNames=").append(queueNames);
+        sb.append(", maxMessageSize=").append(maxMessageSize);
+        sb.append('}');
+        return sb.toString();
     }
 
     public static class CasualDomainDiscoveryRequestMessageBuilder
