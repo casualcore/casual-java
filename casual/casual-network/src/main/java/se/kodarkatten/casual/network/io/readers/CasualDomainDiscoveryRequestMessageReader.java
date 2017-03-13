@@ -5,12 +5,16 @@ import se.kodarkatten.casual.network.io.readers.utils.DynamicArrayIndexPair;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.DiscoveryRequestSizes;
 import se.kodarkatten.casual.network.messages.request.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousByteChannel;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -27,8 +31,30 @@ import java.util.UUID;
 @SuppressWarnings({"squid:S1612", "squid:S1611"})
 public final class CasualDomainDiscoveryRequestMessageReader
 {
+    private static int maxSingleBufferByteSize = Integer.MAX_VALUE;
     private CasualDomainDiscoveryRequestMessageReader()
     {}
+
+    /**
+     * Number of maximum bytes before any chunk reading takes place
+     * Defaults to Integer.MAX_VALUE
+     * @return
+     */
+    public static int getMaxSingleBufferByteSize()
+    {
+        return maxSingleBufferByteSize;
+    }
+
+    /**
+     * If not set, defaults to Integer.MAX_VALUE
+     * Can be used in testing to force chunked reading
+     * by for instance setting it to 1
+     * @return
+     */
+    public static void setMaxSingleBufferByteSize(int maxSingleBufferByteSize)
+    {
+        CasualDomainDiscoveryRequestMessageReader.maxSingleBufferByteSize = maxSingleBufferByteSize;
+    }
 
     public static CasualDomainDiscoveryRequestMessage fromNetworkBytes(final List<byte[]> message)
     {
@@ -99,5 +125,33 @@ public final class CasualDomainDiscoveryRequestMessageReader
                                                   .build();
     }
 
+    public static CasualDomainDiscoveryRequestMessage read(final AsynchronousByteChannel channel, long messageSize)
+    {
+        try
+        {
+            if (messageSize <= getMaxSingleBufferByteSize())
+            {
+                return readSingleBuffer(channel, (int) messageSize);
+            }
+            return readChunked(channel);
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualTransportException("failed reading", e);
+        }
+    }
+
+    private static CasualDomainDiscoveryRequestMessage readSingleBuffer(AsynchronousByteChannel channel, int messageSize) throws ExecutionException, InterruptedException
+    {
+        final CompletableFuture<ByteBuffer> msgFuture = ByteUtils.readFully(channel, messageSize);
+        return getMessage(msgFuture.get().array());
+    }
+
+    // it will be used
+    @SuppressWarnings("squid:S1172")
+    private static CasualDomainDiscoveryRequestMessage readChunked(AsynchronousByteChannel channel)
+    {
+        return null;
+    }
 
 }

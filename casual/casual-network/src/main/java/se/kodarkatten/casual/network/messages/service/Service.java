@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.network.messages.service;
 
+import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.DiscoveryReplySizes;
 
 import java.nio.ByteBuffer;
@@ -19,13 +20,10 @@ public final class Service
     // microseconds
     private long timeout;
     private long hops;
-    // Only used in testing
-    // Defaults to Integer.MAX_VALUE
-    private int maxMessageSize = Integer.MAX_VALUE;
     private Service()
     {}
 
-    public static Service of(String name, String category, TransactionType t)
+    public static Service of(final String name, final String category, final TransactionType t)
     {
         return new Service()
             .setName(name)
@@ -33,6 +31,11 @@ public final class Service
             .setTransactionType(t);
     }
 
+    /**
+     * We assume that everything for a Service fits into Integer.MAX_VALUE
+     * If not, we throw a CasualTransportException
+     * @return
+     */
     public List<byte[]> toNetworkBytes()
     {
         final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
@@ -42,9 +45,12 @@ public final class Service
                                     DiscoveryReplySizes.SERVICES_ELEMENT_TRANSACTION.getNetworkSize() +
                                     DiscoveryReplySizes.SERVICES_ELEMENT_TIMEOUT.getNetworkSize() +
                                    (long) DiscoveryReplySizes.SERVICES_ELEMENT_HOPS.getNetworkSize();
+        if(serviceByteSize > Integer.MAX_VALUE)
+        {
+            throw new CasualTransportException("Queue byte size is larger than Integer.MAX_VALUE: " + serviceByteSize);
+        }
 
-        return (serviceByteSize <= maxMessageSize) ? toNetworkBytesFitsInOneBuffer((int)serviceByteSize, nameBytes, categoryBytes)
-                                                   : toNetworkBytesMultipleBuffers(nameBytes, categoryBytes);
+        return toNetworkBytesFitsInOneBuffer((int)serviceByteSize, nameBytes, categoryBytes);
     }
 
 
@@ -61,35 +67,6 @@ public final class Service
          .putLong(hops);
         l.add(b.array());
         return l;
-    }
-
-    private List<byte[]> toNetworkBytesMultipleBuffers(final byte[] nameBytes, final byte[] categoryBytes)
-    {
-        final List<byte[]> l = new ArrayList<>();
-        final ByteBuffer nameSizeBuffer = ByteBuffer.allocate(DiscoveryReplySizes.SERVICES_ELEMENT_NAME_SIZE.getNetworkSize());
-        nameSizeBuffer.putLong(nameBytes.length);
-        l.add(nameSizeBuffer.array());
-        l.add(nameBytes);
-
-        final ByteBuffer categorySizeBuffer = ByteBuffer.allocate(DiscoveryReplySizes.SERVICES_ELEMENT_CATEGORY_SIZE.getNetworkSize());
-        nameSizeBuffer.putLong(categoryBytes.length);
-        l.add(categorySizeBuffer.array());
-        l.add(categoryBytes);
-
-        final ByteBuffer transactionTimeoutAndHopsBuffer = ByteBuffer.allocate(DiscoveryReplySizes.SERVICES_ELEMENT_TRANSACTION.getNetworkSize() +
-                                                                               DiscoveryReplySizes.SERVICES_ELEMENT_TIMEOUT.getNetworkSize() +
-                                                                               DiscoveryReplySizes.SERVICES_ELEMENT_HOPS.getNetworkSize());
-        transactionTimeoutAndHopsBuffer.putShort(TransactionType.marshal(transactionType))
-                                       .putLong(timeout)
-                                       .putLong(hops);
-        l.add(transactionTimeoutAndHopsBuffer.array());
-        return l;
-    }
-
-    public Service setMaxMessageSize(int maxMessageSize)
-    {
-        this.maxMessageSize = maxMessageSize;
-        return this;
     }
 
     public Service setName(String name)
@@ -172,7 +149,6 @@ public final class Service
         Service service = (Service) o;
         return timeout == service.timeout &&
             hops == service.hops &&
-            maxMessageSize == service.maxMessageSize &&
             Objects.equals(name, service.name) &&
             Objects.equals(category, service.category) &&
             transactionType == service.transactionType;
@@ -181,7 +157,7 @@ public final class Service
     @Override
     public int hashCode()
     {
-        return Objects.hash(name, category, transactionType, timeout, hops, maxMessageSize);
+        return Objects.hash(name, category, transactionType, timeout, hops);
     }
 
     @Override
@@ -193,7 +169,6 @@ public final class Service
         sb.append(", transactionType=").append(transactionType);
         sb.append(", timeout=").append(timeout);
         sb.append(", hops=").append(hops);
-        sb.append(", maxMessageSize=").append(maxMessageSize);
         sb.append('}');
         return sb.toString();
     }

@@ -9,4 +9,8 @@ public final class CasualTransportException extends RuntimeException
     {
         super(msg);
     }
+    public CasualTransportException(String msg, Throwable t)
+    {
+        super(msg, t);
+    }
 }

@@ -6,8 +6,6 @@ import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.messages.parseinfo.DiscoveryRequestSizes;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;

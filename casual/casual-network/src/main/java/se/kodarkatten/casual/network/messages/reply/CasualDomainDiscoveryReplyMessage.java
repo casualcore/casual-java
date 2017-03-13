@@ -8,8 +8,6 @@ import se.kodarkatten.casual.network.messages.queue.Queue;
 import se.kodarkatten.casual.network.messages.service.Service;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
