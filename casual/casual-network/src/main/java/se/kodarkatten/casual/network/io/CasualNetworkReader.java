@@ -9,8 +9,8 @@ import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.MessageHeaderSizes;
-import se.kodarkatten.casual.network.messages.reply.CasualDomainDiscoveryReplyMessage;
-import se.kodarkatten.casual.network.messages.request.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.messages.reply.domain.CasualDomainDiscoveryReplyMessage;
+import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;

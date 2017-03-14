@@ -6,7 +6,7 @@ import java.util.*;
 
 /**
  * Created by aleph on 2017-03-09.
- * Convience class to send complte messages on the wire
+ * Convenience class to send complete messages on the wire
  */
 public class CasualNWMessage<T extends CasualNetworkTransmittable>
 {

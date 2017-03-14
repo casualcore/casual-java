@@ -4,7 +4,7 @@ import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
 import se.kodarkatten.casual.network.io.readers.utils.DynamicArrayIndexPair;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.DiscoveryRequestSizes;
-import se.kodarkatten.casual.network.messages.request.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;

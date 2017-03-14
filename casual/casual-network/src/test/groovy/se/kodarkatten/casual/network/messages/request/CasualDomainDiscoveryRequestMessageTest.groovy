@@ -1,7 +1,7 @@
 package se.kodarkatten.casual.network.messages.request
 
 import se.kodarkatten.casual.network.io.CasualNetworkReader
-import se.kodarkatten.casual.network.messages.request.CasualDomainDiscoveryRequestMessage
+import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage
 import spock.lang.Specification
 
 /**

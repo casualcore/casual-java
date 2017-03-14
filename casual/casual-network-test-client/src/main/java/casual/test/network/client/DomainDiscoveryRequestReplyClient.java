@@ -3,14 +3,13 @@ package casual.test.network.client;
 import se.kodarkatten.casual.network.io.CasualNetworkReader;
 import se.kodarkatten.casual.network.io.CasualNetworkWriter;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.reply.CasualDomainDiscoveryReplyMessage;
-import se.kodarkatten.casual.network.messages.request.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.messages.reply.domain.CasualDomainDiscoveryReplyMessage;
+import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.Arrays;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Created by aleph on 2017-03-10.

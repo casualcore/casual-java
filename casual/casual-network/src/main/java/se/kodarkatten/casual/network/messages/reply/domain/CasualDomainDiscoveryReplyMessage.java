@@ -1,11 +1,9 @@
-package se.kodarkatten.casual.network.messages.reply;
+package se.kodarkatten.casual.network.messages.reply.domain;
 
 import se.kodarkatten.casual.network.io.writers.utils.CasualNetworkWriterUtils;
 import se.kodarkatten.casual.network.messages.CasualNWMessageType;
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.messages.parseinfo.DiscoveryReplySizes;
-import se.kodarkatten.casual.network.messages.queue.Queue;
-import se.kodarkatten.casual.network.messages.service.Service;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
@@ -26,7 +24,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("squid:S1612")
 public final class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmittable
 {
-    private static final CasualNWMessageType type = CasualNWMessageType.DOMAIN_DISCOVERY_REPLY;
     private final UUID execution;
     private final UUID domainId;
     private final String domainName;
@@ -54,7 +51,7 @@ public final class CasualDomainDiscoveryReplyMessage implements CasualNetworkTra
     @Override
     public CasualNWMessageType getType()
     {
-        return type;
+        return CasualNWMessageType.DOMAIN_DISCOVERY_REPLY;
     }
 
     public CasualDomainDiscoveryReplyMessage setServices(List<Service> services)

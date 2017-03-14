@@ -5,6 +5,7 @@ package se.kodarkatten.casual.network.messages.exceptions;
  */
 public final class CasualTransportException extends RuntimeException
 {
+    private static final long serialVersionUID = 1l;
     public CasualTransportException(String msg)
     {
         super(msg);

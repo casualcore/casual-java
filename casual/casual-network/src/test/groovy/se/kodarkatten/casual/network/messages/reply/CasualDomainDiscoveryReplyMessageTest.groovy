@@ -1,9 +1,10 @@
 package se.kodarkatten.casual.network.messages.reply
 
 import se.kodarkatten.casual.network.io.CasualNetworkReader
-import se.kodarkatten.casual.network.messages.queue.Queue
-import se.kodarkatten.casual.network.messages.service.Service
-import se.kodarkatten.casual.network.messages.service.TransactionType
+import se.kodarkatten.casual.network.messages.reply.domain.CasualDomainDiscoveryReplyMessage
+import se.kodarkatten.casual.network.messages.reply.domain.Queue
+import se.kodarkatten.casual.network.messages.reply.domain.Service
+import se.kodarkatten.casual.network.messages.reply.domain.TransactionType
 import spock.lang.Shared
 import spock.lang.Specification
 

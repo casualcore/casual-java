@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.network.messages.request;
+package se.kodarkatten.casual.network.messages.request.domain;
 
 import se.kodarkatten.casual.network.io.writers.utils.CasualNetworkWriterUtils;
 import se.kodarkatten.casual.network.messages.CasualNWMessageType;
@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("squid:S3398")
 public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkTransmittable
 {
-    private static final CasualNWMessageType type = CasualNWMessageType.DOMAIN_DISCOVERY_REQUEST;
     private UUID execution;
     private UUID domainId;
     private String domainName;
@@ -69,7 +68,7 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
     @Override
     public CasualNWMessageType getType()
     {
-        return type;
+        return CasualNWMessageType.DOMAIN_DISCOVERY_REQUEST;
     }
 
     public UUID getExecution()

@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.network.messages.service
 
+import se.kodarkatten.casual.network.messages.reply.domain.TransactionType
 import spock.lang.Specification
 
 /**
