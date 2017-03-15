@@ -4,6 +4,8 @@ package se.kodarkatten.casual.network.messages.common;
  * Created by aleph on 2017-03-15.
  */
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,4 +47,20 @@ public final class ServiceBuffer
     {
         return payload;
     }
+
+    /**
+     * Always returns a list of at least two byte[]
+     * The first one contains the type name encoded as utf-8
+     * The rest of the items are the payload
+     * @return
+     */
+    public List<byte[]> toNetworkBytes()
+    {
+        final byte[] typeBytes = type.getBytes(StandardCharsets.UTF_8);
+        final List<byte[]> r = new ArrayList<>();
+        r.add(typeBytes);
+        r.addAll(getPayload());
+        return r;
+    }
+
 }

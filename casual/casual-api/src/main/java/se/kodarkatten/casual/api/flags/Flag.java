@@ -25,6 +25,11 @@ public class Flag<T extends CasualFlag>
         return type;
     }
 
+    public int getFlagValue()
+    {
+        return flags;
+    }
+
     public static final class Builder<T extends CasualFlag>
     {
         private int value;
@@ -55,9 +60,5 @@ public class Flag<T extends CasualFlag>
         {
             return new Flag(value);
         }
-    }
-
-    int getFlagValue() {
-        return flags;
     }
 }

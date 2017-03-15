@@ -88,7 +88,7 @@ public final class CasualNetworkReader
      * then this list of bytes should only contain one byte[]
      * If not, list should contain one byte[] per member of
      * message::interdomain::domain::discovery::Request that contain dynamic arrays
-     * Other data may be packed into one byte[] but the format is not yet settled
+     * Other data may be packed into one byte[]
      * @param payload
      * @return
      */
