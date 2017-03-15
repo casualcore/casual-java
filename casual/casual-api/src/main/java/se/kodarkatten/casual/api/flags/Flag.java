@@ -5,17 +5,27 @@ import se.kodarkatten.casual.api.flags.internal.CasualFlag;
 /**
  * @author jone
  */
-public class Flag
+public class Flag<T extends CasualFlag>
 {
+    private T type;
     private final int flags;
 
-    Flag(int flags)
+    private Flag(int flags)
     {
         this.flags = flags;
     }
 
+    public static Flag of(final Flag flag)
+    {
+        return new Flag(flag.flags);
+    }
 
-    public static final class Builder
+    public T getFlagType()
+    {
+        return type;
+    }
+
+    public static final class Builder<T extends CasualFlag>
     {
         private int value;
 
@@ -29,13 +39,13 @@ public class Flag
             value = initialValue;
         }
 
-        public final Builder and(final CasualFlag flag)
+        public final Builder and(final T flag)
         {
             value = value & flag.getValue();
             return this;
         }
 
-        public final Builder or(final CasualFlag flag)
+        public final Builder or(final T flag)
         {
             value = value | flag.getValue();
             return this;

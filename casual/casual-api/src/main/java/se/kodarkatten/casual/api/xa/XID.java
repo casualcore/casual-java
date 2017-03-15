@@ -11,21 +11,46 @@ import java.util.Objects;
 public final class XID
 {
     private static final int XID_DATA_SIZE = 128;
-    private long formatId;
+    // default to null format
+    private final XIDFormatType formatType;
     // length of the transaction gtrid part
     private final long gtridLength;
     // length of the transaction branch part
     private final long bqualLength;
     // (size = gtridLength + bqualLength) <= XID_DATA_SIZE
     private final byte[] data;
-    private XID(long gtridLength, long bqualLength, final byte[] data)
+    private XID(long gtridLength, long bqualLength, final byte[] data, final XIDFormatType formatType)
     {
         this.gtridLength = gtridLength;
         this.bqualLength = bqualLength;
         this.data = data;
+        this.formatType = formatType;
     }
 
-    public static XID of(long gtridLength, long bqualLength, final byte[] data)
+    private XID()
+    {
+        this(0, 0, null, XIDFormatType.NULL);
+    }
+
+    /**
+     * Null XID
+     * @return
+     */
+    public static XID of()
+    {
+        return new XID();
+    }
+
+    public static XID of(final XID xid)
+    {
+        if(xid.formatType == XIDFormatType.NULL)
+        {
+            return XID.of();
+        }
+        return XID.of(xid.gtridLength, xid.bqualLength, Arrays.copyOf(xid.data, xid.data.length), xid.formatType);
+    }
+
+    public static XID of(long gtridLength, long bqualLength, final byte[] data, final XIDFormatType formatType)
     {
         if((gtridLength + bqualLength) > data.length)
         {
@@ -35,7 +60,7 @@ public final class XID
         {
             throw new XIDException("data.length > XID_DATA_SIZE " + data.length + " > " + XID_DATA_SIZE);
         }
-        return new XID(gtridLength, bqualLength, data);
+        return new XID(gtridLength, bqualLength, data, formatType);
     }
 
     @Override
@@ -50,7 +75,7 @@ public final class XID
             return false;
         }
         XID xid = (XID) o;
-        return formatId == xid.formatId &&
+        return formatType == xid.formatType &&
             gtridLength == xid.gtridLength &&
             bqualLength == xid.bqualLength &&
             Arrays.equals(data, xid.data);
@@ -59,6 +84,6 @@ public final class XID
     @Override
     public int hashCode()
     {
-        return Objects.hash(formatId, gtridLength, bqualLength, data);
+        return Objects.hash(formatType, gtridLength, bqualLength, data);
     }
 }
