@@ -1,10 +1,13 @@
 package se.kodarkatten.casual.network.messages.reply
 
 import se.kodarkatten.casual.network.io.CasualNetworkReader
+import se.kodarkatten.casual.network.io.CasualNetworkWriter
+import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.reply.domain.CasualDomainDiscoveryReplyMessage
 import se.kodarkatten.casual.network.messages.reply.domain.Queue
 import se.kodarkatten.casual.network.messages.reply.domain.Service
 import se.kodarkatten.casual.network.messages.reply.domain.TransactionType
+import se.kodarkatten.casual.network.utils.ByteSink
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -54,15 +57,19 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def execution = UUID.randomUUID()
         def domainId = UUID.randomUUID()
         def domainName = 'Casually owned domain'
-        def msg = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), replyMessage)
+        def sink = new ByteSink()
 
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualDomainDiscoveryReplyMessage resurrectedMsg = CasualNetworkReader.networkDomainDiscoverReplyToCasualDomainDiscoveryReplyMessage(networkBytes)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> resurrectedMsg = CasualNetworkReader.read(sink)
 
         then:
         networkBytes != null
-        networkBytes.size() == 1
+        networkBytes.size() == 2 // header + msg
+        msg.getMessage() == replyMessage
         msg == resurrectedMsg
     }
 
@@ -74,16 +81,20 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def domainName = 'Casually owned domain'
         def serviceNames = ['First service']
         def services = createSomeServices(serviceNames)
-        def msg = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
-                                                   .setServices(services)
+        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+                                                            .setServices(services)
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), replyMessage)
+        def sink = new ByteSink()
 
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualDomainDiscoveryReplyMessage resurrectedMsg = CasualNetworkReader.networkDomainDiscoverReplyToCasualDomainDiscoveryReplyMessage(networkBytes)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> resurrectedMsg = CasualNetworkReader.read(sink)
 
         then:
         networkBytes != null
-        networkBytes.size() == 1
+        networkBytes.size() == 2
+        msg.getMessage() == replyMessage
         msg == resurrectedMsg
     }
 
@@ -95,16 +106,20 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def domainName = 'Casually owned domain'
         def queueNames = ['A queue']
         def queues = createSomeQueues(queueNames)
-        def msg = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
-                                                   .setQueues(queues)
+        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+                                                            .setQueues(queues)
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), replyMessage)
+        def sink = new ByteSink()
 
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualDomainDiscoveryReplyMessage resurrectedMsg = CasualNetworkReader.networkDomainDiscoverReplyToCasualDomainDiscoveryReplyMessage(networkBytes)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> resurrectedMsg = CasualNetworkReader.read(sink)
 
         then:
         networkBytes != null
-        networkBytes.size() == 1
+        networkBytes.size() == 2
+        msg.getMessage() == replyMessage
         msg == resurrectedMsg
     }
 
@@ -118,16 +133,20 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def services = createSomeServices(serviceNames)
         def queueNames = ['A queue', 'Another, surprise, queue!']
         def queues = createSomeQueues(queueNames)
-        def msg = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
-                                                   .setServices(services)
-                                                   .setQueues(queues)
+        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+                                                            .setServices(services)
+                                                            .setQueues(queues)
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), replyMessage)
+        def sink = new ByteSink()
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualDomainDiscoveryReplyMessage resurrectedMsg = CasualNetworkReader.networkDomainDiscoverReplyToCasualDomainDiscoveryReplyMessage(networkBytes)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> resurrectedMsg = CasualNetworkReader.read(sink)
 
         then:
         networkBytes != null
-        networkBytes.size() == 1
+        networkBytes.size() == 2
+        msg.getMessage() == replyMessage
         msg == resurrectedMsg
     }
 
@@ -141,17 +160,22 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def services = createSomeServices(serviceNames)
         def queueNames = ['A queue', 'Another, surprise, queue!']
         def queues = createSomeQueues(queueNames)
-        def msg = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
-                                                   .setServices(services)
-                                                   .setQueues(queues)
-                                                   .setMaxMessageSize(1)
+        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+                                                            .setServices(services)
+                                                            .setQueues(queues)
+                                                            .setMaxMessageSize(1)
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), replyMessage)
+        def sink = new ByteSink()
+
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualDomainDiscoveryReplyMessage resurrectedMsg = CasualNetworkReader.networkDomainDiscoverReplyToCasualDomainDiscoveryReplyMessage(networkBytes)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> resurrectedMsg = CasualNetworkReader.read(sink)
 
         then:
         networkBytes != null
-        networkBytes.size() > 1
+        networkBytes.size() > 2
+        msg.getMessage() == replyMessage
         msg == resurrectedMsg
     }
 

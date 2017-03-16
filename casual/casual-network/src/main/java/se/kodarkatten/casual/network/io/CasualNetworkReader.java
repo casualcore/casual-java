@@ -15,7 +15,6 @@ import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -83,25 +82,6 @@ public final class CasualNetworkReader
         return CasualNWMessageHeaderReader.fromNetworkBytes(message);
     }
 
-    /**
-     * When reading the bytes - if the payload in the header is less than Integer.MAX_VALUE
-     * then this list of bytes should only contain one byte[]
-     * If not, list should contain one byte[] per member of
-     * message::interdomain::domain::discovery::Request that contain dynamic arrays
-     * Other data may be packed into one byte[]
-     * @param payload
-     * @return
-     */
-    public static CasualDomainDiscoveryRequestMessage networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(final List<byte[]> payload)
-    {
-        return CasualDomainDiscoveryRequestMessageReader.fromNetworkBytes(payload);
-    }
-
-    public static CasualDomainDiscoveryReplyMessage networkDomainDiscoverReplyToCasualDomainDiscoveryReplyMessage(final List<byte[]> payload)
-    {
-        return CasualDomainDiscoveryReplyMessageReader.fromNetworkBytes(payload);
-    }
-
     private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readDomainDiscoveryRequest(final AsynchronousByteChannel channel, final CasualNWMessageHeader header ) throws ExecutionException, InterruptedException
     {
         CasualDomainDiscoveryRequestMessageReader.setMaxSingleBufferByteSize(getMaxSingleBufferByteSize());
@@ -115,5 +95,4 @@ public final class CasualNetworkReader
         final CasualDomainDiscoveryReplyMessage msg = CasualDomainDiscoveryReplyMessageReader.read(channel, header.getPayloadSize());
         return CasualNWMessage.of(header.getCorrelationId(), msg);
     }
-
 }

@@ -46,19 +46,7 @@ public final class CasualDomainDiscoveryReplyMessageReader
         CasualDomainDiscoveryReplyMessageReader.maxSingleBufferByteSize = maxSingleBufferByteSize;
     }
 
-    public static CasualDomainDiscoveryReplyMessage fromNetworkBytes(final List<byte[]> message)
-    {
-        Objects.requireNonNull(message, "byte[] is null");
-        if(message.isEmpty())
-        {
-            throw new CasualTransportException("0 sized message");
-        }
-        if(1 == message.size())
-        {
-            return getMessage(message.get(0));
-        }
-        return getMessage(message);
-    }
+
 
     private static CasualDomainDiscoveryReplyMessage getMessage(byte[] bytes)
     {

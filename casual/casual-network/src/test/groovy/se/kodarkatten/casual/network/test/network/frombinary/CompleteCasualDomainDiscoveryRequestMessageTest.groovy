@@ -1,13 +1,18 @@
 package se.kodarkatten.casual.network.test.network.frombinary
 
 import se.kodarkatten.casual.network.io.CasualNetworkReader
+import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.parseinfo.MessageHeaderSizes
+import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage
+import se.kodarkatten.casual.network.utils.ByteSink
 import se.kodarkatten.casual.network.utils.ResourceLoader
+import se.kodarkatten.casual.network.utils.WriteCompletionHandler
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.nio.ByteBuffer
+import java.util.concurrent.CompletableFuture
 
 /**
  * Created by aleph on 2017-03-03.
@@ -51,54 +56,26 @@ class CompleteCasualDomainDiscoveryRequestMessageTest extends Specification
         resurrectedHeader == header
     }
 
-    def "payload to message"()
+    def "rountrip message"()
     {
         setup:
-        def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
-        def header = CasualNetworkReader.networkHeaderToCasualHeader(headerData)
-        def payload = new ArrayList<byte[]>()
-        payload.add(Arrays.copyOfRange(data, MessageHeaderSizes.headerNetworkSize, (int)header.getPayloadSize() + MessageHeaderSizes.headerNetworkSize))
+        List<byte[]> payload = new ArrayList<>()
+        payload.add(data)
+        def sink = new ByteSink()
+        payload.each{
+            bytes ->
+                CompletableFuture<Void> future = new CompletableFuture<>()
+                ByteBuffer buffer = ByteBuffer.wrap(bytes)
+                sink.write(buffer, null, WriteCompletionHandler.of(future, buffer, sink))
+                future.get()
+        }
         when:
-        def msg = CasualNetworkReader.networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(payload)
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNetworkReader.read(sink)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
         then:
         msg != null
+        msg.getMessage() == resurrectedMsg.getMessage()
+        msg == resurrectedMsg
     }
-
-    def "payload to message roundtripping ( without header)"()
-    {
-        setup:
-        def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
-        def header = CasualNetworkReader.networkHeaderToCasualHeader(headerData)
-        def payload = new ArrayList<byte[]>()
-        payload.add(Arrays.copyOfRange(data, MessageHeaderSizes.headerNetworkSize, (int)header.getPayloadSize() + MessageHeaderSizes.headerNetworkSize))
-        def msg = CasualNetworkReader.networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(payload)
-        when:
-        def resurrected = CasualNetworkReader.networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(msg.toNetworkBytes())
-        then:
-        resurrected != null
-        resurrected == msg
-    }
-
-    def "payload to message roundtripping with header"()
-    {
-        setup:
-        def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
-        def header = CasualNetworkReader.networkHeaderToCasualHeader(headerData)
-        def payload = new ArrayList<byte[]>()
-        payload.add(Arrays.copyOfRange(data, MessageHeaderSizes.headerNetworkSize, (int)header.getPayloadSize() + MessageHeaderSizes.headerNetworkSize))
-        def msg = CasualNetworkReader.networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(payload)
-        CasualNWMessage nwMessage = CasualNWMessage.of(header.correlationId, msg)
-        def msgBytes = nwMessage.toNetworkBytes()
-        when:
-        def resurrectedHeader = CasualNetworkReader.networkHeaderToCasualHeader(msgBytes.get(0))
-        def casualDomainDiscoveryRequestMsgBytes = []
-        casualDomainDiscoveryRequestMsgBytes << ByteBuffer.wrap(msgBytes.get(1), 0, (int)resurrectedHeader.payloadSize).array()
-        def resurrectedMsg = CasualNetworkReader.networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(casualDomainDiscoveryRequestMsgBytes)
-        then:
-        resurrectedHeader != null
-        header == resurrectedHeader
-        resurrectedMsg != null
-        resurrectedMsg == msg
-    }
-
 }

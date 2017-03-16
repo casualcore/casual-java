@@ -1,7 +1,10 @@
 package se.kodarkatten.casual.network.messages.request
 
 import se.kodarkatten.casual.network.io.CasualNetworkReader
+import se.kodarkatten.casual.network.io.CasualNetworkWriter
+import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage
+import se.kodarkatten.casual.network.utils.ByteSink
 import spock.lang.Specification
 
 /**
@@ -17,26 +20,29 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         def domainName = 'Casually owned domain'
         def serviceNames = ['Very nice service']
         def queueNames = []
-        def msg = CasualDomainDiscoveryRequestMessage.createBuilder()
+        def requestMessage = CasualDomainDiscoveryRequestMessage.createBuilder()
                 .setExecution(execution)
                 .setDomainId(domainId)
                 .setDomainName(domainName)
                 .setServiceNames(serviceNames)
                 .build()
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
+        def sink = new ByteSink()
 
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualDomainDiscoveryRequestMessage resurrectedMsg = CasualNetworkReader.networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(networkBytes)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
 
         then:
         networkBytes != null
-        networkBytes.size() == 1
+        networkBytes.size() == 2 // header + msg
         msg == resurrectedMsg
-        domainName == resurrectedMsg.getDomainName()
-        serviceNames.size() == resurrectedMsg.getNumberOfRequestedServicesToFollow()
-        queueNames.size() == resurrectedMsg.getNumberOfRequestedQueuesToFollow()
-        serviceNames == resurrectedMsg.getServiceNames()
-        queueNames == resurrectedMsg.getQueueNames()
+        domainName == resurrectedMsg.getMessage().getDomainName()
+        serviceNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedServicesToFollow()
+        queueNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedQueuesToFollow()
+        serviceNames == resurrectedMsg.getMessage().getServiceNames()
+        queueNames == resurrectedMsg.getMessage().getQueueNames()
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - no services and one queues"()
@@ -47,26 +53,29 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         def domainName = 'Casually owned domain'
         def serviceNames = []
         def queueNames = ['The funny queue']
-        def msg = CasualDomainDiscoveryRequestMessage.createBuilder()
+        def requestMessage = CasualDomainDiscoveryRequestMessage.createBuilder()
                 .setExecution(execution)
                 .setDomainId(domainId)
                 .setDomainName(domainName)
                 .setQueueNames(queueNames)
                 .build()
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
+        def sink = new ByteSink()
 
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualDomainDiscoveryRequestMessage resurrectedMsg = CasualNetworkReader.networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(networkBytes)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
 
         then:
         networkBytes != null
-        networkBytes.size() == 1
+        networkBytes.size() == 2
         msg == resurrectedMsg
-        domainName == resurrectedMsg.getDomainName()
-        serviceNames.size() == resurrectedMsg.getNumberOfRequestedServicesToFollow()
-        queueNames.size() == resurrectedMsg.getNumberOfRequestedQueuesToFollow()
-        serviceNames == resurrectedMsg.getServiceNames()
-        queueNames == resurrectedMsg.getQueueNames()
+        domainName == resurrectedMsg.getMessage().getDomainName()
+        serviceNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedServicesToFollow()
+        queueNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedQueuesToFollow()
+        serviceNames == resurrectedMsg.getMessage().getServiceNames()
+        queueNames == resurrectedMsg.getMessage().getQueueNames()
     }
 
 
@@ -78,27 +87,30 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         def domainName = 'Casually owned domain'
         def serviceNames = ['Very nice service', 'Hola!']
         def queueNames = ['Queues of the world unite!']
-        def msg = CasualDomainDiscoveryRequestMessage.createBuilder()
+        def requestMessage = CasualDomainDiscoveryRequestMessage.createBuilder()
                                                      .setExecution(execution)
                                                      .setDomainId(domainId)
                                                      .setDomainName(domainName)
                                                      .setServiceNames(serviceNames)
                                                      .setQueueNames(queueNames)
                                                      .build()
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
+        def sink = new ByteSink()
 
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualDomainDiscoveryRequestMessage resurrectedMsg = CasualNetworkReader.networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(networkBytes)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
 
         then:
         networkBytes != null
-        networkBytes.size() == 1
+        networkBytes.size() == 2
         msg == resurrectedMsg
-        domainName == resurrectedMsg.getDomainName()
-        serviceNames.size() == resurrectedMsg.getNumberOfRequestedServicesToFollow()
-        queueNames.size() == resurrectedMsg.getNumberOfRequestedQueuesToFollow()
-        serviceNames == resurrectedMsg.getServiceNames()
-        queueNames == resurrectedMsg.getQueueNames()
+        domainName == resurrectedMsg.getMessage().getDomainName()
+        serviceNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedServicesToFollow()
+        queueNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedQueuesToFollow()
+        serviceNames == resurrectedMsg.getMessage().getServiceNames()
+        queueNames == resurrectedMsg.getMessage().getQueueNames()
     }
 
     def "Roundtrip forced to chunk - one service and no queues"()
@@ -109,26 +121,30 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         def domainName = 'Casually owned domain'
         def serviceNames = ['Very nice service']
         def queueNames = []
-        def msg = CasualDomainDiscoveryRequestMessage.createBuilder()
+        def requestMessage = CasualDomainDiscoveryRequestMessage.createBuilder()
                 .setExecution(execution)
                 .setDomainId(domainId)
                 .setDomainName(domainName)
                 .setServiceNames(serviceNames)
                 .setMaxMessageSize(1)
                 .build()
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
+        def sink = new ByteSink()
 
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualDomainDiscoveryRequestMessage resurrectedMsg = CasualNetworkReader.networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(networkBytes)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
 
         then:
         networkBytes != null
+        networkBytes.size() > 2
         msg == resurrectedMsg
-        domainName == resurrectedMsg.getDomainName()
-        serviceNames.size() == resurrectedMsg.getNumberOfRequestedServicesToFollow()
-        queueNames.size() == resurrectedMsg.getNumberOfRequestedQueuesToFollow()
-        serviceNames == resurrectedMsg.getServiceNames()
-        queueNames == resurrectedMsg.getQueueNames()
+        domainName == resurrectedMsg.getMessage().getDomainName()
+        serviceNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedServicesToFollow()
+        queueNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedQueuesToFollow()
+        serviceNames == resurrectedMsg.getMessage().getServiceNames()
+        queueNames == resurrectedMsg.getMessage().getQueueNames()
     }
 
     def "Roundtrip forced to chunk - no service and one queues"()
@@ -139,26 +155,30 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         def domainName = 'Casually owned domain'
         def serviceNames = []
         def queueNames = ['Spiffy queue!']
-        def msg = CasualDomainDiscoveryRequestMessage.createBuilder()
+        def requestMessage = CasualDomainDiscoveryRequestMessage.createBuilder()
                 .setExecution(execution)
                 .setDomainId(domainId)
                 .setDomainName(domainName)
                 .setQueueNames(queueNames)
                 .setMaxMessageSize(1)
                 .build()
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
+        def sink = new ByteSink()
 
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualDomainDiscoveryRequestMessage resurrectedMsg = CasualNetworkReader.networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(networkBytes)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
 
         then:
         networkBytes != null
+        networkBytes.size() > 2
         msg == resurrectedMsg
-        domainName == resurrectedMsg.getDomainName()
-        serviceNames.size() == resurrectedMsg.getNumberOfRequestedServicesToFollow()
-        queueNames.size() == resurrectedMsg.getNumberOfRequestedQueuesToFollow()
-        serviceNames == resurrectedMsg.getServiceNames()
-        queueNames == resurrectedMsg.getQueueNames()
+        domainName == resurrectedMsg.getMessage().getDomainName()
+        serviceNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedServicesToFollow()
+        queueNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedQueuesToFollow()
+        serviceNames == resurrectedMsg.getMessage().getServiceNames()
+        queueNames == resurrectedMsg.getMessage().getQueueNames()
     }
 
     def "Roundtrip with message payload required to be chunked"()
@@ -169,7 +189,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         def domainName = 'Casually owned domain'
         def serviceNames = ['Very nice service', 'Another nice service']
         def queueNames = ['Queues of the world unite!']
-        def msg = CasualDomainDiscoveryRequestMessage.createBuilder()
+        def requestMessage = CasualDomainDiscoveryRequestMessage.createBuilder()
                 .setExecution(execution)
                 .setDomainId(domainId)
                 .setDomainName(domainName)
@@ -178,18 +198,23 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
                 // only ever used in test
                 .setMaxMessageSize(1)
                 .build()
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
+        def sink = new ByteSink()
+
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualDomainDiscoveryRequestMessage resurrectedMsg = CasualNetworkReader.networkDomainDiscoveryRequestToCasualDomainDiscoveryRequestMessage(networkBytes)
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
 
         then:
         networkBytes != null
+        networkBytes.size() > 2
         msg == resurrectedMsg
-        domainName == resurrectedMsg.getDomainName()
-        serviceNames.size() == resurrectedMsg.getNumberOfRequestedServicesToFollow()
-        queueNames.size() == resurrectedMsg.getNumberOfRequestedQueuesToFollow()
-        serviceNames == resurrectedMsg.getServiceNames()
-        queueNames == resurrectedMsg.getQueueNames()
+        domainName == resurrectedMsg.getMessage().getDomainName()
+        serviceNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedServicesToFollow()
+        queueNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedQueuesToFollow()
+        serviceNames == resurrectedMsg.getMessage().getServiceNames()
+        queueNames == resurrectedMsg.getMessage().getQueueNames()
     }
 
 }

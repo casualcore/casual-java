@@ -52,7 +52,7 @@ class ByteSinkTest extends Specification
         payload == new String(read.array(), StandardCharsets.UTF_8)
     }
 
-    def "write/read casual message"()
+    def "write/read casual message with network writer/reader"()
     {
         setup:
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()

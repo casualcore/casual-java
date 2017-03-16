@@ -10,8 +10,6 @@ import se.kodarkatten.casual.network.utils.ByteUtils;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -56,20 +54,6 @@ public final class CasualDomainDiscoveryRequestMessageReader
         CasualDomainDiscoveryRequestMessageReader.maxSingleBufferByteSize = maxSingleBufferByteSize;
     }
 
-    public static CasualDomainDiscoveryRequestMessage fromNetworkBytes(final List<byte[]> message)
-    {
-        Objects.requireNonNull(message, "byte[] is null");
-        if(message.isEmpty())
-        {
-            throw new CasualTransportException("0 sized message");
-        }
-        if(1 == message.size())
-        {
-            return getMessage(message.get(0));
-        }
-        return getMessage(message);
-    }
-
     private static CasualDomainDiscoveryRequestMessage getMessage(byte[] bytes)
     {
         int currentOffset = 0;
@@ -86,36 +70,6 @@ public final class CasualDomainDiscoveryRequestMessageReader
         currentOffset = serviceNames.getIndex();
         final DynamicArrayIndexPair queueNames = CasualNetworkReaderUtils.getDynamicArrayIndexPair(bytes, currentOffset, DiscoveryRequestSizes.QUEUES_SIZE.getNetworkSize(), DiscoveryRequestSizes.QUEUES_ELEMENT_SIZE.getNetworkSize(),
                                                                           (data, offset, elementSize) -> CasualNetworkReaderUtils.getAsString(data, offset, elementSize));
-        return CasualDomainDiscoveryRequestMessage.createBuilder()
-                                                  .setExecution(execution)
-                                                  .setDomainId(domainId)
-                                                  .setDomainName(domainName)
-                                                  .setServiceNames(serviceNames.getBytes())
-                                                  .setQueueNames(queueNames.getBytes())
-                                                  .build();
-    }
-
-    /**
-     * Used when header payload > Integer.MAX_VALUE
-     * @see CasualDomainDiscoveryRequestMessage::toNetworkBytesMultipleBuffers
-     * to see how message should be structured
-     **/
-    private static CasualDomainDiscoveryRequestMessage getMessage(List<byte[]> message)
-    {
-        int currentIndex = 0;
-        final UUID execution = CasualNetworkReaderUtils.getAsUUID(message.get(currentIndex++));
-        final UUID domainId = CasualNetworkReaderUtils.getAsUUID(message.get(currentIndex++));
-        final ByteBuffer domainNameSizeBuffer = ByteBuffer.wrap(message.get(currentIndex++));
-        final int domainNameSize = (int) domainNameSizeBuffer.getLong();
-        final byte[] domainNameBytes = message.get(currentIndex++);
-        if(domainNameBytes.length != domainNameSize)
-        {
-            throw new CasualTransportException("domainNameSize: " + domainNameSize + " but buffer has a length of " + domainNameBytes.length);
-        }
-        final String domainName = CasualNetworkReaderUtils.getAsString(domainNameBytes);
-        final DynamicArrayIndexPair serviceNames = CasualNetworkReaderUtils.getDynamicArrayIndexPair(message, currentIndex, (item) -> CasualNetworkReaderUtils.getAsString(item));
-        currentIndex = serviceNames.getIndex();
-        final DynamicArrayIndexPair queueNames = CasualNetworkReaderUtils.getDynamicArrayIndexPair(message, currentIndex, (item) -> CasualNetworkReaderUtils.getAsString(item));
         return CasualDomainDiscoveryRequestMessage.createBuilder()
                                                   .setExecution(execution)
                                                   .setDomainId(domainId)

@@ -25,33 +25,27 @@ class ByteSink implements AsynchronousByteChannel
         }
         else
         {
-            final byte[] bytes = readBytes(dst.remaining())
-            dst.put(bytes)
-            handler.completed(bytes.length, attachment)
+            readBytes(dst)
+            handler.completed(dst.array().length, attachment)
         }
     }
 
-    byte[] readBytes(int size)
+    void readBytes(final ByteBuffer dst)
     {
-        ByteBuffer b = ByteBuffer.allocate(size)
         def iterator = bytes.iterator()
-        int toRead = b.remaining()
-        while(iterator.hasNext() && toRead > 0)
+        while(iterator.hasNext() && dst.remaining() > 0)
         {
             ByteBuffer c = iterator.next()
-            if(c.remaining() > toRead)
+            c.limit(c.capacity())
+            int toRead = ((c.position() + dst.remaining()) > c.limit()) ? (c.limit() - c.position()) : dst.remaining()
+            byte[] chunk = new byte[toRead]
+            c.get(chunk, 0, toRead)
+            dst.put(chunk)
+            if(!c.hasRemaining())
             {
-                byte[] dst = new byte[toRead]
-                c.get(dst, 0, toRead)
-            }
-            else
-            {
-                b.put(c.array())
                 iterator.remove()
             }
-            toRead = b.remaining()
         }
-        return b.wrap(b.array(), 0, b.position()).array()
     }
 
     @Override
@@ -63,7 +57,7 @@ class ByteSink implements AsynchronousByteChannel
     @Override
     <A> void write(ByteBuffer src, A attachment, CompletionHandler<Integer, ? super A> handler)
     {
-        int size = src.position()
+        int size = src.capacity()
         src.flip()
         bytes.add(src)
         handler.completed(size, attachment)
