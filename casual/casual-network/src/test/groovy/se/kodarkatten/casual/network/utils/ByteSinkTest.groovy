@@ -1,5 +1,10 @@
 package se.kodarkatten.casual.network.utils
 
+import se.kodarkatten.casual.network.io.CasualNetworkReader
+import se.kodarkatten.casual.network.io.CasualNetworkWriter
+import se.kodarkatten.casual.network.messages.CasualNWMessage
+import se.kodarkatten.casual.network.messages.reply.domain.CasualDomainDiscoveryReplyMessage
+import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -46,5 +51,24 @@ class ByteSinkTest extends Specification
         read.array() == data
         payload == new String(read.array(), StandardCharsets.UTF_8)
     }
+
+    def "write/read casual message"()
+    {
+        setup:
+        CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
+                .setExecution(UUID.randomUUID())
+                .setDomainId(UUID.randomUUID())
+                .setDomainName('Home sweet home')
+                .setQueueNames(Arrays.asList("queueA1"))
+                .build()
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
+        ByteSink sink = new ByteSink()
+        when:
+        CasualNetworkWriter.write(sink, msg)
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
+        then:
+        msg == resurrectedMsg
+    }
+
 
 }
