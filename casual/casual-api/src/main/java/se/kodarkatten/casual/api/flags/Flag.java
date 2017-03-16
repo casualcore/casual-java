@@ -20,6 +20,11 @@ public class Flag<T extends CasualFlag>
         return new Flag(flag.flags);
     }
 
+    public static <T extends CasualFlag> Flag<T> of(final T type)
+    {
+        return new Flag(type.getValue());
+    }
+
     public T getFlagType()
     {
         return type;

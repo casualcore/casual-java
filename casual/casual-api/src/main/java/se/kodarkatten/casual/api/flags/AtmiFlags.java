@@ -31,4 +31,5 @@ public enum AtmiFlags implements CasualFlag
     public final int getValue() {
         return value;
     }
+
 }

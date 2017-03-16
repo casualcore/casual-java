@@ -4,6 +4,7 @@ package se.kodarkatten.casual.network.io;
 import se.kodarkatten.casual.network.io.readers.CasualDomainDiscoveryReplyMessageReader;
 import se.kodarkatten.casual.network.io.readers.CasualDomainDiscoveryRequestMessageReader;
 import se.kodarkatten.casual.network.io.readers.CasualNWMessageHeaderReader;
+import se.kodarkatten.casual.network.io.readers.CasualServiceCallRequestMessageReader;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
@@ -11,6 +12,7 @@ import se.kodarkatten.casual.network.messages.exceptions.CasualTransportExceptio
 import se.kodarkatten.casual.network.messages.parseinfo.MessageHeaderSizes;
 import se.kodarkatten.casual.network.messages.reply.domain.CasualDomainDiscoveryReplyMessage;
 import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.messages.request.service.CasualServiceCallRequestMessage;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
@@ -67,6 +69,8 @@ public final class CasualNetworkReader
                     return readDomainDiscoveryRequest(channel, header);
                 case DOMAIN_DISCOVERY_REPLY:
                     return readDomainDiscoveryReply(channel, header);
+                case SERVICE_CALL_REQUEST:
+                    return readServiceCallRequest(channel, header);
                 default:
                     throw new UnsupportedOperationException("reading of messagetype: " + header.getType() + " is not implemented yet");
             }
@@ -95,4 +99,12 @@ public final class CasualNetworkReader
         final CasualDomainDiscoveryReplyMessage msg = CasualDomainDiscoveryReplyMessageReader.read(channel, header.getPayloadSize());
         return CasualNWMessage.of(header.getCorrelationId(), msg);
     }
+
+    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readServiceCallRequest(AsynchronousByteChannel channel, CasualNWMessageHeader header)
+    {
+        CasualServiceCallRequestMessageReader.setMaxSingleBufferByteSize(getMaxSingleBufferByteSize());
+        final CasualServiceCallRequestMessage msg = CasualServiceCallRequestMessageReader.read(channel, header.getPayloadSize());
+        return CasualNWMessage.of(header.getCorrelationId(), msg);
+    }
+
 }

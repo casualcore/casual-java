@@ -22,7 +22,7 @@ import java.util.UUID;
  */
 // lambdas are fine
 @SuppressWarnings("squid:S1612")
-public final class CasualServiceCallRequest implements CasualNetworkTransmittable
+public final class CasualServiceCallRequestMessage implements CasualNetworkTransmittable
 {
     private UUID execution;
     private int callDescriptor;
@@ -39,7 +39,7 @@ public final class CasualServiceCallRequest implements CasualNetworkTransmittabl
     // Defaults to Integer.MAX_VALUE
     private int maxMessageSize = Integer.MAX_VALUE;
 
-    private CasualServiceCallRequest()
+    private CasualServiceCallRequestMessage()
     {}
 
     @Override
@@ -208,7 +208,7 @@ public final class CasualServiceCallRequest implements CasualNetworkTransmittabl
      * @param maxMessageSize
      * @return
      */
-    public CasualServiceCallRequest setMaxMessageSize(int maxMessageSize)
+    public CasualServiceCallRequestMessage setMaxMessageSize(int maxMessageSize)
     {
         this.maxMessageSize = maxMessageSize;
         return this;
@@ -281,9 +281,9 @@ public final class CasualServiceCallRequest implements CasualNetworkTransmittabl
             this.serviceBuffer = serviceBuffer;
             return this;
         }
-        public CasualServiceCallRequest build()
+        public CasualServiceCallRequestMessage build()
         {
-            CasualServiceCallRequest r = new CasualServiceCallRequest();
+            CasualServiceCallRequestMessage r = new CasualServiceCallRequestMessage();
             r.execution = execution;
             r.callDescriptor = callDescriptor;
             r.serviceName = serviceName;

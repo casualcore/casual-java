@@ -7,6 +7,7 @@ package se.kodarkatten.casual.network.messages.common;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Used in service call request and reply
@@ -28,7 +29,7 @@ public final class ServiceBuffer
      * @param bytes
      * @return
      */
-    public ServiceBuffer of(final String type, final List<byte[]> bytes)
+    public static ServiceBuffer of(final String type, final List<byte[]> bytes)
     {
         return new ServiceBuffer(type, bytes);
     }
@@ -63,4 +64,34 @@ public final class ServiceBuffer
         return r;
     }
 
+    /**
+     * Be aware that payload can be huge
+     * @param o
+     * @return
+     */
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        ServiceBuffer that = (ServiceBuffer) o;
+        return Objects.equals(type, that.type) &&
+               Objects.equals(payload, that.payload);
+    }
+
+    /**
+     * Be aware that payload can be huge
+     * @return
+     */
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(type, payload);
+    }
 }
