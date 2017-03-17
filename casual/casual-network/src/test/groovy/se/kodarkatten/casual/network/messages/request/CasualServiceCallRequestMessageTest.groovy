@@ -125,6 +125,7 @@ class CasualServiceCallRequestMessageTest extends Specification
         // force chunking when reading
         CasualNetworkReader.setMaxSingleBufferByteSize(1)
         CasualNWMessage<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
+        CasualNetworkReader.setMaxSingleBufferByteSize(Integer.MAX_VALUE)
         def collectedServicePayload = collectServicePayload(resurrectedMsg.getMessage().getServiceBuffer().getPayload())
         then:
         networkBytes != null

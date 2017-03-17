@@ -48,10 +48,18 @@ public final class CasualNetworkReaderUtils
         return getAsString(bytes, StandardCharsets.UTF_8);
     }
 
-    public static String readString(final AsynchronousByteChannel channel, int length) throws ExecutionException, InterruptedException
+    public static String readString(final AsynchronousByteChannel channel, int length)
     {
-        final ByteBuffer stringBuffer = ByteUtils.readFully(channel, length).get();
-        return getAsString(stringBuffer.array());
+        final ByteBuffer stringBuffer;
+        try
+        {
+            stringBuffer = ByteUtils.readFully(channel, length).get();
+            return getAsString(stringBuffer.array());
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualTransportException("Failed reading string: " + e);
+        }
     }
 
     /**

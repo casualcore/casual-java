@@ -72,7 +72,10 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
         when:
         CasualNWMessage<CasualServiceCallRequestMessage> msg = CasualNetworkReader.read(sink)
         CasualNetworkWriter.write(sink, msg)
+        // force chunking when reading
+        CasualNetworkReader.setMaxSingleBufferByteSize(1)
         CasualNWMessage<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
+        CasualNetworkReader.setMaxSingleBufferByteSize(Integer.MAX_VALUE)
         then:
         msg != null
         msg.getMessage() == resurrectedMsg.getMessage()
