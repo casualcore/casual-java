@@ -1,13 +1,16 @@
 package se.kodarkatten.casual.network.io.readers.utils;
 
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
+import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by aleph on 2017-03-02.
@@ -45,6 +48,11 @@ public final class CasualNetworkReaderUtils
         return getAsString(bytes, StandardCharsets.UTF_8);
     }
 
+    public static String readString(final AsynchronousByteChannel channel, int length) throws ExecutionException, InterruptedException
+    {
+        final ByteBuffer stringBuffer = ByteUtils.readFully(channel, length).get();
+        return getAsString(stringBuffer.array());
+    }
 
     /**
      * Used to get dynamic array content

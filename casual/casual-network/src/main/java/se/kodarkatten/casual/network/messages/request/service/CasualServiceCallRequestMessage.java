@@ -67,6 +67,8 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
                                                     : toNetworkBytesMultipleBuffers(serviceNameBytes, parentNameBytes, serviceBytes);
     }
 
+
+
     private List<byte[]> toNetworkBytesFitsInOneBuffer(int messageSize, final byte[] serviceNameBytes, final byte[] parentNameBytes, final List<byte[]> serviceBytes)
     {
         List<byte[]> l = new ArrayList<>();
@@ -204,6 +206,8 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         return maxMessageSize;
     }
 
+
+
     /**
      * Use in testing to force chunking of message
      * @param maxMessageSize
@@ -242,7 +246,8 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
             Objects.equals(serviceName, that.serviceName) &&
             Objects.equals(parentName, that.parentName) &&
             Objects.equals(xid, that.xid) &&
-            Objects.equals(xatmiFlags, that.xatmiFlags);
+            Objects.equals(xatmiFlags, that.xatmiFlags) &&
+            Objects.equals(serviceBuffer.getType(), that.serviceBuffer.getType());
     }
 
     @Override

@@ -8,9 +8,12 @@ import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.common.ServiceBuffer
 import se.kodarkatten.casual.network.messages.request.service.CasualServiceCallRequestMessage
+import se.kodarkatten.casual.network.utils.ByteUtils
 import se.kodarkatten.casual.network.utils.LocalByteChannel
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.nio.ByteBuffer
 
 /**
  * Created by aleph on 2017-03-16.
@@ -98,4 +101,46 @@ class CasualServiceCallRequestMessageTest extends Specification
 
     }
 
+    def "Roundtrip with message payload less than Integer.MAX_VALUE - forcing chunking"()
+    {
+        setup:
+        def requestMsg = CasualServiceCallRequestMessage.createBuilder()
+                                                        .setExecution(execution)
+                                                        .setCallDescriptor(callDescriptor)
+                                                        .setServiceName(serviceName)
+                                                        .setTimeout(timeout)
+                                                        .setParentName(parentName)
+                                                        .setXid(nullXID)
+                                                        .setXatmiFlags(xatmiFlags)
+                                                        .setServiceBuffer(serviceBuffer)
+                                                        .build()
+        // force write chunking
+        requestMsg.setMaxMessageSize(1)
+        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
+        def sink = new LocalByteChannel()
+
+        when:
+        def networkBytes = msg.toNetworkBytes()
+        CasualNetworkWriter.write(sink, msg)
+        // force chunking when reading
+        CasualNetworkReader.setMaxSingleBufferByteSize(1)
+        CasualNWMessage<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
+        def collectedServicePayload = collectServicePayload(resurrectedMsg.getMessage().getServiceBuffer().getPayload())
+        then:
+        networkBytes != null
+        requestMsg == resurrectedMsg.getMessage()
+        msg == resurrectedMsg
+        requestMsg.getServiceBuffer().getPayload() == collectedServicePayload
+
+    }
+
+    def collectServicePayload(List<byte[]> bytes)
+    {
+        ByteBuffer b = ByteBuffer.allocate((int)ByteUtils.sumNumberOfBytes(bytes))
+        bytes.stream()
+             .forEach({d -> b.put(d)})
+        List<byte[]> l = new ArrayList<>()
+        l.add(b.array())
+        return l
+    }
 }

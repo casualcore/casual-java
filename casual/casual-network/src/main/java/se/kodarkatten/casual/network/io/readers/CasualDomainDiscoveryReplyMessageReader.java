@@ -79,7 +79,7 @@ public final class CasualDomainDiscoveryReplyMessageReader
     private static CasualDomainDiscoveryReplyMessage readSingleBuffer(AsynchronousByteChannel channel, int messageSize) throws ExecutionException, InterruptedException
     {
         final CompletableFuture<ByteBuffer> msgFuture = ByteUtils.readFully(channel, messageSize);
-        return getMessage(msgFuture.get().array());
+        return readMessage(msgFuture.get().array());
     }
 
     private static CasualDomainDiscoveryReplyMessage readChunked(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
@@ -111,7 +111,7 @@ public final class CasualDomainDiscoveryReplyMessageReader
         msg.addAll(services);
         msg.add(numberOfQueuesBuffer.array());
         msg.addAll(queues);
-        return getMessage(msg);
+        return readMessage(msg);
     }
 
     private static List<byte[]> readService(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
@@ -155,7 +155,7 @@ public final class CasualDomainDiscoveryReplyMessageReader
         return l;
     }
 
-    private static CasualDomainDiscoveryReplyMessage getMessage(byte[] bytes)
+    private static CasualDomainDiscoveryReplyMessage readMessage(byte[] bytes)
     {
         int currentOffset = 0;
         final UUID execution = CasualNetworkReaderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, DiscoveryReplySizes.EXECUTION.getNetworkSize()));
@@ -245,7 +245,7 @@ public final class CasualDomainDiscoveryReplyMessageReader
      * @see CasualDomainDiscoveryReplyMessage::toNetworkBytesMultipleBuffers
      * To understand how message should be structured
      **/
-    private static CasualDomainDiscoveryReplyMessage getMessage(final List<byte[]> message)
+    private static CasualDomainDiscoveryReplyMessage readMessage(final List<byte[]> message)
     {
         int currentIndex = 0;
         final UUID execution = CasualNetworkReaderUtils.getAsUUID(message.get(currentIndex++));

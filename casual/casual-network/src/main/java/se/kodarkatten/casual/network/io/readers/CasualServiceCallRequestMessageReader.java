@@ -76,10 +76,10 @@ public final class CasualServiceCallRequestMessageReader
     private static CasualServiceCallRequestMessage readSingleBuffer(final AsynchronousByteChannel channel, int messageSize) throws ExecutionException, InterruptedException
     {
         final CompletableFuture<ByteBuffer> msgFuture = ByteUtils.readFully(channel, messageSize);
-        return readMessage(msgFuture.get().array());
+        return createMessage(msgFuture.get().array());
     }
 
-    private static CasualServiceCallRequestMessage readMessage(final byte[] data)
+    private static CasualServiceCallRequestMessage createMessage(final byte[] data)
     {
         int currentOffset = 0;
         final UUID execution = CasualNetworkReaderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ServiceCallRequestSizes.EXECUTION.getNetworkSize()));
@@ -143,11 +143,97 @@ public final class CasualServiceCallRequestMessageReader
                                               .build();
     }
 
-    // remove supression once implemented
-    @SuppressWarnings("squid:S1172")
-    private static CasualServiceCallRequestMessage readChunked(AsynchronousByteChannel channel)
+    private static CasualServiceCallRequestMessage readChunked(final AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
     {
-        throw new UnsupportedOperationException("will be implemented");
+        final UUID execution = readExecution(channel);
+        final int callDescriptor = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize()).get().getLong();
+        final int serviceNameSize = (int)ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).get().getLong();
+        final String serviceName = CasualNetworkReaderUtils.readString(channel, serviceNameSize);
+        final long serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).get().getLong();
+        final int parentNameSize = (int)ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).get().getLong();
+        final String parentName = CasualNetworkReaderUtils.readString(channel, parentNameSize);
+        final XID xid = readXid(channel);
+        final int flags = (int)ByteUtils.readFully(channel, ServiceCallRequestSizes.FLAGS.getNetworkSize()).get().getLong();
+        final ServiceBuffer buffer = readServiceBuffer(channel);
+        return CasualServiceCallRequestMessage.createBuilder()
+                                              .setExecution(execution)
+                                              .setCallDescriptor(callDescriptor)
+                                              .setServiceName(serviceName)
+                                              .setTimeout(serviceTimeout)
+                                              .setParentName(parentName)
+                                              .setXid(xid)
+                                              .setXatmiFlags(new Flag.Builder(flags).build())
+                                              .setServiceBuffer(buffer)
+                                              .build();
+    }
+
+    private static UUID readExecution(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
+    {
+        final ByteBuffer executionBuffer = ByteUtils.readFully(channel, ServiceCallRequestSizes.EXECUTION.getNetworkSize()).get();
+        return CasualNetworkReaderUtils.getAsUUID(executionBuffer.array());
+    }
+
+    private static XID readXid(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
+    {
+        final ByteBuffer xidFormatBuffer = ByteUtils.readFully(channel, ServiceCallRequestSizes.XID_FORMAT.getNetworkSize()).get();
+        final long xidFormat = xidFormatBuffer.getLong();
+        if(XIDFormatType.isNullType(xidFormat))
+        {
+            return XID.of();
+        }
+        final ByteBuffer gtridAndBqualLengthBuffer = ByteUtils.readFully(channel, ServiceCallRequestSizes.XID_GTRID_LENGTH.getNetworkSize() +
+                                                                                         ServiceCallRequestSizes.XID_BQUAL_LENGTH.getNetworkSize()).get();
+        final int gtrid = (int)gtridAndBqualLengthBuffer.getLong();
+        final int bqual = (int)gtridAndBqualLengthBuffer.getLong();
+        final ByteBuffer payload = ByteUtils.readFully(channel, gtrid + bqual).get();
+        return XID.of(gtrid, bqual, payload.array(), xidFormat);
+    }
+
+    private static ServiceBuffer readServiceBuffer(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
+    {
+        final int bufferTypeNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.BUFFER_TYPE_SUBNAME_SIZE.getNetworkSize()).get().getLong();
+        final String bufferTypename = CasualNetworkReaderUtils.readString(channel, bufferTypeNameSize);
+        final long payloadSize = ByteUtils.readFully(channel, ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize()).get().getLong();
+        final List<byte[]> payload = readPayload(channel, payloadSize);
+        return ServiceBuffer.of(bufferTypename, payload);
+    }
+
+    private static List<byte[]> readPayload(AsynchronousByteChannel channel, long payloadSize) throws ExecutionException, InterruptedException
+    {
+        // we'll use getMaxSingleBufferByteSize also for chunking of the payload
+        // maybe we should go with some other size here?
+        return payloadSize <= getMaxSingleBufferByteSize() ? readPayloadSingleBuffer(channel, (int)payloadSize)
+                                                           : readPayloadChunked(channel, payloadSize, getMaxSingleBufferByteSize());
+    }
+
+    private static List<byte[]> readPayloadSingleBuffer(AsynchronousByteChannel channel, int payloadSize) throws ExecutionException, InterruptedException
+    {
+        final List<byte[]> l = new ArrayList<>();
+        ByteBuffer payload = ByteUtils.readFully(channel, payloadSize).get();
+        l.add(payload.array());
+        return l;
+    }
+
+    private static List<byte[]> readPayloadChunked(AsynchronousByteChannel channel, long payloadSize, int maxSingleBufferByteSize) throws ExecutionException, InterruptedException
+    {
+        long toRead = payloadSize;
+        long read = 0;
+        final List<byte[]> l = new ArrayList<>();
+        while((toRead - maxSingleBufferByteSize) > 0)
+        {
+            final ByteBuffer chunk =  ByteUtils.readFully(channel, maxSingleBufferByteSize).get();
+            l.add(chunk.array());
+            toRead -= maxSingleBufferByteSize;
+            // can we overflow?
+            read += maxSingleBufferByteSize;
+        }
+        int leftToRead = (int)(payloadSize - read);
+        if(0 != leftToRead)
+        {
+            final ByteBuffer chunk =  ByteUtils.readFully(channel, leftToRead).get();
+            l.add(chunk.array());
+        }
+        return l;
     }
 
 }
