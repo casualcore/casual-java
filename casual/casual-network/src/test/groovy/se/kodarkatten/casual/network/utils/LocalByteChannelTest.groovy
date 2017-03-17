@@ -3,7 +3,6 @@ package se.kodarkatten.casual.network.utils
 import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.reply.domain.CasualDomainDiscoveryReplyMessage
 import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
@@ -15,7 +14,7 @@ import java.util.concurrent.CompletableFuture
 /**
  * Created by aleph on 2017-03-16.
  */
-class ByteSinkTest extends Specification
+class LocalByteChannelTest extends Specification
 {
     @Shared
     def payload = 'very nice payload'
@@ -24,7 +23,7 @@ class ByteSinkTest extends Specification
         setup:
         byte[] data = payload.getBytes(StandardCharsets.UTF_8)
         ByteBuffer b = ByteBuffer.wrap(data)
-        ByteSink sink = new ByteSink()
+        LocalByteChannel sink = new LocalByteChannel()
         CompletableFuture<Void> writeFuture = new CompletableFuture<>()
         CompletableFuture<ByteBuffer> readFuture = new CompletableFuture<>()
         ByteBuffer readBuffer = ByteBuffer.allocate(data.length)
@@ -43,7 +42,7 @@ class ByteSinkTest extends Specification
         setup:
         byte[] data = payload.getBytes(StandardCharsets.UTF_8)
         ByteBuffer b = ByteBuffer.wrap(data)
-        ByteSink sink = new ByteSink()
+        LocalByteChannel sink = new LocalByteChannel()
         when:
         ByteUtils.writeFully(sink, b).get()
         ByteBuffer read = ByteUtils.readFully(sink, data.length).get()
@@ -62,7 +61,7 @@ class ByteSinkTest extends Specification
                 .setQueueNames(Arrays.asList("queueA1"))
                 .build()
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
-        ByteSink sink = new ByteSink()
+        LocalByteChannel sink = new LocalByteChannel()
         when:
         CasualNetworkWriter.write(sink, msg)
         CasualNWMessage<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)

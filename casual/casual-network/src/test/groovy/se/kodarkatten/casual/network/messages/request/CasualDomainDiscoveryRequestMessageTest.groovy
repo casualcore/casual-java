@@ -4,7 +4,7 @@ import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage
-import se.kodarkatten.casual.network.utils.ByteSink
+import se.kodarkatten.casual.network.utils.LocalByteChannel
 import spock.lang.Specification
 
 /**
@@ -27,7 +27,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
                 .setServiceNames(serviceNames)
                 .build()
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
@@ -60,7 +60,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
                 .setQueueNames(queueNames)
                 .build()
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
@@ -95,7 +95,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
                                                      .setQueueNames(queueNames)
                                                      .build()
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
@@ -129,7 +129,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
                 .setMaxMessageSize(1)
                 .build()
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
@@ -163,7 +163,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
                 .setMaxMessageSize(1)
                 .build()
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
@@ -199,7 +199,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
                 .setMaxMessageSize(1)
                 .build()
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMessage)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()

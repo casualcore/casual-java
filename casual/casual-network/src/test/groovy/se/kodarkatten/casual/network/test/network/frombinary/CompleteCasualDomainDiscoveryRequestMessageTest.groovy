@@ -5,7 +5,7 @@ import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.parseinfo.MessageHeaderSizes
 import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage
-import se.kodarkatten.casual.network.utils.ByteSink
+import se.kodarkatten.casual.network.utils.LocalByteChannel
 import se.kodarkatten.casual.network.utils.ResourceLoader
 import se.kodarkatten.casual.network.utils.WriteCompletionHandler
 import spock.lang.Shared
@@ -61,7 +61,7 @@ class CompleteCasualDomainDiscoveryRequestMessageTest extends Specification
         setup:
         List<byte[]> payload = new ArrayList<>()
         payload.add(data)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
         payload.each{
             bytes ->
                 CompletableFuture<Void> future = new CompletableFuture<>()

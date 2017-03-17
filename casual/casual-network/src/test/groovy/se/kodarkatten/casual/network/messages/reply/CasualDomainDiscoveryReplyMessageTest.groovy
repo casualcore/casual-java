@@ -7,7 +7,7 @@ import se.kodarkatten.casual.network.messages.reply.domain.CasualDomainDiscovery
 import se.kodarkatten.casual.network.messages.reply.domain.Queue
 import se.kodarkatten.casual.network.messages.reply.domain.Service
 import se.kodarkatten.casual.network.messages.reply.domain.TransactionType
-import se.kodarkatten.casual.network.utils.ByteSink
+import se.kodarkatten.casual.network.utils.LocalByteChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -59,7 +59,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def domainName = 'Casually owned domain'
         def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), replyMessage)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
@@ -84,7 +84,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
                                                             .setServices(services)
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), replyMessage)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
@@ -109,7 +109,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
                                                             .setQueues(queues)
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), replyMessage)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
@@ -137,7 +137,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
                                                             .setServices(services)
                                                             .setQueues(queues)
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), replyMessage)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualNetworkWriter.write(sink, msg)
@@ -165,7 +165,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
                                                             .setQueues(queues)
                                                             .setMaxMessageSize(1)
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), replyMessage)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()

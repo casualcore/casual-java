@@ -11,9 +11,9 @@ import java.util.concurrent.Future
  * Created by aleph on 2017-03-16.
  */
 /**
- * A ByteSink that we can use when testing instead of actually going to the network
+ * A LocalByteChannel that we can use when testing instead of actually going to the network
  */
-class ByteSink implements AsynchronousByteChannel
+class LocalByteChannel implements AsynchronousByteChannel
 {
     List<ByteBuffer[]> bytes = new ArrayList<>()
     @Override

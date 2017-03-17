@@ -8,7 +8,7 @@ import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.common.ServiceBuffer
 import se.kodarkatten.casual.network.messages.request.service.CasualServiceCallRequestMessage
-import se.kodarkatten.casual.network.utils.ByteSink
+import se.kodarkatten.casual.network.utils.LocalByteChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -84,7 +84,7 @@ class CasualServiceCallRequestMessageTest extends Specification
                                                         .setServiceBuffer(serviceBuffer)
                                                         .build()
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
-        def sink = new ByteSink()
+        def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
