@@ -133,8 +133,8 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
 
     private ByteBuffer writeXID(final XID xid, final ByteBuffer b)
     {
-        b.putLong(XIDFormatType.marshal(xid.getFormatType()));
-        if(XIDFormatType.NULL != xid.getFormatType())
+        b.putLong(xid.getFormatType());
+        if(!XIDFormatType.isNullType(xid.getFormatType()))
         {
             b.putLong(xid.getGtridLength())
              .putLong(xid.getBqualLength())
@@ -145,7 +145,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
 
     private int getXIDNetworkSize()
     {
-        if(XIDFormatType.NULL == xid.getFormatType())
+        if(XIDFormatType.isNullType(xid.getFormatType()))
         {
             return ServiceCallRequestSizes.XID_FORMAT.getNetworkSize();
         }

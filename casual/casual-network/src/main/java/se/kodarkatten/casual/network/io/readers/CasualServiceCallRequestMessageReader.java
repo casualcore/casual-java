@@ -102,11 +102,10 @@ public final class CasualServiceCallRequestMessageReader
         final String parentName = CasualNetworkReaderUtils.getAsString(data, currentOffset, parentNameSize);
         currentOffset += parentNameSize;
 
-        int xidFormat = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.XID_FORMAT.getNetworkSize()).getLong();
-        XIDFormatType xidFormatType = XIDFormatType.unmarshal(xidFormat);
+        long xidFormat = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.XID_FORMAT.getNetworkSize()).getLong();
         currentOffset += ServiceCallRequestSizes.XID_FORMAT.getNetworkSize();
         XID xid = XID.of();
-        if(XIDFormatType.NULL != xidFormatType)
+        if(!XIDFormatType.isNullType(xidFormat))
         {
             int gtridLength = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.XID_GTRID_LENGTH.getNetworkSize()).getLong();
             currentOffset += ServiceCallRequestSizes.XID_GTRID_LENGTH.getNetworkSize();
@@ -116,7 +115,7 @@ public final class CasualServiceCallRequestMessageReader
             final byte[] xidPayload = new byte[gtridLength + bqualLength];
             xidPayloadBuffer.get(xidPayload);
             currentOffset += (gtridLength + bqualLength);
-            xid = XID.of(gtridLength, bqualLength, xidPayload, xidFormatType);
+            xid = XID.of(gtridLength, bqualLength, xidPayload, xidFormat);
         }
         int flags = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.FLAGS.getNetworkSize()).getLong();
         currentOffset += ServiceCallRequestSizes.FLAGS.getNetworkSize();

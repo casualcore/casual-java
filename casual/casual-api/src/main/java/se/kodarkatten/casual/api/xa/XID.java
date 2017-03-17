@@ -12,14 +12,14 @@ public final class XID
 {
     private static final int XID_DATA_SIZE = 128;
     // default to null format
-    private final XIDFormatType formatType;
+    private final long formatType;
     // length of the transaction gtrid part
     private final int gtridLength;
     // length of the transaction branch part
     private final int bqualLength;
     // (size = gtridLength + bqualLength) <= XID_DATA_SIZE
     private final byte[] data;
-    private XID(int gtridLength, int bqualLength, final byte[] data, final XIDFormatType formatType)
+    private XID(int gtridLength, int bqualLength, final byte[] data, long formatType)
     {
         this.gtridLength = gtridLength;
         this.bqualLength = bqualLength;
@@ -29,7 +29,7 @@ public final class XID
 
     private XID()
     {
-        this(0, 0, null, XIDFormatType.NULL);
+        this(0, 0, null, XIDFormatType.NULL.getType());
     }
 
     /**
@@ -43,14 +43,14 @@ public final class XID
 
     public static XID of(final XID xid)
     {
-        if(xid.formatType == XIDFormatType.NULL)
+        if(XIDFormatType.isNullType(xid.formatType))
         {
             return XID.of();
         }
         return XID.of(xid.gtridLength, xid.bqualLength, Arrays.copyOf(xid.data, xid.data.length), xid.formatType);
     }
 
-    public static XID of(int gtridLength, int bqualLength, final byte[] data, final XIDFormatType formatType)
+    public static XID of(int gtridLength, int bqualLength, final byte[] data, final long formatType)
     {
         if((gtridLength + bqualLength) != data.length)
         {
@@ -67,16 +67,16 @@ public final class XID
         return new XID(gtridLength, bqualLength, data, formatType);
     }
 
-    private static boolean isNullFormatTypeButAdditionalInformationProvided(int gtridLength, int bqualLength, final byte[] data, final XIDFormatType formatType)
+    private static boolean isNullFormatTypeButAdditionalInformationProvided(int gtridLength, int bqualLength, final byte[] data, final long formatType)
     {
-        if(XIDFormatType.NULL != formatType)
+        if(!XIDFormatType.isNullType(formatType))
         {
             return false;
         }
         return gtridLength > 0 || bqualLength > 0 || (null != data && data.length > 0);
     }
 
-    public XIDFormatType getFormatType()
+    public long getFormatType()
     {
         return formatType;
     }
@@ -109,9 +109,9 @@ public final class XID
         }
         XID xid = (XID) o;
         return formatType == xid.formatType &&
-            gtridLength == xid.gtridLength &&
-            bqualLength == xid.bqualLength &&
-            Arrays.equals(data, xid.data);
+               gtridLength == xid.gtridLength &&
+               bqualLength == xid.bqualLength &&
+               Arrays.equals(data, xid.data);
     }
 
     @Override
