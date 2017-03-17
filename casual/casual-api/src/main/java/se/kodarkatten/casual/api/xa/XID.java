@@ -54,7 +54,7 @@ public final class XID
     {
         if((gtridLength + bqualLength) != data.length)
         {
-            throw new XIDException("(gtridLength + bqualLength) != data.length " + "(" + gtridLength + " + " + bqualLength + ") > " + data.length);
+            throw new XIDException("(gtridLength + bqualLength) != data.length " + "(" + gtridLength + " + " + bqualLength + ") != " + data.length);
         }
         else if(data.length > XID_DATA_SIZE)
         {

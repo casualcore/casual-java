@@ -113,9 +113,11 @@ public final class CasualServiceCallRequestMessageReader
             currentOffset += ServiceCallRequestSizes.XID_GTRID_LENGTH.getNetworkSize();
             int bqualLength = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.XID_BQUAL_LENGTH.getNetworkSize()).getLong();
             currentOffset += ServiceCallRequestSizes.XID_BQUAL_LENGTH.getNetworkSize();
-            ByteBuffer xidPayload = ByteBuffer.wrap(data, currentOffset, gtridLength + bqualLength);
+            ByteBuffer xidPayloadBuffer = ByteBuffer.wrap(data, currentOffset, gtridLength + bqualLength);
+            final byte[] xidPayload = new byte[gtridLength + bqualLength];
+            xidPayloadBuffer.get(xidPayload);
             currentOffset += (gtridLength + bqualLength);
-            xid = XID.of(gtridLength, bqualLength, xidPayload.array(), xidFormatType);
+            xid = XID.of(gtridLength, bqualLength, xidPayload, xidFormatType);
         }
         int flags = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.FLAGS.getNetworkSize()).getLong();
         currentOffset += ServiceCallRequestSizes.FLAGS.getNetworkSize();

@@ -9,7 +9,8 @@ import java.util.Optional;
 public enum XIDFormatType
 {
     NULL(-1),
-    OSI(0);
+    OSI(0),
+    CASUAL(42);
     private final int type;
     XIDFormatType(int type)
     {
