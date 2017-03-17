@@ -93,7 +93,8 @@ class CasualServiceCallRequestMessageTest extends Specification
 
         then:
         networkBytes != null
-        requestMsg == resurrectedMsg
+        requestMsg == resurrectedMsg.getMessage()
+        msg == resurrectedMsg
 
     }
 

@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -61,7 +62,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
                                  ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize() + parentNameBytes.length +
                                  getXIDNetworkSize() +
                                  ServiceCallRequestSizes.FLAGS.getNetworkSize() +
-                                 ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
+                                 ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + + ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
         return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceNameBytes, parentNameBytes, serviceBytes)
                                                     : toNetworkBytesMultipleBuffers(serviceNameBytes, parentNameBytes, serviceBytes);
     }
@@ -221,6 +222,32 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
     public ServiceBuffer getServiceBuffer()
     {
         return serviceBuffer;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        CasualServiceCallRequestMessage that = (CasualServiceCallRequestMessage) o;
+        return callDescriptor == that.callDescriptor &&
+            Objects.equals(execution, that.execution) &&
+            Objects.equals(serviceName, that.serviceName) &&
+            Objects.equals(parentName, that.parentName) &&
+            Objects.equals(xid, that.xid) &&
+            Objects.equals(xatmiFlags, that.xatmiFlags);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(execution, callDescriptor, serviceName, parentName, xid, xatmiFlags);
     }
 
     public static class Builder

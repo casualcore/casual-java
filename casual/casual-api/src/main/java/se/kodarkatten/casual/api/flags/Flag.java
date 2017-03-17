@@ -2,6 +2,8 @@ package se.kodarkatten.casual.api.flags;
 
 import se.kodarkatten.casual.api.flags.internal.CasualFlag;
 
+import java.util.Objects;
+
 /**
  * @author jone
  */
@@ -33,6 +35,24 @@ public class Flag<T extends CasualFlag>
     public int getFlagValue()
     {
         return flags;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) return false;
+        Flag<?> flag = (Flag<?>) o;
+        return flags == flag.flags;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(flags);
     }
 
     public static final class Builder<T extends CasualFlag>
