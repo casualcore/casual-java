@@ -44,7 +44,10 @@ public class Flag<T extends CasualFlag>
         {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
         Flag<?> flag = (Flag<?>) o;
         return flags == flag.flags;
     }

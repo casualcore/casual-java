@@ -6,7 +6,6 @@ import se.kodarkatten.casual.network.messages.exceptions.CasualTransportExceptio
 import se.kodarkatten.casual.network.messages.parseinfo.DiscoveryRequestSizes;
 import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage;
 import se.kodarkatten.casual.network.utils.ByteUtils;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
@@ -102,9 +101,11 @@ public final class CasualDomainDiscoveryRequestMessageReader
         return getMessage(msgFuture.get().array());
     }
 
+    // remove supression once implemented
+    @SuppressWarnings("squid:S1172")
     private static CasualDomainDiscoveryRequestMessage readChunked(AsynchronousByteChannel channel)
     {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException("will be implemented");
     }
 
 }

@@ -32,6 +32,6 @@ public enum XIDFormatType
         Optional<XIDFormatType> t = Arrays.stream(XIDFormatType.values())
                                           .filter(v -> v.getType() == n)
                                           .findFirst();
-        return t.orElseThrow(() -> new IllegalArgumentException("TransactionType:" + n));
+        return t.orElseThrow(() -> new IllegalArgumentException("XIDFormatType:" + n));
     }
 }

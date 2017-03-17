@@ -224,6 +224,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         return serviceBuffer;
     }
 
+    @SuppressWarnings("squid:S1067")
     @Override
     public boolean equals(Object o)
     {
