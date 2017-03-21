@@ -170,8 +170,10 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualNetworkWriter.write(sink, msg)
+        // force chunking when reading
+        CasualNetworkReader.setMaxSingleBufferByteSize(1)
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> resurrectedMsg = CasualNetworkReader.read(sink)
-
+        CasualNetworkReader.setMaxSingleBufferByteSize(Integer.MAX_VALUE)
         then:
         networkBytes != null
         networkBytes.size() > 2

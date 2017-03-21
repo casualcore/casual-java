@@ -9,7 +9,9 @@ import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -101,11 +103,42 @@ public final class CasualDomainDiscoveryRequestMessageReader
         return getMessage(msgFuture.get().array());
     }
 
-    // remove supression once implemented
-    @SuppressWarnings("squid:S1172")
-    private static CasualDomainDiscoveryRequestMessage readChunked(AsynchronousByteChannel channel)
+    private static CasualDomainDiscoveryRequestMessage readChunked(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
     {
-        throw new UnsupportedOperationException("will be implemented");
+        final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
+        final UUID domainId = CasualNetworkReaderUtils.readUUID(channel);
+        final int domainNameSize = (int)ByteUtils.readFully(channel, DiscoveryRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize()).get().getLong();
+        final String domainName = CasualNetworkReaderUtils.readString(channel, domainNameSize);
+        final List<String> services = readServices(channel);
+        final List<String> queues = readQueues(channel);
+        return CasualDomainDiscoveryRequestMessage.createBuilder()
+                                                  .setExecution(execution)
+                                                  .setDomainId(domainId)
+                                                  .setDomainName(domainName)
+                                                  .setServiceNames(services)
+                                                  .setQueueNames(queues)
+                                                  .build();
     }
 
+    private static List<String> readQueues(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
+    {
+        final List<String> queues = new ArrayList<>();
+        final long numberOfQueues = ByteUtils.readFully(channel, DiscoveryRequestSizes.QUEUES_SIZE.getNetworkSize()).get().getLong();
+        for(int i = 0; i < numberOfQueues; ++i)
+        {
+            queues.add(CasualNetworkReaderUtils.readString(channel));
+        }
+        return queues;
+    }
+
+    private static List<String> readServices(final AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
+    {
+        final long numberOfServices = ByteUtils.readFully(channel, DiscoveryRequestSizes.SERVICES_SIZE.getNetworkSize()).get().getLong();
+        final List<String> services = new ArrayList<>();
+        for(int i = 0; i < numberOfServices; ++i)
+        {
+            services.add(CasualNetworkReaderUtils.readString(channel));
+        }
+        return services;
+    }
 }

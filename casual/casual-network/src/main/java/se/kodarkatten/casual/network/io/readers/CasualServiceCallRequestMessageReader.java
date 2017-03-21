@@ -145,7 +145,7 @@ public final class CasualServiceCallRequestMessageReader
 
     private static CasualServiceCallRequestMessage readChunked(final AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
     {
-        final UUID execution = readExecution(channel);
+        final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
         final int callDescriptor = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize()).get().getLong();
         final int serviceNameSize = (int)ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).get().getLong();
         final String serviceName = CasualNetworkReaderUtils.readString(channel, serviceNameSize);
@@ -165,12 +165,6 @@ public final class CasualServiceCallRequestMessageReader
                                               .setXatmiFlags(new Flag.Builder(flags).build())
                                               .setServiceBuffer(buffer)
                                               .build();
-    }
-
-    private static UUID readExecution(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
-    {
-        final ByteBuffer executionBuffer = ByteUtils.readFully(channel, ServiceCallRequestSizes.EXECUTION.getNetworkSize()).get();
-        return CasualNetworkReaderUtils.getAsUUID(executionBuffer.array());
     }
 
     private static XID readXid(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
@@ -228,7 +222,7 @@ public final class CasualServiceCallRequestMessageReader
             read += maxSingleBufferByteSize;
         }
         int leftToRead = (int)(payloadSize - read);
-        if(0 != leftToRead)
+        if(leftToRead > 0)
         {
             final ByteBuffer chunk =  ByteUtils.readFully(channel, leftToRead).get();
             l.add(chunk.array());

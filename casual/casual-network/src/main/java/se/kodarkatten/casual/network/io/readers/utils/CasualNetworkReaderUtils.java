@@ -17,6 +17,8 @@ import java.util.concurrent.ExecutionException;
  */
 public final class CasualNetworkReaderUtils
 {
+    private static final int UUID_NETWORK_SIZE = 16;
+    private static final int STRING_NETWORK_SIZE = 8;
     private CasualNetworkReaderUtils()
     {}
     public static UUID getAsUUID(final byte[] message)
@@ -59,6 +61,26 @@ public final class CasualNetworkReaderUtils
         catch (InterruptedException | ExecutionException e)
         {
             throw new CasualTransportException("Failed reading string: " + e);
+        }
+    }
+
+    /**
+     * Use this to read a string from the channel when you know that the structure is as follows
+     * 8 bytes for the string size
+     * the string of string size
+     * @param channel
+     * @return
+     */
+    public static String readString(AsynchronousByteChannel channel)
+    {
+        try
+        {
+            final int stringSize = (int)ByteUtils.readFully(channel, STRING_NETWORK_SIZE).get().getLong();
+            return readString(channel, stringSize);
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualTransportException("failed reading string", e);
         }
     }
 
@@ -120,5 +142,21 @@ public final class CasualNetworkReaderUtils
         }
         return DynamicArrayIndexPair.of(items, currentIndex);
     }
+
+    public static UUID readUUID(AsynchronousByteChannel channel)
+    {
+        try
+        {
+            final ByteBuffer executionBuffer = ByteUtils.readFully(channel, UUID_NETWORK_SIZE).get();
+            return getAsUUID(executionBuffer.array());
+        }
+        catch(InterruptedException | ExecutionException e)
+        {
+            throw new CasualTransportException("failed reading uuid", e);
+        }
+    }
+
+
+
 
 }
