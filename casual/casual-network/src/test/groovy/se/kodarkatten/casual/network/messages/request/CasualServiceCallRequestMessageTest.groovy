@@ -7,7 +7,7 @@ import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.common.ServiceBuffer
-import se.kodarkatten.casual.network.messages.request.service.CasualServiceCallRequestMessage
+import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
 import se.kodarkatten.casual.network.utils.ByteUtils
 import se.kodarkatten.casual.network.utils.LocalByteChannel
 import spock.lang.Shared

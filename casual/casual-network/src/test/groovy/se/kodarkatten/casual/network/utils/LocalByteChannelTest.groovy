@@ -3,7 +3,7 @@ package se.kodarkatten.casual.network.utils
 import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.request.domain.CasualDomainDiscoveryRequestMessage
+import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
 

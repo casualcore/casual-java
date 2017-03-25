@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.api.xa.exceptions;
+package se.kodarkatten.casual.api.xa;
 
 /**
  * Created by aleph on 2017-03-14.

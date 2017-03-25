@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.network.messages.reply.domain;
+package se.kodarkatten.casual.network.messages.domain;
 
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.DiscoveryReplySizes;

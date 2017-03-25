@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.network.messages.request.service;
+package se.kodarkatten.casual.network.messages.service;
 
 import se.kodarkatten.casual.api.flags.AtmiFlags;
 import se.kodarkatten.casual.api.flags.Flag;

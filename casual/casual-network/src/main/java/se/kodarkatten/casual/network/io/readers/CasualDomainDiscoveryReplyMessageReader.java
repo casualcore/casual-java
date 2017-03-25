@@ -4,10 +4,10 @@ import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
 import se.kodarkatten.casual.network.io.readers.utils.DynamicArrayIndexPair;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.DiscoveryReplySizes;
-import se.kodarkatten.casual.network.messages.reply.domain.Queue;
-import se.kodarkatten.casual.network.messages.reply.domain.CasualDomainDiscoveryReplyMessage;
-import se.kodarkatten.casual.network.messages.reply.domain.Service;
-import se.kodarkatten.casual.network.messages.reply.domain.TransactionType;
+import se.kodarkatten.casual.network.messages.domain.Queue;
+import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
+import se.kodarkatten.casual.network.messages.domain.Service;
+import se.kodarkatten.casual.network.messages.domain.TransactionType;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;

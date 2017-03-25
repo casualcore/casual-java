@@ -4,7 +4,7 @@ import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.parseinfo.MessageHeaderSizes
-import se.kodarkatten.casual.network.messages.reply.domain.CasualDomainDiscoveryReplyMessage
+import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.kodarkatten.casual.network.utils.LocalByteChannel
 import se.kodarkatten.casual.network.utils.ResourceLoader
 import se.kodarkatten.casual.network.utils.WriteCompletionHandler

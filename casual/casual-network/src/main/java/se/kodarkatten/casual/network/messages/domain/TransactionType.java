@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.network.messages.reply.domain;
+package se.kodarkatten.casual.network.messages.domain;
 
 import java.util.Arrays;
 import java.util.Optional;

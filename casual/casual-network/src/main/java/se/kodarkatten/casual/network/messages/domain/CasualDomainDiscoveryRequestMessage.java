@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.network.messages.request.domain;
+package se.kodarkatten.casual.network.messages.domain;
 
 import se.kodarkatten.casual.network.io.writers.utils.CasualNetworkWriterUtils;
 import se.kodarkatten.casual.network.messages.CasualNWMessageType;

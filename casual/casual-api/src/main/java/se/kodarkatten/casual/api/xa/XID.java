@@ -1,7 +1,5 @@
 package se.kodarkatten.casual.api.xa;
 
-import se.kodarkatten.casual.api.xa.exceptions.XIDException;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
@@ -97,6 +95,8 @@ public final class XID implements Xid
         return b.array();
     }
 
+    // it's fine
+    @SuppressWarnings("squid:S1067")
     @Override
     public boolean equals(Object o)
     {

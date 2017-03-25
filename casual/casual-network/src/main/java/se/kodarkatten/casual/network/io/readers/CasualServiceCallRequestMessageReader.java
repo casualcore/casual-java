@@ -7,7 +7,7 @@ import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
 import se.kodarkatten.casual.network.messages.common.ServiceBuffer;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.ServiceCallRequestSizes;
-import se.kodarkatten.casual.network.messages.request.service.CasualServiceCallRequestMessage;
+import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import javax.transaction.xa.Xid;
