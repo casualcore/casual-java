@@ -10,6 +10,7 @@ import se.kodarkatten.casual.network.messages.parseinfo.ServiceCallRequestSizes;
 import se.kodarkatten.casual.network.messages.request.service.CasualServiceCallRequestMessage;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
+import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
 import java.util.*;
@@ -104,7 +105,7 @@ public final class CasualServiceCallRequestMessageReader
 
         long xidFormat = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.XID_FORMAT.getNetworkSize()).getLong();
         currentOffset += ServiceCallRequestSizes.XID_FORMAT.getNetworkSize();
-        XID xid = XID.of();
+        Xid xid = XID.of();
         if(!XIDFormatType.isNullType(xidFormat))
         {
             int gtridLength = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.XID_GTRID_LENGTH.getNetworkSize()).getLong();
@@ -152,7 +153,7 @@ public final class CasualServiceCallRequestMessageReader
         final long serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).get().getLong();
         final int parentNameSize = (int)ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).get().getLong();
         final String parentName = CasualNetworkReaderUtils.readString(channel, parentNameSize);
-        final XID xid = readXid(channel);
+        final Xid xid = readXid(channel);
         final int flags = (int)ByteUtils.readFully(channel, ServiceCallRequestSizes.FLAGS.getNetworkSize()).get().getLong();
         final ServiceBuffer buffer = readServiceBuffer(channel);
         return CasualServiceCallRequestMessage.createBuilder()
@@ -167,7 +168,7 @@ public final class CasualServiceCallRequestMessageReader
                                               .build();
     }
 
-    private static XID readXid(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
+    private static Xid readXid(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
     {
         final ByteBuffer xidFormatBuffer = ByteUtils.readFully(channel, ServiceCallRequestSizes.XID_FORMAT.getNetworkSize()).get();
         final long xidFormat = xidFormatBuffer.getLong();

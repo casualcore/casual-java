@@ -2,13 +2,15 @@ package se.kodarkatten.casual.api.xa;
 
 import se.kodarkatten.casual.api.xa.exceptions.XIDException;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
+import javax.transaction.xa.Xid;
 
 /**
  * Created by aleph on 2017-03-14.
  */
-public final class XID
+public final class XID implements Xid
 {
     private static final int XID_DATA_SIZE = 128;
     // default to null format
@@ -18,39 +20,43 @@ public final class XID
     // length of the transaction branch part
     private final int bqualLength;
     // (size = gtridLength + bqualLength) <= XID_DATA_SIZE
-    private final byte[] data;
-    private XID(int gtridLength, int bqualLength, final byte[] data, long formatType)
+    private final byte[] globalTransactionId;
+    private final byte[] branchQualifier;
+    private XID(int gtridLength, int bqualLength, long formatType, final byte[] globalTransactionId, final byte[] branchQualifier)
     {
         this.gtridLength = gtridLength;
         this.bqualLength = bqualLength;
-        this.data = data;
         this.formatType = formatType;
+        this.globalTransactionId = globalTransactionId;
+        this.branchQualifier = branchQualifier;
     }
 
     private XID()
     {
-        this(0, 0, null, XIDFormatType.NULL.getType());
+        this(0, 0, XIDFormatType.NULL.getType(), null, null);
     }
 
     /**
      * Null XID
      * @return
      */
-    public static XID of()
+    public static Xid of()
     {
         return new XID();
     }
 
-    public static XID of(final XID xid)
+    public static Xid of(final Xid xid)
     {
-        if(XIDFormatType.isNullType(xid.formatType))
+        if(XIDFormatType.isNullType(xid.getFormatId()))
         {
             return XID.of();
         }
-        return XID.of(xid.gtridLength, xid.bqualLength, Arrays.copyOf(xid.data, xid.data.length), xid.formatType);
+        final byte[] gtridId = xid.getGlobalTransactionId();
+        final byte[] bqual = xid.getBranchQualifier();
+        return new XID(gtridId.length, bqual.length, xid.getFormatId(), gtridId, bqual);
     }
 
-    public static XID of(int gtridLength, int bqualLength, final byte[] data, final long formatType)
+    public static Xid of(int gtridLength, int bqualLength, final byte[] data, final long formatType)
     {
         if((gtridLength + bqualLength) != data.length)
         {
@@ -64,7 +70,9 @@ public final class XID
         {
             throw new XIDException("You can not create a NULL XID with: gtridLength: " + gtridLength + " bqualLength: " + bqualLength + " data: " + data);
         }
-        return new XID(gtridLength, bqualLength, data, formatType);
+        final byte[] globalTransactionId = Arrays.copyOf(data, gtridLength);
+        final byte[] branchQualifier = Arrays.copyOfRange(data, gtridLength, gtridLength + bqualLength);
+        return new XID(gtridLength, bqualLength, formatType, globalTransactionId, branchQualifier);
     }
 
     private static boolean isNullFormatTypeButAdditionalInformationProvided(int gtridLength, int bqualLength, final byte[] data, final long formatType)
@@ -76,24 +84,17 @@ public final class XID
         return gtridLength > 0 || bqualLength > 0 || (null != data && data.length > 0);
     }
 
-    public long getFormatType()
-    {
-        return formatType;
-    }
-
-    public int getGtridLength()
-    {
-        return gtridLength;
-    }
-
-    public int getBqualLength()
-    {
-        return bqualLength;
-    }
-
+    /**
+     * globalTransactionId + branchQualifier
+     * @return
+     */
     public byte[] getData()
     {
-        return Arrays.copyOf(data, data.length);
+        final byte[] data = new byte[gtridLength + bqualLength];
+        ByteBuffer b = ByteBuffer.wrap(data);
+        b.put(globalTransactionId);
+        b.put(branchQualifier);
+        return b.array();
     }
 
     @Override
@@ -111,12 +112,31 @@ public final class XID
         return formatType == xid.formatType &&
                gtridLength == xid.gtridLength &&
                bqualLength == xid.bqualLength &&
-               Arrays.equals(data, xid.data);
+               Arrays.equals(globalTransactionId, xid.globalTransactionId) &&
+               Arrays.equals(branchQualifier, xid.branchQualifier);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(formatType, gtridLength, bqualLength, data);
+        return Objects.hash(formatType, gtridLength, bqualLength, globalTransactionId, branchQualifier);
+    }
+
+    @Override
+    public int getFormatId()
+    {
+        return (int)formatType;
+    }
+
+    @Override
+    public byte[] getGlobalTransactionId()
+    {
+        return Arrays.copyOf(globalTransactionId, globalTransactionId.length);
+    }
+
+    @Override
+    public byte[] getBranchQualifier()
+    {
+        return Arrays.copyOf(branchQualifier, branchQualifier.length);
     }
 }

@@ -11,6 +11,7 @@ import se.kodarkatten.casual.network.messages.common.ServiceBuffer;
 import se.kodarkatten.casual.network.messages.parseinfo.ServiceCallRequestSizes;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
+import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
     private String serviceName;
     private long timeout;
     private String parentName;
-    private XID xid;
+    private Xid xid;
     private Flag<AtmiFlags> xatmiFlags;
     private ServiceBuffer serviceBuffer;
 
@@ -133,28 +134,33 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         return l;
     }
 
-    private ByteBuffer writeXID(final XID xid, final ByteBuffer b)
+    private ByteBuffer writeXID(final Xid xid, final ByteBuffer b)
     {
-        b.putLong(xid.getFormatType());
-        if(!XIDFormatType.isNullType(xid.getFormatType()))
+        b.putLong(xid.getFormatId());
+        if(!XIDFormatType.isNullType(xid.getFormatId()))
         {
-            b.putLong(xid.getGtridLength())
-             .putLong(xid.getBqualLength())
-             .put(xid.getData());
+            final byte[] gtridId = xid.getGlobalTransactionId();
+            final byte[] bqual = xid.getBranchQualifier();
+            b.putLong(gtridId.length)
+             .putLong(bqual.length)
+             .put(gtridId)
+             .put(bqual);
         }
         return b;
     }
 
     private int getXIDNetworkSize()
     {
-        if(XIDFormatType.isNullType(xid.getFormatType()))
+        if(XIDFormatType.isNullType(xid.getFormatId()))
         {
             return ServiceCallRequestSizes.XID_FORMAT.getNetworkSize();
         }
+        final byte[] gtridId = xid.getGlobalTransactionId();
+        final byte[] bqual = xid.getBranchQualifier();
         return ServiceCallRequestSizes.XID_FORMAT.getNetworkSize() +
                ServiceCallRequestSizes.XID_GTRID_LENGTH.getNetworkSize() +
                ServiceCallRequestSizes.XID_BQUAL_LENGTH.getNetworkSize() +
-               xid.getGtridLength() + xid.getBqualLength();
+               gtridId.length + bqual.length;
     }
 
     public static Builder createBuilder()
@@ -187,7 +193,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         return parentName;
     }
 
-    public XID getXid()
+    public Xid getXid()
     {
         return XID.of(xid);
     }
@@ -263,7 +269,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         private String serviceName;
         private long timeout;
         private String parentName;
-        private XID xid;
+        private Xid xid;
         private Flag<AtmiFlags> xatmiFlags;
         private ServiceBuffer serviceBuffer;
 
@@ -297,7 +303,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
             return this;
         }
 
-        public Builder setXid(XID xid)
+        public Builder setXid(Xid xid)
         {
             this.xid = xid;
             return this;
