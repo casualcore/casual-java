@@ -8,6 +8,7 @@ import se.kodarkatten.casual.network.io.writers.utils.CasualNetworkWriterUtils;
 import se.kodarkatten.casual.network.messages.CasualNWMessageType;
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.messages.common.ServiceBuffer;
+import se.kodarkatten.casual.network.utils.XIDUtils;
 import se.kodarkatten.casual.network.messages.parseinfo.ServiceCallRequestSizes;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
@@ -61,7 +62,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
                                  ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize() + serviceNameBytes.length +
                                  ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize() +
                                  ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize() + parentNameBytes.length +
-                                 getXIDNetworkSize() +
+                                 XIDUtils.getXIDNetworkSize(xid) +
                                  ServiceCallRequestSizes.FLAGS.getNetworkSize() +
                                  ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + + ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
         return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceNameBytes, parentNameBytes, serviceBytes)
@@ -114,7 +115,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         parentNameSizeBuffer.putLong(parentNameBytes.length);
         l.add(parentNameSizeBuffer.array());
         l.add(parentNameBytes);
-        final ByteBuffer xidByteBuffer = ByteBuffer.allocate(getXIDNetworkSize());
+        final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid));
         writeXID(xid, xidByteBuffer);
         l.add(xidByteBuffer.array());
         final ByteBuffer flagBuffer = ByteBuffer.allocate(ServiceCallRequestSizes.FLAGS.getNetworkSize());
@@ -147,20 +148,6 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
              .put(bqual);
         }
         return b;
-    }
-
-    private int getXIDNetworkSize()
-    {
-        if(XIDFormatType.isNullType(xid.getFormatId()))
-        {
-            return ServiceCallRequestSizes.XID_FORMAT.getNetworkSize();
-        }
-        final byte[] gtridId = xid.getGlobalTransactionId();
-        final byte[] bqual = xid.getBranchQualifier();
-        return ServiceCallRequestSizes.XID_FORMAT.getNetworkSize() +
-               ServiceCallRequestSizes.XID_GTRID_LENGTH.getNetworkSize() +
-               ServiceCallRequestSizes.XID_BQUAL_LENGTH.getNetworkSize() +
-               gtridId.length + bqual.length;
     }
 
     public static Builder createBuilder()
