@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.network.messages.common;
+package se.kodarkatten.casual.network.messages.service;
 
 /**
  * Created by aleph on 2017-03-15.

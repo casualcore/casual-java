@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.network.messages.reply
+package se.kodarkatten.casual.network.messages.domain
 
 import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.io.CasualNetworkWriter

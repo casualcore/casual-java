@@ -10,14 +10,14 @@ import javax.transaction.xa.Xid;
  */
 public final class XID implements Xid
 {
-    private static final int XID_DATA_SIZE = 128;
+    public static final int MAX_XID_DATA_SIZE = 128;
     // default to null format
     private final long formatType;
     // length of the transaction gtrid part
     private final int gtridLength;
     // length of the transaction branch part
     private final int bqualLength;
-    // (size = gtridLength + bqualLength) <= XID_DATA_SIZE
+    // (size = gtridLength + bqualLength) <= MAX_XID_DATA_SIZE
     private final byte[] globalTransactionId;
     private final byte[] branchQualifier;
     private XID(int gtridLength, int bqualLength, long formatType, final byte[] globalTransactionId, final byte[] branchQualifier)
@@ -56,30 +56,43 @@ public final class XID implements Xid
 
     public static Xid of(int gtridLength, int bqualLength, final byte[] data, final long formatType)
     {
+        Objects.requireNonNull(data, "data for xid can not be null!");
         if((gtridLength + bqualLength) != data.length)
         {
             throw new XIDException("(gtridLength + bqualLength) != data.length " + "(" + gtridLength + " + " + bqualLength + ") != " + data.length);
         }
-        else if(data.length > XID_DATA_SIZE)
+        else if((gtridLength + bqualLength) > MAX_XID_DATA_SIZE)
         {
-            throw new XIDException("data.length > XID_DATA_SIZE " + data.length + " > " + XID_DATA_SIZE);
+            throw new XIDException("xid total length > MAX_XID_DATA_SIZE " + (gtridLength + bqualLength) + " > " + MAX_XID_DATA_SIZE);
         }
-        else if(isNullFormatTypeButAdditionalInformationProvided(gtridLength, bqualLength, data, formatType))
+        final byte[] globalTransactionId = (0 == gtridLength) ? null : Arrays.copyOf(data, gtridLength);
+        final byte[] branchQualifier = (0 == bqualLength) ? null : Arrays.copyOfRange(data, gtridLength, gtridLength + bqualLength);
+        return XID.of(globalTransactionId, branchQualifier, formatType);
+    }
+
+    public static Xid of(final byte[] globalTransactionId, final byte[] branchQualifier, final long formatType)
+    {
+        int gtridLength = (null != globalTransactionId) ? globalTransactionId.length : 0;
+        int bqualLength = (null != branchQualifier) ? branchQualifier.length : 0;
+        final int totalLength = gtridLength + bqualLength;
+        if(totalLength > MAX_XID_DATA_SIZE)
         {
-            throw new XIDException("You can not create a NULL XID with: gtridLength: " + gtridLength + " bqualLength: " + bqualLength + " data: " + data);
+            throw new XIDException("xid total length > MAX_XID_DATA_SIZE " + totalLength + " > " + MAX_XID_DATA_SIZE);
         }
-        final byte[] globalTransactionId = Arrays.copyOf(data, gtridLength);
-        final byte[] branchQualifier = Arrays.copyOfRange(data, gtridLength, gtridLength + bqualLength);
+        else if(isNullFormatTypeButAdditionalInformationProvided(globalTransactionId, branchQualifier, formatType))
+        {
+            throw new XIDException("You can not create a NULL XID with: gtrid length " + gtridLength + " and bqual length " + bqualLength);
+        }
         return new XID(gtridLength, bqualLength, formatType, globalTransactionId, branchQualifier);
     }
 
-    private static boolean isNullFormatTypeButAdditionalInformationProvided(int gtridLength, int bqualLength, final byte[] data, final long formatType)
+    private static boolean isNullFormatTypeButAdditionalInformationProvided(byte[] globalTransactionId, byte[] branchQualifier, long formatType)
     {
         if(!XIDFormatType.isNullType(formatType))
         {
             return false;
         }
-        return gtridLength > 0 || bqualLength > 0 || (null != data && data.length > 0);
+        return !(null == globalTransactionId && null == branchQualifier);
     }
 
     /**
@@ -131,12 +144,12 @@ public final class XID implements Xid
     @Override
     public byte[] getGlobalTransactionId()
     {
-        return Arrays.copyOf(globalTransactionId, globalTransactionId.length);
+        return (null == globalTransactionId) ? null : Arrays.copyOf(globalTransactionId, globalTransactionId.length);
     }
 
     @Override
     public byte[] getBranchQualifier()
     {
-        return Arrays.copyOf(branchQualifier, branchQualifier.length);
+        return (null == branchQualifier) ? null : Arrays.copyOf(branchQualifier, branchQualifier.length);
     }
 }

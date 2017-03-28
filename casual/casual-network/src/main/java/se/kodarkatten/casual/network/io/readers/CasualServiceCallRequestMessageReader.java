@@ -4,7 +4,7 @@ import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.xa.XID;
 import se.kodarkatten.casual.api.xa.XIDFormatType;
 import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
-import se.kodarkatten.casual.network.messages.common.ServiceBuffer;
+import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.ServiceCallRequestSizes;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;

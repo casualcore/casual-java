@@ -1,16 +1,18 @@
-package se.kodarkatten.casual.network.messages.reply.domain.service;
+package se.kodarkatten.casual.network.messages.service;
 
 import se.kodarkatten.casual.api.flags.ErrorState;
 import se.kodarkatten.casual.api.flags.TransactionState;
 import se.kodarkatten.casual.api.xa.XID;
+import se.kodarkatten.casual.network.io.writers.utils.CasualNetworkWriterUtils;
 import se.kodarkatten.casual.network.messages.CasualNWMessageType;
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
-import se.kodarkatten.casual.network.messages.common.ServiceBuffer;
 import se.kodarkatten.casual.network.messages.parseinfo.ServiceCallReplySizes;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 import se.kodarkatten.casual.network.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,13 +52,15 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     @Override
     public List<byte[]> toNetworkBytes()
     {
+        final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
+
         final long messageSize = ServiceCallReplySizes.EXECUTION.getNetworkSize() +
             ServiceCallReplySizes.CALL_DESCRIPTOR.getNetworkSize() +
             ServiceCallReplySizes.CALL_ERROR.getNetworkSize() + ServiceCallReplySizes.CALL_CODE.getNetworkSize() +
             XIDUtils.getXIDNetworkSize(xid) +
-            ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + + ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
-        return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceNameBytes, parentNameBytes, serviceBytes)
-            : toNetworkBytesMultipleBuffers(serviceNameBytes, parentNameBytes, serviceBytes);
+            ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
+        return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceBytes)
+                                                    : toNetworkBytesMultipleBuffers(serviceBytes);
     }
 
     public UUID getExecution()
@@ -115,7 +119,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         private int callDescriptor;
         private ErrorState error;
         private long userSuppliedError;
-        private XID xid;
+        private Xid xid;
         private TransactionState transactionState;
         private ServiceBuffer serviceBuffer;
 
@@ -143,7 +147,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             return this;
         }
 
-        public Builder setXid(XID xid)
+        public Builder setXid(Xid xid)
         {
             this.xid = xid;
             return this;
@@ -172,6 +176,53 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             msg.serviceBuffer = serviceBuffer;
             return msg;
         }
+    }
+
+    private List<byte[]> toNetworkBytesFitsInOneBuffer(int messageSize, List<byte[]> serviceBytes)
+    {
+        List<byte[]> l = new ArrayList<>();
+        ByteBuffer b = ByteBuffer.allocate(messageSize);
+        CasualNetworkWriterUtils.writeUUID(execution, b);
+        b.putLong(callDescriptor)
+         .putLong(error.getValue())
+         .putLong(userSuppliedError);
+        CasualNetworkWriterUtils.writeXID(xid, b);
+        b.putLong(transactionState.getId())
+         .putLong(serviceBytes.get(0).length)
+         .put(serviceBytes.get(0));
+        serviceBytes.remove(0);
+        final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
+        b.putLong(payloadSize);
+        serviceBytes.stream()
+                    .forEach(bytes -> b.put(bytes));
+        l.add(b.array());
+        return l;
+    }
+
+    private List<byte[]> toNetworkBytesMultipleBuffers(List<byte[]> serviceBytes)
+    {
+        final List<byte[]> l = new ArrayList<>();
+        final ByteBuffer executionBuffer = ByteBuffer.allocate(ServiceCallReplySizes.EXECUTION.getNetworkSize());
+        CasualNetworkWriterUtils.writeUUID(execution, executionBuffer);
+        l.add(executionBuffer.array());
+        l.add(CasualNetworkWriterUtils.writeLong(callDescriptor));
+        l.add(CasualNetworkWriterUtils.writeLong(error.getValue()));
+        final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid));
+        CasualNetworkWriterUtils.writeXID(xid, xidByteBuffer);
+        l.add(xidByteBuffer.array());
+        l.add(CasualNetworkWriterUtils.writeLong(transactionState.getId()));
+        final ByteBuffer serviceBufferTypeSize = ByteBuffer.allocate(ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize());
+        serviceBufferTypeSize.putLong(serviceBytes.get(0).length);
+        l.add(serviceBufferTypeSize.array());
+        l.add(serviceBytes.get(0));
+        serviceBytes.remove(0);
+        final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
+        final ByteBuffer serviceBufferPayloadSizeBuffer = ByteBuffer.allocate(ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize());
+        serviceBufferPayloadSizeBuffer.putLong(payloadSize);
+        l.add(serviceBufferPayloadSizeBuffer.array());
+        serviceBytes.stream()
+                    .forEach(bytes -> l.add(bytes));
+        return l;
     }
 
 }

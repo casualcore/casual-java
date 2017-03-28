@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.network.messages.request
+package se.kodarkatten.casual.network.messages.service
 
 import se.kodarkatten.casual.api.flags.AtmiFlags
 import se.kodarkatten.casual.api.flags.Flag
@@ -6,7 +6,7 @@ import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.common.ServiceBuffer
+import se.kodarkatten.casual.network.messages.service.ServiceBuffer
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
 import se.kodarkatten.casual.network.utils.ByteUtils
 import se.kodarkatten.casual.network.utils.LocalByteChannel

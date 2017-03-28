@@ -1,5 +1,8 @@
 package se.kodarkatten.casual.network.io.writers.utils;
 
+import se.kodarkatten.casual.api.xa.XIDFormatType;
+
+import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
@@ -12,7 +15,7 @@ public final class CasualNetworkWriterUtils
     private CasualNetworkWriterUtils()
     {}
 
-    public static void writeDynamicArray(ByteBuffer b, List<byte[]> data)
+    public static ByteBuffer writeDynamicArray(ByteBuffer b, List<byte[]> data)
     {
         if(!data.isEmpty())
         {
@@ -28,6 +31,7 @@ public final class CasualNetworkWriterUtils
             // need to inform that there's nothing to read
             b.putLong(0l);
         }
+        return b;
     }
 
     public static void writeDynamicArray(List<byte[]> l, List<byte[]> data, int headerSize, int elementSize)
@@ -55,10 +59,33 @@ public final class CasualNetworkWriterUtils
         }
     }
 
-    public static void writeUUID(final UUID id, final ByteBuffer b)
+    public static ByteBuffer writeUUID(final UUID id, final ByteBuffer b)
     {
         b.putLong(id.getMostSignificantBits())
          .putLong(id.getLeastSignificantBits());
+        return b;
+    }
+
+    public static ByteBuffer writeXID(final Xid xid, final ByteBuffer b)
+    {
+        b.putLong(xid.getFormatId());
+        if(!XIDFormatType.isNullType(xid.getFormatId()))
+        {
+            final byte[] gtridId = xid.getGlobalTransactionId();
+            final byte[] bqual = xid.getBranchQualifier();
+            b.putLong(gtridId.length)
+             .putLong(bqual.length)
+             .put(gtridId)
+             .put(bqual);
+        }
+        return b;
+    }
+
+    public static byte[] writeLong(long v)
+    {
+        ByteBuffer b = ByteBuffer.allocate(Long.BYTES);
+        b.putLong(v);
+        return b.array();
     }
 
 }
