@@ -39,6 +39,7 @@ public final class CasualDomainDiscoveryRequestMessageReader implements NetworkR
         return new CasualDomainDiscoveryRequestMessageReader();
     }
 
+    @Override
     public CasualDomainDiscoveryRequestMessage readSingleBuffer(AsynchronousByteChannel channel, int messageSize)
     {
         final CompletableFuture<ByteBuffer> msgFuture = ByteUtils.readFully(channel, messageSize);
@@ -52,6 +53,7 @@ public final class CasualDomainDiscoveryRequestMessageReader implements NetworkR
         }
     }
 
+    @Override
     public CasualDomainDiscoveryRequestMessage readChunked(AsynchronousByteChannel channel)
     {
         try

@@ -53,12 +53,47 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
         CasualServiceCallRequestMessageReader.maxPayloadSingleBufferByteSize = maxPayloadSingleBufferByteSize;
     }
 
+    @Override
     public CasualServiceCallRequestMessage readSingleBuffer(final AsynchronousByteChannel channel, int messageSize)
     {
         final CompletableFuture<ByteBuffer> msgFuture = ByteUtils.readFully(channel, messageSize);
         try
         {
             return createMessage(msgFuture.get().array());
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
+        }
+    }
+
+
+
+    @Override
+    public CasualServiceCallRequestMessage readChunked(final AsynchronousByteChannel channel)
+    {
+        try
+        {
+            final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
+            final int callDescriptor = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize()).get().getLong();
+            final int serviceNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).get().getLong();
+            final String serviceName = CasualNetworkReaderUtils.readString(channel, serviceNameSize);
+            final long serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).get().getLong();
+            final int parentNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).get().getLong();
+            final String parentName = CasualNetworkReaderUtils.readString(channel, parentNameSize);
+            final Xid xid = XIDUtils.readXid(channel);
+            final int flags = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.FLAGS.getNetworkSize()).get().getLong();
+            final ServiceBuffer buffer = CasualNetworkReaderUtils.readServiceBuffer(channel, getMaxPayloadSingleBufferByteSize());
+            return CasualServiceCallRequestMessage.createBuilder()
+                                                  .setExecution(execution)
+                                                  .setCallDescriptor(callDescriptor)
+                                                  .setServiceName(serviceName)
+                                                  .setTimeout(serviceTimeout)
+                                                  .setParentName(parentName)
+                                                  .setXid(xid)
+                                                  .setXatmiFlags(new Flag.Builder(flags).build())
+                                                  .setServiceBuffer(buffer)
+                                                  .build();
         }
         catch (InterruptedException | ExecutionException e)
         {
@@ -128,37 +163,6 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
                                               .setXatmiFlags(new Flag.Builder(flags).build())
                                               .setServiceBuffer(serviceBuffer)
                                               .build();
-    }
-
-    public CasualServiceCallRequestMessage readChunked(final AsynchronousByteChannel channel)
-    {
-        try
-        {
-            final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
-            final int callDescriptor = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize()).get().getLong();
-            final int serviceNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).get().getLong();
-            final String serviceName = CasualNetworkReaderUtils.readString(channel, serviceNameSize);
-            final long serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).get().getLong();
-            final int parentNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).get().getLong();
-            final String parentName = CasualNetworkReaderUtils.readString(channel, parentNameSize);
-            final Xid xid = XIDUtils.readXid(channel);
-            final int flags = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.FLAGS.getNetworkSize()).get().getLong();
-            final ServiceBuffer buffer = CasualNetworkReaderUtils.readServiceBuffer(channel, getMaxPayloadSingleBufferByteSize());
-            return CasualServiceCallRequestMessage.createBuilder()
-                                                  .setExecution(execution)
-                                                  .setCallDescriptor(callDescriptor)
-                                                  .setServiceName(serviceName)
-                                                  .setTimeout(serviceTimeout)
-                                                  .setParentName(parentName)
-                                                  .setXid(xid)
-                                                  .setXatmiFlags(new Flag.Builder(flags).build())
-                                                  .setServiceBuffer(buffer)
-                                                  .build();
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
-            throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
-        }
     }
 
 }

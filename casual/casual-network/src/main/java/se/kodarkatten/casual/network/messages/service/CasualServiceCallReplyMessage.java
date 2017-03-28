@@ -20,6 +20,8 @@ import java.util.UUID;
 /**
  * Created by aleph on 2017-03-21.
  */
+// lambdas are fine
+@SuppressWarnings("squid:S1612")
 public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
 {
     private UUID execution;
@@ -115,11 +117,18 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         return this;
     }
 
+    @SuppressWarnings("squid:S1067")
     @Override
     public boolean equals(Object o)
     {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
         CasualServiceCallReplyMessage that = (CasualServiceCallReplyMessage) o;
         return callDescriptor == that.callDescriptor &&
             userSuppliedError == that.userSuppliedError &&

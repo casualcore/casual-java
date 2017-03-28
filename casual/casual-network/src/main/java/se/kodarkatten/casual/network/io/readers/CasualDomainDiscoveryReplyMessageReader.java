@@ -29,6 +29,7 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         return new CasualDomainDiscoveryReplyMessageReader();
     }
 
+    @Override
     public CasualDomainDiscoveryReplyMessage readSingleBuffer(AsynchronousByteChannel channel, int messageSize)
     {
         final CompletableFuture<ByteBuffer> msgFuture = ByteUtils.readFully(channel, messageSize);
@@ -42,6 +43,7 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         }
     }
 
+    @Override
     public CasualDomainDiscoveryReplyMessage readChunked(AsynchronousByteChannel channel)
     {
         try

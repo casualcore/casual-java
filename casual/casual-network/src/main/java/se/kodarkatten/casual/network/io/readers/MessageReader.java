@@ -10,6 +10,8 @@ public final class MessageReader<T>
 {
     final NetworkReader<T> networkReader;
     final int maxSingleBufferByteSize;
+    // It is very much used thank you
+    @SuppressWarnings("squid:UnusedPrivateMethod")
     private MessageReader(NetworkReader<T> networkReader, int maxSingleBufferByteSize)
     {
         this.networkReader = networkReader;
@@ -27,6 +29,14 @@ public final class MessageReader<T>
         return new MessageReader(r, maxSingleBufferByteSize);
     }
 
+    /**
+     * It is upon the caller to close the channel
+     * @param channel
+     * @param messageSize
+     * @return
+     */
+    // caller should close the channel, we have no idea what they want to do
+    @SuppressWarnings("squid:S2095")
     public T read(final AsynchronousByteChannel channel, long messageSize)
     {
         Objects.requireNonNull(channel, "channel is null");
