@@ -213,7 +213,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
             Objects.equals(parentName, that.parentName) &&
             Objects.equals(xid, that.xid) &&
             Objects.equals(xatmiFlags, that.xatmiFlags) &&
-            Objects.equals(serviceBuffer.getType(), that.serviceBuffer.getType());
+            Objects.equals(serviceBuffer, that.serviceBuffer);
     }
 
     @Override

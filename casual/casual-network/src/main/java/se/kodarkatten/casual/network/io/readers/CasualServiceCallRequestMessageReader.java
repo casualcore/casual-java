@@ -114,9 +114,9 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
         // but since the whole message fits into Integer.MAX_VALUE that is not true of this message
         int serviceBufferPayloadSize = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize()).getLong();
         currentOffset += ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize();
-        final ByteBuffer serviceBufferPayloadBuffer =  ByteBuffer.wrap(data, currentOffset, serviceBufferPayloadSize);
+        final byte[] payloadData = Arrays.copyOfRange(data, currentOffset, currentOffset + serviceBufferPayloadSize);
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
-        serviceBufferPayload.add(serviceBufferPayloadBuffer.array());
+        serviceBufferPayload.add(payloadData);
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
         return CasualServiceCallRequestMessage.createBuilder()
                                               .setExecution(execution)

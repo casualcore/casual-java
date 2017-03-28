@@ -14,6 +14,7 @@ import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -55,10 +56,11 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
 
         final long messageSize = ServiceCallReplySizes.EXECUTION.getNetworkSize() +
-            ServiceCallReplySizes.CALL_DESCRIPTOR.getNetworkSize() +
-            ServiceCallReplySizes.CALL_ERROR.getNetworkSize() + ServiceCallReplySizes.CALL_CODE.getNetworkSize() +
-            XIDUtils.getXIDNetworkSize(xid) +
-            ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
+                                 ServiceCallReplySizes.CALL_DESCRIPTOR.getNetworkSize() +
+                                 ServiceCallReplySizes.CALL_ERROR.getNetworkSize() + ServiceCallReplySizes.CALL_CODE.getNetworkSize() +
+                                 XIDUtils.getXIDNetworkSize(xid) +
+                                 ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize() +
+                                 ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
         return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceBytes)
                                                     : toNetworkBytesMultipleBuffers(serviceBytes);
     }
@@ -111,6 +113,27 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     {
         this.maxMessageSize = maxMessageSize;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CasualServiceCallReplyMessage that = (CasualServiceCallReplyMessage) o;
+        return callDescriptor == that.callDescriptor &&
+            userSuppliedError == that.userSuppliedError &&
+            Objects.equals(execution, that.execution) &&
+            error == that.error &&
+            Objects.equals(xid, that.xid) &&
+            transactionState == that.transactionState &&
+            Objects.equals(serviceBuffer, that.serviceBuffer);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(execution, callDescriptor);
     }
 
     public static class Builder

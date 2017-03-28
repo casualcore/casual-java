@@ -6,6 +6,7 @@ package se.kodarkatten.casual.network.messages.service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -65,7 +66,7 @@ public final class ServiceBuffer
     }
 
     /**
-     * Be aware that payload can be huge
+     * Since paylods can be huge, we never ever compare them
      * @param o
      * @return
      */
@@ -81,8 +82,7 @@ public final class ServiceBuffer
             return false;
         }
         ServiceBuffer that = (ServiceBuffer) o;
-        return Objects.equals(type, that.type) &&
-               Objects.equals(payload, that.payload);
+        return Objects.equals(type, that.type);
     }
 
     /**

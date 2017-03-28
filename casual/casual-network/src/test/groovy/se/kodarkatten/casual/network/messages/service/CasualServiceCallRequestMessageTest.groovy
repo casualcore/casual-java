@@ -71,6 +71,7 @@ class CasualServiceCallRequestMessageTest extends Specification
         msg.parentName == parentName
         msg.xid == nullXID
         msg.serviceBuffer == serviceBuffer
+        msg.serviceBuffer.payload == serviceBuffer.payload
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE"()
@@ -98,7 +99,7 @@ class CasualServiceCallRequestMessageTest extends Specification
         networkBytes != null
         requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
-
+        requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().serviceBuffer.payload
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - forcing chunking"()
@@ -144,4 +145,5 @@ class CasualServiceCallRequestMessageTest extends Specification
         l.add(b.array())
         return l
     }
+
 }
