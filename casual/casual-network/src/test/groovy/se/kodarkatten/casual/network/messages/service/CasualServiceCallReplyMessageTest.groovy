@@ -92,6 +92,7 @@ class CasualServiceCallReplyMessageTest extends Specification
         networkBytes != null
         requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
+        resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().getServiceBuffer().payload
     }
 
@@ -122,6 +123,7 @@ class CasualServiceCallReplyMessageTest extends Specification
         networkBytes != null
         requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
+        resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == serviceBuffer.payload.get(0).length
         requestMsg.getServiceBuffer().getPayload() == collectedServicePayload
     }
 
