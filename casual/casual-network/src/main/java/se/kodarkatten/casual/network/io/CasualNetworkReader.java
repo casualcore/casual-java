@@ -2,7 +2,6 @@ package se.kodarkatten.casual.network.io;
 
 
 import se.kodarkatten.casual.network.io.readers.*;
-import se.kodarkatten.casual.network.io.readers.Readable;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;

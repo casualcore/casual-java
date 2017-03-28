@@ -20,13 +20,13 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by aleph on 2017-03-16.
  */
-public final class CasualServiceCallRequestMessageReader implements Readable<CasualServiceCallRequestMessage>
+public final class CasualServiceCallRequestMessageReader implements NetworkReader<CasualServiceCallRequestMessage>
 {
     private static int maxPayloadSingleBufferByteSize = Integer.MAX_VALUE;
     private CasualServiceCallRequestMessageReader()
     {}
 
-    public static Readable<CasualServiceCallRequestMessage> of()
+    public static NetworkReader<CasualServiceCallRequestMessage> of()
     {
         return new CasualServiceCallRequestMessageReader();
     }

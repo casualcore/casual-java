@@ -8,22 +8,22 @@ import java.util.Objects;
  */
 public final class MessageReader<T>
 {
-    final Readable<T> readable;
+    final NetworkReader<T> networkReader;
     final int maxSingleBufferByteSize;
-    private MessageReader(Readable<T> readable, int maxSingleBufferByteSize)
+    private MessageReader(NetworkReader<T> networkReader, int maxSingleBufferByteSize)
     {
-        this.readable = readable;
+        this.networkReader = networkReader;
         this.maxSingleBufferByteSize = maxSingleBufferByteSize;
     }
 
-    public static <T> MessageReader of(final Readable<T> r)
+    public static <T> MessageReader of(final NetworkReader<T> r)
     {
         return of(r, Integer.MAX_VALUE);
     }
 
-    public static <T> MessageReader of(final Readable<T> r, int maxSingleBufferByteSize)
+    public static <T> MessageReader of(final NetworkReader<T> r, int maxSingleBufferByteSize)
     {
-        Objects.requireNonNull(r, "readable can not be null!");
+        Objects.requireNonNull(r, "networkReader can not be null!");
         return new MessageReader(r, maxSingleBufferByteSize);
     }
 
@@ -32,9 +32,9 @@ public final class MessageReader<T>
         Objects.requireNonNull(channel, "channel is null");
         if (messageSize <= maxSingleBufferByteSize)
         {
-            return readable.readSingleBuffer(channel, (int) messageSize);
+            return networkReader.readSingleBuffer(channel, (int) messageSize);
         }
-        return readable.readChunked(channel);
+        return networkReader.readChunked(channel);
     }
 
 }

@@ -29,12 +29,12 @@ import java.util.concurrent.ExecutionException;
  **/
 
 @SuppressWarnings({"squid:S1612", "squid:S1611"})
-public final class CasualDomainDiscoveryRequestMessageReader implements Readable<CasualDomainDiscoveryRequestMessage>
+public final class CasualDomainDiscoveryRequestMessageReader implements NetworkReader<CasualDomainDiscoveryRequestMessage>
 {
     private CasualDomainDiscoveryRequestMessageReader()
     {}
 
-    public static Readable<CasualDomainDiscoveryRequestMessage> of()
+    public static NetworkReader<CasualDomainDiscoveryRequestMessage> of()
     {
         return new CasualDomainDiscoveryRequestMessageReader();
     }

@@ -19,12 +19,12 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by aleph on 2017-03-08.
  */
-public final class CasualDomainDiscoveryReplyMessageReader implements Readable<CasualDomainDiscoveryReplyMessage>
+public final class CasualDomainDiscoveryReplyMessageReader implements NetworkReader<CasualDomainDiscoveryReplyMessage>
 {
     private CasualDomainDiscoveryReplyMessageReader()
     {}
 
-    public static Readable<CasualDomainDiscoveryReplyMessage> of()
+    public static NetworkReader<CasualDomainDiscoveryReplyMessage> of()
     {
         return new CasualDomainDiscoveryReplyMessageReader();
     }
