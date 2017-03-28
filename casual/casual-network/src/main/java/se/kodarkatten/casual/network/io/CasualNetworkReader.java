@@ -86,8 +86,8 @@ public final class CasualNetworkReader
 
     private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readDomainDiscoveryRequest(final AsynchronousByteChannel channel, final CasualNWMessageHeader header ) throws ExecutionException, InterruptedException
     {
-        CasualDomainDiscoveryRequestMessageReader.setMaxSingleBufferByteSize(getMaxSingleBufferByteSize());
-        final CasualDomainDiscoveryRequestMessage msg = CasualDomainDiscoveryRequestMessageReader.read(channel, header.getPayloadSize());
+        final MessageReader<CasualDomainDiscoveryRequestMessage> reader = MessageReader.of(CasualDomainDiscoveryRequestMessageReader.of(), getMaxSingleBufferByteSize());
+        final CasualDomainDiscoveryRequestMessage msg = reader.read(channel, header.getPayloadSize());
         return CasualNWMessage.of(header.getCorrelationId(), msg);
     }
 
