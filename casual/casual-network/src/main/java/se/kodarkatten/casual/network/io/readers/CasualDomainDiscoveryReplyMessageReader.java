@@ -19,99 +19,66 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by aleph on 2017-03-08.
  */
-public final class CasualDomainDiscoveryReplyMessageReader
+public final class CasualDomainDiscoveryReplyMessageReader implements Readable<CasualDomainDiscoveryReplyMessage>
 {
-    private static int maxSingleBufferByteSize = Integer.MAX_VALUE;
     private CasualDomainDiscoveryReplyMessageReader()
     {}
 
-    /**
-     * Number of maximum bytes before any chunk reading takes place
-     * Defaults to Integer.MAX_VALUE
-     * @return
-     */
-    public static int getMaxSingleBufferByteSize()
+    public static Readable<CasualDomainDiscoveryReplyMessage> of()
     {
-        return maxSingleBufferByteSize;
+        return new CasualDomainDiscoveryReplyMessageReader();
     }
 
-    /**
-     * If not set, defaults to Integer.MAX_VALUE
-     * Can be used in testing to force chunked reading
-     * by for instance setting it to 1
-     * @return
-     */
-    public static void setMaxSingleBufferByteSize(int maxSingleBufferByteSize)
+    public CasualDomainDiscoveryReplyMessage readSingleBuffer(AsynchronousByteChannel channel, int messageSize)
     {
-        CasualDomainDiscoveryReplyMessageReader.maxSingleBufferByteSize = maxSingleBufferByteSize;
-    }
-
-
-
-
-    /**
-     * It is upon the caller to close the channel
-     * @param channel
-     * @param messageSize
-     * @return
-     * @throws ExecutionException
-     * @throws InterruptedException
-     */
-    // For now, it is the caller responsibility to close the channel
-    @SuppressWarnings("squid:S2095")
-    public static CasualDomainDiscoveryReplyMessage read(final AsynchronousByteChannel channel, long messageSize)
-    {
-        Objects.requireNonNull(channel, "channel is null");
+        final CompletableFuture<ByteBuffer> msgFuture = ByteUtils.readFully(channel, messageSize);
         try
         {
-            if (messageSize <= getMaxSingleBufferByteSize())
-            {
-                return readSingleBuffer(channel, (int) messageSize);
-            }
-            return readChunked(channel);
+            return readMessage(msgFuture.get().array());
         }
         catch (InterruptedException | ExecutionException e)
         {
-            throw new CasualTransportException("failed reading", e);
+            throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
         }
     }
 
-    private static CasualDomainDiscoveryReplyMessage readSingleBuffer(AsynchronousByteChannel channel, int messageSize) throws ExecutionException, InterruptedException
+    public CasualDomainDiscoveryReplyMessage readChunked(AsynchronousByteChannel channel)
     {
-        final CompletableFuture<ByteBuffer> msgFuture = ByteUtils.readFully(channel, messageSize);
-        return readMessage(msgFuture.get().array());
-    }
-
-    private static CasualDomainDiscoveryReplyMessage readChunked(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
-    {
-        final ByteBuffer executionBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.EXECUTION.getNetworkSize()).get();
-        final ByteBuffer domainIdBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_ID.getNetworkSize()).get();
-        final ByteBuffer domainNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize()).get();
-        final ByteBuffer domainNameBuffer = ByteUtils.readFully(channel, (int)domainNameSizeBuffer.getLong()).get();
-        final ByteBuffer numberOfServicesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize()).get();
-        final List<byte[]> services = new ArrayList<>();
-        final long numberOfServices = numberOfServicesBuffer.getLong();
-        for(int i = 0; i < numberOfServices; ++i)
+        try
         {
-            services.addAll(readService(channel));
+            final ByteBuffer executionBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.EXECUTION.getNetworkSize()).get();
+            final ByteBuffer domainIdBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_ID.getNetworkSize()).get();
+            final ByteBuffer domainNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize()).get();
+            final ByteBuffer domainNameBuffer = ByteUtils.readFully(channel, (int) domainNameSizeBuffer.getLong()).get();
+            final ByteBuffer numberOfServicesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize()).get();
+            final List<byte[]> services = new ArrayList<>();
+            final long numberOfServices = numberOfServicesBuffer.getLong();
+            for (int i = 0; i < numberOfServices; ++i)
+            {
+                services.addAll(readService(channel));
+            }
+            final ByteBuffer numberOfQueuesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize()).get();
+            final List<byte[]> queues = new ArrayList<>();
+            final long numberOfQueues = numberOfQueuesBuffer.getLong();
+            for (int i = 0; i < numberOfQueues; ++i)
+            {
+                queues.addAll(readQueue(channel));
+            }
+            final List<byte[]> msg = new ArrayList<>();
+            msg.add(executionBuffer.array());
+            msg.add(domainIdBuffer.array());
+            msg.add(domainNameSizeBuffer.array());
+            msg.add(domainNameBuffer.array());
+            msg.add(numberOfServicesBuffer.array());
+            msg.addAll(services);
+            msg.add(numberOfQueuesBuffer.array());
+            msg.addAll(queues);
+            return readMessage(msg);
         }
-        final ByteBuffer numberOfQueuesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize()).get();
-        final List<byte[]> queues = new ArrayList<>();
-        final long numberOfQueues = numberOfQueuesBuffer.getLong();
-        for(int i = 0; i < numberOfQueues; ++i)
+        catch (InterruptedException | ExecutionException e)
         {
-            queues.addAll(readQueue(channel));
+            throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
         }
-        final List<byte[]> msg = new ArrayList<>();
-        msg.add(executionBuffer.array());
-        msg.add(domainIdBuffer.array());
-        msg.add(domainNameSizeBuffer.array());
-        msg.add(domainNameBuffer.array());
-        msg.add(numberOfServicesBuffer.array());
-        msg.addAll(services);
-        msg.add(numberOfQueuesBuffer.array());
-        msg.addAll(queues);
-        return readMessage(msg);
     }
 
     private static List<byte[]> readService(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
