@@ -160,5 +160,5 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
             throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
         }
     }
-    
+
 }

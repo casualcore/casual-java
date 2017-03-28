@@ -10,6 +10,7 @@ import se.kodarkatten.casual.network.messages.parseinfo.ServiceCallReplySizes;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 import se.kodarkatten.casual.network.utils.ByteUtils;
+import se.kodarkatten.casual.network.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
@@ -26,12 +27,34 @@ import java.util.concurrent.ExecutionException;
  */
 public final class CasualServiceCallReplyMessageReader implements NetworkReader<CasualServiceCallReplyMessage>
 {
+    private static int maxPayloadSingleBufferByteSize = Integer.MAX_VALUE;
     private CasualServiceCallReplyMessageReader()
     {}
 
-    public NetworkReader<CasualServiceCallReplyMessage> of()
+    public static NetworkReader<CasualServiceCallReplyMessage> of()
     {
         return new CasualServiceCallReplyMessageReader();
+    }
+
+    /**
+     * Number of maximum bytes before any chunk reading takes place
+     * Defaults to Integer.MAX_VALUE
+     * @return
+     */
+    public static int getMaxPayloadSingleBufferByteSize()
+    {
+        return maxPayloadSingleBufferByteSize;
+    }
+
+    /**
+     * If not set, defaults to Integer.MAX_VALUE
+     * Can be used in testing to force chunked reading
+     * by for instance setting it to 1
+     * @return
+     */
+    public static void setMaxPayloadSingleBufferByteSize(int maxPayloadSingleBufferByteSize)
+    {
+        CasualServiceCallReplyMessageReader.maxPayloadSingleBufferByteSize = maxPayloadSingleBufferByteSize;
     }
 
     @Override
@@ -51,7 +74,29 @@ public final class CasualServiceCallReplyMessageReader implements NetworkReader<
     @Override
     public CasualServiceCallReplyMessage readChunked(AsynchronousByteChannel channel)
     {
-        return null;
+        try
+        {
+            final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
+            final int callDescriptor = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_DESCRIPTOR.getNetworkSize()).get().getLong();
+            final int callError = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_ERROR.getNetworkSize()).get().getLong();
+            final long userError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_CODE.getNetworkSize()).get().getLong();
+            final Xid xid = XIDUtils.readXid(channel);
+            final int transactionState = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize()).get().getLong();
+            final ServiceBuffer serviceBuffer = CasualNetworkReaderUtils.readServiceBuffer(channel, getMaxPayloadSingleBufferByteSize());
+            return CasualServiceCallReplyMessage.createBuilder()
+                                                .setExecution(execution)
+                                                .setCallDescriptor(callDescriptor)
+                                                .setError(ErrorState.unmarshal(callError))
+                                                .setUserSuppliedError(userError)
+                                                .setXid(xid)
+                                                .setTransactionState(TransactionState.unmarshal(transactionState))
+                                                .setServiceBuffer(serviceBuffer)
+                                                .build();
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
+        }
     }
 
     private CasualServiceCallReplyMessage createMessage(final byte[] data)

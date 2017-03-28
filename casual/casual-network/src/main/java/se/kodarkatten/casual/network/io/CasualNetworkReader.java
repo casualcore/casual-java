@@ -9,6 +9,7 @@ import se.kodarkatten.casual.network.messages.exceptions.CasualTransportExceptio
 import se.kodarkatten.casual.network.messages.parseinfo.MessageHeaderSizes;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
@@ -68,6 +69,8 @@ public final class CasualNetworkReader
                     return readDomainDiscoveryReply(channel, header);
                 case SERVICE_CALL_REQUEST:
                     return readServiceCallRequest(channel, header);
+                case SERVICE_CALL_REPLY:
+                    return readServiceCallReply(channel, header);
                 default:
                     throw new UnsupportedOperationException("reading of messagetype: " + header.getType() + " is not implemented yet");
             }
@@ -105,5 +108,15 @@ public final class CasualNetworkReader
         final CasualServiceCallRequestMessage msg = reader.read(channel, header.getPayloadSize());
         return CasualNWMessage.of(header.getCorrelationId(), msg);
     }
+
+    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readServiceCallReply(AsynchronousByteChannel channel, CasualNWMessageHeader header)
+    {
+        // We may want to use some other size for chunking of service payload
+        CasualServiceCallReplyMessageReader.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
+        final MessageReader<CasualServiceCallReplyMessage> reader = MessageReader.of(CasualServiceCallReplyMessageReader.of(), getMaxSingleBufferByteSize());
+        final CasualServiceCallReplyMessage msg = reader.read(channel, header.getPayloadSize());
+        return CasualNWMessage.of(header.getCorrelationId(), msg);
+    }
+
 
 }
