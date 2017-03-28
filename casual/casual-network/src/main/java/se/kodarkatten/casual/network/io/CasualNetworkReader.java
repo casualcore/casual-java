@@ -1,10 +1,8 @@
 package se.kodarkatten.casual.network.io;
 
 
-import se.kodarkatten.casual.network.io.readers.CasualDomainDiscoveryReplyMessageReader;
-import se.kodarkatten.casual.network.io.readers.CasualDomainDiscoveryRequestMessageReader;
-import se.kodarkatten.casual.network.io.readers.CasualNWMessageHeaderReader;
-import se.kodarkatten.casual.network.io.readers.CasualServiceCallRequestMessageReader;
+import se.kodarkatten.casual.network.io.readers.*;
+import se.kodarkatten.casual.network.io.readers.Readable;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
@@ -102,8 +100,10 @@ public final class CasualNetworkReader
 
     private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readServiceCallRequest(AsynchronousByteChannel channel, CasualNWMessageHeader header)
     {
-        CasualServiceCallRequestMessageReader.setMaxSingleBufferByteSize(getMaxSingleBufferByteSize());
-        final CasualServiceCallRequestMessage msg = CasualServiceCallRequestMessageReader.read(channel, header.getPayloadSize());
+        // We may want to use some other size for chunking of service payload
+        CasualServiceCallRequestMessageReader.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
+        final MessageReader<CasualServiceCallRequestMessage> reader = MessageReader.of(CasualServiceCallRequestMessageReader.of(), getMaxSingleBufferByteSize());
+        final CasualServiceCallRequestMessage msg = reader.read(channel, header.getPayloadSize());
         return CasualNWMessage.of(header.getCorrelationId(), msg);
     }
 
