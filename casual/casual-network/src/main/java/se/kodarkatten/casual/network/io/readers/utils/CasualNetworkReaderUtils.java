@@ -1,6 +1,7 @@
 package se.kodarkatten.casual.network.io.readers.utils;
 
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
+import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
@@ -19,6 +20,11 @@ public final class CasualNetworkReaderUtils
 {
     private static final int UUID_NETWORK_SIZE = 16;
     private static final int STRING_NETWORK_SIZE = 8;
+
+    // These are the same for service call request/reply
+    private static final int SERVICE_BUFFER_TYPE_SUBNAME_NETWORK_SIZE = 8;
+    private static final int SERVICE_BUFFER_PAYLOAD_NETWORK_SIZE = 8;
+
     private CasualNetworkReaderUtils()
     {}
     public static UUID getAsUUID(final byte[] message)
@@ -156,6 +162,71 @@ public final class CasualNetworkReaderUtils
         }
     }
 
+    public static ServiceBuffer readServiceBuffer(AsynchronousByteChannel channel, int maxPayloadSize)
+    {
+        try
+        {
+            final int bufferTypeNameSize = (int) ByteUtils.readFully(channel, SERVICE_BUFFER_TYPE_SUBNAME_NETWORK_SIZE).get().getLong();
+            final String bufferTypename = CasualNetworkReaderUtils.readString(channel, bufferTypeNameSize);
+            final long payloadSize = ByteUtils.readFully(channel, SERVICE_BUFFER_PAYLOAD_NETWORK_SIZE).get().getLong();
+            final List<byte[]> payload = readPayload(channel, payloadSize, maxPayloadSize);
+            return ServiceBuffer.of(bufferTypename, payload);
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualTransportException("failed reading service buffer", e);
+        }
+    }
+
+    private static List<byte[]> readPayload(AsynchronousByteChannel channel, long payloadSize, int maxPayloadSize)
+    {
+        return payloadSize <= maxPayloadSize ? readPayloadSingleBuffer(channel, (int)payloadSize)
+                                             : readPayloadChunked(channel, payloadSize, maxPayloadSize);
+    }
+
+    private static List<byte[]> readPayloadSingleBuffer(AsynchronousByteChannel channel, int payloadSize)
+    {
+        try
+        {
+            final List<byte[]> l = new ArrayList<>();
+            ByteBuffer payload = ByteUtils.readFully(channel, payloadSize).get();
+            l.add(payload.array());
+            return l;
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualTransportException("failed reading service buffer payload single buffer", e);
+        }
+    }
+
+    private static List<byte[]> readPayloadChunked(AsynchronousByteChannel channel, long payloadSize, int maxSingleBufferByteSize)
+    {
+        try
+        {
+            long toRead = payloadSize;
+            long read = 0;
+            final List<byte[]> l = new ArrayList<>();
+            while ((toRead - maxSingleBufferByteSize) > 0)
+            {
+                final ByteBuffer chunk = ByteUtils.readFully(channel, maxSingleBufferByteSize).get();
+                l.add(chunk.array());
+                toRead -= maxSingleBufferByteSize;
+                // can we overflow?
+                read += maxSingleBufferByteSize;
+            }
+            int leftToRead = (int) (payloadSize - read);
+            if (leftToRead > 0)
+            {
+                final ByteBuffer chunk = ByteUtils.readFully(channel, leftToRead).get();
+                l.add(chunk.array());
+            }
+            return l;
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualTransportException("failed reading service buffer payload chunked", e);
+        }
+    }
 
 
 

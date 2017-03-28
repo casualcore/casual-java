@@ -34,4 +34,22 @@ public enum ErrorState
     {
         return value;
     }
+
+    public static final ErrorState unmarshal(int id)
+    {
+        for (ErrorState type : ErrorState.values())
+        {
+            if (type.getValue() == id)
+            {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("Unknown ErrorState type:" + id);
+    }
+
+    public static final int marshal(ErrorState s)
+    {
+        return s.getValue();
+    }
+
 }
