@@ -1,7 +1,12 @@
 package se.kodarkatten.casual.network.io;
 
 
-import se.kodarkatten.casual.network.io.readers.*;
+import se.kodarkatten.casual.network.io.readers.CasualDomainDiscoveryReplyMessageReader;
+import se.kodarkatten.casual.network.io.readers.CasualDomainDiscoveryRequestMessageReader;
+import se.kodarkatten.casual.network.io.readers.CasualNWMessageHeaderReader;
+import se.kodarkatten.casual.network.io.readers.CasualServiceCallReplyMessageReader;
+import se.kodarkatten.casual.network.io.readers.CasualServiceCallRequestMessageReader;
+import se.kodarkatten.casual.network.io.readers.MessageReader;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
@@ -86,14 +91,14 @@ public final class CasualNetworkReader
         return CasualNWMessageHeaderReader.fromNetworkBytes(message);
     }
 
-    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readDomainDiscoveryRequest(final AsynchronousByteChannel channel, final CasualNWMessageHeader header ) throws ExecutionException, InterruptedException
+    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readDomainDiscoveryRequest(final AsynchronousByteChannel channel, final CasualNWMessageHeader header )
     {
         final MessageReader<CasualDomainDiscoveryRequestMessage> reader = MessageReader.of(CasualDomainDiscoveryRequestMessageReader.of(), getMaxSingleBufferByteSize());
         final CasualDomainDiscoveryRequestMessage msg = reader.read(channel, header.getPayloadSize());
         return CasualNWMessage.of(header.getCorrelationId(), msg);
     }
 
-    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readDomainDiscoveryReply(AsynchronousByteChannel channel, CasualNWMessageHeader header) throws ExecutionException, InterruptedException
+    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readDomainDiscoveryReply(AsynchronousByteChannel channel, CasualNWMessageHeader header)
     {
         final MessageReader<CasualDomainDiscoveryReplyMessage> reader = MessageReader.of(CasualDomainDiscoveryReplyMessageReader.of(), getMaxSingleBufferByteSize());
         final CasualDomainDiscoveryReplyMessage msg = reader.read(channel, header.getPayloadSize());
@@ -117,6 +122,4 @@ public final class CasualNetworkReader
         final CasualServiceCallReplyMessage msg = reader.read(channel, header.getPayloadSize());
         return CasualNWMessage.of(header.getCorrelationId(), msg);
     }
-
-
 }
