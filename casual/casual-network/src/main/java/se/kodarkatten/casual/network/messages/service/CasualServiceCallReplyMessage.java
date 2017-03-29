@@ -145,6 +145,21 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         return Objects.hash(execution, callDescriptor);
     }
 
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("CasualServiceCallReplyMessage{");
+        sb.append("execution=").append(execution);
+        sb.append(", callDescriptor=").append(callDescriptor);
+        sb.append(", error=").append(error);
+        sb.append(", userSuppliedError=").append(userSuppliedError);
+        sb.append(", xid=").append(xid);
+        sb.append(", transactionState=").append(transactionState);
+        sb.append(", serviceBuffer=").append(serviceBuffer);
+        sb.append('}');
+        return sb.toString();
+    }
+
     public static class Builder
     {
         private UUID execution;

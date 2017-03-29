@@ -86,15 +86,6 @@ public final class XID implements Xid
         return new XID(gtridLength, bqualLength, formatType, globalTransactionId, branchQualifier);
     }
 
-    private static boolean isNullFormatTypeButAdditionalInformationProvided(byte[] globalTransactionId, byte[] branchQualifier, long formatType)
-    {
-        if(!XIDFormatType.isNullType(formatType))
-        {
-            return false;
-        }
-        return !(null == globalTransactionId && null == branchQualifier);
-    }
-
     /**
      * globalTransactionId + branchQualifier
      * @return
@@ -151,5 +142,27 @@ public final class XID implements Xid
     public byte[] getBranchQualifier()
     {
         return (null == branchQualifier) ? null : Arrays.copyOf(branchQualifier, branchQualifier.length);
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("XID{");
+        sb.append("formatType=").append(formatType);
+        sb.append(", gtridLength=").append(gtridLength);
+        sb.append(", bqualLength=").append(bqualLength);
+        sb.append(", globalTransactionId=").append(Arrays.toString(globalTransactionId));
+        sb.append(", branchQualifier=").append(Arrays.toString(branchQualifier));
+        sb.append('}');
+        return sb.toString();
+    }
+
+    private static boolean isNullFormatTypeButAdditionalInformationProvided(byte[] globalTransactionId, byte[] branchQualifier, long formatType)
+    {
+        if(!XIDFormatType.isNullType(formatType))
+        {
+            return false;
+        }
+        return !(null == globalTransactionId && null == branchQualifier);
     }
 }

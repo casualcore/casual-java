@@ -9,6 +9,7 @@ defaultTasks 'build'
 
 dependencies {
   implementation project(':casual:casual-network')
+  compile project(':casual:casual-api')
   testCompile 'junit:junit:4.8.2+'
   // for spock
   testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'

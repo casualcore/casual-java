@@ -179,7 +179,6 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
         sb.append(", domainName='").append(domainName).append('\'');
         sb.append(", serviceNames=").append(serviceNames);
         sb.append(", queueNames=").append(queueNames);
-        sb.append(", maxMessageSize=").append(maxMessageSize);
         sb.append('}');
         return sb.toString();
     }

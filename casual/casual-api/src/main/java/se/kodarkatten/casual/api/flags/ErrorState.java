@@ -5,6 +5,7 @@ package se.kodarkatten.casual.api.flags;
  */
 public enum ErrorState
 {
+    OK(0),
     TPEBADDESC(2),
     TPEBLOCK(3),
     TPEINVAL(4),

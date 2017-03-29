@@ -208,7 +208,6 @@ public final class CasualDomainDiscoveryReplyMessage implements CasualNetworkTra
         sb.append(", domainName='").append(domainName).append('\'');
         sb.append(", services=").append(services);
         sb.append(", queues=").append(queues);
-        sb.append(", maxMessageSize=").append(maxMessageSize);
         sb.append('}');
         return sb.toString();
     }
