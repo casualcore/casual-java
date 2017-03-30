@@ -24,7 +24,7 @@ import java.util.UUID;
 /**
  * Created by aleph on 2017-03-10.
  */
-public final class DomainDiscoveryRequestReplyClient
+public final class CasualTestClient
 {
     private static final String sEchoService = "casual.example.echo";
     private static AsynchronousSocketChannel clientChannel;
@@ -34,7 +34,7 @@ public final class DomainDiscoveryRequestReplyClient
         // should be host port domainname
         if(args.length != 3)
         {
-            System.err.println("Usage: java DomainDiscoveryRequestReplyClient <host name> <port number> <domain name>");
+            System.err.println("Usage: java CasualTestClient <host name> <port number> <domain name>");
             System.exit(-1);
         }
         int index = 0;
@@ -74,7 +74,7 @@ public final class DomainDiscoveryRequestReplyClient
         List<byte[]> msgData = new ArrayList<>();
         msgData.add(payload.getBytes(StandardCharsets.UTF_8));
         ServiceBuffer buffer = ServiceBuffer.of(".json/", msgData);
-        Flag<AtmiFlags> flags = new Flag.Builder().build();
+        Flag<AtmiFlags> flags = Flag.of(AtmiFlags.TPNOTRAN);
         CasualServiceCallRequestMessage requestMsg = CasualServiceCallRequestMessage.createBuilder()
                                                                                     .setExecution(UUID.randomUUID())
                                                                                     .setCallDescriptor(42)
