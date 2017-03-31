@@ -58,7 +58,7 @@ public final class CasualServiceCallReplyMessageReader implements NetworkReader<
     }
 
     @Override
-    public CasualServiceCallReplyMessage readSingleBuffer(AsynchronousByteChannel channel, int messageSize)
+    public CasualServiceCallReplyMessage readSingleBuffer(final AsynchronousByteChannel channel, int messageSize)
     {
         final CompletableFuture<ByteBuffer> msgFuture = ByteUtils.readFully(channel, messageSize);
         try
@@ -72,7 +72,7 @@ public final class CasualServiceCallReplyMessageReader implements NetworkReader<
     }
 
     @Override
-    public CasualServiceCallReplyMessage readChunked(AsynchronousByteChannel channel)
+    public CasualServiceCallReplyMessage readChunked(final AsynchronousByteChannel channel)
     {
         try
         {

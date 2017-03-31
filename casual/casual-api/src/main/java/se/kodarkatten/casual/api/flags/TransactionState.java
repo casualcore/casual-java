@@ -23,7 +23,7 @@ public enum TransactionState
         return id;
     }
 
-    public static int marshal(TransactionState t)
+    public static int marshal(final TransactionState t)
     {
         return t.getId();
     }

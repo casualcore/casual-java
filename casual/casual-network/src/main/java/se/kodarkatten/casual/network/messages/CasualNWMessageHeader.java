@@ -16,7 +16,7 @@ public final class CasualNWMessageHeader
     private final UUID correlationId;
     private final long payloadSize;
 
-    private CasualNWMessageHeader(final CasualNWMessageType type, final UUID correlationId, final long payloadSize)
+    private CasualNWMessageHeader(final CasualNWMessageType type, final UUID correlationId, long payloadSize)
     {
         this.type = type;
         this.correlationId = correlationId;

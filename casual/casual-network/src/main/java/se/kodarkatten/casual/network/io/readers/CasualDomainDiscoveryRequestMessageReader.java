@@ -40,7 +40,7 @@ public final class CasualDomainDiscoveryRequestMessageReader implements NetworkR
     }
 
     @Override
-    public CasualDomainDiscoveryRequestMessage readSingleBuffer(AsynchronousByteChannel channel, int messageSize)
+    public CasualDomainDiscoveryRequestMessage readSingleBuffer(final AsynchronousByteChannel channel, int messageSize)
     {
         final CompletableFuture<ByteBuffer> msgFuture = ByteUtils.readFully(channel, messageSize);
         try
@@ -54,7 +54,7 @@ public final class CasualDomainDiscoveryRequestMessageReader implements NetworkR
     }
 
     @Override
-    public CasualDomainDiscoveryRequestMessage readChunked(AsynchronousByteChannel channel)
+    public CasualDomainDiscoveryRequestMessage readChunked(final AsynchronousByteChannel channel)
     {
         try
         {
@@ -78,7 +78,7 @@ public final class CasualDomainDiscoveryRequestMessageReader implements NetworkR
         }
     }
 
-    private static CasualDomainDiscoveryRequestMessage getMessage(byte[] bytes)
+    private static CasualDomainDiscoveryRequestMessage getMessage(final byte[] bytes)
     {
         int currentOffset = 0;
         final UUID execution = CasualNetworkReaderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, DiscoveryRequestSizes.EXECUTION.getNetworkSize()));
@@ -103,7 +103,7 @@ public final class CasualDomainDiscoveryRequestMessageReader implements NetworkR
                                                   .build();
     }
 
-    private static List<String> readQueues(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
+    private static List<String> readQueues(final AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
     {
         final List<String> queues = new ArrayList<>();
         final long numberOfQueues = ByteUtils.readFully(channel, DiscoveryRequestSizes.QUEUES_SIZE.getNetworkSize()).get().getLong();

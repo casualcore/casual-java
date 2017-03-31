@@ -152,4 +152,13 @@ class XidTest extends Specification
         id.getFormatId() == formatType
     }
 
+    def "null type"()
+    {
+        setup:
+        when:
+        def nullXID = XID.of()
+        then:
+        nullXID == XID.of()
+    }
+
 }

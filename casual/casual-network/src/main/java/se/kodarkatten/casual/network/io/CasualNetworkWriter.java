@@ -17,7 +17,7 @@ public final class CasualNetworkWriter
 {
     private CasualNetworkWriter()
     {}
-    public static <T extends CasualNetworkTransmittable> void write(final AsynchronousByteChannel channel, CasualNWMessage<T> msg)
+    public static <T extends CasualNetworkTransmittable> void write(final AsynchronousByteChannel channel, final CasualNWMessage<T> msg)
     {
         for(final byte[] bytes : msg.toNetworkBytes())
         {

@@ -45,7 +45,7 @@ public final class CasualNWMessageHeaderReader
         return CasualNWMessageType.unmarshal((int)b.getLong());
     }
 
-    private static long getPayloadSize(byte[] message)
+    private static long getPayloadSize(final byte[] message)
     {
         final ByteBuffer payloadSize = ByteBuffer.wrap(message,  MessageHeaderSizes.HEADER_TYPE.getNetworkSize() +
                                                                  MessageHeaderSizes.HEADER_CORRELATION.getNetworkSize(),

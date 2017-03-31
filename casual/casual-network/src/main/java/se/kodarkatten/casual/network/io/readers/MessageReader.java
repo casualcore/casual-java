@@ -12,7 +12,7 @@ public final class MessageReader<T>
     final int maxSingleBufferByteSize;
     // It is very much used thank you
     @SuppressWarnings("squid:UnusedPrivateMethod")
-    private MessageReader(NetworkReader<T> networkReader, int maxSingleBufferByteSize)
+    private MessageReader(final NetworkReader<T> networkReader, int maxSingleBufferByteSize)
     {
         this.networkReader = networkReader;
         this.maxSingleBufferByteSize = maxSingleBufferByteSize;

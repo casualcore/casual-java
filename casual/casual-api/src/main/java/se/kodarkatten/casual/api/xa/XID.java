@@ -54,7 +54,7 @@ public final class XID implements Xid
         return new XID(gtridId.length, bqual.length, xid.getFormatId(), gtridId, bqual);
     }
 
-    public static Xid of(int gtridLength, int bqualLength, final byte[] data, final long formatType)
+    public static Xid of(int gtridLength, int bqualLength, final byte[] data, long formatType)
     {
         Objects.requireNonNull(data, "data for xid can not be null!");
         if((gtridLength + bqualLength) != data.length)

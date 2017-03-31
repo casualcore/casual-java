@@ -30,7 +30,7 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
     }
 
     @Override
-    public CasualDomainDiscoveryReplyMessage readSingleBuffer(AsynchronousByteChannel channel, int messageSize)
+    public CasualDomainDiscoveryReplyMessage readSingleBuffer(final AsynchronousByteChannel channel, int messageSize)
     {
         final CompletableFuture<ByteBuffer> msgFuture = ByteUtils.readFully(channel, messageSize);
         try
@@ -44,7 +44,7 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
     }
 
     @Override
-    public CasualDomainDiscoveryReplyMessage readChunked(AsynchronousByteChannel channel)
+    public CasualDomainDiscoveryReplyMessage readChunked(final AsynchronousByteChannel channel)
     {
         try
         {
@@ -83,7 +83,7 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         }
     }
 
-    private static List<byte[]> readService(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
+    private static List<byte[]> readService(final AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
     {
         // A service is expected to fit into one byte[] - it is never chunked
         final ByteBuffer serviceNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_ELEMENT_NAME_SIZE.getNetworkSize()).get();
@@ -109,7 +109,7 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         return l;
     }
 
-    private static List<byte[]> readQueue(AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
+    private static List<byte[]> readQueue(final AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
     {
         // A queue is expected to fit into one byte[] - it is never chunked
         final ByteBuffer queueNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_SIZE.getNetworkSize()).get();
@@ -124,7 +124,7 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         return l;
     }
 
-    private static CasualDomainDiscoveryReplyMessage readMessage(byte[] bytes)
+    private static CasualDomainDiscoveryReplyMessage readMessage(final byte[] bytes)
     {
         int currentOffset = 0;
         final UUID execution = CasualNetworkReaderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, DiscoveryReplySizes.EXECUTION.getNetworkSize()));
@@ -183,7 +183,7 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         return offset;
     }
 
-    private static DynamicArrayIndexPair getQueues(final byte[] bytes, final int currentOffset, final long numberOfServices)
+    private static DynamicArrayIndexPair getQueues(final byte[] bytes, int currentOffset, long numberOfServices)
     {
         final List<Queue> l = new ArrayList<>();
         int offset = currentOffset;

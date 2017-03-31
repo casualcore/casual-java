@@ -98,14 +98,14 @@ public final class CasualNetworkReader
         return CasualNWMessage.of(header.getCorrelationId(), msg);
     }
 
-    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readDomainDiscoveryReply(AsynchronousByteChannel channel, CasualNWMessageHeader header)
+    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readDomainDiscoveryReply(final AsynchronousByteChannel channel, final CasualNWMessageHeader header)
     {
         final MessageReader<CasualDomainDiscoveryReplyMessage> reader = MessageReader.of(CasualDomainDiscoveryReplyMessageReader.of(), getMaxSingleBufferByteSize());
         final CasualDomainDiscoveryReplyMessage msg = reader.read(channel, header.getPayloadSize());
         return CasualNWMessage.of(header.getCorrelationId(), msg);
     }
 
-    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readServiceCallRequest(AsynchronousByteChannel channel, CasualNWMessageHeader header)
+    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readServiceCallRequest(final AsynchronousByteChannel channel, final CasualNWMessageHeader header)
     {
         // We may want to use some other size for chunking of service payload
         CasualServiceCallRequestMessageReader.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
@@ -114,7 +114,7 @@ public final class CasualNetworkReader
         return CasualNWMessage.of(header.getCorrelationId(), msg);
     }
 
-    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readServiceCallReply(AsynchronousByteChannel channel, CasualNWMessageHeader header)
+    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readServiceCallReply(final AsynchronousByteChannel channel, final CasualNWMessageHeader header)
     {
         // We may want to use some other size for chunking of service payload
         CasualServiceCallReplyMessageReader.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
