@@ -254,6 +254,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         l.add(executionBuffer.array());
         l.add(CasualNetworkWriterUtils.writeLong(callDescriptor));
         l.add(CasualNetworkWriterUtils.writeLong(error.getValue()));
+        l.add(CasualNetworkWriterUtils.writeLong(userSuppliedError));
         final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid));
         CasualNetworkWriterUtils.writeXID(xid, xidByteBuffer);
         l.add(xidByteBuffer.array());

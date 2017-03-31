@@ -108,6 +108,8 @@ class CasualServiceCallReplyMessageTest extends Specification
                 .setTransactionState(transactionState)
                 .setServiceBuffer(serviceBuffer)
                 .build()
+        // force write chunking
+        requestMsg.setMaxMessageSize(1)
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
 
