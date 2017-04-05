@@ -10,9 +10,9 @@ import java.util.Objects;
 public class Flag<T extends CasualFlag>
 {
     private T type;
-    private final int flags;
+    private final long flags;
 
-    private Flag(int flags)
+    private Flag(long flags)
     {
         this.flags = flags;
     }
@@ -32,7 +32,7 @@ public class Flag<T extends CasualFlag>
         return type;
     }
 
-    public int getFlagValue()
+    public long getFlagValue()
     {
         return flags;
     }
@@ -60,14 +60,14 @@ public class Flag<T extends CasualFlag>
 
     public static final class Builder<T extends CasualFlag>
     {
-        private int value;
+        private long value;
 
         public Builder()
         {
             value = 0;
         }
 
-        public Builder(final int initialValue)
+        public Builder(final long initialValue)
         {
             value = initialValue;
         }

@@ -1,14 +1,14 @@
-package se.kodarkatten.casual.network.io.readers;
+package se.kodarkatten.casual.network.io.readers.service;
 
 import se.kodarkatten.casual.api.flags.Flag;
-import se.kodarkatten.casual.api.xa.XID;
-import se.kodarkatten.casual.api.xa.XIDFormatType;
+import se.kodarkatten.casual.network.io.readers.NetworkReader;
 import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.ServiceCallRequestSizes;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
 import se.kodarkatten.casual.network.utils.ByteUtils;
+import se.kodarkatten.casual.network.utils.Pair;
 import se.kodarkatten.casual.network.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
@@ -75,7 +75,7 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
         try
         {
             final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
-            final int callDescriptor = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize()).get().getLong();
+            final long callDescriptor = ByteUtils.readFully(channel, ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize()).get().getLong();
             final int serviceNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).get().getLong();
             final String serviceName = CasualNetworkReaderUtils.readString(channel, serviceNameSize);
             final long serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).get().getLong();
@@ -108,7 +108,7 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
         currentOffset += ServiceCallRequestSizes.EXECUTION.getNetworkSize();
 
         final ByteBuffer callDescriptorBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize());
-        int callDescriptor = (int)callDescriptorBuffer.getLong();
+        long callDescriptor = callDescriptorBuffer.getLong();
         currentOffset += ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize();
 
         int serviceNameLen = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).getLong();
@@ -124,21 +124,10 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
         final String parentName = CasualNetworkReaderUtils.getAsString(data, currentOffset, parentNameSize);
         currentOffset += parentNameSize;
 
-        long xidFormat = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.XID_FORMAT.getNetworkSize()).getLong();
-        currentOffset += ServiceCallRequestSizes.XID_FORMAT.getNetworkSize();
-        Xid xid = XID.of();
-        if(!XIDFormatType.isNullType(xidFormat))
-        {
-            int gtridLength = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.XID_GTRID_LENGTH.getNetworkSize()).getLong();
-            currentOffset += ServiceCallRequestSizes.XID_GTRID_LENGTH.getNetworkSize();
-            int bqualLength = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.XID_BQUAL_LENGTH.getNetworkSize()).getLong();
-            currentOffset += ServiceCallRequestSizes.XID_BQUAL_LENGTH.getNetworkSize();
-            ByteBuffer xidPayloadBuffer = ByteBuffer.wrap(data, currentOffset, gtridLength + bqualLength);
-            final byte[] xidPayload = new byte[gtridLength + bqualLength];
-            xidPayloadBuffer.get(xidPayload);
-            currentOffset += (gtridLength + bqualLength);
-            xid = XID.of(gtridLength, bqualLength, xidPayload, xidFormat);
-        }
+        Pair<Integer, Xid> xidInfo = CasualNetworkReaderUtils.readXid(data, currentOffset);
+        currentOffset = xidInfo.first();
+        final Xid xid = xidInfo.second();
+
         int flags = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.FLAGS.getNetworkSize()).getLong();
         currentOffset += ServiceCallRequestSizes.FLAGS.getNetworkSize();
         int serviceBufferTypeSize = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize()).getLong();

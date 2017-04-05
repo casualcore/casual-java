@@ -28,7 +28,7 @@ public enum AtmiFlags implements CasualFlag
     }
 
     @Override
-    public final int getValue() {
+    public final long getValue() {
         return value;
     }
 

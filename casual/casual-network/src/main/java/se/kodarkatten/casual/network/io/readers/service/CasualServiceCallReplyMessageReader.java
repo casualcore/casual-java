@@ -1,15 +1,15 @@
-package se.kodarkatten.casual.network.io.readers;
+package se.kodarkatten.casual.network.io.readers.service;
 
 import se.kodarkatten.casual.api.flags.ErrorState;
 import se.kodarkatten.casual.api.flags.TransactionState;
-import se.kodarkatten.casual.api.xa.XID;
-import se.kodarkatten.casual.api.xa.XIDFormatType;
+import se.kodarkatten.casual.network.io.readers.NetworkReader;
 import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.ServiceCallReplySizes;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 import se.kodarkatten.casual.network.utils.ByteUtils;
+import se.kodarkatten.casual.network.utils.Pair;
 import se.kodarkatten.casual.network.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
@@ -77,7 +77,7 @@ public final class CasualServiceCallReplyMessageReader implements NetworkReader<
         try
         {
             final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
-            final int callDescriptor = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_DESCRIPTOR.getNetworkSize()).get().getLong();
+            final long callDescriptor = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_DESCRIPTOR.getNetworkSize()).get().getLong();
             final int callError = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_ERROR.getNetworkSize()).get().getLong();
             final long userError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_CODE.getNetworkSize()).get().getLong();
             final Xid xid = XIDUtils.readXid(channel);
@@ -95,7 +95,7 @@ public final class CasualServiceCallReplyMessageReader implements NetworkReader<
         }
         catch (InterruptedException | ExecutionException e)
         {
-            throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
+            throw new CasualTransportException("failed reading CasualServiceCallReplyMessage", e);
         }
     }
 
@@ -106,7 +106,7 @@ public final class CasualServiceCallReplyMessageReader implements NetworkReader<
         currentOffset += ServiceCallReplySizes.EXECUTION.getNetworkSize();
 
         final ByteBuffer callDescriptorBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.CALL_DESCRIPTOR.getNetworkSize());
-        int callDescriptor = (int)callDescriptorBuffer.getLong();
+        long callDescriptor = callDescriptorBuffer.getLong();
         currentOffset += ServiceCallReplySizes.CALL_DESCRIPTOR.getNetworkSize();
 
         final ByteBuffer callErrorBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.CALL_ERROR.getNetworkSize());
@@ -117,21 +117,9 @@ public final class CasualServiceCallReplyMessageReader implements NetworkReader<
         long userError = userErrorBuffer.getLong();
         currentOffset += ServiceCallReplySizes.CALL_CODE.getNetworkSize();
 
-        long xidFormat = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.TRANSACTION_TRID_XID_FORMAT.getNetworkSize()).getLong();
-        currentOffset += ServiceCallReplySizes.TRANSACTION_TRID_XID_FORMAT.getNetworkSize();
-        Xid xid = XID.of();
-        if(!XIDFormatType.isNullType(xidFormat))
-        {
-            int gtridLength = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.TRANSACTION_TRID_XID_GTRID_LENGTH.getNetworkSize()).getLong();
-            currentOffset += ServiceCallReplySizes.TRANSACTION_TRID_XID_GTRID_LENGTH.getNetworkSize();
-            int bqualLength = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.TRANSACTION_TRID_XID_BQUAL_LENGTH.getNetworkSize()).getLong();
-            currentOffset += ServiceCallReplySizes.TRANSACTION_TRID_XID_BQUAL_LENGTH.getNetworkSize();
-            ByteBuffer xidPayloadBuffer = ByteBuffer.wrap(data, currentOffset, gtridLength + bqualLength);
-            final byte[] xidPayload = new byte[gtridLength + bqualLength];
-            xidPayloadBuffer.get(xidPayload);
-            currentOffset += (gtridLength + bqualLength);
-            xid = XID.of(gtridLength, bqualLength, xidPayload, xidFormat);
-        }
+        Pair<Integer, Xid> xidInfo = CasualNetworkReaderUtils.readXid(data, currentOffset);
+        currentOffset = xidInfo.first();
+        final Xid xid = xidInfo.second();
 
         final ByteBuffer transactionStateBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize());
         int transactionState = (int)transactionStateBuffer.getLong();

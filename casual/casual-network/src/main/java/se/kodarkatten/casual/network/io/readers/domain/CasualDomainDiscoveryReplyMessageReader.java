@@ -1,5 +1,6 @@
-package se.kodarkatten.casual.network.io.readers;
+package se.kodarkatten.casual.network.io.readers.domain;
 
+import se.kodarkatten.casual.network.io.readers.NetworkReader;
 import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
 import se.kodarkatten.casual.network.io.readers.utils.DynamicArrayIndexPair;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
@@ -211,7 +212,7 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
 
     /**
      * Used when header payload > Integer.MAX_VALUE
-     * @see CasualDomainDiscoveryReplyMessage::toNetworkBytesMultipleBuffers
+     * @see CasualDomainDiscoveryReplyMessage::addExtraDataMultipleBuffers
      * To understand how message should be structured
      **/
     private static CasualDomainDiscoveryReplyMessage readMessage(final List<byte[]> message)

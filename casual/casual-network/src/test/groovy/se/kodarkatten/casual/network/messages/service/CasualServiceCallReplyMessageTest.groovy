@@ -45,7 +45,8 @@ class CasualServiceCallReplyMessageTest extends Specification
         serviceBuffer = ServiceBuffer.of(serviceType, serviceData)
     }
 
-    def "Message creation"() {
+    def "Message creation"()
+    {
         setup:
         when:
         def msg = CasualServiceCallReplyMessage.createBuilder()
@@ -123,6 +124,7 @@ class CasualServiceCallReplyMessageTest extends Specification
 
         then:
         networkBytes != null
+        networkBytes.size() > 2
         requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == serviceBuffer.payload.get(0).length

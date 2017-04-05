@@ -6,5 +6,5 @@ package se.kodarkatten.casual.api.flags.internal;
 @FunctionalInterface
 public interface CasualFlag
 {
-    int getValue();
+    long getValue();
 }

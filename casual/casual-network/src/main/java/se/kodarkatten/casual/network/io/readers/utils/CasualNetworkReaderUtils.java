@@ -1,9 +1,14 @@
 package se.kodarkatten.casual.network.io.readers.utils;
 
+import se.kodarkatten.casual.api.xa.XID;
+import se.kodarkatten.casual.api.xa.XIDFormatType;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
+import se.kodarkatten.casual.network.messages.parseinfo.CommonSizes;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 import se.kodarkatten.casual.network.utils.ByteUtils;
+import se.kodarkatten.casual.network.utils.Pair;
 
+import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
 import java.nio.charset.Charset;
@@ -178,6 +183,27 @@ public final class CasualNetworkReaderUtils
         }
     }
 
+    public static Pair<Integer, Xid> readXid(final byte[] data, int offset)
+    {
+        int currentOffset = offset;
+        long xidFormat = ByteBuffer.wrap(data, currentOffset, CommonSizes.XID_FORMAT.getNetworkSize()).getLong();
+        currentOffset += CommonSizes.XID_FORMAT.getNetworkSize();
+        Xid xid = XID.of();
+        if(!XIDFormatType.isNullType(xidFormat))
+        {
+            int gtridLength = (int)ByteBuffer.wrap(data, currentOffset, CommonSizes.XID_GTRID_LENGTH.getNetworkSize()).getLong();
+            currentOffset += CommonSizes.XID_GTRID_LENGTH.getNetworkSize();
+            int bqualLength = (int)ByteBuffer.wrap(data, currentOffset, CommonSizes.XID_BQUAL_LENGTH.getNetworkSize()).getLong();
+            currentOffset += CommonSizes.XID_BQUAL_LENGTH.getNetworkSize();
+            ByteBuffer xidPayloadBuffer = ByteBuffer.wrap(data, currentOffset, gtridLength + bqualLength);
+            final byte[] xidPayload = new byte[gtridLength + bqualLength];
+            xidPayloadBuffer.get(xidPayload);
+            currentOffset += (gtridLength + bqualLength);
+            xid = XID.of(gtridLength, bqualLength, xidPayload, xidFormat);
+        }
+        return Pair.of(currentOffset, xid);
+    }
+
     private static List<byte[]> readPayload(AsynchronousByteChannel channel, long payloadSize, int maxPayloadSize)
     {
         return payloadSize <= maxPayloadSize ? readPayloadSingleBuffer(channel, (int)payloadSize)
@@ -227,6 +253,7 @@ public final class CasualNetworkReaderUtils
             throw new CasualTransportException("failed reading service buffer payload chunked", e);
         }
     }
+
 
 
 

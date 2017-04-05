@@ -1,5 +1,6 @@
-package se.kodarkatten.casual.network.io.readers;
+package se.kodarkatten.casual.network.io.readers.domain;
 
+import se.kodarkatten.casual.network.io.readers.NetworkReader;
 import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
 import se.kodarkatten.casual.network.io.readers.utils.DynamicArrayIndexPair;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;

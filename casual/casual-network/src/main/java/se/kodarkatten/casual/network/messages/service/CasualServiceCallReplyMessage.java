@@ -25,7 +25,7 @@ import java.util.UUID;
 public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
 {
     private UUID execution;
-    private int callDescriptor;
+    private long callDescriptor;
     private ErrorState error;
     private long userSuppliedError;
     private Xid xid;
@@ -72,7 +72,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         return execution;
     }
 
-    public int getCallDescriptor()
+    public long getCallDescriptor()
     {
         return callDescriptor;
     }
@@ -163,7 +163,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     public static class Builder
     {
         private UUID execution;
-        private int callDescriptor;
+        private long callDescriptor;
         private ErrorState error;
         private long userSuppliedError;
         private Xid xid;
@@ -176,7 +176,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             return this;
         }
 
-        public Builder setCallDescriptor(int callDescriptor)
+        public Builder setCallDescriptor(long callDescriptor)
         {
             this.callDescriptor = callDescriptor;
             return this;
