@@ -13,7 +13,7 @@ import java.util.UUID;
  */
 public final class CasualTransactionResourceCommitRequestMessage extends AbstractCasualTransactionRequestMessage
 {
-    protected CasualTransactionResourceCommitRequestMessage(final UUID execution, final Xid xid, long resourceId, long flags)
+    protected CasualTransactionResourceCommitRequestMessage(final UUID execution, final Xid xid, long resourceId, int flags)
     {
         super(execution, xid, resourceId, flags);
     }

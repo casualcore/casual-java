@@ -17,9 +17,9 @@ import java.util.UUID;
  */
 public abstract class AbstractCasualTransactionRequestMessage extends AbstractCasualTransactionMessage
 {
-    private long flags;
+    private int flags;
 
-    protected AbstractCasualTransactionRequestMessage(final UUID execution, final Xid xid, long resourceId, long flags)
+    protected AbstractCasualTransactionRequestMessage(final UUID execution, final Xid xid, long resourceId, int flags)
     {
         super(execution, xid, resourceId);
         this.flags = flags;

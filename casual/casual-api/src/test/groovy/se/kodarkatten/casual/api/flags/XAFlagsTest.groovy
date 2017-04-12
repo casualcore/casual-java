@@ -2,6 +2,7 @@ package se.kodarkatten.casual.api.flags
 
 import spock.lang.Specification
 import  se.kodarkatten.casual.api.flags.XAFlags
+import javax.transaction.xa.XAResource
 
 
 /**
@@ -14,14 +15,9 @@ class XAFlagsTest extends Specification
         setup:
         Flag.Builder builder = new Flag.Builder(XAFlags.TMONEPHASE.value)
         when:
-        long flagValue = builder
-                               .or(XAFlags.TMASYNC)
-                               .or(XAFlags.TMENDRSCAN)
+        int flagValue = builder.or(XAFlags.TMENDRSCAN)
                                .or(XAFlags.TMFAIL)
                                .or(XAFlags.TMJOIN)
-                               .or(XAFlags.TMMIGRATE)
-                               .or(XAFlags.TMMULTIPLE)
-                               .or(XAFlags.TMNOWAIT)
                                .or(XAFlags.TMRESUME)
                                .or(XAFlags.TMSTARTRSCAN)
                                .or(XAFlags.TMSUCCESS)
@@ -31,11 +27,41 @@ class XAFlagsTest extends Specification
         flagValue == maxFlagValue()
     }
 
-    def long maxFlagValue()
+    def "test set, clear and isSet"()
     {
-        return  0x80000000L | 0x40000000L | 0x20000000L |
-                0x10000000L | 0x08000000L | 0x04000000L |
-                0x02000000L | 0x01000000L | 0x00800000L |
-                0x00400000L | 0x00200000L | 0x00100000L
+        setup:
+        Flag<XAFlags> f = Flag.of().setFlag(XAFlags.TMJOIN)
+                                   .setFlag(XAFlags.TMSUCCESS)
+        when:
+        f.clearFlag(XAFlags.TMJOIN)
+        f.setFlag(XAFlags.TMONEPHASE)
+        then:
+        !f.isSet(XAFlags.TMJOIN)
+        f.isSet(XAFlags.TMSUCCESS)
+        f.isSet(XAFlags.TMONEPHASE)
+    }
+
+    def "values should match the values in the specification"()
+    {
+        setup:
+        long maxFlagValue = maxFlagValue()
+        when:
+        long maxFlagValueFromXASpec = maxFlagValueFromXASpec()
+        then:
+        maxFlagValue == maxFlagValueFromXASpec
+    }
+
+    def maxFlagValueFromXASpec()
+    {
+        return  0x40000000l | 0x00800000l | 0x20000000l |
+                0x00200000l | 0x08000000l | 0x01000000l |
+                0x04000000l | 0x02000000l
+    }
+
+    int maxFlagValue()
+    {
+        return  XAResource.TMONEPHASE | XAResource.TMENDRSCAN | XAResource.TMFAIL |
+                XAResource.TMJOIN     | XAResource.TMRESUME   | XAResource.TMSTARTRSCAN |
+                XAResource.TMSUCCESS  | XAResource.TMSUSPEND
     }
 }

@@ -25,11 +25,9 @@ class CasualTransactionResourcePrepareRequestMessageTest extends Specification
     def resourceId = 12345l
 
     @Shared
-    def flags = {
-        long flagValue = XAFlags.TMSUCCESS.value | XAFlags.TMNOWAIT.value
-        Flag<XAFlags> flags = new Flag.Builder(flagValue).build()
-        return flags
-    }()
+    def flags = Flag.of().setFlag(XAFlags.TMSUCCESS)
+                         .setFlag(XAFlags.TMJOIN)
+
 
     def "Message creation"()
     {

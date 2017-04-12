@@ -9,10 +9,9 @@ import java.util.Objects;
  */
 public class Flag<T extends CasualFlag>
 {
-    private T type;
-    private final long flags;
+    private int flags;
 
-    private Flag(long flags)
+    private Flag(int flags)
     {
         this.flags = flags;
     }
@@ -27,14 +26,33 @@ public class Flag<T extends CasualFlag>
         return new Flag(type.getValue());
     }
 
-    public T getFlagType()
+    public static <T extends CasualFlag> Flag<T> of()
     {
-        return type;
+        return new Flag(0);
     }
 
-    public long getFlagValue()
+    public int getFlagValue()
     {
         return flags;
+    }
+
+    public Flag<T> setFlag(final T v)
+    {
+        flags |= v.getValue();
+        return this;
+    }
+
+    public Flag<T> clearFlag(final T v)
+    {
+        flags &= ~(v.getValue());
+        return this;
+    }
+
+    // adds readability
+    @SuppressWarnings("squid:UselessParenthesesCheck")
+    public boolean isSet(final T v)
+    {
+        return (0 != (flags & (v.getValue())));
     }
 
     @Override
@@ -60,14 +78,14 @@ public class Flag<T extends CasualFlag>
 
     public static final class Builder<T extends CasualFlag>
     {
-        private long value;
+        private int value;
 
         public Builder()
         {
             value = 0;
         }
 
-        public Builder(final long initialValue)
+        public Builder(final int initialValue)
         {
             value = initialValue;
         }

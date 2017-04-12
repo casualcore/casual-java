@@ -47,7 +47,7 @@ public abstract class AbstractCasualTransactionRequestReader<T> implements Netwo
             final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
             final Xid xid = XIDUtils.readXid(channel);
             final long resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).get().getLong();
-            final long flagValue = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize()).get().getLong();
+            final int flagValue = (int)ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize()).get().getLong();
             final Flag<XAFlags> flags = new Flag.Builder(flagValue).build();
             return createTransactionRequestMessage(execution, xid, resourceId, flags);
         }
@@ -72,7 +72,7 @@ public abstract class AbstractCasualTransactionRequestReader<T> implements Netwo
         final long resourceId = resourceIdBuffer.getLong();
         currentOffset += CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize();
         final ByteBuffer flagBuffer = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize());
-        final long flagValue = flagBuffer.getLong();
+        final int flagValue = (int)flagBuffer.getLong();
         final Flag<XAFlags> flags = new Flag.Builder(flagValue).build();
         return createTransactionRequestMessage(execution, xid, resourceId, flags);
     }

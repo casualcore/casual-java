@@ -13,7 +13,7 @@ import java.util.UUID;
  */
 public final class CasualTransactionResourceRollbackRequestMessage extends AbstractCasualTransactionRequestMessage
 {
-    protected CasualTransactionResourceRollbackRequestMessage(final UUID execution, final Xid xid, long resourceId, long flags)
+    protected CasualTransactionResourceRollbackRequestMessage(final UUID execution, final Xid xid, long resourceId, int flags)
     {
         super(execution, xid, resourceId, flags);
     }
