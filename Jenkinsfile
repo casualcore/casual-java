@@ -5,8 +5,6 @@ pipeline {
         stage('Compiling') {
             steps {
                 sh './gradlew classes'
-            }
-            steps {
                 sh './gradlew testClasses'
             }
         }
