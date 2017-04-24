@@ -4,11 +4,8 @@ pipeline {
     stages {
         stage('Compiling') {
             steps {
-                gradle {
-                    useWrapper true
-                    tasks "classes"
-                    tasks "testClasses"
-                }
+                sh './gradlew classes'
+                sh './gradlew testClasses'
             }
         }
         stage('Test') {
