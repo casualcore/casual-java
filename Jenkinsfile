@@ -2,6 +2,13 @@ pipeline {
     agent any
 
     stages {
+
+        stage('Pull docker image') {
+            steps {
+                sh 'docker pull openjdk:8'
+            }
+        }
+
         stage('Compiling') {
             steps {
                 withDockerContainer("openjdk:8") {
