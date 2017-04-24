@@ -15,7 +15,8 @@ pipeline {
         }
         stage('Analyzing') {
             steps {
-                sh './gradlew sonarqube'
+                echo 'need to setup sonar'
+                //sh './gradlew sonarqube'
             }
         }
         stage('Packaging') {
