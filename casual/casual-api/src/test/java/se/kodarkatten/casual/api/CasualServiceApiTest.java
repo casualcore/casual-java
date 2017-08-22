@@ -6,6 +6,7 @@ import se.kodarkatten.casual.api.buffer.ServiceReturn;
 import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.ServiceReturnState;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -40,7 +41,17 @@ public class CasualServiceApiTest
 
     public static class CasualTestBuffer implements CasualBuffer
     {
+        @Override
+        public String getType()
+        {
+            return null;
+        }
 
+        @Override
+        public List<byte[]> getPayload()
+        {
+            return null;
+        }
     }
 
     public static class CasualAPIImpl implements CasualServiceApi

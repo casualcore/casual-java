@@ -6,7 +6,6 @@ package se.kodarkatten.casual.network.messages.parseinfo;
 public enum ServiceCallReplySizes
 {
     EXECUTION(16, 16),
-    CALL_DESCRIPTOR(4, 8),
     CALL_ERROR(4, 8),
     CALL_CODE(8, 8),
     TRANSACTION_TRID_XID_FORMAT(8, 8),
@@ -14,7 +13,7 @@ public enum ServiceCallReplySizes
     TRANSACTION_TRID_XID_BQUAL_LENGTH(8, 8),
     // byte array with the size of gtrid_length + bqual_length (max 128)
     TRANSACTION_TRID_XID_PAYLOAD(32, 32),
-    TRANSACTION_STATE(8, 8),
+    TRANSACTION_STATE(8, 1),
     BUFFER_TYPE_NAME_SIZE(8, 8),
     BUFFER_TYPE_NAME_DATA(8, 8),
     BUFFER_TYPE_SUBNAME_SIZE(8, 8),

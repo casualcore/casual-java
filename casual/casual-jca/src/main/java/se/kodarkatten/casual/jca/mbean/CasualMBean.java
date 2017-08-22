@@ -28,9 +28,4 @@ package se.kodarkatten.casual.jca.mbean;
  */
 public interface CasualMBean
 {
-   /**
-    * Call me
-    * @throws Exception exception
-    */
-   public void callMe() throws Exception;
 }

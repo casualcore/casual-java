@@ -14,12 +14,15 @@ import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by aleph on 2017-03-10.
@@ -28,19 +31,13 @@ public final class CasualTestClient
 {
     private static final String sEchoService = "casual.example.echo";
     private static AsynchronousSocketChannel clientChannel;
+    private static AsynchronousChannelGroup channelGroup;
 
     public static void main(String... args)
     {
-        // should be host port domainname
-        if(args.length != 3)
-        {
-            System.err.println("Usage: java CasualTestClient <host name> <port number> <domain name>");
-            System.exit(-1);
-        }
-        int index = 0;
-        final String host = args[index++];
-        final int port = Integer.parseInt(args[index++]);
-        final String domainName = args[index++];
+        final String host = "127.0.0.1";
+        final int port = 7771;
+        final String domainName = "casual-java-standalone-client";
         requestResponseNIO2Style(host, port, domainName);
     }
 
@@ -48,17 +45,21 @@ public final class CasualTestClient
     {
         try
         {
-            clientChannel = AsynchronousSocketChannel.open();
+            channelGroup = AsynchronousChannelGroup.withThreadPool(Executors.newFixedThreadPool(4));
+            clientChannel = AsynchronousSocketChannel.open(channelGroup);
             clientChannel.connect(new InetSocketAddress(host, port));
             makeDomainDiscoveryRequest(clientChannel, domainName);
             CasualNWMessage domainDiscoveryReplyMsg = CasualNetworkReader.read(clientChannel);
             System.out.println("Domain discovery reply msg: " + domainDiscoveryReplyMsg);
             makeServiceCall(clientChannel);
+            System.out.println("Service call made");
+            System.out.println("About to read service call reply ");
             CasualNWMessage serviceCallReplyMsg = CasualNetworkReader.read(clientChannel);
             System.out.println("Service call reply msg: " + serviceCallReplyMsg);
             CasualServiceCallReplyMessage replyMsg = (CasualServiceCallReplyMessage) serviceCallReplyMsg.getMessage();
             System.out.println("Reply service buffer payload: " + new String(replyMsg.getServiceBuffer().getPayload().get(0), StandardCharsets.UTF_8));
             clientChannel.close();
+            channelGroup.shutdown();
         }
         catch (IOException e)
         {
@@ -77,7 +78,6 @@ public final class CasualTestClient
         Flag<AtmiFlags> flags = Flag.of(AtmiFlags.TPNOTRAN);
         CasualServiceCallRequestMessage requestMsg = CasualServiceCallRequestMessage.createBuilder()
                                                                                     .setExecution(UUID.randomUUID())
-                                                                                    .setCallDescriptor(42)
                                                                                     .setServiceName(sEchoService)
                                                                                     .setXid(XID.of())
                                                                                     .setXatmiFlags(flags)

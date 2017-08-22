@@ -30,4 +30,17 @@ public enum XAFlags implements CasualFlag
     {
         return v;
     }
+
+    public static XAFlags unmarshall( int f )
+    {
+        for(XAFlags v : values())
+        {
+            if(v.getValue() == f)
+            {
+                return v;
+            }
+        }
+        throw new IllegalArgumentException("XAFlags, unknown type: " + f);
+    }
+
 }

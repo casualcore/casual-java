@@ -21,6 +21,8 @@
  */
 package se.kodarkatten.casual.jca;
 
+import se.kodarkatten.casual.internal.CasualConstants;
+
 import javax.resource.cci.ResourceAdapterMetaData;
 
 /**
@@ -46,7 +48,7 @@ public class CasualRaMetaData implements ResourceAdapterMetaData
    @Override
    public String getAdapterVersion()
    {
-      return null; //TODO
+      return CasualConstants.CASUAL_API_VERSION;
    }
 
    /**
@@ -57,7 +59,7 @@ public class CasualRaMetaData implements ResourceAdapterMetaData
    @Override
    public String getAdapterVendorName()
    {
-      return null; //TODO
+      return CasualConstants.CASUAL_NAME;
    }
 
    /**
@@ -68,7 +70,7 @@ public class CasualRaMetaData implements ResourceAdapterMetaData
    @Override
    public String getAdapterName()
    {
-      return null; //TODO
+      return CasualConstants.CASUAL_ADAPTER_NAME;
    }
 
    /**
@@ -79,7 +81,7 @@ public class CasualRaMetaData implements ResourceAdapterMetaData
    @Override
    public String getAdapterShortDescription()
    {
-      return null; //TODO
+      return CasualConstants.CASUAL_ADAPTER_DESCRIPTION;
    }
 
    /**
@@ -90,7 +92,7 @@ public class CasualRaMetaData implements ResourceAdapterMetaData
    @Override
    public String getSpecVersion()
    {
-      return null; //TODO
+      return CasualConstants.CASUAL_ADAPTER_JCA_SPEC_VERSION;
    }
 
    /**

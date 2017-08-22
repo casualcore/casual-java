@@ -23,3 +23,9 @@ allprojects{
 }
 
 
+task dist(type: Copy, dependsOn: getTasksByName("build", false)) {
+    subprojects.each { subproject ->
+            from "$subproject.buildDir/libs"
+            into "$rootProject.projectDir/dist"
+    }
+}

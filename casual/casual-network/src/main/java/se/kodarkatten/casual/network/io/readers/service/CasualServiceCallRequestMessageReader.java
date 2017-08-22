@@ -75,7 +75,6 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
         try
         {
             final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
-            final long callDescriptor = ByteUtils.readFully(channel, ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize()).get().getLong();
             final int serviceNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).get().getLong();
             final String serviceName = CasualNetworkReaderUtils.readString(channel, serviceNameSize);
             final long serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).get().getLong();
@@ -86,7 +85,6 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
             final ServiceBuffer buffer = CasualNetworkReaderUtils.readServiceBuffer(channel, getMaxPayloadSingleBufferByteSize());
             return CasualServiceCallRequestMessage.createBuilder()
                                                   .setExecution(execution)
-                                                  .setCallDescriptor(callDescriptor)
                                                   .setServiceName(serviceName)
                                                   .setTimeout(serviceTimeout)
                                                   .setParentName(parentName)
@@ -106,10 +104,6 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
         int currentOffset = 0;
         final UUID execution = CasualNetworkReaderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ServiceCallRequestSizes.EXECUTION.getNetworkSize()));
         currentOffset += ServiceCallRequestSizes.EXECUTION.getNetworkSize();
-
-        final ByteBuffer callDescriptorBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize());
-        long callDescriptor = callDescriptorBuffer.getLong();
-        currentOffset += ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize();
 
         int serviceNameLen = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).getLong();
         currentOffset += ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize();
@@ -144,7 +138,6 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
         return CasualServiceCallRequestMessage.createBuilder()
                                               .setExecution(execution)
-                                              .setCallDescriptor(callDescriptor)
                                               .setServiceName(serviceName)
                                               .setTimeout(timeout)
                                               .setParentName(parentName)

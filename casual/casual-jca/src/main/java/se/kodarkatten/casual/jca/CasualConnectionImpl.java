@@ -1,83 +1,95 @@
-/*
- * IronJacamar, a Java EE Connector Architecture implementation
- * Copyright 2013, Red Hat Inc, and individual contributors
- * as indicated by the @author tags. See the copyright.txt file in the
- * distribution for a full listing of individual contributors.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- */
 package se.kodarkatten.casual.jca;
 
+import se.kodarkatten.casual.api.buffer.CasualBuffer;
+import se.kodarkatten.casual.api.buffer.ServiceReturn;
+import se.kodarkatten.casual.api.flags.Flag;
+import se.kodarkatten.casual.network.connection.CasualConnectionException;
+
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 /**
- * CasualConnectionImpl
- *
+ * CasualConnectionImpl - handle object for a connection
+ * Managed by a ManagedConnection
+ * @see CasualManagedConnection
  * @version $Revision: $
  */
 public class CasualConnectionImpl implements CasualConnection
 {
-   /** The logger */
-   private static Logger log = Logger.getLogger(CasualConnectionImpl.class.getName());
+    /**
+     * The logger
+     */
+    private static Logger log = Logger.getLogger(CasualConnectionImpl.class.getName());
 
-   /** ManagedConnection */
-   private CasualManagedConnection mc;
+    /**
+     * ManagedConnection
+     */
+    private CasualManagedConnection mc;
 
-   /** ManagedConnectionFactory */
-   private CasualManagedConnectionFactory mcf;
+    /**
+     * ManagedConnectionFactory
+     */
+    private CasualManagedConnectionFactory mcf;
 
-   /**
-    * Default constructor
-    * @param mc CasualManagedConnection
-    * @param mcf CasualManagedConnectionFactory
-    */
-   public CasualConnectionImpl(CasualManagedConnection mc, CasualManagedConnectionFactory mcf)
-   {
-      this.mc = mc;
-      this.mcf = mcf;
-   }
 
-   /**
-    * Call me
-    */
-   public void callMe()
-   {
-      if (mc != null)
-         mc.callMe();
-   }
+    /**
+     * Default constructor
+     *
+     * @param mc  CasualManagedConnection
+     * @param mcf CasualManagedConnectionFactory
+     */
+    public CasualConnectionImpl(CasualManagedConnection mc, CasualManagedConnectionFactory mcf)
+    {
+        this.mc = mc;
+        this.mcf = mcf;
+    }
 
-   /**
-    * Close
-    */
-   public void close()
-   {
-      if (mc != null)
-      {
-         mc.closeHandle(this);
-         mc = null;
-      }
+    public void invalidate()
+    {
+        mc = null;
+    }
 
-   }
+    public boolean isInvalid()
+    {
+        return null == mc;
+    }
 
-   /**
-    * Set ManagedConnection
-    */
-   void setManagedConnection(CasualManagedConnection mc)
-   {
-      this.mc = mc;
-   }
+    @Override
+    public void close()
+    {
+        if(isInvalid())
+        {
+            throw new CasualConnectionException("connection is invalidated!");
+        }
+        mc.closeHandle(this);
+    }
 
+    @Override
+    public <X extends CasualBuffer> ServiceReturn<X> tpcall(String serviceName, X data, Flag flags, Class<X> bufferClass)
+    {
+        if(isInvalid())
+        {
+            throw new CasualConnectionException("connection is invalidated!");
+        }
+        return mc.tpcall(serviceName, data, flags, bufferClass);
+    }
+
+    @Override
+    public <X extends CasualBuffer> CompletableFuture<ServiceReturn<X>> tpacall(String serviceName, X data, Flag flags, Class<X> bufferClass)
+    {
+        if(isInvalid())
+        {
+            throw new CasualConnectionException("connection is invalidated!");
+        }
+        throw new CasualConnectionException("not yet implemented");
+    }
+
+    void setManagedConnection(CasualManagedConnection mc)
+    {
+        this.mc = mc;
+    }
+    CasualManagedConnection getManagedConnection()
+    {
+        return mc;
+    }
 }

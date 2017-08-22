@@ -25,7 +25,6 @@ import java.util.UUID;
 public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
 {
     private UUID execution;
-    private long callDescriptor;
     private ErrorState error;
     private long userSuppliedError;
     private Xid xid;
@@ -58,7 +57,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
 
         final long messageSize = ServiceCallReplySizes.EXECUTION.getNetworkSize() +
-                                 ServiceCallReplySizes.CALL_DESCRIPTOR.getNetworkSize() +
                                  ServiceCallReplySizes.CALL_ERROR.getNetworkSize() + ServiceCallReplySizes.CALL_CODE.getNetworkSize() +
                                  XIDUtils.getXIDNetworkSize(xid) +
                                  ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize() +
@@ -70,11 +68,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     public UUID getExecution()
     {
         return execution;
-    }
-
-    public long getCallDescriptor()
-    {
-        return callDescriptor;
     }
 
     public ErrorState getError()
@@ -130,8 +123,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             return false;
         }
         CasualServiceCallReplyMessage that = (CasualServiceCallReplyMessage) o;
-        return callDescriptor == that.callDescriptor &&
-            userSuppliedError == that.userSuppliedError &&
+        return userSuppliedError == that.userSuppliedError &&
             Objects.equals(execution, that.execution) &&
             error == that.error &&
             Objects.equals(xid, that.xid) &&
@@ -142,7 +134,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     @Override
     public int hashCode()
     {
-        return Objects.hash(execution, callDescriptor);
+        return Objects.hash(execution);
     }
 
     @Override
@@ -150,7 +142,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     {
         final StringBuilder sb = new StringBuilder("CasualServiceCallReplyMessage{");
         sb.append("execution=").append(execution);
-        sb.append(", callDescriptor=").append(callDescriptor);
         sb.append(", error=").append(error);
         sb.append(", userSuppliedError=").append(userSuppliedError);
         sb.append(", xid=").append(xid);
@@ -163,7 +154,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     public static class Builder
     {
         private UUID execution;
-        private long callDescriptor;
         private ErrorState error;
         private long userSuppliedError;
         private Xid xid;
@@ -173,12 +163,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         public Builder setExecution(UUID execution)
         {
             this.execution = execution;
-            return this;
-        }
-
-        public Builder setCallDescriptor(long callDescriptor)
-        {
-            this.callDescriptor = callDescriptor;
             return this;
         }
 
@@ -215,7 +199,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         {
             CasualServiceCallReplyMessage msg = new CasualServiceCallReplyMessage();
             msg.execution = execution;
-            msg.callDescriptor = callDescriptor;
             msg.error = error;
             msg.userSuppliedError = userSuppliedError;
             msg.xid = XID.of(xid);
@@ -230,11 +213,10 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         List<byte[]> l = new ArrayList<>();
         ByteBuffer b = ByteBuffer.allocate(messageSize);
         CasualNetworkWriterUtils.writeUUID(execution, b);
-        b.putLong(callDescriptor)
-         .putLong(error.getValue())
+        b.putLong(error.getValue())
          .putLong(userSuppliedError);
         CasualNetworkWriterUtils.writeXID(xid, b);
-        b.putLong(transactionState.getId())
+        b.put((byte)(transactionState.getId() & 0xff))
          .putLong(serviceBytes.get(0).length)
          .put(serviceBytes.get(0));
         serviceBytes.remove(0);
@@ -252,13 +234,13 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         final ByteBuffer executionBuffer = ByteBuffer.allocate(ServiceCallReplySizes.EXECUTION.getNetworkSize());
         CasualNetworkWriterUtils.writeUUID(execution, executionBuffer);
         l.add(executionBuffer.array());
-        l.add(CasualNetworkWriterUtils.writeLong(callDescriptor));
         l.add(CasualNetworkWriterUtils.writeLong(error.getValue()));
         l.add(CasualNetworkWriterUtils.writeLong(userSuppliedError));
-        final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid));
+        // note we add the transaction state as well here
+        final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid) + ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize());
         CasualNetworkWriterUtils.writeXID(xid, xidByteBuffer);
+        xidByteBuffer.put((byte)(transactionState.getId() & 0xff ));
         l.add(xidByteBuffer.array());
-        l.add(CasualNetworkWriterUtils.writeLong(transactionState.getId()));
         final ByteBuffer serviceBufferTypeSize = ByteBuffer.allocate(ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize());
         serviceBufferTypeSize.putLong(serviceBytes.get(0).length);
         l.add(serviceBufferTypeSize.array());

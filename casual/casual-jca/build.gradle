@@ -9,17 +9,6 @@ defaultTasks 'build'
 group = 'se.kodarkatten.casual'
 version = '0.0.1'
 
-ext {
-    ijversion = '1.2.7.Final'
-}
-
-jar {
-    manifest {
-        attributes 'Implementation-Title': 'Ironjacamar Test', 'Implementation-Version': version
-    }
-    extension = 'rar'
-}
-
 repositories {
     maven {
         name 'jboss-nexus'
@@ -36,8 +25,19 @@ repositories {
     }
 }
 
+configurations {
+    pack
+}
+
 dependencies {
-    compile 'org.jboss.ironjacamar:ironjacamar-spec-api:1.2.7.Final'
+    compile project(':casual:casual-api')
+    compile project(':casual:casual-internal')
+    compile project(':casual:casual-network')
+    compile 'javax:javaee-api:7.0'
+    pack project(':casual:casual-api')
+    pack project(':casual:casual-internal')
+    pack project(':casual:casual-network')
+//    compile 'org.jboss.ironjacamar:ironjacamar-spec-api:1.2.7.Final'
     testCompile files("${System.properties['java.home']}/../lib/tools.jar")
     testCompile 'org.jboss.ironjacamar:ironjacamar-arquillian-embedded:1.2.7.Final'
     testCompile 'org.jboss.ironjacamar:ironjacamar-arquillian-embedded-byteman:1.2.7.Final'
@@ -56,3 +56,21 @@ dependencies {
 }
 test {
 }
+
+task resourceAdapterArchive(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Casual Resource Adapter with XA', 'Implementation-Version': '1.0', 'Specification-Version': '1.0'
+    }
+    extension = 'rar'
+    into('') {
+        from jar
+    }
+    into('') {
+        from configurations.pack
+    }
+    into('') {
+        from sourceSets.main.resources
+    }
+}
+
+build.finalizedBy resourceAdapterArchive

@@ -23,8 +23,6 @@ class CasualServiceCallRequestMessageTest extends Specification
     @Shared
     def execution = UUID.randomUUID()
     @Shared
-    def callDescriptor = 42
-    @Shared
     def serviceName = 'A very fine service'
     @Shared
     def timeout = 90 * 1000
@@ -55,7 +53,6 @@ class CasualServiceCallRequestMessageTest extends Specification
         when:
         def msg = CasualServiceCallRequestMessage.createBuilder()
                                           .setExecution(execution)
-                                          .setCallDescriptor(callDescriptor)
                                           .setServiceName(serviceName)
                                           .setTimeout(timeout)
                                           .setParentName(parentName)
@@ -65,7 +62,6 @@ class CasualServiceCallRequestMessageTest extends Specification
                                           .build()
         then:
         msg.execution == execution
-        msg.callDescriptor == callDescriptor
         msg.serviceName == serviceName
         msg.timeout == timeout
         msg.parentName == parentName
@@ -79,7 +75,6 @@ class CasualServiceCallRequestMessageTest extends Specification
         setup:
         def requestMsg = CasualServiceCallRequestMessage.createBuilder()
                                                         .setExecution(execution)
-                                                        .setCallDescriptor(callDescriptor)
                                                         .setServiceName(serviceName)
                                                         .setTimeout(timeout)
                                                         .setParentName(parentName)
@@ -108,7 +103,6 @@ class CasualServiceCallRequestMessageTest extends Specification
         setup:
         def requestMsg = CasualServiceCallRequestMessage.createBuilder()
                                                         .setExecution(execution)
-                                                        .setCallDescriptor(callDescriptor)
                                                         .setServiceName(serviceName)
                                                         .setTimeout(timeout)
                                                         .setParentName(parentName)

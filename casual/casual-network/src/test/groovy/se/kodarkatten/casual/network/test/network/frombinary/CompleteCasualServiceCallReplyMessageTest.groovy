@@ -30,7 +30,7 @@ class CompleteCasualServiceCallReplyMessageTest extends Specification
         data = ResourceLoader.getResourceAsByteArray(resource)
         then:
         data != null
-        data.length == 190
+        data.length == 145
     }
 
     def "get header"()
@@ -54,6 +54,7 @@ class CompleteCasualServiceCallReplyMessageTest extends Specification
         header != null
         resurrectedHeader != null
         resurrectedHeader == header
+        resurrectedHeader.payloadSize == 113
     }
 
     def "roundtrip message - chunk"()

@@ -7,3 +7,5 @@
 # emacs #
 *~
 *.orig
+dist/
+out/

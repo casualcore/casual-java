@@ -7,6 +7,7 @@ defaultTasks 'build'
 
 dependencies {
     compile project(':casual:casual-api')
+    compile project(':casual:casual-network')
     compileOnly 'javax:javaee-api:7.0'
     testCompile 'javax:javaee-api:7.0'
     testCompile 'junit:junit:4.8.2+'

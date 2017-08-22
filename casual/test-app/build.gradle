@@ -1,0 +1,12 @@
+plugins {
+  id 'war'
+}
+
+dependencies {
+  compile project(':casual:casual-api')
+  compileOnly 'javax:javaee-api:7.0'
+}
+
+repositories {
+  mavenCentral()
+}

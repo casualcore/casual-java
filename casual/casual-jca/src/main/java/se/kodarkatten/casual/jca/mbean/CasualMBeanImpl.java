@@ -21,92 +21,109 @@
  */
 package se.kodarkatten.casual.jca.mbean;
 
+import se.kodarkatten.casual.jca.CasualConnection;
+import se.kodarkatten.casual.jca.CasualConnectionFactory;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.naming.InitialContext;
-
-import se.kodarkatten.casual.jca.CasualConnection;
-import se.kodarkatten.casual.jca.CasualConnectionFactory;
+import javax.resource.AdministeredObjectDefinition;
+import javax.resource.spi.AdministeredObject;
+import java.io.Serializable;
 
 /**
  * CasualMBeanImpl
  *
  * @version $Revision: $
  */
-public class CasualMBeanImpl implements CasualMBean
+@AdministeredObject(adminObjectInterfaces = {se.kodarkatten.casual.jca.mbean.CasualMBean.class})
+@AdministeredObjectDefinition(interfaceName = "se.kodarkatten.casual.jca.mbean.CasualMBean",
+        resourceAdapter = "se.kodarkatten.casual.jca.CasualResourceAdapter",
+        description = "Config for Casual Resource Adapter",
+        className = "se.kodarkatten.casual.jca.mbean.CasualMBeanImpl",
+        name = "eis.casual-jca-0.0.1_RABean")
+public class CasualMBeanImpl implements CasualMBean, Serializable
 {
-   /** JNDI name */
-   private static final String JNDI_NAME = "java:/eis/Casual";
+    /**
+     * JNDI name
+     */
+    private static final String JNDI_NAME = "java:/eis/Casual";
 
-   /** MBeanServer instance */
-   private MBeanServer mbeanServer;
+    /**
+     * MBeanServer instance
+     */
+    private MBeanServer mbeanServer;
 
-   /** Object Name */
-   private String objectName;
+    /**
+     * Object Name
+     */
+    private String objectName;
 
-   /** The actual ObjectName instance */
-   private ObjectName on;
+    /**
+     * The actual ObjectName instance
+     */
+    private ObjectName on;
 
-   /** Registered */
-   private boolean registered;
+    /**
+     * Registered
+     */
+    private boolean registered;
 
 
-   /**
-    * Set the MBean server
-    * @param v The value
-    */
-   public void setMBeanServer(MBeanServer v)
-   {
-      mbeanServer = v;
-   }
+    /**
+     * Set the MBean server
+     *
+     * @param v The value
+     */
+    public void setMBeanServer(MBeanServer v)
+    {
+        mbeanServer = v;
+    }
 
-   /**
-    * Start
-    * @exception Throwable Thrown in case of an error
-    */
-   public void start() throws Throwable
-   {
-      if (mbeanServer == null)
-         throw new IllegalArgumentException("MBeanServer is null");
-      on = new ObjectName(mbeanServer.getDefaultDomain() + objectName);
-      mbeanServer.registerMBean(this, on);
-      registered = true;
-   }
+    /**
+     * Start
+     *
+     * @throws Throwable Thrown in case of an error
+     */
+    public void start() throws Throwable
+    {
+        if (mbeanServer == null)
+        {
+            throw new IllegalArgumentException("MBeanServer is null");
+        }
+        on = new ObjectName(mbeanServer.getDefaultDomain() + objectName);
+        mbeanServer.registerMBean(this, on);
+        registered = true;
+    }
 
-   /**
-    * Stop
-    * @exception Throwable Thrown in case of an error
-    */
-   public void stop() throws Throwable
-   {
-      if (registered)
-         mbeanServer.unregisterMBean(on); 
-   }
+    /**
+     * Stop
+     *
+     * @throws Throwable Thrown in case of an error
+     */
+    public void stop() throws Throwable
+    {
+        if (registered)
+        {
+            mbeanServer.unregisterMBean(on);
+        }
+    }
 
-   /**
-    * Call me
-    * @throws Exception exception
-    */
-   @Override
-   public void callMe() throws Exception
-   {
-      getConnection().callMe();
-   }
-
-   /**
-    * GetConnection
-    * @return CasualConnection
-    */
-   private CasualConnection getConnection() throws Exception
-   {
-      InitialContext context = new InitialContext();
-      CasualConnectionFactory factory = (CasualConnectionFactory)context.lookup(JNDI_NAME);
-      CasualConnection conn = factory.getConnection();
-      if (conn == null)
-      {
-         throw new RuntimeException("No connection");
-      }
-      return conn;
-   }
+    /**
+     * GetConnection
+     *
+     * @return CasualConnection
+     */
+    private CasualConnection getConnection() throws Exception
+    {
+        InitialContext context = new InitialContext();
+        CasualConnectionFactory factory = (CasualConnectionFactory) context.lookup(JNDI_NAME);
+        CasualConnection conn = factory.getConnection();
+        if (conn == null)
+        {
+            throw new RuntimeException("No connection");
+        }
+        return conn;
+    }
 
 }

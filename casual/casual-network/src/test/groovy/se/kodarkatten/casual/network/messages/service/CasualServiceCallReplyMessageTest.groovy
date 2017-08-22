@@ -21,8 +21,6 @@ class CasualServiceCallReplyMessageTest extends Specification
     @Shared
     def execution = UUID.randomUUID()
     @Shared
-    def callDescriptor = 42
-    @Shared
     def callError = ErrorState.TPENOENT
     @Shared
     def userError = 45656l
@@ -51,7 +49,6 @@ class CasualServiceCallReplyMessageTest extends Specification
         when:
         def msg = CasualServiceCallReplyMessage.createBuilder()
                                                .setExecution(execution)
-                                               .setCallDescriptor(callDescriptor)
                                                .setError(callError)
                                                .setUserSuppliedError(userError)
                                                .setXid(nullXID)
@@ -60,7 +57,6 @@ class CasualServiceCallReplyMessageTest extends Specification
                                                .build()
         then:
         msg.getExecution() == execution
-        msg.getCallDescriptor() == callDescriptor
         msg.getError() == callError
         msg.getUserSuppliedError() == userError
         msg.getXid() == nullXID
@@ -74,7 +70,6 @@ class CasualServiceCallReplyMessageTest extends Specification
         setup:
         def requestMsg = CasualServiceCallReplyMessage.createBuilder()
                 .setExecution(execution)
-                .setCallDescriptor(callDescriptor)
                 .setError(callError)
                 .setUserSuppliedError(userError)
                 .setXid(nullXID)
@@ -102,7 +97,6 @@ class CasualServiceCallReplyMessageTest extends Specification
         setup:
         def requestMsg = CasualServiceCallReplyMessage.createBuilder()
                 .setExecution(execution)
-                .setCallDescriptor(callDescriptor)
                 .setError(callError)
                 .setUserSuppliedError(userError)
                 .setXid(nullXID)

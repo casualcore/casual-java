@@ -26,7 +26,6 @@ import java.util.UUID;
 public final class CasualServiceCallRequestMessage implements CasualNetworkTransmittable
 {
     private UUID execution;
-    private long callDescriptor;
     private String serviceName;
     private long timeout;
     private String parentName;
@@ -77,11 +76,6 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
     public UUID getExecution()
     {
         return execution;
-    }
-
-    public long getCallDescriptor()
-    {
-        return callDescriptor;
     }
 
     public String getServiceName()
@@ -151,8 +145,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
             return false;
         }
         CasualServiceCallRequestMessage that = (CasualServiceCallRequestMessage) o;
-        return callDescriptor == that.callDescriptor &&
-            Objects.equals(execution, that.execution) &&
+        return Objects.equals(execution, that.execution) &&
             Objects.equals(serviceName, that.serviceName) &&
             Objects.equals(parentName, that.parentName) &&
             Objects.equals(xid, that.xid) &&
@@ -163,7 +156,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
     @Override
     public int hashCode()
     {
-        return Objects.hash(execution, callDescriptor, serviceName, parentName, xid, xatmiFlags);
+        return Objects.hash(execution, serviceName, parentName, xid, xatmiFlags);
     }
 
     @Override
@@ -171,7 +164,6 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
     {
         final StringBuilder sb = new StringBuilder("CasualServiceCallRequestMessage{");
         sb.append("execution=").append(execution);
-        sb.append(", callDescriptor=").append(callDescriptor);
         sb.append(", serviceName='").append(serviceName).append('\'');
         sb.append(", timeout=").append(timeout);
         sb.append(", parentName='").append(parentName).append('\'');
@@ -185,7 +177,6 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
     public static class Builder
     {
         private UUID execution;
-        private long callDescriptor;
         private String serviceName;
         private long timeout;
         // optional
@@ -197,12 +188,6 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         public Builder setExecution(UUID execution)
         {
             this.execution = execution;
-            return this;
-        }
-
-        public Builder setCallDescriptor(long callDescriptor)
-        {
-            this.callDescriptor = callDescriptor;
             return this;
         }
 
@@ -245,7 +230,6 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         {
             CasualServiceCallRequestMessage r = new CasualServiceCallRequestMessage();
             r.execution = execution;
-            r.callDescriptor = callDescriptor;
             r.serviceName = serviceName;
             r.timeout = timeout;
             r.parentName = parentName;
@@ -263,8 +247,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         List<byte[]> l = new ArrayList<>();
         ByteBuffer b = ByteBuffer.allocate(messageSize);
         CasualNetworkWriterUtils.writeUUID(execution, b);
-        b.putLong(callDescriptor)
-         .putLong(serviceNameBytes.length)
+        b.putLong(serviceNameBytes.length)
          .put(serviceNameBytes)
          .putLong(timeout)
          .putLong(parentNameBytes.length)
@@ -288,7 +271,6 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         final ByteBuffer executionBuffer = ByteBuffer.allocate(ServiceCallRequestSizes.EXECUTION.getNetworkSize());
         CasualNetworkWriterUtils.writeUUID(execution, executionBuffer);
         l.add(executionBuffer.array());
-        l.add(CasualNetworkWriterUtils.writeLong(callDescriptor));
         l.add(CasualNetworkWriterUtils.writeLong(serviceNameBytes.length));
         l.add(serviceNameBytes);
         l.add(CasualNetworkWriterUtils.writeLong(timeout));

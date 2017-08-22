@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<connector xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee/connector_1_7.xsd"
+           version="1.7">
+  <display-name>Casual RA</display-name>
+  <vendor-name>Casual</vendor-name>
+  <eis-type>Casual</eis-type>
+  <resourceadapter-version>1.0</resourceadapter-version>
+  <!-- resourceadapter -->
+  <resourceadapter>
+    <resourceadapter-class>
+      se.kodarkatten.casual.jca.CasualResourceAdapter
+    </resourceadapter-class>
+    <!-- outbound configuration -->
+    <outbound-resourceadapter>
+      <connection-definition>
+        <managedconnectionfactory-class>
+          se.kodarkatten.casual.jca.CasualManagedConnectionFactory
+        </managedconnectionfactory-class>
+        <connectionfactory-interface>
+          se.kodarkatten.casual.jca.CasualConnectionFactory
+        </connectionfactory-interface>
+        <connectionfactory-impl-class>
+          se.kodarkatten.casual.jca.CasualConnectionFactoryImpl
+        </connectionfactory-impl-class>
+        <connection-interface>
+          se.kodarkatten.casual.jca.CasualConnection
+        </connection-interface>
+        <connection-impl-class>
+          se.kodarkatten.casual.jca.CasualConnectionImpl
+        </connection-impl-class>
+      </connection-definition>
+      <!-- adapter settings, txn level, authentication, etc -->
+      <transaction-support>XATransaction</transaction-support>
+      <reauthentication-support>false</reauthentication-support>
+    </outbound-resourceadapter>
+  </resourceadapter>
+</connector>

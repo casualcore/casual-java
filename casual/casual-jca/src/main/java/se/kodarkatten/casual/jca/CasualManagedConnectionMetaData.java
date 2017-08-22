@@ -21,81 +21,83 @@
  */
 package se.kodarkatten.casual.jca;
 
-import java.util.logging.Logger;
+import se.kodarkatten.casual.internal.CasualConstants;
 
 import javax.resource.ResourceException;
-
 import javax.resource.spi.ManagedConnectionMetaData;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Logger;
 
 /**
  * CasualManagedConnectionMetaData
  *
  * @version $Revision: $
  */
-public class CasualManagedConnectionMetaData implements ManagedConnectionMetaData
+public final class CasualManagedConnectionMetaData implements ManagedConnectionMetaData
 {
-   /** The logger */
-   private static Logger log = Logger.getLogger(CasualManagedConnectionMetaData.class.getName());
+    /**
+     * The logger
+     */
+    private static Logger log = Logger.getLogger(CasualManagedConnectionMetaData.class.getName());
 
-   /**
-    * Default constructor
-    */
-   public CasualManagedConnectionMetaData()
-   {
+    /**
+     * Default constructor
+     */
+    public CasualManagedConnectionMetaData()
+    {
 
-   }
+    }
 
-   /**
-    * Returns Product name of the underlying EIS instance connected through the ManagedConnection.
-    *
-    * @return Product name of the EIS instance
-    * @throws ResourceException Thrown if an error occurs
-    */
-   @Override
-   public String getEISProductName() throws ResourceException
-   {
-      log.finest("getEISProductName()");
-      return null; //TODO
-   }
+    /**
+     * Returns Product name of the underlying EIS instance connected through the ManagedConnection.
+     *
+     * @return Product name of the EIS instance
+     * @throws ResourceException Thrown if an error occurs
+     */
+    @Override
+    public String getEISProductName() throws ResourceException
+    {
+        log.finest("getEISProductName()");
+        return CasualConstants.CASUAL_NAME;
+    }
 
-   /**
-    * Returns Product version of the underlying EIS instance connected through the ManagedConnection.
-    *
-    * @return Product version of the EIS instance
-    * @throws ResourceException Thrown if an error occurs
-    */
-   @Override
-   public String getEISProductVersion() throws ResourceException
-   {
-      log.finest("getEISProductVersion()");
-      return null; //TODO
-   }
+    /**
+     * Returns the API version used to communicate
+     *
+     * @return API version of the EIS instance
+     * @throws ResourceException Thrown if an error occurs
+     */
+    @Override
+    public String getEISProductVersion() throws ResourceException
+    {
+        log.finest("getEISProductVersion()");
+        return CasualConstants.CASUAL_API_VERSION;
+    }
 
-   /**
-    * Returns maximum limit on number of active concurrent connections 
-    *
-    * @return Maximum limit for number of active concurrent connections
-    * @throws ResourceException Thrown if an error occurs
-    */
-   @Override
-   public int getMaxConnections() throws ResourceException
-   {
-      log.finest("getMaxConnections()");
-      return 0; //TODO
-   }
+    /**
+     * Returns maximum limit on number of active concurrent connections
+     *
+     * @return Maximum limit for number of active concurrent connections
+     * @throws ResourceException Thrown if an error occurs
+     */
+    @Override
+    public int getMaxConnections() throws ResourceException
+    {
+        log.finest("getMaxConnections()");
+        return Runtime.getRuntime().availableProcessors() - 1; //TODO How to determine this? Using core count on machine-1 for now
+    }
 
-   /**
-    * Returns name of the user associated with the ManagedConnection instance
-    *
-    * @return Name of the user
-    * @throws ResourceException Thrown if an error occurs
-    */
-   @Override
-   public String getUserName() throws ResourceException
-   {
-      log.finest("getUserName()");
-      return null; //TODO
-   }
-
-
+    /**
+     * Returns name of the user associated with the ManagedConnection instance
+     *
+     * @return Name of the user
+     * @throws ResourceException Thrown if an error occurs
+     */
+    @Override
+    public String getUserName() throws ResourceException
+    {
+        log.finest("getUserName()");
+        return System.getProperty("user.name");
+    }
 }

@@ -8,6 +8,7 @@ import se.kodarkatten.casual.api.flags.internal.CasualFlag;
  */
 public enum AtmiFlags implements CasualFlag
 {
+    NOFLAG(0),
     TPNOBLOCK(0x00000001),
     TPSIGRSTRT(0x00000002),
     TPNOREPLY(0x00000004),
