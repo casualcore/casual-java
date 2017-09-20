@@ -65,7 +65,6 @@ public class CasualResourceAdapter implements ResourceAdapter, java.io.Serializa
     public CasualResourceAdapter()
     {
         this.activations = new ConcurrentHashMap<CasualActivationSpec, CasualActivation>();
-
     }
 
     /**

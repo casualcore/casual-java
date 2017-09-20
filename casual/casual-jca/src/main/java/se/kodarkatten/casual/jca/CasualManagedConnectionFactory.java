@@ -63,11 +63,37 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    private PrintWriter logwriter;
 
    /**
+    * Outbound network configuration
+    */
+   private String hostName;
+   private Integer portNumber;
+
+   /**
     * Default constructor
     */
    public CasualManagedConnectionFactory()
    {
 
+   }
+
+   public void setHostName(java.lang.String hostName)
+   {
+      this.hostName = hostName;
+   }
+
+   public void setPortNumber(java.lang.Integer portNumber)
+   {
+      this.portNumber = portNumber;
+   }
+
+   public String getHostName()
+   {
+      return hostName;
+   }
+
+   public Integer getPortNumber()
+   {
+      return portNumber;
    }
 
    /**
@@ -77,6 +103,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     * @return EIS-specific Connection Factory instance or javax.resource.cci.ConnectionFactory instance
     * @throws ResourceException Generic exception
     */
+   @Override
    public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException
    {
       log.finest("createConnectionFactory()");
@@ -89,6 +116,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     * @return EIS-specific Connection Factory instance or javax.resource.cci.ConnectionFactory instance
     * @throws ResourceException Generic exception
     */
+   @Override
    public Object createConnectionFactory() throws ResourceException
    {
       throw new ResourceException("This resource adapter doesn't support non-managed environments");
@@ -102,11 +130,12 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     * @throws ResourceException generic exception
     * @return ManagedConnection instance 
     */
+   @Override
    public ManagedConnection createManagedConnection(Subject subject,
          ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
       log.finest("createManagedConnection()");
-      return new CasualManagedConnection(this);
+      return new CasualManagedConnection(this, cxRequestInfo);
    }
 
    /**
@@ -118,6 +147,8 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     * @throws ResourceException generic exception
     * @return ManagedConnection if resource adapter finds an acceptable match otherwise null 
     */
+   @Override
+   @SuppressWarnings("rawtypes")
    public ManagedConnection matchManagedConnections(Set connectionSet,
          Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
@@ -142,6 +173,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     * @return PrintWriter
     * @throws ResourceException generic exception
     */
+   @Override
    public PrintWriter getLogWriter() throws ResourceException
    {
       log.finest("getLogWriter()");
@@ -154,6 +186,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     * @param out PrintWriter - an out stream for error logging and tracing
     * @throws ResourceException generic exception
     */
+   @Override
    public void setLogWriter(PrintWriter out) throws ResourceException
    {
       log.finest("setLogWriter()");
@@ -165,6 +198,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     *
     * @return The handle
     */
+   @Override
    public ResourceAdapter getResourceAdapter()
    {
       log.finest("getResourceAdapter()");
@@ -176,6 +210,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     *
     * @param ra The handle
     */
+   @Override
    public void setResourceAdapter(ResourceAdapter ra)
    {
       log.finest("setResourceAdapter()");

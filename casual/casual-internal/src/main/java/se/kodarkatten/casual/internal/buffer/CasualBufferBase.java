@@ -29,7 +29,7 @@ public class CasualBufferBase<T> implements CasualBuffer
     }
 
     @Override
-    public List<byte[]> getPayload()
+    public List<byte[]> getBytes()
     {
         return internalState.getPayload();
     }

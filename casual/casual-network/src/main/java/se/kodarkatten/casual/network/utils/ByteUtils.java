@@ -2,9 +2,12 @@ package se.kodarkatten.casual.network.utils;
 
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -62,9 +65,31 @@ public final class ByteUtils
         return future;
     }
 
+    public static ByteBuffer readFully(final ReadableByteChannel channel, int length)
+    {
+        final ByteBuffer buffer = ByteBuffer.allocate(length);
+        int numberOfBytesRead = 0;
+        while(-1 != numberOfBytesRead && buffer.remaining() > 0)
+        {
+            try
+            {
+                // not using += is not an error, we only look if eos has been reached
+                // for knowing if we've read fully we check the buffer.remaining()
+                numberOfBytesRead = channel.read(buffer);
+            }
+            catch (IOException e)
+            {
+                throw new CasualTransportException("failed reading fully, number of bytes read: " + numberOfBytesRead + "\n" + e);
+            }
+        }
+        //prepare for reading
+        buffer.flip();
+        return buffer;
+    }
+
     // No this warning makes no sense here - this is very much readable code
     @SuppressWarnings("squid:S1188")
-    public static CompletableFuture<Void> writeFully(AsynchronousByteChannel channel, final ByteBuffer buffer)
+    public static CompletableFuture<Void> writeFully(final AsynchronousByteChannel channel, final ByteBuffer buffer)
     {
         CompletableFuture<Void> future = new CompletableFuture<>();
         channel.write(buffer, null, new CompletionHandler<Integer, Object>()
@@ -95,5 +120,22 @@ public final class ByteUtils
         });
         return future;
     }
+
+    public static void writeFully(final WritableByteChannel channel, final ByteBuffer buffer, int byteLen)
+    {
+        int bytesWritten = 0;
+        while(bytesWritten < byteLen)
+        {
+            try
+            {
+                bytesWritten += channel.write(buffer);
+            }
+            catch (IOException e)
+            {
+                throw new CasualTransportException("failed writing fully, bytes written: " + bytesWritten + " out of " + byteLen + " bytes", e);
+            }
+        }
+    }
+
 
 }

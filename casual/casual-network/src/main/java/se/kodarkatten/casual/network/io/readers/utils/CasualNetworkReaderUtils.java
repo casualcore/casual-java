@@ -1,16 +1,18 @@
 package se.kodarkatten.casual.network.io.readers.utils;
 
+import se.kodarkatten.casual.api.util.Pair;
 import se.kodarkatten.casual.api.xa.XID;
 import se.kodarkatten.casual.api.xa.XIDFormatType;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.CommonSizes;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 import se.kodarkatten.casual.network.utils.ByteUtils;
-import se.kodarkatten.casual.network.utils.Pair;
+
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -75,6 +77,12 @@ public final class CasualNetworkReaderUtils
         }
     }
 
+    public static String readString(final ReadableByteChannel channel, int length)
+    {
+        final ByteBuffer stringBuffer = ByteUtils.readFully(channel, length);
+        return getAsString(stringBuffer.array());
+    }
+
     /**
      * Use this to read a string from the channel when you know that the structure is as follows
      * 8 bytes for the string size
@@ -82,7 +90,7 @@ public final class CasualNetworkReaderUtils
      * @param channel
      * @return
      */
-    public static String readString(AsynchronousByteChannel channel)
+    public static String readString(final AsynchronousByteChannel channel)
     {
         try
         {
@@ -96,6 +104,19 @@ public final class CasualNetworkReaderUtils
     }
 
     /**
+     * Use this to read a string from the channel when you know that the structure is as follows
+     * 8 bytes for the string size
+     * the string of string size
+     * @param channel
+     * @return
+     */
+    public static String readString(final ReadableByteChannel channel)
+    {
+        final int stringSize = (int)ByteUtils.readFully(channel, STRING_NETWORK_SIZE).getLong();
+        return readString(channel, stringSize);
+    }
+
+    /**
      * Used to get dynamic array content
      * Use when the whole payload fits in one byte[]
      * @param bytes - complete message
@@ -106,7 +127,7 @@ public final class CasualNetworkReaderUtils
      * @param <T> - Your type
      * @return - DynamicArrayIndexPair that contains a list of the data converted to your type and the current offset into bytes
      */
-    public static <T> DynamicArrayIndexPair getDynamicArrayIndexPair(byte[] bytes, int index, int numberOfItemsNetworkSize, int itemNetworkSize, final ItemConverterWithOffset<T> converter)
+    public static <T> DynamicArrayIndexPair<T> getDynamicArrayIndexPair(byte[] bytes, int index, int numberOfItemsNetworkSize, int itemNetworkSize, final ItemConverterWithOffset<T> converter)
     {
         int currentOffset = index;
         final List<T> items = new ArrayList<>();
@@ -133,7 +154,7 @@ public final class CasualNetworkReaderUtils
      * 2nd is the actual data
      * @ return A DynamicArrayIndexPair that contains the data, converted using the supplied converter, and the current index in the list
      */
-    public static <T> DynamicArrayIndexPair getDynamicArrayIndexPair(List<byte[]> message, int index, ItemConverter<T> converter)
+    public static <T> DynamicArrayIndexPair<T> getDynamicArrayIndexPair(List<byte[]> message, int index, ItemConverter<T> converter)
     {
         int currentIndex = index;
         List<T> items = new ArrayList<>();
@@ -154,7 +175,7 @@ public final class CasualNetworkReaderUtils
         return DynamicArrayIndexPair.of(items, currentIndex);
     }
 
-    public static UUID readUUID(AsynchronousByteChannel channel)
+    public static UUID readUUID(final AsynchronousByteChannel channel)
     {
         try
         {
@@ -167,7 +188,13 @@ public final class CasualNetworkReaderUtils
         }
     }
 
-    public static ServiceBuffer readServiceBuffer(AsynchronousByteChannel channel, int maxPayloadSize)
+    public static UUID readUUID(final ReadableByteChannel channel)
+    {
+        final ByteBuffer executionBuffer = ByteUtils.readFully(channel, UUID_NETWORK_SIZE);
+        return getAsUUID(executionBuffer.array());
+    }
+
+    public static ServiceBuffer readServiceBuffer(final AsynchronousByteChannel channel, int maxPayloadSize)
     {
         try
         {
@@ -182,6 +209,16 @@ public final class CasualNetworkReaderUtils
             throw new CasualTransportException("failed reading service buffer", e);
         }
     }
+
+    public static ServiceBuffer readServiceBuffer(final ReadableByteChannel channel, int maxPayloadSize)
+    {
+        final int bufferTypeNameSize = (int) ByteUtils.readFully(channel, SERVICE_BUFFER_TYPE_SUBNAME_NETWORK_SIZE).getLong();
+        final String bufferTypename = CasualNetworkReaderUtils.readString(channel, bufferTypeNameSize);
+        final long payloadSize = ByteUtils.readFully(channel, SERVICE_BUFFER_PAYLOAD_NETWORK_SIZE).getLong();
+        final List<byte[]> payload = readPayload(channel, payloadSize, maxPayloadSize);
+        return ServiceBuffer.of(bufferTypename, payload);
+    }
+
 
     public static Pair<Integer, Xid> readXid(final byte[] data, int offset)
     {
@@ -204,13 +241,20 @@ public final class CasualNetworkReaderUtils
         return Pair.of(currentOffset, xid);
     }
 
-    private static List<byte[]> readPayload(AsynchronousByteChannel channel, long payloadSize, int maxPayloadSize)
+    private static List<byte[]> readPayload(final AsynchronousByteChannel channel, long payloadSize, int maxPayloadSize)
     {
         return payloadSize <= maxPayloadSize ? readPayloadSingleBuffer(channel, (int)payloadSize)
                                              : readPayloadChunked(channel, payloadSize, maxPayloadSize);
     }
 
-    private static List<byte[]> readPayloadSingleBuffer(AsynchronousByteChannel channel, int payloadSize)
+    private static List<byte[]> readPayload(final ReadableByteChannel channel, long payloadSize, int maxPayloadSize)
+    {
+        return payloadSize <= maxPayloadSize ? readPayloadSingleBuffer(channel, (int)payloadSize)
+            : readPayloadChunked(channel, payloadSize, maxPayloadSize);
+    }
+
+
+    private static List<byte[]> readPayloadSingleBuffer(final AsynchronousByteChannel channel, int payloadSize)
     {
         try
         {
@@ -225,7 +269,15 @@ public final class CasualNetworkReaderUtils
         }
     }
 
-    private static List<byte[]> readPayloadChunked(AsynchronousByteChannel channel, long payloadSize, int maxSingleBufferByteSize)
+    private static List<byte[]> readPayloadSingleBuffer(final ReadableByteChannel channel, int payloadSize)
+    {
+        final List<byte[]> l = new ArrayList<>();
+        ByteBuffer payload = ByteUtils.readFully(channel, payloadSize);
+        l.add(payload.array());
+        return l;
+    }
+
+    private static List<byte[]> readPayloadChunked(final AsynchronousByteChannel channel, long payloadSize, int maxSingleBufferByteSize)
     {
         try
         {
@@ -254,7 +306,26 @@ public final class CasualNetworkReaderUtils
         }
     }
 
-
-
+    private static List<byte[]> readPayloadChunked(final ReadableByteChannel channel, long payloadSize, int maxSingleBufferByteSize)
+    {
+        long toRead = payloadSize;
+        long read = 0;
+        final List<byte[]> l = new ArrayList<>();
+        while ((toRead - maxSingleBufferByteSize) > 0)
+        {
+            final ByteBuffer chunk = ByteUtils.readFully(channel, maxSingleBufferByteSize);
+            l.add(chunk.array());
+            toRead -= maxSingleBufferByteSize;
+            // can we overflow?
+            read += maxSingleBufferByteSize;
+        }
+        int leftToRead = (int) (payloadSize - read);
+        if (leftToRead > 0)
+        {
+            final ByteBuffer chunk = ByteUtils.readFully(channel, leftToRead);
+            l.add(chunk.array());
+        }
+        return l;
+    }
 
 }

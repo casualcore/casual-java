@@ -3,17 +3,19 @@ package se.kodarkatten.casual.network.io.readers.transaction;
 
 import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.XAFlags;
+import se.kodarkatten.casual.api.util.Pair;
 import se.kodarkatten.casual.network.io.readers.NetworkReader;
 import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
+import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.CommonSizes;
 import se.kodarkatten.casual.network.utils.ByteUtils;
-import se.kodarkatten.casual.network.utils.Pair;
 import se.kodarkatten.casual.network.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -23,7 +25,7 @@ import java.util.concurrent.ExecutionException;
  * Created by aleph on 2017-04-03.
  */
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public abstract class AbstractCasualTransactionRequestReader<T> implements NetworkReader<T>
+public abstract class AbstractCasualTransactionRequestReader<T extends CasualNetworkTransmittable> implements NetworkReader<T>
 {
     @Override
     public T readSingleBuffer(final AsynchronousByteChannel channel, int messageSize)
@@ -48,13 +50,30 @@ public abstract class AbstractCasualTransactionRequestReader<T> implements Netwo
             final Xid xid = XIDUtils.readXid(channel);
             final long resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).get().getLong();
             final int flagValue = (int)ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize()).get().getLong();
-            final Flag<XAFlags> flags = new Flag.Builder(flagValue).build();
+            final Flag<XAFlags> flags = new Flag.Builder<XAFlags>(flagValue).build();
             return createTransactionRequestMessage(execution, xid, resourceId, flags);
         }
         catch (InterruptedException | ExecutionException e)
         {
             throw new CasualTransportException("failed reading CasualTransactionMessage", e);
         }
+    }
+
+    @Override
+    public T readSingleBuffer(final ReadableByteChannel channel, int messageSize)
+    {
+        return createRequestMessage(ByteUtils.readFully(channel, messageSize).array());
+    }
+
+    @Override
+    public T readChunked(final ReadableByteChannel channel)
+    {
+        final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
+        final Xid xid = XIDUtils.readXid(channel);
+        final long resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).getLong();
+        final int flagValue = (int)ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize()).getLong();
+        final Flag<XAFlags> flags = new Flag.Builder<XAFlags>(flagValue).build();
+        return createTransactionRequestMessage(execution, xid, resourceId, flags);
     }
 
     protected abstract T createTransactionRequestMessage(final UUID execution, final Xid xid, long resourceId, final Flag<XAFlags> flags);
@@ -73,7 +92,7 @@ public abstract class AbstractCasualTransactionRequestReader<T> implements Netwo
         currentOffset += CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize();
         final ByteBuffer flagBuffer = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize());
         final int flagValue = (int)flagBuffer.getLong();
-        final Flag<XAFlags> flags = new Flag.Builder(flagValue).build();
+        final Flag<XAFlags> flags = new Flag.Builder<XAFlags>(flagValue).build();
         return createTransactionRequestMessage(execution, xid, resourceId, flags);
     }
 

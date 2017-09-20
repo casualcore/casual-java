@@ -18,9 +18,9 @@ public class CasualNWMessage<T extends CasualNetworkTransmittable>
         this.message = message;
     }
 
-    public static <T extends CasualNetworkTransmittable> CasualNWMessage of(final UUID correlationId, final T message)
+    public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> of(final UUID correlationId, final T message)
     {
-        return new CasualNWMessage(correlationId, message);
+        return new CasualNWMessage<>(correlationId, message);
     }
 
     public CasualNWMessageType getType()

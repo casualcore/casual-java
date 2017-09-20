@@ -1,6 +1,8 @@
 package se.kodarkatten.casual.network.io.readers.service;
 
+import se.kodarkatten.casual.api.flags.AtmiFlags;
 import se.kodarkatten.casual.api.flags.Flag;
+import se.kodarkatten.casual.api.util.Pair;
 import se.kodarkatten.casual.network.io.readers.NetworkReader;
 import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
@@ -8,12 +10,12 @@ import se.kodarkatten.casual.network.messages.exceptions.CasualTransportExceptio
 import se.kodarkatten.casual.network.messages.parseinfo.ServiceCallRequestSizes;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
 import se.kodarkatten.casual.network.utils.ByteUtils;
-import se.kodarkatten.casual.network.utils.Pair;
 import se.kodarkatten.casual.network.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -89,7 +91,7 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
                                                   .setTimeout(serviceTimeout)
                                                   .setParentName(parentName)
                                                   .setXid(xid)
-                                                  .setXatmiFlags(new Flag.Builder(flags).build())
+                                                  .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
                                                   .setServiceBuffer(buffer)
                                                   .build();
         }
@@ -97,6 +99,36 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
         {
             throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
         }
+    }
+
+    @Override
+    public CasualServiceCallRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
+    {
+        final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
+        return createMessage(b.array());
+    }
+
+    @Override
+    public CasualServiceCallRequestMessage readChunked(final ReadableByteChannel channel)
+    {
+        final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
+        final int serviceNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).getLong();
+        final String serviceName = CasualNetworkReaderUtils.readString(channel, serviceNameSize);
+        final long serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
+        final int parentNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).getLong();
+        final String parentName = CasualNetworkReaderUtils.readString(channel, parentNameSize);
+        final Xid xid = XIDUtils.readXid(channel);
+        final int flags = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.FLAGS.getNetworkSize()).getLong();
+        final ServiceBuffer buffer = CasualNetworkReaderUtils.readServiceBuffer(channel, getMaxPayloadSingleBufferByteSize());
+        return CasualServiceCallRequestMessage.createBuilder()
+                                              .setExecution(execution)
+                                              .setServiceName(serviceName)
+                                              .setTimeout(serviceTimeout)
+                                              .setParentName(parentName)
+                                              .setXid(xid)
+                                              .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
+                                              .setServiceBuffer(buffer)
+                                              .build();
     }
 
     private static CasualServiceCallRequestMessage createMessage(final byte[] data)
@@ -107,7 +139,7 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
 
         int serviceNameLen = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).getLong();
         currentOffset += ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize();
-        final String serviceName = CasualNetworkReaderUtils.getAsString(data, currentOffset, (int)serviceNameLen);
+        final String serviceName = CasualNetworkReaderUtils.getAsString(data, currentOffset, serviceNameLen);
         currentOffset += serviceNameLen;
 
         long timeout  = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
@@ -142,7 +174,7 @@ public final class CasualServiceCallRequestMessageReader implements NetworkReade
                                               .setTimeout(timeout)
                                               .setParentName(parentName)
                                               .setXid(xid)
-                                              .setXatmiFlags(new Flag.Builder(flags).build())
+                                              .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
                                               .setServiceBuffer(serviceBuffer)
                                               .build();
     }

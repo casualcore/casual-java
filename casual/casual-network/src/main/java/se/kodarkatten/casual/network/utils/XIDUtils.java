@@ -7,6 +7,7 @@ import se.kodarkatten.casual.network.messages.exceptions.CasualTransportExceptio
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -54,6 +55,21 @@ public final class XIDUtils
         {
             throw new CasualTransportException("failed reading xid", e);
         }
+    }
+
+    public static Xid readXid(final ReadableByteChannel channel)
+    {
+        final ByteBuffer xidFormatBuffer = ByteUtils.readFully(channel, XID_FORMAT_NETWORK_SIZE);
+        final long xidFormat = xidFormatBuffer.getLong();
+        if (XIDFormatType.isNullType(xidFormat))
+        {
+            return XID.of();
+        }
+        final ByteBuffer gtridAndBqualLengthBuffer = ByteUtils.readFully(channel, XID_GTRID_NETWORK_SIZE + XID_BQUAL_NETWORK_SIZE);
+        final int gtrid = (int) gtridAndBqualLengthBuffer.getLong();
+        final int bqual = (int) gtridAndBqualLengthBuffer.getLong();
+        final ByteBuffer payload = ByteUtils.readFully(channel, gtrid + bqual);
+        return XID.of(gtrid, bqual, payload.array(), xidFormat);
     }
 
 }

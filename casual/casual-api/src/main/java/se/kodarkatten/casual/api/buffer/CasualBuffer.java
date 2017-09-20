@@ -8,5 +8,5 @@ import java.util.List;
 public interface CasualBuffer
 {
     String getType();
-    List<byte[]> getPayload();
+    List<byte[]> getBytes();
 }

@@ -10,6 +10,8 @@ import java.lang.reflect.Method;
  */
 public final class InvalidCasualServiceException extends RuntimeException
 {
+    private static final long serialVersionUID = 1L;
+
     public InvalidCasualServiceException(CasualService service, Method method, Class<?> methodClass)
     {
 

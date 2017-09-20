@@ -27,7 +27,7 @@ public abstract class AbstractCasualTransactionRequestMessage extends AbstractCa
 
     public Flag<XAFlags> getFlags()
     {
-        return new Flag.Builder(flags).build();
+        return new Flag.Builder<XAFlags>(flags).build();
     }
 
     @Override

@@ -16,9 +16,9 @@ public class DynamicArrayIndexPair<T>
         this.items = items;
         this.index = index;
     }
-    public static <T> DynamicArrayIndexPair of(List<T> names, int index)
+    public static <T> DynamicArrayIndexPair<T> of(List<T> names, int index)
     {
-        return new DynamicArrayIndexPair(names, index);
+        return new DynamicArrayIndexPair<>(names, index);
     }
     public List<T> getBytes()
     {

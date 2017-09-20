@@ -44,6 +44,7 @@ import java.io.Serializable;
         name = "eis.casual-jca-0.0.1_RABean")
 public class CasualMBeanImpl implements CasualMBean, Serializable
 {
+    private static final long serialVersionUID = 1L;
     /**
      * JNDI name
      */

@@ -1,32 +1,22 @@
 package se.kodarkatten.casual.network.utils
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException
-
 import java.nio.ByteBuffer
-import java.nio.channels.AsynchronousByteChannel
-import java.nio.channels.CompletionHandler
-import java.util.concurrent.Future
+import java.nio.channels.ByteChannel
 
-/**
- * Created by aleph on 2017-03-16.
- */
-/**
- * A LocalByteChannel that we can use when testing instead of actually going to the network
- */
-class LocalByteChannel implements AsynchronousByteChannel
+class LocalByteChannel implements ByteChannel
 {
     List<ByteBuffer[]> bytes = new ArrayList<>()
     @Override
-    def <A> void read(ByteBuffer dst, A attachment, CompletionHandler<Integer, ? super A> handler)
+    int read(ByteBuffer dst) throws IOException
     {
         if(bytes.isEmpty() || 0 == dst.remaining())
         {
-            handler.completed(0, attachment)
+            return -1
         }
         else
         {
             readBytes(dst)
-            handler.completed(dst.array().length, attachment)
+            return dst.array().length
         }
     }
 
@@ -49,24 +39,12 @@ class LocalByteChannel implements AsynchronousByteChannel
     }
 
     @Override
-    Future<Integer> read(ByteBuffer dst)
-    {
-        throw new NotImplementedException()
-    }
-
-    @Override
-    <A> void write(ByteBuffer src, A attachment, CompletionHandler<Integer, ? super A> handler)
+    int write(ByteBuffer src) throws IOException
     {
         int size = src.capacity()
         src.flip()
         bytes.add(src)
-        handler.completed(size, attachment)
-    }
-
-    @Override
-    Future<Integer> write(ByteBuffer src)
-    {
-        throw new NotImplementedException()
+        return size
     }
 
     @Override
@@ -77,7 +55,5 @@ class LocalByteChannel implements AsynchronousByteChannel
 
     @Override
     void close() throws IOException
-    {
-
-    }
+    {}
 }

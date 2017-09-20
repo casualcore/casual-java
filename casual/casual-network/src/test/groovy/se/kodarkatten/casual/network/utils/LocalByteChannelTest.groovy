@@ -3,17 +3,14 @@ package se.kodarkatten.casual.network.utils
 import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
+
+import java.nio.ByteBuffer
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.CompletableFuture
 
-/**
- * Created by aleph on 2017-03-16.
- */
 class LocalByteChannelTest extends Specification
 {
     @Shared
@@ -24,14 +21,10 @@ class LocalByteChannelTest extends Specification
         byte[] data = payload.getBytes(StandardCharsets.UTF_8)
         ByteBuffer b = ByteBuffer.wrap(data)
         LocalByteChannel sink = new LocalByteChannel()
-        CompletableFuture<Void> writeFuture = new CompletableFuture<>()
-        CompletableFuture<ByteBuffer> readFuture = new CompletableFuture<>()
         ByteBuffer readBuffer = ByteBuffer.allocate(data.length)
         when:
-        sink.write(b, null, WriteCompletionHandler.of(writeFuture, b, sink))
-        writeFuture.get()
-        sink.read(readBuffer, null, ReadCompletionHandler.of(readBuffer, readFuture, sink))
-        readFuture.get()
+        sink.write(b)
+        sink.read(readBuffer)
         then:
         readBuffer.array() == data
         payload == new String(readBuffer.array(), StandardCharsets.UTF_8)
@@ -44,8 +37,8 @@ class LocalByteChannelTest extends Specification
         ByteBuffer b = ByteBuffer.wrap(data)
         LocalByteChannel sink = new LocalByteChannel()
         when:
-        ByteUtils.writeFully(sink, b).get()
-        ByteBuffer read = ByteUtils.readFully(sink, data.length).get()
+        ByteUtils.writeFully(sink, b, data.length)
+        ByteBuffer read = ByteUtils.readFully(sink, data.length)
         then:
         read.array() == data
         payload == new String(read.array(), StandardCharsets.UTF_8)
@@ -68,6 +61,4 @@ class LocalByteChannelTest extends Specification
         then:
         msg == resurrectedMsg
     }
-
-
 }

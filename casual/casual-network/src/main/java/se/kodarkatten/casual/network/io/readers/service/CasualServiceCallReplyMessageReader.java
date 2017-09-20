@@ -2,6 +2,7 @@ package se.kodarkatten.casual.network.io.readers.service;
 
 import se.kodarkatten.casual.api.flags.ErrorState;
 import se.kodarkatten.casual.api.flags.TransactionState;
+import se.kodarkatten.casual.api.util.Pair;
 import se.kodarkatten.casual.network.io.readers.NetworkReader;
 import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
@@ -9,12 +10,12 @@ import se.kodarkatten.casual.network.messages.parseinfo.ServiceCallReplySizes;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 import se.kodarkatten.casual.network.utils.ByteUtils;
-import se.kodarkatten.casual.network.utils.Pair;
 import se.kodarkatten.casual.network.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -95,6 +96,31 @@ public final class CasualServiceCallReplyMessageReader implements NetworkReader<
         {
             throw new CasualTransportException("failed reading CasualServiceCallReplyMessage", e);
         }
+    }
+
+    @Override
+    public CasualServiceCallReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
+    {
+        return createMessage(ByteUtils.readFully(channel, messageSize).array());
+    }
+
+    @Override
+    public CasualServiceCallReplyMessage readChunked(final ReadableByteChannel channel)
+    {
+        final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
+        final int callError = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_ERROR.getNetworkSize()).getLong();
+        final long userError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_CODE.getNetworkSize()).getLong();
+        final Xid xid = XIDUtils.readXid(channel);
+        final int transactionState = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize()).get();
+        final ServiceBuffer serviceBuffer = CasualNetworkReaderUtils.readServiceBuffer(channel, getMaxPayloadSingleBufferByteSize());
+        return CasualServiceCallReplyMessage.createBuilder()
+                                            .setExecution(execution)
+                                            .setError(ErrorState.unmarshal(callError))
+                                            .setUserSuppliedError(userError)
+                                            .setXid(xid)
+                                            .setTransactionState(TransactionState.unmarshal(transactionState))
+                                            .setServiceBuffer(serviceBuffer)
+                                            .build();
     }
 
     private CasualServiceCallReplyMessage createMessage(final byte[] data)

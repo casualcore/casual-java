@@ -9,6 +9,8 @@ import javax.ejb.ApplicationException;
 public class CasualConnectionException extends RuntimeException
 {
 
+    private static final long serialVersionUID = 1L;
+
     public CasualConnectionException(Throwable t)
     {
         super(t);

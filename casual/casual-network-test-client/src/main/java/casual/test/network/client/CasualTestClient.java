@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -49,14 +48,14 @@ public final class CasualTestClient
             clientChannel = AsynchronousSocketChannel.open(channelGroup);
             clientChannel.connect(new InetSocketAddress(host, port));
             makeDomainDiscoveryRequest(clientChannel, domainName);
-            CasualNWMessage domainDiscoveryReplyMsg = CasualNetworkReader.read(clientChannel);
+            CasualNWMessage<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyMsg = CasualNetworkReader.read(clientChannel);
             System.out.println("Domain discovery reply msg: " + domainDiscoveryReplyMsg);
             makeServiceCall(clientChannel);
             System.out.println("Service call made");
             System.out.println("About to read service call reply ");
-            CasualNWMessage serviceCallReplyMsg = CasualNetworkReader.read(clientChannel);
+            CasualNWMessage<CasualServiceCallReplyMessage> serviceCallReplyMsg = CasualNetworkReader.read(clientChannel);
             System.out.println("Service call reply msg: " + serviceCallReplyMsg);
-            CasualServiceCallReplyMessage replyMsg = (CasualServiceCallReplyMessage) serviceCallReplyMsg.getMessage();
+            CasualServiceCallReplyMessage replyMsg = serviceCallReplyMsg.getMessage();
             System.out.println("Reply service buffer payload: " + new String(replyMsg.getServiceBuffer().getPayload().get(0), StandardCharsets.UTF_8));
             clientChannel.close();
             channelGroup.shutdown();
@@ -83,7 +82,7 @@ public final class CasualTestClient
                                                                                     .setXatmiFlags(flags)
                                                                                     .setServiceBuffer(buffer)
                                                                                     .build();
-        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg);
+        CasualNWMessage<CasualServiceCallRequestMessage> msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg);
         System.out.println("About to send msg: " + msg);
         CasualNetworkWriter.write(clientChannel, msg);
     }
@@ -97,7 +96,7 @@ public final class CasualTestClient
                                                                                             .setQueueNames(Arrays.asList("queueA1"))
                                                                                             .setServiceNames(Arrays.asList("casual.example.echo"))
                                                                                             .build();
-        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg);
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg);
         System.out.println("About to send msg: " + msg);
         CasualNetworkWriter.write(channel, msg);
     }
@@ -119,7 +118,7 @@ public final class CasualTestClient
                                                                                             .setQueueNames(Arrays.asList("queueA1"))
                                                                                             .setServiceNames(Arrays.asList(sEchoService))
                                                                                             .build();
-        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg);
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg);
         System.out.println("About to send msg: " + msg);
         CasualNetworkWriter.write(channel, msg);
     }

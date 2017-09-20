@@ -3,10 +3,7 @@ package se.kodarkatten.casual.jca;
 import se.kodarkatten.casual.api.CasualServiceApi;
 import se.kodarkatten.casual.api.buffer.CasualBuffer;
 import se.kodarkatten.casual.api.buffer.ServiceReturn;
-import se.kodarkatten.casual.api.flags.ErrorState;
-import se.kodarkatten.casual.api.flags.Flag;
-import se.kodarkatten.casual.api.flags.ServiceReturnState;
-import se.kodarkatten.casual.api.flags.XAFlags;
+import se.kodarkatten.casual.api.flags.*;
 import se.kodarkatten.casual.api.xa.XAReturnCode;
 import se.kodarkatten.casual.internal.buffer.CasualBufferBase;
 import se.kodarkatten.casual.network.connection.CasualConnectionException;
@@ -81,17 +78,15 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
      * Default constructor
      *
      * @param mcf mcf
+     * @param cxRequestInfo
      */
-    public CasualManagedConnection(CasualManagedConnectionFactory mcf)
+    public CasualManagedConnection(CasualManagedConnectionFactory mcf, ConnectionRequestInfo cxRequestInfo)
     {
         this.mcf = mcf;
         this.logwriter = null;
         this.listeners = Collections.synchronizedList(new ArrayList<ConnectionEventListener>(1));
         this.connectionHandles = Collections.synchronizedList(new ArrayList<CasualConnectionImpl>(1));
-        // TODO:
-        // get host, port from some configuration
-        this.networkConnection = CasualNetworkConnection.of(new InetSocketAddress("127.0.0.1", 7771));
-
+        this.networkConnection = CasualNetworkConnection.of(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()));
     }
 
     /**
@@ -103,6 +98,7 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
      * @return generic Object instance representing the connection handle.
      * @throws ResourceException generic exception if operation fails
      */
+    @Override
     public Object getConnection(Subject subject,
                                 ConnectionRequestInfo cxRequestInfo) throws ResourceException
     {
@@ -120,6 +116,7 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
      * @param connection Application-level connection handle
      * @throws ResourceException generic exception if operation fails
      */
+    @Override
     public void associateConnection(Object connection) throws ResourceException
     {
         log.finest("associateConnection()");
@@ -143,6 +140,7 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
      *
      * @throws ResourceException generic exception if operation fails
      */
+    @Override
     public void cleanup() throws ResourceException
     {
         log.finest("cleanup()");
@@ -158,6 +156,7 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
      *
      * @throws ResourceException generic exception if operation fails
      */
+    @Override
     public void destroy() throws ResourceException
     {
         log.finest("destroy()");
@@ -170,6 +169,7 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
      *
      * @param listener A new ConnectionEventListener to be registered
      */
+    @Override
     public void addConnectionEventListener(ConnectionEventListener listener)
     {
         log.finest("addConnectionEventListener()");
@@ -185,6 +185,7 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
      *
      * @param listener already registered connection event listener to be removed
      */
+    @Override
     public void removeConnectionEventListener(ConnectionEventListener listener)
     {
         log.finest("removeConnectionEventListener()");
@@ -196,23 +197,12 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
     }
 
     /**
-     * Close handle
-     *
-     * @param handle The handle
-     */
-    void closeHandle(CasualConnection handle)
-    {
-        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_CLOSED);
-        event.setConnectionHandle(handle);
-        sendEvent(event);
-    }
-
-    /**
      * Gets the log writer for this ManagedConnection instance.
      *
      * @return Character output stream associated with this Managed-Connection instance
      * @throws ResourceException generic exception if operation fails
      */
+    @Override
     public PrintWriter getLogWriter() throws ResourceException
     {
         log.finest("getLogWriter()");
@@ -225,6 +215,7 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
      * @param out Character Output stream to be associated
      * @throws ResourceException generic exception if operation fails
      */
+    @Override
     public void setLogWriter(PrintWriter out) throws ResourceException
     {
         log.finest("setLogWriter()");
@@ -237,6 +228,7 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
      * @return LocalTransaction instance
      * @throws ResourceException generic exception if operation fails
      */
+    @Override
     public LocalTransaction getLocalTransaction() throws ResourceException
     {
         log.finest("getLocalTransaction()");
@@ -249,6 +241,7 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
      * @return XAResource instance
      * @throws ResourceException generic exception if operation fails
      */
+    @Override
     public XAResource getXAResource() throws ResourceException
     {
         log.finest("getXAResource()");
@@ -261,6 +254,7 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
      * @return ManagedConnectionMetaData instance
      * @throws ResourceException generic exception if operation fails
      */
+    @Override
     public ManagedConnectionMetaData getMetaData() throws ResourceException
     {
         log.finest("getMetaData()");
@@ -331,17 +325,85 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
         }
     }
 
+    // CasualServiceApi
+    // TODO:
+    // maybe move these somewhere else
+    // regardless, they should all use the single physical connection from the managed connection
+    @Override
+    public <X extends CasualBuffer> ServiceReturn<X> tpcall(String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass)
+    {
+        final UUID corrid = UUID.randomUUID();
+        if(serviceExists(corrid, serviceName))
+        {
+            return makeServiceCall(corrid, serviceName, data, flags, bufferClass);
+        }
+        throw new CasualConnectionException("service " + serviceName + " does not exist");
+    }
+
+    @Override
+    public <X extends CasualBuffer> CompletableFuture<ServiceReturn<X>> tpacall(String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass)
+    {
+        throw new CasualConnectionException("not yet implemented");
+    }
+
+    private <X extends CasualBuffer> ServiceReturn<X> makeServiceCall(UUID corrid, String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass)
+    {
+        CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
+                                                                                               .setExecution(UUID.randomUUID())
+                                                                                               .setServiceBuffer(ServiceBuffer.of(data.getType(), data.getBytes()))
+                                                                                               .setServiceName(serviceName)
+                                                                                               .setXid(currentXid)
+                                                                                               .setXatmiFlags(flags).build();
+
+        CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessage.of(corrid, serviceRequestMessage);
+        CasualNWMessage<CasualServiceCallReplyMessage> serviceReplyNetworkMessage = networkConnection.requestReply(serviceRequestNetworkMessage);
+        CasualServiceCallReplyMessage serviceReplyMessage = serviceReplyNetworkMessage.getMessage();
+        CasualBufferBase<X> buffer = CasualBufferBase.of(serviceReplyMessage.getServiceBuffer(), bufferClass);
+        return new ServiceReturn<>(bufferClass.cast(buffer), (serviceReplyMessage.getError() == ErrorState.OK) ? ServiceReturnState.TPSUCCESS : ServiceReturnState.TPFAIL, serviceReplyMessage.getError());
+    }
+
+    private boolean serviceExists(UUID corrid, String serviceName)
+    {
+        CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
+                                                                                            .setExecution(UUID.randomUUID())
+                                                                                            .setDomainId(UUID.randomUUID())
+                                                                                            .setDomainName(DOMAIN_NAME)
+                                                                                            .setServiceNames(Arrays.asList(serviceName))
+                                                                                            .build();
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessage.of(corrid, requestMsg);
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = networkConnection.requestReply(msg);
+        return replyMsg.getMessage().getServices().stream()
+                       .map(s -> s.getName())
+                       .filter(v -> v.equals(serviceName))
+                       .findFirst()
+                       .map( v -> true)
+                       .orElse(false);
+    }
+
+
+    /**
+     * Close handle
+     *
+     * @param handle The handle
+     */
+    void closeHandle(CasualConnection handle)
+    {
+        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_CLOSED);
+        event.setConnectionHandle(handle);
+        sendEvent(event);
+    }
+
     private boolean notOkTransactionReturnCodeForPrepare(final XAReturnCode transactionReturnCode)
     {
         return !(transactionReturnCode == XAReturnCode.XA_OK || transactionReturnCode == XAReturnCode.XA_RDONLY);
     }
 
-    void addHandle(CasualConnectionImpl handle)
+    private void addHandle(CasualConnectionImpl handle)
     {
         connectionHandles.add(handle);
     }
 
-    void removeHandle(CasualConnectionImpl handle)
+    private void removeHandle(CasualConnectionImpl handle)
     {
         connectionHandles.remove(handle);
     }
@@ -377,60 +439,4 @@ public class CasualManagedConnection implements ManagedConnection, CasualService
             }
         }
     }
-
-    // CasualServiceApi
-    // TODO:
-    // maybe move these somewhere else
-    // regardless, they should all use the single physical connection from the managed connection
-    @Override
-    public <X extends CasualBuffer> ServiceReturn<X> tpcall(String serviceName, X data, Flag flags, Class<X> bufferClass)
-    {
-        final UUID corrid = UUID.randomUUID();
-        if(serviceExists(corrid, serviceName, flags))
-        {
-            return makeServiceCall(corrid, serviceName, data, flags, bufferClass);
-        }
-        throw new CasualConnectionException("service " + serviceName + " does not exist");
-    }
-
-    @Override
-    public <X extends CasualBuffer> CompletableFuture<ServiceReturn<X>> tpacall(String serviceName, X data, Flag flags, Class<X> bufferClass)
-    {
-        throw new CasualConnectionException("not yet implemented");
-    }
-
-    private <X extends CasualBuffer> ServiceReturn<X> makeServiceCall(UUID corrid, String serviceName, X data, Flag flags, Class<X> bufferClass)
-    {
-        CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
-                                                                                               .setExecution(UUID.randomUUID())
-                                                                                               .setServiceBuffer(ServiceBuffer.of(data.getType(), data.getPayload()))
-                                                                                               .setServiceName(serviceName)
-                                                                                               .setXid(currentXid)
-                                                                                               .setXatmiFlags(flags).build();
-
-        CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessage.of(corrid, serviceRequestMessage);
-        CasualNWMessage<CasualServiceCallReplyMessage> serviceReplyNetworkMessage = networkConnection.requestReply(serviceRequestNetworkMessage);
-        CasualServiceCallReplyMessage serviceReplyMessage = serviceReplyNetworkMessage.getMessage();
-        CasualBufferBase buffer = CasualBufferBase.of(serviceReplyMessage.getServiceBuffer(), bufferClass);
-        return new ServiceReturn<>(bufferClass.cast(buffer), (serviceReplyMessage.getError() == ErrorState.OK) ? ServiceReturnState.TPSUCCESS : ServiceReturnState.TPFAIL, serviceReplyMessage.getError());
-    }
-
-    private boolean serviceExists(UUID corrid, String serviceName, Flag flags)
-    {
-        CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
-                                                                                            .setExecution(UUID.randomUUID())
-                                                                                            .setDomainId(UUID.randomUUID())
-                                                                                            .setDomainName(DOMAIN_NAME)
-                                                                                            .setServiceNames(Arrays.asList(serviceName))
-                                                                                            .build();
-        CasualNWMessage msg = CasualNWMessage.of(corrid, requestMsg);
-        CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = networkConnection.requestReply(msg);
-        return replyMsg.getMessage().getServices().stream()
-                       .map(s -> s.getName())
-                       .filter(v -> v.equals(serviceName))
-                       .findFirst()
-                       .map( v -> true)
-                       .orElse(false);
-    }
-
 }

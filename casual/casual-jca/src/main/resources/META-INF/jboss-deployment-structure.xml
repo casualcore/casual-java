@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-deployment-structure>
+  <deployment>
+    <exports>
+      <include path="se/kodarkatten/casual/jca**"/>
+    </exports>
+  </deployment>
+</jboss-deployment-structure>

@@ -16,19 +16,19 @@ public class Flag<T extends CasualFlag>
         this.flags = flags;
     }
 
-    public static Flag of(final Flag flag)
+    public static <T extends CasualFlag> Flag<T> of(final Flag<T> flag)
     {
-        return new Flag(flag.flags);
+        return new Flag<>(flag.flags);
     }
 
     public static <T extends CasualFlag> Flag<T> of(final T type)
     {
-        return new Flag(type.getValue());
+        return new Flag<>(type.getValue());
     }
 
     public static <T extends CasualFlag> Flag<T> of()
     {
-        return new Flag(0);
+        return new Flag<>(0);
     }
 
     public int getFlagValue()
@@ -90,21 +90,21 @@ public class Flag<T extends CasualFlag>
             value = initialValue;
         }
 
-        public final Builder and(final T flag)
+        public final Builder<T> and(final T flag)
         {
             value = value & flag.getValue();
             return this;
         }
 
-        public final Builder or(final T flag)
+        public final Builder<T> or(final T flag)
         {
             value = value | flag.getValue();
             return this;
         }
 
-        public Flag build()
+        public <T extends CasualFlag> Flag<T> build()
         {
-            return new Flag(value);
+            return new Flag<>(value);
         }
     }
 }

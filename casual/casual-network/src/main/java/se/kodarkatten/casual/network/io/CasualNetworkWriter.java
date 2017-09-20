@@ -7,6 +7,8 @@ import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -32,4 +34,13 @@ public final class CasualNetworkWriter
             }
         }
     }
+
+    public static <T extends CasualNetworkTransmittable> void write(final WritableByteChannel channel, final CasualNWMessage<T> msg)
+    {
+        for(final byte[] bytes : msg.toNetworkBytes())
+        {
+            ByteUtils.writeFully(channel, ByteBuffer.wrap(bytes), bytes.length);
+        }
+    }
+
 }

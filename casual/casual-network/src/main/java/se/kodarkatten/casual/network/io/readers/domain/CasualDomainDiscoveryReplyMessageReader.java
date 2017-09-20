@@ -13,6 +13,7 @@ import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -84,6 +85,45 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         }
     }
 
+    @Override
+    public CasualDomainDiscoveryReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
+    {
+        return readMessage(ByteUtils.readFully(channel, messageSize).array());
+    }
+
+    @Override
+    public CasualDomainDiscoveryReplyMessage readChunked(final ReadableByteChannel channel)
+    {
+        final ByteBuffer executionBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.EXECUTION.getNetworkSize());
+        final ByteBuffer domainIdBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_ID.getNetworkSize());
+        final ByteBuffer domainNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize());
+        final ByteBuffer domainNameBuffer = ByteUtils.readFully(channel, (int) domainNameSizeBuffer.getLong());
+        final ByteBuffer numberOfServicesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize());
+        final List<byte[]> services = new ArrayList<>();
+        final long numberOfServices = numberOfServicesBuffer.getLong();
+        for (int i = 0; i < numberOfServices; ++i)
+        {
+            services.addAll(readService(channel));
+        }
+        final ByteBuffer numberOfQueuesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize());
+        final List<byte[]> queues = new ArrayList<>();
+        final long numberOfQueues = numberOfQueuesBuffer.getLong();
+        for (int i = 0; i < numberOfQueues; ++i)
+        {
+            queues.addAll(readQueue(channel));
+        }
+        final List<byte[]> msg = new ArrayList<>();
+        msg.add(executionBuffer.array());
+        msg.add(domainIdBuffer.array());
+        msg.add(domainNameSizeBuffer.array());
+        msg.add(domainNameBuffer.array());
+        msg.add(numberOfServicesBuffer.array());
+        msg.addAll(services);
+        msg.add(numberOfQueuesBuffer.array());
+        msg.addAll(queues);
+        return readMessage(msg);
+    }
+
     private static List<byte[]> readService(final AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
     {
         // A service is expected to fit into one byte[] - it is never chunked
@@ -125,6 +165,47 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         return l;
     }
 
+    private static List<byte[]> readService(final ReadableByteChannel channel)
+    {
+        // A service is expected to fit into one byte[] - it is never chunked
+        final ByteBuffer serviceNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_ELEMENT_NAME_SIZE.getNetworkSize());
+        final ByteBuffer serviceNameBuffer = ByteUtils.readFully(channel, (int)serviceNameSizeBuffer.getLong());
+        final ByteBuffer categorySizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_ELEMENT_CATEGORY_SIZE.getNetworkSize());
+        final ByteBuffer categoryNameBuffer = ByteUtils.readFully(channel, (int)categorySizeBuffer.getLong());
+        final ByteBuffer transactionTimeoutAndHopsBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_ELEMENT_TRANSACTION.getNetworkSize() +
+            DiscoveryReplySizes.SERVICES_ELEMENT_TIMEOUT.getNetworkSize() +
+            DiscoveryReplySizes.SERVICES_ELEMENT_HOPS.getNetworkSize());
+
+        final ByteBuffer msg = ByteBuffer.allocate(serviceNameBuffer.capacity() +
+            serviceNameBuffer.capacity() +
+            categorySizeBuffer.capacity() +
+            categoryNameBuffer.capacity() +
+            transactionTimeoutAndHopsBuffer.capacity());
+        msg.put(serviceNameSizeBuffer.array());
+        msg.put(serviceNameBuffer.array());
+        msg.put(categorySizeBuffer.array());
+        msg.put(categoryNameBuffer.array());
+        msg.put(transactionTimeoutAndHopsBuffer.array());
+        final List<byte[]> l = new ArrayList<>();
+        l.add(msg.array());
+        return l;
+    }
+
+    private static List<byte[]> readQueue(final ReadableByteChannel channel)
+    {
+        // A queue is expected to fit into one byte[] - it is never chunked
+        final ByteBuffer queueNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_SIZE.getNetworkSize());
+        final ByteBuffer queueNameBuffer = ByteUtils.readFully(channel, (int)queueNameSizeBuffer.getLong());
+        final ByteBuffer queueRetriesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize());
+        final ByteBuffer msg = ByteBuffer.allocate(queueNameSizeBuffer.capacity() + queueNameBuffer.capacity() + queueRetriesBuffer.capacity());
+        msg.put(queueNameSizeBuffer.array());
+        msg.put(queueNameBuffer.array());
+        msg.put(queueRetriesBuffer.array());
+        final List<byte[]> l = new ArrayList<>();
+        l.add(msg.array());
+        return l;
+    }
+
     private static CasualDomainDiscoveryReplyMessage readMessage(final byte[] bytes)
     {
         int currentOffset = 0;
@@ -138,18 +219,18 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         currentOffset += domainNameSize;
         final long numberOfServices = ByteBuffer.wrap(bytes, currentOffset, DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize()).getLong();
         currentOffset += DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize();
-        DynamicArrayIndexPair services = getServices(bytes, currentOffset, numberOfServices);
+        DynamicArrayIndexPair<Service> services = getServices(bytes, currentOffset, numberOfServices);
         currentOffset = services.getIndex();
         final long numberOfQueues = ByteBuffer.wrap(bytes, currentOffset, DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize()).getLong();
         currentOffset += DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize();
-        DynamicArrayIndexPair queues = getQueues(bytes, currentOffset, numberOfQueues);
+        DynamicArrayIndexPair<Queue> queues = getQueues(bytes, currentOffset, numberOfQueues);
 
         return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
                                                 .setServices(services.getBytes())
                                                 .setQueues(queues.getBytes());
     }
 
-    private static DynamicArrayIndexPair getServices(final byte[] bytes, int currentOffset, long numberOfServices)
+    private static DynamicArrayIndexPair<Service> getServices(final byte[] bytes, int currentOffset, long numberOfServices)
     {
         final List<Service> l = new ArrayList<>();
         int offset = currentOffset;
@@ -184,7 +265,7 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         return offset;
     }
 
-    private static DynamicArrayIndexPair getQueues(final byte[] bytes, int currentOffset, long numberOfServices)
+    private static DynamicArrayIndexPair<Queue> getQueues(final byte[] bytes, int currentOffset, long numberOfServices)
     {
         final List<Queue> l = new ArrayList<>();
         int offset = currentOffset;

@@ -18,6 +18,22 @@
         <managedconnectionfactory-class>
           se.kodarkatten.casual.jca.CasualManagedConnectionFactory
         </managedconnectionfactory-class>
+        <config-property>
+          <description>
+            hostname for outbound connections
+          </description>
+          <config-property-name>HostName</config-property-name>
+          <config-property-type>java.lang.String</config-property-type>
+          <config-property-value>127.0.0.1</config-property-value>
+        </config-property>
+        <config-property>
+          <description>
+            port number for outbound connections
+          </description>
+          <config-property-name>PortNumber</config-property-name>
+          <config-property-type>java.lang.Integer</config-property-type>
+          <config-property-value>7771</config-property-value>
+        </config-property>
         <connectionfactory-interface>
           se.kodarkatten.casual.jca.CasualConnectionFactory
         </connectionfactory-interface>
