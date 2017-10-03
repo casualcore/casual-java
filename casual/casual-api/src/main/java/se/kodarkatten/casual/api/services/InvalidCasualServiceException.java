@@ -1,5 +1,7 @@
 package se.kodarkatten.casual.api.services;
 
+import se.kodarkatten.casual.api.CasualRuntimeException;
+
 import java.lang.reflect.Method;
 
 /**
@@ -8,7 +10,7 @@ import java.lang.reflect.Method;
  *
  * @author jone
  */
-public final class InvalidCasualServiceException extends RuntimeException
+public final class InvalidCasualServiceException extends CasualRuntimeException
 {
     private static final long serialVersionUID = 1L;
 

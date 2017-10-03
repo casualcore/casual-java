@@ -45,31 +45,11 @@ import java.io.Serializable;
 public class CasualMBeanImpl implements CasualMBean, Serializable
 {
     private static final long serialVersionUID = 1L;
-    /**
-     * JNDI name
-     */
     private static final String JNDI_NAME = "java:/eis/Casual";
-
-    /**
-     * MBeanServer instance
-     */
     private MBeanServer mbeanServer;
-
-    /**
-     * Object Name
-     */
     private String objectName;
-
-    /**
-     * The actual ObjectName instance
-     */
     private ObjectName on;
-
-    /**
-     * Registered
-     */
     private boolean registered;
-
 
     /**
      * Set the MBean server

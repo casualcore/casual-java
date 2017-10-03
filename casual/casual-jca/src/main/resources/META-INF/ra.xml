@@ -35,13 +35,13 @@
           <config-property-value>7771</config-property-value>
         </config-property>
         <connectionfactory-interface>
-          se.kodarkatten.casual.jca.CasualConnectionFactory
+            se.kodarkatten.casual.jca.CasualConnectionFactory
         </connectionfactory-interface>
         <connectionfactory-impl-class>
           se.kodarkatten.casual.jca.CasualConnectionFactoryImpl
         </connectionfactory-impl-class>
         <connection-interface>
-          se.kodarkatten.casual.jca.CasualConnection
+            se.kodarkatten.casual.jca.CasualConnection
         </connection-interface>
         <connection-impl-class>
           se.kodarkatten.casual.jca.CasualConnectionImpl

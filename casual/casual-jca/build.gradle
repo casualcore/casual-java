@@ -2,6 +2,7 @@
 plugins {
     id 'java'
     id 'jacoco'
+    id 'groovy'
 }
 
 defaultTasks 'build'
@@ -53,6 +54,14 @@ dependencies {
     testCompile 'org.jboss.ironjacamar:ironjacamar-test-eis:1.2.7.Final'
     testCompile 'org.jboss.ironjacamar:ironjacamar-validator:1.2.7.Final'
     testCompile 'junit:junit:4.8.2+'
+
+    testCompile 'org.hamcrest:hamcrest-all:1.3'
+
+    // for spock
+    testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+    testCompile 'cglib:cglib-nodep:3.2.4'
+    testCompile 'org.objenesis:objenesis:1.2'
 }
 test {
 }

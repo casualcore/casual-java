@@ -1,9 +1,8 @@
 package se.kodarkatten.casual.jca;
 
-import java.io.Serializable;
-
 import javax.resource.Referenceable;
 import javax.resource.ResourceException;
+import java.io.Serializable;
 
 /**
  * CasualConnectionFactory

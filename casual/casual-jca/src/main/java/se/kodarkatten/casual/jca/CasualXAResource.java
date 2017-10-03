@@ -1,10 +1,15 @@
 package se.kodarkatten.casual.jca;
 
+import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.XAFlags;
+import se.kodarkatten.casual.api.xa.XAReturnCode;
+import se.kodarkatten.casual.network.messages.CasualNWMessage;
+import se.kodarkatten.casual.network.messages.transaction.*;
 
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
+import java.util.UUID;
 
 /**
  * @author jone
@@ -13,16 +18,35 @@ public class CasualXAResource implements XAResource
 {
 
     private final CasualManagedConnection casualManagedConnection;
+    private Xid currentXid;
 
     public CasualXAResource(final CasualManagedConnection connection)
     {
         casualManagedConnection = connection;
     }
 
+    public Xid getCurrentXid()
+    {
+        return this.currentXid;
+    }
+
     @Override
     public void commit(Xid xid, boolean onePhaseCommit) throws XAException
     {
-        casualManagedConnection.commitRequest(xid,onePhaseCommit);
+        Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
+        if (onePhaseCommit)
+        {
+            flags = Flag.of(XAFlags.TMONEPHASE);
+        }
+        Long resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
+        CasualTransactionResourceCommitRequestMessage commitRequest =
+                CasualTransactionResourceCommitRequestMessage.of(UUID.randomUUID(), xid, resourceId, flags);
+        CasualTransactionResources.getInstance().removeResourceIdForXid(xid);
+        CasualNWMessage<CasualTransactionResourceCommitRequestMessage> requestEnvelope = CasualNWMessage.of(UUID.randomUUID(), commitRequest);
+        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> replyEnvelope = casualManagedConnection.getNetworkConnection().requestReply(requestEnvelope);
+        CasualTransactionResourceCommitReplyMessage replyMsg = replyEnvelope.getMessage();
+
+        throwWhenTransactionErrorCode( replyMsg.getTransactionReturnCode() );
     }
 
     /**
@@ -77,7 +101,16 @@ public class CasualXAResource implements XAResource
     @Override
     public int prepare(Xid xid) throws XAException
     {
-        return casualManagedConnection.prepareRequest(xid);
+        Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
+        Long resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
+        CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(),xid,resourceId,flags);
+        CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> requestEnvelope = CasualNWMessage.of(UUID.randomUUID(), prepareRequest);
+        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> replyEnvelope = casualManagedConnection.getNetworkConnection().requestReply(requestEnvelope);
+        CasualTransactionResourcePrepareReplyMessage replyMsg = replyEnvelope.getMessage();
+
+        throwWhenTransactionErrorCode( replyMsg.getTransactionReturnCode() );
+
+        return replyMsg.getTransactionReturnCode().getId();
     }
 
     @Override
@@ -89,7 +122,16 @@ public class CasualXAResource implements XAResource
     @Override
     public void rollback(Xid xid) throws XAException
     {
-        casualManagedConnection.rollbackRequest(xid);
+        Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
+        Long resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
+        CasualTransactionResourceRollbackRequestMessage request =
+                CasualTransactionResourceRollbackRequestMessage.of(UUID.randomUUID(), xid, resourceId, flags);
+        CasualTransactionResources.getInstance().removeResourceIdForXid(xid);
+        CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> requestEnvelope = CasualNWMessage.of(UUID.randomUUID(), request);
+        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyEnvelope = casualManagedConnection.getNetworkConnection().requestReply(requestEnvelope);
+        CasualTransactionResourceRollbackReplyMessage replyMsg = replyEnvelope.getMessage();
+
+        throwWhenTransactionErrorCode( replyMsg.getTransactionReturnCode() );
     }
 
     @Override
@@ -101,6 +143,33 @@ public class CasualXAResource implements XAResource
     @Override
     public void start(Xid xid, int i) throws XAException
     {
-        casualManagedConnection.start(xid, i);
+        if(!(XAFlags.TMJOIN.getValue() == i || XAFlags.TMRESUME.getValue() == i))
+        {
+            if(CasualTransactionResources.getInstance().xidPending(xid))
+            {
+                throw new XAException(XAException.XAER_DUPID);
+            }
+        }
+        currentXid = xid;
+    }
+
+    private void throwWhenTransactionErrorCode(final XAReturnCode transactionReturnCode) throws XAException
+    {
+        switch( transactionReturnCode )
+        {
+            case XA_OK:
+            case XA_RDONLY:
+                break;
+            default:
+                throw new XAException( transactionReturnCode.getId());
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "CasualXAResource{" +
+                "currentXid=" + currentXid +
+                '}';
     }
 }

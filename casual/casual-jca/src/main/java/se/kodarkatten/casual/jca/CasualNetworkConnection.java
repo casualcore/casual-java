@@ -65,5 +65,12 @@ public final class CasualNetworkConnection implements NetworkConnection
         }
     }
 
+    @Override
+    public String toString()
+    {
+        return "CasualNetworkConnection{" +
+                "socketChannel=" + socketChannel +
+                '}';
+    }
 }
 

@@ -21,12 +21,11 @@
  */
 package se.kodarkatten.casual.jca.inflow;
 
-import java.util.logging.Logger;
-
 import javax.resource.spi.Activation;
 import javax.resource.spi.ActivationSpec;
 import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ResourceAdapter;
+import java.util.logging.Logger;
 
 /**
  * CasualActivationSpec
@@ -36,52 +35,27 @@ import javax.resource.spi.ResourceAdapter;
 @Activation(messageListeners = { CasualMessageListener.class })
 public class CasualActivationSpec implements ActivationSpec
 {
-
-   /** The logger */
-   private static Logger log = Logger.getLogger(CasualActivationSpec.class.getName());
-
-   /** The resource adapter */
+   private static Logger logger = Logger.getLogger(CasualActivationSpec.class.getName());
    private ResourceAdapter ra;
 
-   /**
-    * Default constructor
-    */
-   public CasualActivationSpec()
-   {
-
-   }
-
-   /**
-    * This method may be called by a deployment tool to validate the overall
-    * activation configuration information provided by the endpoint deployer.
-    *
-    * @throws InvalidPropertyException indicates invalid configuration property settings.
-    */
+   @Override
    public void validate() throws InvalidPropertyException
    {
-      log.finest("validate()");
+      logger.finest("validate()");
 
    }
 
-   /**
-    * Get the resource adapter
-    *
-    * @return The handle
-    */
+   @Override
    public ResourceAdapter getResourceAdapter()
    {
-      log.finest("getResourceAdapter()");
+      logger.finest("getResourceAdapter()");
       return ra;
    }
 
-   /**
-    * Set the resource adapter
-    *
-    * @param ra The handle
-    */
+   @Override
    public void setResourceAdapter(ResourceAdapter ra)
    {
-      log.finest("setResourceAdapter()");
+      logger.finest("setResourceAdapter()");
       this.ra = ra;
    }
 

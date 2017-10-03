@@ -28,6 +28,8 @@ import javax.resource.ResourceException;
 import javax.resource.spi.*;
 import javax.resource.spi.endpoint.MessageEndpointFactory;
 import javax.transaction.xa.XAResource;
+import java.io.Serializable;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -41,39 +43,18 @@ import java.util.logging.Logger;
         reauthenticationSupport = true,
         transactionSupport = TransactionSupport.TransactionSupportLevel.XATransaction
 )
-public class CasualResourceAdapter implements ResourceAdapter, java.io.Serializable
+public class CasualResourceAdapter implements ResourceAdapter, Serializable
 {
-
-    /**
-     * The serial version UID
-     */
     private static final long serialVersionUID = 1L;
-
-    /**
-     * The logger
-     */
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
-
-    /**
-     * The activations by activation spec
-     */
     private ConcurrentHashMap<CasualActivationSpec, CasualActivation> activations;
 
-    /**
-     * Default constructor
-     */
     public CasualResourceAdapter()
     {
-        this.activations = new ConcurrentHashMap<CasualActivationSpec, CasualActivation>();
+        this.activations = new ConcurrentHashMap<>();
     }
 
-    /**
-     * This is called during the activation of a message endpoint.
-     *
-     * @param endpointFactory A message endpoint factory instance.
-     * @param spec            An activation spec JavaBean instance.
-     * @throws ResourceException generic exception
-     */
+    @Override
     public void endpointActivation(MessageEndpointFactory endpointFactory,
                                    ActivationSpec spec) throws ResourceException
     {
@@ -84,12 +65,7 @@ public class CasualResourceAdapter implements ResourceAdapter, java.io.Serializa
 
     }
 
-    /**
-     * This is called when a message endpoint is deactivated.
-     *
-     * @param endpointFactory A message endpoint factory instance.
-     * @param spec            An activation spec JavaBean instance.
-     */
+    @Override
     public void endpointDeactivation(MessageEndpointFactory endpointFactory,
                                      ActivationSpec spec)
     {
@@ -103,80 +79,55 @@ public class CasualResourceAdapter implements ResourceAdapter, java.io.Serializa
 
     }
 
-    /**
-     * This is called when a resource adapter instance is bootstrapped.
-     *
-     * @param ctx A bootstrap context containing references
-     * @throws ResourceAdapterInternalException indicates bootstrap failure.
-     */
+    @Override
     public void start(BootstrapContext ctx)
             throws ResourceAdapterInternalException
     {
         log.finest("start()");
     }
 
-    /**
-     * This is called when a resource adapter instance is undeployed or
-     * during application server shutdown.
-     */
+    @Override
     public void stop()
     {
         log.finest("stop()");
 
     }
 
-    /**
-     * This method is called by the application server during crash recovery.
-     *
-     * @param specs An array of ActivationSpec JavaBeans
-     * @return An array of XAResource objects
-     * @throws ResourceException generic exception
-     */
+    @Override
     public XAResource[] getXAResources(ActivationSpec[] specs)
             throws ResourceException
     {
         log.finest("getXAResources()");
 
-        CasualXAResource[] resources = {new CasualXAResource(null)};
-
-        return resources;
+        return null;
     }
 
-    /**
-     * Returns a hash code value for the object.
-     *
-     * @return A hash code value for this object.
-     */
     @Override
-    public int hashCode()
+    public boolean equals(Object o)
     {
-        int result = 17;
-        return result;
-    }
-
-    /**
-     * Indicates whether some other object is equal to this one.
-     *
-     * @param other The reference object with which to compare.
-     * @return true if this object is the same as the obj argument, false otherwise.
-     */
-    @Override
-    public boolean equals(Object other)
-    {
-        if (other == null)
-        {
-            return false;
-        }
-        if (other == this)
+        if (this == o)
         {
             return true;
         }
-        if (!(other instanceof CasualResourceAdapter))
+        if (o == null || getClass() != o.getClass())
         {
             return false;
         }
-        boolean result = true;
-        return result;
+        CasualResourceAdapter that = (CasualResourceAdapter) o;
+        return Objects.equals(activations, that.activations);
     }
 
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(activations);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "CasualResourceAdapter{" +
+                "activations=" + activations +
+                '}';
+    }
 }

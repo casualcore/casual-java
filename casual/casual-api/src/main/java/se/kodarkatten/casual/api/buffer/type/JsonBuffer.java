@@ -5,6 +5,7 @@ import se.kodarkatten.casual.api.buffer.CasualBufferType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -55,4 +56,46 @@ public class JsonBuffer implements CasualBuffer
         return json.getBytes(StandardCharsets.UTF_8);
     }
 
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+
+        JsonBuffer that = (JsonBuffer) o;
+
+        if( that.payload.size() != this.payload.size() )
+        {
+            return false;
+        }
+
+        for( int i = 0; i< payload.size(); i++ )
+        {
+            if( ! Arrays.equals( payload.get( i ), that.payload.get( i ) ) )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = 1;
+
+        for( byte[] b: payload )
+        {
+            result = result * 31 + Arrays.hashCode( b );
+        }
+
+        return result;
+    }
 }

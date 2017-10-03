@@ -21,22 +21,13 @@
  */
 package se.kodarkatten.casual.jca;
 
-import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.Set;
-
-import java.util.logging.Logger;
-
 import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionDefinition;
-import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.ManagedConnectionFactory;
-import javax.resource.spi.ResourceAdapter;
-import javax.resource.spi.ResourceAdapterAssociation;
-
+import javax.resource.spi.*;
 import javax.security.auth.Subject;
+import java.io.PrintWriter;
+import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * CasualManagedConnectionFactory
@@ -50,45 +41,22 @@ import javax.security.auth.Subject;
 public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation
 {
 
-   /** The serial version UID */
    private static final long serialVersionUID = 1L;
-
-   /** The logger */
    private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
-
-   /** The resource adapter */
    private ResourceAdapter ra;
-
-   /** The logwriter */
    private PrintWriter logwriter;
 
-   /**
-    * Outbound network configuration
-    */
    private String hostName;
    private Integer portNumber;
-
-   /**
-    * Default constructor
-    */
-   public CasualManagedConnectionFactory()
-   {
-
-   }
-
-   public void setHostName(java.lang.String hostName)
-   {
-      this.hostName = hostName;
-   }
-
-   public void setPortNumber(java.lang.Integer portNumber)
-   {
-      this.portNumber = portNumber;
-   }
 
    public String getHostName()
    {
       return hostName;
+   }
+
+   public void setHostName(String hostName)
+   {
+      this.hostName = hostName;
    }
 
    public Integer getPortNumber()
@@ -96,13 +64,11 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       return portNumber;
    }
 
-   /**
-    * Creates a Connection Factory instance. 
-    *
-    * @param cxManager ConnectionManager to be associated with created EIS connection factory instance
-    * @return EIS-specific Connection Factory instance or javax.resource.cci.ConnectionFactory instance
-    * @throws ResourceException Generic exception
-    */
+   public void setPortNumber(Integer portNumber)
+   {
+      this.portNumber = portNumber;
+   }
+
    @Override
    public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException
    {
@@ -110,26 +76,12 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       return new CasualConnectionFactoryImpl(this, cxManager);
    }
 
-   /**
-    * Creates a Connection Factory instance. 
-    *
-    * @return EIS-specific Connection Factory instance or javax.resource.cci.ConnectionFactory instance
-    * @throws ResourceException Generic exception
-    */
    @Override
    public Object createConnectionFactory() throws ResourceException
    {
       throw new ResourceException("This resource adapter doesn't support non-managed environments");
    }
 
-   /**
-    * Creates a new physical connection to the underlying EIS resource manager.
-    *
-    * @param subject Caller's security information
-    * @param cxRequestInfo Additional resource adapter specific connection request information
-    * @throws ResourceException generic exception
-    * @return ManagedConnection instance 
-    */
    @Override
    public ManagedConnection createManagedConnection(Subject subject,
          ConnectionRequestInfo cxRequestInfo) throws ResourceException
@@ -138,41 +90,18 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       return new CasualManagedConnection(this, cxRequestInfo);
    }
 
-   /**
-    * Returns a matched connection from the candidate set of connections. 
-    *
-    * @param connectionSet Candidate connection set
-    * @param subject Caller's security information
-    * @param cxRequestInfo Additional resource adapter specific connection request information
-    * @throws ResourceException generic exception
-    * @return ManagedConnection if resource adapter finds an acceptable match otherwise null 
-    */
    @Override
-   @SuppressWarnings("rawtypes")
+   @SuppressWarnings({"rawtypes","unchecked"})
    public ManagedConnection matchManagedConnections(Set connectionSet,
          Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
       log.finest("matchManagedConnections()");
-      ManagedConnection result = null;
-      Iterator it = connectionSet.iterator();
-      while (result == null && it.hasNext())
-      {
-         ManagedConnection mc = (ManagedConnection)it.next();
-         if (mc instanceof CasualManagedConnection)
-         {
-            result = mc;
-         }
-
-      }
-      return result;
+      return (ManagedConnection)connectionSet.stream()
+              .filter( s -> s instanceof CasualManagedConnection )
+              .findFirst( )
+              .orElse( null );
    }
 
-   /**
-    * Get the log writer for this ManagedConnectionFactory instance.
-    *
-    * @return PrintWriter
-    * @throws ResourceException generic exception
-    */
    @Override
    public PrintWriter getLogWriter() throws ResourceException
    {
@@ -180,12 +109,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       return logwriter;
    }
 
-   /**
-    * Set the log writer for this ManagedConnectionFactory instance.
-    *
-    * @param out PrintWriter - an out stream for error logging and tracing
-    * @throws ResourceException generic exception
-    */
    @Override
    public void setLogWriter(PrintWriter out) throws ResourceException
    {
@@ -193,11 +116,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       logwriter = out;
    }
 
-   /**
-    * Get the resource adapter
-    *
-    * @return The handle
-    */
    @Override
    public ResourceAdapter getResourceAdapter()
    {
@@ -205,11 +123,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       return ra;
    }
 
-   /**
-    * Set the resource adapter
-    *
-    * @param ra The handle
-    */
    @Override
    public void setResourceAdapter(ResourceAdapter ra)
    {
@@ -217,33 +130,36 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       this.ra = ra;
    }
 
-   /** 
-    * Returns a hash code value for the object.
-    * @return A hash code value for this object.
-    */
+   @Override
+   public boolean equals(Object o)
+   {
+      if (this == o)
+      {
+         return true;
+      }
+      if (o == null || getClass() != o.getClass())
+      {
+         return false;
+      }
+      CasualManagedConnectionFactory that = (CasualManagedConnectionFactory) o;
+      return Objects.equals(ra, that.ra) &&
+              Objects.equals(hostName, that.hostName) &&
+              Objects.equals(portNumber, that.portNumber);
+   }
+
    @Override
    public int hashCode()
    {
-      int result = 17;
-      return result;
+      return Objects.hash(ra, hostName, portNumber);
    }
 
-   /** 
-    * Indicates whether some other object is equal to this one.
-    * @param other The reference object with which to compare.
-    * @return true if this object is the same as the obj argument, false otherwise.
-    */
    @Override
-   public boolean equals(Object other)
+   public String toString()
    {
-      if (other == null)
-         return false;
-      if (other == this)
-         return true;
-      if (!(other instanceof CasualManagedConnectionFactory))
-         return false;
-      boolean result = true;
-      return result;
+      return "CasualManagedConnectionFactory{" +
+              "ra=" + ra +
+              ", hostName='" + hostName + '\'' +
+              ", portNumber=" + portNumber +
+              '}';
    }
-
 }

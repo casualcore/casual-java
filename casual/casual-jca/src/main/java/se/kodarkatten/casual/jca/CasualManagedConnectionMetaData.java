@@ -25,8 +25,6 @@ import se.kodarkatten.casual.internal.CasualConstants;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ManagedConnectionMetaData;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
 /**
@@ -36,25 +34,8 @@ import java.util.logging.Logger;
  */
 public final class CasualManagedConnectionMetaData implements ManagedConnectionMetaData
 {
-    /**
-     * The logger
-     */
     private static Logger log = Logger.getLogger(CasualManagedConnectionMetaData.class.getName());
 
-    /**
-     * Default constructor
-     */
-    public CasualManagedConnectionMetaData()
-    {
-
-    }
-
-    /**
-     * Returns Product name of the underlying EIS instance connected through the ManagedConnection.
-     *
-     * @return Product name of the EIS instance
-     * @throws ResourceException Thrown if an error occurs
-     */
     @Override
     public String getEISProductName() throws ResourceException
     {
@@ -62,12 +43,6 @@ public final class CasualManagedConnectionMetaData implements ManagedConnectionM
         return CasualConstants.CASUAL_NAME;
     }
 
-    /**
-     * Returns the API version used to communicate
-     *
-     * @return API version of the EIS instance
-     * @throws ResourceException Thrown if an error occurs
-     */
     @Override
     public String getEISProductVersion() throws ResourceException
     {
@@ -75,29 +50,22 @@ public final class CasualManagedConnectionMetaData implements ManagedConnectionM
         return CasualConstants.CASUAL_API_VERSION;
     }
 
-    /**
-     * Returns maximum limit on number of active concurrent connections
-     *
-     * @return Maximum limit for number of active concurrent connections
-     * @throws ResourceException Thrown if an error occurs
-     */
     @Override
     public int getMaxConnections() throws ResourceException
     {
         log.finest("getMaxConnections()");
-        return Runtime.getRuntime().availableProcessors() - 1; //TODO How to determine this? Using core count on machine-1 for now
+        //Assuming this is the EIS Server we are not aware of any limitations
+        //so shall, to that effect, return 0.
+        return 0;
     }
 
-    /**
-     * Returns name of the user associated with the ManagedConnection instance
-     *
-     * @return Name of the user
-     * @throws ResourceException Thrown if an error occurs
-     */
     @Override
     public String getUserName() throws ResourceException
     {
         log.finest("getUserName()");
         return System.getProperty("user.name");
     }
+
+
+
 }

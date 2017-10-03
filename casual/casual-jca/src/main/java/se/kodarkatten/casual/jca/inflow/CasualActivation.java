@@ -33,24 +33,9 @@ import javax.resource.spi.endpoint.MessageEndpointFactory;
  */
 public class CasualActivation
 {
-
-   /** The resource adapter */
    private CasualResourceAdapter ra;
-
-   /** Activation spec */
    private CasualActivationSpec spec;
-
-   /** The message endpoint factory */
    private MessageEndpointFactory endpointFactory;
-
-   /**
-    * Default constructor
-    * @exception ResourceException Thrown if an error occurs
-    */
-   public CasualActivation() throws ResourceException
-   {
-      this(null, null, null);
-   }
 
    /**
     * Constructor

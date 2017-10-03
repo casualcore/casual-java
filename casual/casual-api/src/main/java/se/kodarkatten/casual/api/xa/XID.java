@@ -123,7 +123,9 @@ public final class XID implements Xid
     @Override
     public int hashCode()
     {
-        return Objects.hash(formatType, gtridLength, bqualLength, globalTransactionId, branchQualifier);
+        String g = (globalTransactionId == null ) ? null : new String( globalTransactionId );
+        String b = (branchQualifier == null ) ? null : new String( branchQualifier );
+        return Objects.hash(formatType, gtridLength, bqualLength, g, b );
     }
 
     @Override

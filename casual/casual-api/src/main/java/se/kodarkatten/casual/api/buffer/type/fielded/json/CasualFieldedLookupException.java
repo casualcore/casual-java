@@ -1,6 +1,8 @@
 package se.kodarkatten.casual.api.buffer.type.fielded.json;
 
-public class CasualFieldedLookupException extends RuntimeException
+import se.kodarkatten.casual.api.CasualRuntimeException;
+
+public class CasualFieldedLookupException extends CasualRuntimeException
 {
     private static final long serialVersionUID = 1L;
     public CasualFieldedLookupException(final String msg)
