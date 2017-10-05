@@ -13,12 +13,12 @@ import java.util.UUID;
  */
 public final class CasualTransactionResourcePrepareRequestMessage extends AbstractCasualTransactionRequestMessage
 {
-    private CasualTransactionResourcePrepareRequestMessage(final UUID execution, final Xid xid, long resourceId, int flags)
+    private CasualTransactionResourcePrepareRequestMessage(final UUID execution, final Xid xid, int resourceId, int flags)
     {
         super(execution, xid, resourceId, flags);
     }
 
-    public static CasualTransactionResourcePrepareRequestMessage of(final UUID execution, final Xid xid, long resourceId, final Flag<XAFlags> flags)
+    public static CasualTransactionResourcePrepareRequestMessage of(final UUID execution, final Xid xid, int resourceId, final Flag<XAFlags> flags)
     {
         return new CasualTransactionResourcePrepareRequestMessage(execution, XID.of(xid), resourceId, flags.getFlagValue());
     }

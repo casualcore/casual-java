@@ -4,8 +4,14 @@ package se.kodarkatten.casual.network.io;
 import se.kodarkatten.casual.network.io.readers.CasualNWMessageHeaderReader;
 import se.kodarkatten.casual.network.io.readers.MessageReader;
 import se.kodarkatten.casual.network.io.readers.NetworkReader;
+import se.kodarkatten.casual.network.io.readers.domain.CasualDomainConnectReplyMessageReader;
+import se.kodarkatten.casual.network.io.readers.domain.CasualDomainConnectRequestMessageReader;
 import se.kodarkatten.casual.network.io.readers.domain.CasualDomainDiscoveryReplyMessageReader;
 import se.kodarkatten.casual.network.io.readers.domain.CasualDomainDiscoveryRequestMessageReader;
+import se.kodarkatten.casual.network.io.readers.queue.CasualDequeueReplyMessageReader;
+import se.kodarkatten.casual.network.io.readers.queue.CasualDequeueRequestMessageReader;
+import se.kodarkatten.casual.network.io.readers.queue.CasualEnqueueReplyMessageReader;
+import se.kodarkatten.casual.network.io.readers.queue.CasualEnqueueRequestMessageReader;
 import se.kodarkatten.casual.network.io.readers.service.CasualServiceCallReplyMessageReader;
 import se.kodarkatten.casual.network.io.readers.service.CasualServiceCallRequestMessageReader;
 import se.kodarkatten.casual.network.io.readers.transaction.CasualTransactionResourceCommitReplyMessageReader;
@@ -19,16 +25,6 @@ import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.MessageHeaderSizes;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage;
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitReplyMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitRequestMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareReplyMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackReplyMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
@@ -108,7 +104,7 @@ public final class CasualNetworkReader
         return CasualNWMessageHeaderReader.fromNetworkBytes(message);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "squid:MethodCyclomaticComplexity"})
     private static <T extends CasualNetworkTransmittable> NetworkReader<T> getNetworkReader( CasualNWMessageHeader header )
     {
         switch(header.getType())
@@ -117,6 +113,10 @@ public final class CasualNetworkReader
                 return (NetworkReader<T>)CasualDomainDiscoveryRequestMessageReader.of();
             case DOMAIN_DISCOVERY_REPLY:
                 return (NetworkReader<T>)CasualDomainDiscoveryReplyMessageReader.of();
+            case DOMAIN_CONNECT_REQUEST:
+                return (NetworkReader<T>)CasualDomainConnectRequestMessageReader.of();
+            case DOMAIN_CONNECT_REPLY:
+                return (NetworkReader<T>)CasualDomainConnectReplyMessageReader.of();
             case SERVICE_CALL_REQUEST:
                 // We may want to use some other size for chunking of service payload
                 CasualServiceCallRequestMessageReader.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
@@ -125,6 +125,14 @@ public final class CasualNetworkReader
                 // We may want to use some other size for chunking of service payload
                 CasualServiceCallReplyMessageReader.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
                 return (NetworkReader<T>)CasualServiceCallReplyMessageReader.of();
+            case ENQUEUE_REQUEST:
+                return (NetworkReader<T>)CasualEnqueueRequestMessageReader.of();
+            case ENQUEUE_REPLY:
+                return (NetworkReader<T>)CasualEnqueueReplyMessageReader.of();
+            case DEQUEUE_REQUEST:
+                return (NetworkReader<T>) CasualDequeueRequestMessageReader.of();
+            case DEQUEUE_REPLY:
+                return (NetworkReader<T>) CasualDequeueReplyMessageReader.of();
             case PREPARE_REQUEST:
                 return (NetworkReader<T>)CasualTransactionResourcePrepareRequestMessageReader.of();
             case PREPARE_REQUEST_REPLY:

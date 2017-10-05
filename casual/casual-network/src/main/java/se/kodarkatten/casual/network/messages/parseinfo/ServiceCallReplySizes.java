@@ -6,7 +6,7 @@ package se.kodarkatten.casual.network.messages.parseinfo;
 public enum ServiceCallReplySizes
 {
     EXECUTION(16, 16),
-    CALL_ERROR(4, 8),
+    CALL_ERROR(4, 4),
     CALL_CODE(8, 8),
     TRANSACTION_TRID_XID_FORMAT(8, 8),
     TRANSACTION_TRID_XID_GTRID_LENGTH(8, 8),

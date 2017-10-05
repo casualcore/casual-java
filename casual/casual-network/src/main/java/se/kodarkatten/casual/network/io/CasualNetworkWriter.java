@@ -7,7 +7,6 @@ import se.kodarkatten.casual.network.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;

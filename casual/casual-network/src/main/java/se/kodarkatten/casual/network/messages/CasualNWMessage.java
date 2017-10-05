@@ -2,7 +2,11 @@ package se.kodarkatten.casual.network.messages;
 
 import se.kodarkatten.casual.network.utils.ByteUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
 
 /**
  * Created by aleph on 2017-03-09.

@@ -3,7 +3,6 @@ package se.kodarkatten.casual.network.io.readers.domain;
 import se.kodarkatten.casual.network.io.readers.NetworkReader;
 import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
 import se.kodarkatten.casual.network.io.readers.utils.DynamicArrayIndexPair;
-import se.kodarkatten.casual.network.messages.domain.Service;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 import se.kodarkatten.casual.network.messages.parseinfo.DiscoveryRequestSizes;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
@@ -52,7 +51,7 @@ public final class CasualDomainDiscoveryRequestMessageReader implements NetworkR
         }
         catch (InterruptedException | ExecutionException e)
         {
-            throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
+            throw new CasualTransportException("failed reading CasualDomainDiscoveryRequestMessage", e);
         }
     }
 
@@ -77,7 +76,7 @@ public final class CasualDomainDiscoveryRequestMessageReader implements NetworkR
         }
         catch (InterruptedException | ExecutionException e)
         {
-            throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
+            throw new CasualTransportException("failed reading CasualDomainDiscoveryRequestMessage", e);
         }
     }
 

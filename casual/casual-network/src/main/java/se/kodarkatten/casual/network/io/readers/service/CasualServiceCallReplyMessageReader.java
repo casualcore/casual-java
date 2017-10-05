@@ -78,7 +78,7 @@ public final class CasualServiceCallReplyMessageReader implements NetworkReader<
         try
         {
             final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
-            final int callError = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_ERROR.getNetworkSize()).get().getLong();
+            final int callError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_ERROR.getNetworkSize()).get().getInt();
             final long userError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_CODE.getNetworkSize()).get().getLong();
             final Xid xid = XIDUtils.readXid(channel);
             final int transactionState = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize()).get().get();
@@ -108,7 +108,7 @@ public final class CasualServiceCallReplyMessageReader implements NetworkReader<
     public CasualServiceCallReplyMessage readChunked(final ReadableByteChannel channel)
     {
         final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
-        final int callError = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_ERROR.getNetworkSize()).getLong();
+        final int callError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_ERROR.getNetworkSize()).getInt();
         final long userError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_CODE.getNetworkSize()).getLong();
         final Xid xid = XIDUtils.readXid(channel);
         final int transactionState = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize()).get();
@@ -130,7 +130,7 @@ public final class CasualServiceCallReplyMessageReader implements NetworkReader<
         currentOffset += ServiceCallReplySizes.EXECUTION.getNetworkSize();
 
         final ByteBuffer callErrorBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.CALL_ERROR.getNetworkSize());
-        int callError = (int)callErrorBuffer.getLong();
+        int callError = callErrorBuffer.getInt();
         currentOffset += ServiceCallReplySizes.CALL_ERROR.getNetworkSize();
 
         final ByteBuffer userErrorBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.CALL_CODE.getNetworkSize());

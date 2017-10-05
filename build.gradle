@@ -12,6 +12,7 @@ sonarqube {
     properties {
         properties["sonar.host.url"] = 'http://localhost:9000'
         properties["sonar.verbose"] = "true"
+        properties['sonar.java.source'] = 8
     }
 }
 

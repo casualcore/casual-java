@@ -21,7 +21,7 @@ public final class CasualTransactionResourceRollbackRequestMessageReader extends
     }
 
     @Override
-    protected CasualTransactionResourceRollbackRequestMessage createTransactionRequestMessage(final UUID execution, final Xid xid, long resourceId, final Flag<XAFlags> flags)
+    protected CasualTransactionResourceRollbackRequestMessage createTransactionRequestMessage(final UUID execution, final Xid xid, int resourceId, final Flag<XAFlags> flags)
     {
         return CasualTransactionResourceRollbackRequestMessage.of(execution, xid, resourceId, flags);
     }

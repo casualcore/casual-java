@@ -20,7 +20,7 @@ public final class CasualTransactionResourceRollbackReplyMessageReader extends A
     }
 
     @Override
-    protected CasualTransactionResourceRollbackReplyMessage createTransactionReplyMessage(final UUID execution, final Xid xid, long resourceId, final XAReturnCode r)
+    protected CasualTransactionResourceRollbackReplyMessage createTransactionReplyMessage(final UUID execution, final Xid xid, int resourceId, final XAReturnCode r)
     {
         return CasualTransactionResourceRollbackReplyMessage.of(execution, xid, resourceId, r);
     }

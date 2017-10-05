@@ -15,6 +15,7 @@ public final class FieldedTypeBufferDecoder
     private FieldedTypeBufferDecoder()
     {}
 
+    @SuppressWarnings("squid:S1452")
     public static Map<String, List<FieldedData<?>>> decode(final List<byte[]> l)
     {
         Map<String, List<FieldedData<?>>> m = new HashMap<>();
@@ -29,6 +30,7 @@ public final class FieldedTypeBufferDecoder
         return m;
     }
 
+    @SuppressWarnings("squid:S1452")
     private static void parseData(final Map<String, List<FieldedData<?>>> m, final byte[] b)
     {
         int currentIndex = 0;

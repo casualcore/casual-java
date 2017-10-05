@@ -12,12 +12,12 @@ import java.util.UUID;
  */
 public class CasualTransactionResourceRollbackReplyMessage extends AbstractCasualTransactionReplyMessage
 {
-    protected CasualTransactionResourceRollbackReplyMessage(final UUID execution, final Xid xid, long resourceId, final XAReturnCode xaReturnCode)
+    protected CasualTransactionResourceRollbackReplyMessage(final UUID execution, final Xid xid, int resourceId, final XAReturnCode xaReturnCode)
     {
         super(execution, xid, resourceId, xaReturnCode);
     }
 
-    public static CasualTransactionResourceRollbackReplyMessage of(final UUID execution, final Xid xid, long resourceId, final XAReturnCode xaReturnCode)
+    public static CasualTransactionResourceRollbackReplyMessage of(final UUID execution, final Xid xid, int resourceId, final XAReturnCode xaReturnCode)
     {
         return new CasualTransactionResourceRollbackReplyMessage(execution, XID.of(xid), resourceId, xaReturnCode);
     }

@@ -19,7 +19,7 @@ public enum DiscoveryRequestSizes
 
     private final int nativeSize;
     private final int networkSize;
-    private DiscoveryRequestSizes(int nativeSize, int networkSize)
+    DiscoveryRequestSizes(int nativeSize, int networkSize)
     {
         this.nativeSize = nativeSize;
         this.networkSize = networkSize;

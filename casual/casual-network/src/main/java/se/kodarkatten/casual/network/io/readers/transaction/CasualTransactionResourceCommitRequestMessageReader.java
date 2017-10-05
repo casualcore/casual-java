@@ -21,7 +21,7 @@ public final class CasualTransactionResourceCommitRequestMessageReader extends A
     }
 
     @Override
-    protected CasualTransactionResourceCommitRequestMessage createTransactionRequestMessage(final UUID execution, final Xid xid, long resourceId, final Flag<XAFlags> flags)
+    protected CasualTransactionResourceCommitRequestMessage createTransactionRequestMessage(final UUID execution, final Xid xid, int resourceId, final Flag<XAFlags> flags)
     {
         return CasualTransactionResourceCommitRequestMessage.of(execution, xid, resourceId, flags);
     }

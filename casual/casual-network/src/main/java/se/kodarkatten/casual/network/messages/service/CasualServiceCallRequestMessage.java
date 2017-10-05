@@ -63,7 +63,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
                                  ServiceCallRequestSizes.FLAGS.getNetworkSize() +
                                  ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
         return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceNameBytes, parentNameBytes, serviceBytes)
-                                                    : toNetworkBytesMultipleBuffers(serviceNameBytes, parentNameBytes, serviceBytes);
+                                                    : toNetworkBytesMultipleBuffers(serviceNameBytes, parentNameBytes, serviceBuffer);
     }
 
 
@@ -265,7 +265,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         return l;
     }
 
-    private List<byte[]> toNetworkBytesMultipleBuffers(final byte[] serviceNameBytes, final byte[] parentNameBytes, final List<byte[]> serviceBytes)
+    private List<byte[]> toNetworkBytesMultipleBuffers(final byte[] serviceNameBytes, final byte[] parentNameBytes, final ServiceBuffer serviceBuffer)
     {
         final List<byte[]> l = new ArrayList<>();
         final ByteBuffer executionBuffer = ByteBuffer.allocate(ServiceCallRequestSizes.EXECUTION.getNetworkSize());
@@ -280,17 +280,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         CasualNetworkWriterUtils.writeXID(xid, xidByteBuffer);
         l.add(xidByteBuffer.array());
         l.add(CasualNetworkWriterUtils.writeLong(xatmiFlags.getFlagValue()));
-        final ByteBuffer serviceBufferTypeSize = ByteBuffer.allocate(ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize());
-        serviceBufferTypeSize.putLong(serviceBytes.get(0).length);
-        l.add(serviceBufferTypeSize.array());
-        l.add(serviceBytes.get(0));
-        serviceBytes.remove(0);
-        final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
-        final ByteBuffer serviceBufferPayloadSizeBuffer = ByteBuffer.allocate(ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize());
-        serviceBufferPayloadSizeBuffer.putLong(payloadSize);
-        l.add(serviceBufferPayloadSizeBuffer.array());
-        serviceBytes.stream()
-                    .forEach(bytes -> l.add(bytes));
+        l.addAll(CasualNetworkWriterUtils.writeServiceBuffer(serviceBuffer));
         return l;
     }
 

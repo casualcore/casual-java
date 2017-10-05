@@ -48,7 +48,7 @@ public abstract class AbstractCasualTransactionRequestReader<T extends CasualNet
         {
             final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
             final Xid xid = XIDUtils.readXid(channel);
-            final long resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).get().getLong();
+            final int resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).get().getInt();
             final int flagValue = (int)ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize()).get().getLong();
             final Flag<XAFlags> flags = new Flag.Builder<XAFlags>(flagValue).build();
             return createTransactionRequestMessage(execution, xid, resourceId, flags);
@@ -70,13 +70,13 @@ public abstract class AbstractCasualTransactionRequestReader<T extends CasualNet
     {
         final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
         final Xid xid = XIDUtils.readXid(channel);
-        final long resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).getLong();
+        final int resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).getInt();
         final int flagValue = (int)ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize()).getLong();
         final Flag<XAFlags> flags = new Flag.Builder<XAFlags>(flagValue).build();
         return createTransactionRequestMessage(execution, xid, resourceId, flags);
     }
 
-    protected abstract T createTransactionRequestMessage(final UUID execution, final Xid xid, long resourceId, final Flag<XAFlags> flags);
+    protected abstract T createTransactionRequestMessage(final UUID execution, final Xid xid, int resourceId, final Flag<XAFlags> flags);
 
     private T createRequestMessage(final byte[] data)
     {
@@ -88,7 +88,7 @@ public abstract class AbstractCasualTransactionRequestReader<T extends CasualNet
         currentOffset = xidInfo.first();
         final Xid xid = xidInfo.second();
         final ByteBuffer resourceIdBuffer = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize());
-        final long resourceId = resourceIdBuffer.getLong();
+        final int resourceId = resourceIdBuffer.getInt();
         currentOffset += CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize();
         final ByteBuffer flagBuffer = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize());
         final int flagValue = (int)flagBuffer.getLong();

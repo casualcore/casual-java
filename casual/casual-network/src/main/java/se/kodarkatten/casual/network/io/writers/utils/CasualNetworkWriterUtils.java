@@ -1,15 +1,21 @@
 package se.kodarkatten.casual.network.io.writers.utils;
 
 import se.kodarkatten.casual.api.xa.XIDFormatType;
+import se.kodarkatten.casual.network.messages.parseinfo.CommonSizes;
+import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
+import se.kodarkatten.casual.network.utils.ByteUtils;
+import se.kodarkatten.casual.network.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 /**
  * Created by aleph on 2017-03-07.
  */
+@SuppressWarnings("squid:S1612")
 public final class CasualNetworkWriterUtils
 {
     private CasualNetworkWriterUtils()
@@ -66,6 +72,12 @@ public final class CasualNetworkWriterUtils
         return b;
     }
 
+    public static ByteBuffer writeXID(final Xid xid)
+    {
+        final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid));
+        return writeXID(xid, xidByteBuffer);
+    }
+
     public static ByteBuffer writeXID(final Xid xid, final ByteBuffer b)
     {
         b.putLong(xid.getFormatId());
@@ -87,5 +99,31 @@ public final class CasualNetworkWriterUtils
         b.putLong(v);
         return b.array();
     }
+
+    public static byte[] writeInt(int v)
+    {
+        ByteBuffer b = ByteBuffer.allocate(Integer.BYTES);
+        b.putInt(v);
+        return b.array();
+    }
+
+    public static List<byte[]> writeServiceBuffer(final ServiceBuffer serviceBuffer)
+    {
+        List<byte[]> l = new ArrayList<>();
+        List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
+        final ByteBuffer serviceBufferTypeSize = ByteBuffer.allocate(CommonSizes.SERVICE_BUFFER_TYPE_SIZE.getNetworkSize());
+        serviceBufferTypeSize.putLong(serviceBytes.get(0).length);
+        l.add(serviceBufferTypeSize.array());
+        l.add(serviceBytes.get(0));
+        serviceBytes.remove(0);
+        final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
+        final ByteBuffer serviceBufferPayloadSizeBuffer = ByteBuffer.allocate(CommonSizes.SERVICE_BUFFER_PAYLOAD_SIZE.getNetworkSize());
+        serviceBufferPayloadSizeBuffer.putLong(payloadSize);
+        l.add(serviceBufferPayloadSizeBuffer.array());
+        serviceBytes.stream()
+                    .forEach(bytes -> l.add(bytes));
+        return l;
+    }
+
 
 }

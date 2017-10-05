@@ -1,6 +1,5 @@
 package se.kodarkatten.casual.jca
 
-import se.kodarkatten.casual.jca.CasualNetworkConnection
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
@@ -14,12 +13,12 @@ class CasualNetworkConnectionTest extends Specification
 {
     @Shared CasualNetworkConnection instance
     @Shared SocketChannel testChannel
+    @Shared CasualNetworkConnectionInformation connectionInformation = CasualNetworkConnectionInformation.of(new InetSocketAddress(3712), 1000l, UUID.randomUUID(), 'testDomain')
 
     def setup()
     {
         testChannel = new LocalEchoSocketChannel()
-
-        instance = new CasualNetworkConnection( testChannel )
+        instance = new CasualNetworkConnection( testChannel , connectionInformation)
     }
 
     def "Of with a null InetSocketAddress throws NullPointerException."()

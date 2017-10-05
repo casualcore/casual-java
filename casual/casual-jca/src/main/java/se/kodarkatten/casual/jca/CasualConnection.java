@@ -12,5 +12,6 @@ public interface CasualConnection extends CasualServiceApi, AutoCloseable //Conv
     /**
      * Clean up the connection handle and close.
      */
+    @Override
     void close();
 }

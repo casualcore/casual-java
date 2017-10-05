@@ -48,6 +48,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
 
    private String hostName;
    private Integer portNumber;
+   private Long casualProtocolVersion = 1000L;
 
    public String getHostName()
    {
@@ -67,6 +68,18 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    public void setPortNumber(Integer portNumber)
    {
       this.portNumber = portNumber;
+   }
+
+   public Long getCasualProtocolVersion()
+   {
+      return casualProtocolVersion;
+   }
+
+   public CasualManagedConnectionFactory setCasualProtocolVersion(Long casualProtocolVersion)
+   {
+      Objects.requireNonNull(casualProtocolVersion, "casual protocol version can not be null!");
+      this.casualProtocolVersion = casualProtocolVersion;
+      return this;
    }
 
    @Override

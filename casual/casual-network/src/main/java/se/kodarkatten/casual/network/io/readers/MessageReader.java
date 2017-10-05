@@ -49,7 +49,7 @@ public final class MessageReader<T extends CasualNetworkTransmittable>
         }
         return networkReader.readChunked(channel);
     }
-
+    @SuppressWarnings("squid:S2095")
     public T read(final ReadableByteChannel channel, long messageSize)
     {
         Objects.requireNonNull(channel, "channel is null");

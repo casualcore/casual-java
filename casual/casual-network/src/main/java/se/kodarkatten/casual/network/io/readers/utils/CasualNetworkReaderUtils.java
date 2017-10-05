@@ -16,6 +16,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -219,6 +220,24 @@ public final class CasualNetworkReaderUtils
         return ServiceBuffer.of(bufferTypename, payload);
     }
 
+    public static Pair<Integer, ServiceBuffer> readServiceBuffer(final byte[] bytes, int offset)
+    {
+        int currentOffset = offset;
+        int serviceBufferTypeSize = (int) ByteBuffer.wrap(bytes, currentOffset, CommonSizes.SERVICE_BUFFER_TYPE_SIZE.getNetworkSize()).getLong();
+        currentOffset += CommonSizes.SERVICE_BUFFER_TYPE_SIZE.getNetworkSize();
+        String serviceTypeName = CasualNetworkReaderUtils.getAsString(bytes, currentOffset, serviceBufferTypeSize);
+        currentOffset += serviceBufferTypeSize;
+        // this can be huge, ie not fitting into one ByteBuffer
+        // but since the whole message fits into Integer.MAX_VALUE that is not true of this message
+        int serviceBufferPayloadSize = (int) ByteBuffer.wrap(bytes, currentOffset, CommonSizes.SERVICE_BUFFER_PAYLOAD_SIZE.getNetworkSize()).getLong();
+        currentOffset += CommonSizes.SERVICE_BUFFER_PAYLOAD_SIZE.getNetworkSize();
+        byte[] payloadData = Arrays.copyOfRange(bytes, currentOffset, currentOffset + serviceBufferPayloadSize);
+        List<byte[]> serviceBufferPayload = new ArrayList<>();
+        serviceBufferPayload.add(payloadData);
+        ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
+        currentOffset += serviceBufferPayloadSize;
+        return Pair.of(currentOffset, serviceBuffer);
+    }
 
     public static Pair<Integer, Xid> readXid(final byte[] data, int offset)
     {

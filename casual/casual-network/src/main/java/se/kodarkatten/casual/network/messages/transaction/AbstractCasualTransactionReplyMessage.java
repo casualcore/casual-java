@@ -18,7 +18,7 @@ public abstract class AbstractCasualTransactionReplyMessage extends AbstractCasu
 {
     private final XAReturnCode xaReturnCode;
 
-    protected AbstractCasualTransactionReplyMessage(final UUID execution, final Xid xid, long resourceId, final XAReturnCode xaReturnCode)
+    protected AbstractCasualTransactionReplyMessage(final UUID execution, final Xid xid, int resourceId, final XAReturnCode xaReturnCode)
     {
         super(execution, xid, resourceId);
         this.xaReturnCode = xaReturnCode;
@@ -71,12 +71,12 @@ public abstract class AbstractCasualTransactionReplyMessage extends AbstractCasu
     @Override
     protected void createNetworkBytesFitsInOneBuffer(ByteBuffer b)
     {
-        b.putLong(xaReturnCode.getId());
+        b.putInt(xaReturnCode.getId());
     }
 
     @Override
     protected void createNetworkBytesMultipleBuffers(List<byte[]> l)
     {
-        l.add(CasualNetworkWriterUtils.writeLong(xaReturnCode.getId()));
+        l.add(CasualNetworkWriterUtils.writeInt(xaReturnCode.getId()));
     }
 }

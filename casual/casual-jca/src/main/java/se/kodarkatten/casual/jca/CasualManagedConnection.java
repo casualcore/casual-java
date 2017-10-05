@@ -10,10 +10,7 @@ import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -67,11 +64,13 @@ public class CasualManagedConnection implements ManagedConnection
      */
     public synchronized NetworkConnection getNetworkConnection()
     {
-        if( this.networkConnection == null )
+        if( networkConnection == null )
         {
-            this.networkConnection = CasualNetworkConnection.of(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()));
+            CasualNetworkConnectionInformation ci = CasualNetworkConnectionInformation.of(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()),
+                                                                                          mcf.getCasualProtocolVersion(), UUID.randomUUID(), DOMAIN_NAME);
+            networkConnection = CasualNetworkConnection.of(ci);
         }
-        return this.networkConnection;
+        return networkConnection;
     }
 
     @Override

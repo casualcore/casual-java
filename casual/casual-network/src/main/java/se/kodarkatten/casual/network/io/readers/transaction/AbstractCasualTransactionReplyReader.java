@@ -46,8 +46,8 @@ public abstract class AbstractCasualTransactionReplyReader<T extends CasualNetwo
         {
             final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
             final Xid xid = XIDUtils.readXid(channel);
-            final long resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).get().getLong();
-            final int xaReturnCode = (int)ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_STATE.getNetworkSize()).get().getLong();
+            final int resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).get().getInt();
+            final int xaReturnCode = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_STATE.getNetworkSize()).get().getInt();
             final XAReturnCode r = XAReturnCode.unmarshal(xaReturnCode);
             return createTransactionReplyMessage(execution, xid, resourceId, r);
         }
@@ -63,17 +63,18 @@ public abstract class AbstractCasualTransactionReplyReader<T extends CasualNetwo
         return createReplyMessage(ByteUtils.readFully(channel, messageSize).array());
     }
 
+    @Override
     public T readChunked(final ReadableByteChannel channel)
     {
         final UUID execution = CasualNetworkReaderUtils.readUUID(channel);
         final Xid xid = XIDUtils.readXid(channel);
-        final long resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).getLong();
-        final int xaReturnCode = (int)ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_STATE.getNetworkSize()).getLong();
+        final int resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).getInt();
+        final int xaReturnCode = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_STATE.getNetworkSize()).getInt();
         final XAReturnCode r = XAReturnCode.unmarshal(xaReturnCode);
         return createTransactionReplyMessage(execution, xid, resourceId, r);
     }
 
-    protected abstract T createTransactionReplyMessage(UUID execution, Xid xid, long resourceId, XAReturnCode r);
+    protected abstract T createTransactionReplyMessage(UUID execution, Xid xid, int resourceId, XAReturnCode r);
 
 
     private T createReplyMessage(final byte[] data)
@@ -87,9 +88,9 @@ public abstract class AbstractCasualTransactionReplyReader<T extends CasualNetwo
         final Xid xid = xidInfo.second();
 
         final ByteBuffer resourceIdBuffer = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize());
-        final long resourceId = resourceIdBuffer.getLong();
+        final int resourceId = resourceIdBuffer.getInt();
         currentOffset += CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize();
-        final int xaReturnCode = (int)ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_STATE.getNetworkSize()).getLong();
+        final int xaReturnCode = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_STATE.getNetworkSize()).getInt();
         final XAReturnCode r = XAReturnCode.unmarshal(xaReturnCode);
         return createTransactionReplyMessage(execution, xid, resourceId, r);
     }

@@ -12,12 +12,12 @@ import java.util.UUID;
  */
 public final class CasualTransactionResourceCommitReplyMessage extends AbstractCasualTransactionReplyMessage
 {
-    private CasualTransactionResourceCommitReplyMessage(final UUID execution, final Xid xid, long resourceId, final XAReturnCode transactionReturnCode)
+    private CasualTransactionResourceCommitReplyMessage(final UUID execution, final Xid xid, int resourceId, final XAReturnCode transactionReturnCode)
     {
         super(execution, xid, resourceId, transactionReturnCode);
     }
 
-    public static CasualTransactionResourceCommitReplyMessage of(final UUID execution, final Xid xid, long resourceId, final XAReturnCode transactionReturnCode)
+    public static CasualTransactionResourceCommitReplyMessage of(final UUID execution, final Xid xid, int resourceId, final XAReturnCode transactionReturnCode)
     {
         return new CasualTransactionResourceCommitReplyMessage(execution, XID.of(xid), resourceId, transactionReturnCode);
     }

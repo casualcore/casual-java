@@ -20,7 +20,7 @@ public class CasualTransactionResourceCommitReplyMessageReader extends AbstractC
     }
 
     @Override
-    protected CasualTransactionResourceCommitReplyMessage createTransactionReplyMessage(final UUID execution, final Xid xid, long resourceId, final XAReturnCode r)
+    protected CasualTransactionResourceCommitReplyMessage createTransactionReplyMessage(final UUID execution, final Xid xid, int resourceId, final XAReturnCode r)
     {
         return CasualTransactionResourceCommitReplyMessage.of(execution, xid, resourceId, r);
     }

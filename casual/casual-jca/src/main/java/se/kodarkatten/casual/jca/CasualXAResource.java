@@ -4,7 +4,12 @@ import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.XAFlags;
 import se.kodarkatten.casual.api.xa.XAReturnCode;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.transaction.*;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitReplyMessage;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitRequestMessage;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareReplyMessage;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackReplyMessage;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
@@ -38,7 +43,7 @@ public class CasualXAResource implements XAResource
         {
             flags = Flag.of(XAFlags.TMONEPHASE);
         }
-        Long resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
+        Integer resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
         CasualTransactionResourceCommitRequestMessage commitRequest =
                 CasualTransactionResourceCommitRequestMessage.of(UUID.randomUUID(), xid, resourceId, flags);
         CasualTransactionResources.getInstance().removeResourceIdForXid(xid);
@@ -62,10 +67,9 @@ public class CasualXAResource implements XAResource
         XAFlags f = XAFlags.unmarshall(flag);
         switch(f)
         {
+            // note: we want to fallthrough here
             case TMSUCCESS:
-                break;
             case TMFAIL:
-                break;
             case TMSUSPEND:
                 break;
             default:
@@ -102,7 +106,7 @@ public class CasualXAResource implements XAResource
     public int prepare(Xid xid) throws XAException
     {
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
-        Long resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
+        Integer resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
         CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(),xid,resourceId,flags);
         CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> requestEnvelope = CasualNWMessage.of(UUID.randomUUID(), prepareRequest);
         CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> replyEnvelope = casualManagedConnection.getNetworkConnection().requestReply(requestEnvelope);
@@ -123,7 +127,7 @@ public class CasualXAResource implements XAResource
     public void rollback(Xid xid) throws XAException
     {
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
-        Long resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
+        Integer resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
         CasualTransactionResourceRollbackRequestMessage request =
                 CasualTransactionResourceRollbackRequestMessage.of(UUID.randomUUID(), xid, resourceId, flags);
         CasualTransactionResources.getInstance().removeResourceIdForXid(xid);
@@ -143,12 +147,10 @@ public class CasualXAResource implements XAResource
     @Override
     public void start(Xid xid, int i) throws XAException
     {
-        if(!(XAFlags.TMJOIN.getValue() == i || XAFlags.TMRESUME.getValue() == i))
+        if(!(XAFlags.TMJOIN.getValue() == i || XAFlags.TMRESUME.getValue() == i) &&
+            CasualTransactionResources.getInstance().xidPending(xid))
         {
-            if(CasualTransactionResources.getInstance().xidPending(xid))
-            {
-                throw new XAException(XAException.XAER_DUPID);
-            }
+            throw new XAException(XAException.XAER_DUPID);
         }
         currentXid = xid;
     }

@@ -69,11 +69,11 @@ public class CasualServiceCaller
     private boolean serviceExists( UUID corrid, String serviceName)
     {
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
-                .setExecution(UUID.randomUUID())
-                .setDomainId(UUID.randomUUID())
-                .setDomainName( connection.getDomainName() )
-                .setServiceNames(Arrays.asList(serviceName))
-                .build();
+                                                                                            .setExecution(UUID.randomUUID())
+                                                                                            .setDomainId(UUID.randomUUID())
+                                                                                            .setDomainName( connection.getDomainName() )
+                                                                                            .setServiceNames(Arrays.asList(serviceName))
+                                                                                            .build();
         CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessage.of(corrid, requestMsg);
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = connection.getNetworkConnection().requestReply(msg);
         return replyMsg.getMessage().getServices().stream()

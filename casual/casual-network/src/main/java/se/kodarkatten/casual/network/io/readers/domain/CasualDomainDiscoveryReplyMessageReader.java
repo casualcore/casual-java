@@ -14,7 +14,10 @@ import se.kodarkatten.casual.network.utils.ByteUtils;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousByteChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -41,47 +44,41 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         }
         catch (InterruptedException | ExecutionException e)
         {
-            throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
+            throw new CasualTransportException("failed reading CasualDomainDiscoveryReplyMessage", e);
         }
     }
 
     @Override
-    public CasualDomainDiscoveryReplyMessage readChunked(final AsynchronousByteChannel channel)
+    public CasualDomainDiscoveryReplyMessage readChunked(final AsynchronousByteChannel asynchronousByteChannel)
     {
         try
         {
-            final ByteBuffer executionBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.EXECUTION.getNetworkSize()).get();
-            final ByteBuffer domainIdBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_ID.getNetworkSize()).get();
-            final ByteBuffer domainNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize()).get();
-            final ByteBuffer domainNameBuffer = ByteUtils.readFully(channel, (int) domainNameSizeBuffer.getLong()).get();
-            final ByteBuffer numberOfServicesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize()).get();
+            final ByteBuffer executionBuffer = ByteUtils.readFully(asynchronousByteChannel, DiscoveryReplySizes.EXECUTION.getNetworkSize()).get();
+            final ByteBuffer domainIdBuffer = ByteUtils.readFully(asynchronousByteChannel, DiscoveryReplySizes.DOMAIN_ID.getNetworkSize()).get();
+            final ByteBuffer domainNameSizeBuffer = ByteUtils.readFully(asynchronousByteChannel, DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize()).get();
+            final ByteBuffer domainNameBuffer = ByteUtils.readFully(asynchronousByteChannel, (int) domainNameSizeBuffer.getLong()).get();
+            final ByteBuffer numberOfServicesBuffer = ByteUtils.readFully(asynchronousByteChannel, DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize()).get();
             final List<byte[]> services = new ArrayList<>();
             final long numberOfServices = numberOfServicesBuffer.getLong();
             for (int i = 0; i < numberOfServices; ++i)
             {
-                services.addAll(readService(channel));
+                services.addAll(readService(asynchronousByteChannel));
             }
-            final ByteBuffer numberOfQueuesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize()).get();
+            final ByteBuffer numberOfQueuesBuffer = ByteUtils.readFully(asynchronousByteChannel, DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize()).get();
             final List<byte[]> queues = new ArrayList<>();
             final long numberOfQueues = numberOfQueuesBuffer.getLong();
             for (int i = 0; i < numberOfQueues; ++i)
             {
-                queues.addAll(readQueue(channel));
+                queues.addAll(readQueue(asynchronousByteChannel));
             }
-            final List<byte[]> msg = new ArrayList<>();
-            msg.add(executionBuffer.array());
-            msg.add(domainIdBuffer.array());
-            msg.add(domainNameSizeBuffer.array());
-            msg.add(domainNameBuffer.array());
-            msg.add(numberOfServicesBuffer.array());
-            msg.addAll(services);
-            msg.add(numberOfQueuesBuffer.array());
-            msg.addAll(queues);
-            return readMessage(msg);
+            return readMessage(createMsg(executionBuffer.array(), domainIdBuffer.array(),
+                                         domainNameSizeBuffer.array(), domainNameBuffer.array(),
+                                         numberOfServicesBuffer.array(), services,
+                                         numberOfQueuesBuffer.array(), queues));
         }
         catch (InterruptedException | ExecutionException e)
         {
-            throw new CasualTransportException("failed reading CasualServiceCallRequestMessage", e);
+            throw new CasualTransportException("failed reading CasualDomainDiscoveryReplyMessage", e);
         }
     }
 
@@ -112,16 +109,10 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         {
             queues.addAll(readQueue(channel));
         }
-        final List<byte[]> msg = new ArrayList<>();
-        msg.add(executionBuffer.array());
-        msg.add(domainIdBuffer.array());
-        msg.add(domainNameSizeBuffer.array());
-        msg.add(domainNameBuffer.array());
-        msg.add(numberOfServicesBuffer.array());
-        msg.addAll(services);
-        msg.add(numberOfQueuesBuffer.array());
-        msg.addAll(queues);
-        return readMessage(msg);
+        return readMessage(createMsg(executionBuffer.array(), domainIdBuffer.array(),
+                                     domainNameSizeBuffer.array(), domainNameBuffer.array(),
+                                     numberOfServicesBuffer.array(), services,
+                                     numberOfQueuesBuffer.array(), queues));
     }
 
     private static List<byte[]> readService(final AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
@@ -324,6 +315,21 @@ public final class CasualDomainDiscoveryReplyMessageReader implements NetworkRea
         return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
                                                 .setServices(services)
                                                 .setQueues(queues);
+    }
+
+    @SuppressWarnings("squid:S00107")
+    private static List<byte[]> createMsg(byte[] executionBuffer, byte[] domainIdBuffer, byte[] domainNameSizeBuffer, byte[] domainNameBuffer, byte[] numberOfServicesBuffer, List<byte[]> services, byte[] numberOfQueuesBuffer, List<byte[]> queues)
+    {
+        final List<byte[]> msg = new ArrayList<>();
+        msg.add(executionBuffer);
+        msg.add(domainIdBuffer);
+        msg.add(domainNameSizeBuffer);
+        msg.add(domainNameBuffer);
+        msg.add(numberOfServicesBuffer);
+        msg.addAll(services);
+        msg.add(numberOfQueuesBuffer);
+        msg.addAll(queues);
+        return msg;
     }
 
 

@@ -20,7 +20,7 @@ public class CasualTransactionResourcePrepareReplyMessageReader extends Abstract
     }
 
     @Override
-    protected CasualTransactionResourcePrepareReplyMessage createTransactionReplyMessage(final UUID execution, final Xid xid, long resourceId, final XAReturnCode r)
+    protected CasualTransactionResourcePrepareReplyMessage createTransactionReplyMessage(final UUID execution, final Xid xid, int resourceId, final XAReturnCode r)
     {
         return CasualTransactionResourcePrepareReplyMessage.of(execution, xid, resourceId, r);
     }

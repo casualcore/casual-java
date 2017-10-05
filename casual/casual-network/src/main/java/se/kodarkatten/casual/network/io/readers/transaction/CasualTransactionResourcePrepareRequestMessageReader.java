@@ -22,7 +22,7 @@ public final class CasualTransactionResourcePrepareRequestMessageReader extends 
     }
 
     @Override
-    protected CasualTransactionResourcePrepareRequestMessage  createTransactionRequestMessage(final UUID execution, final Xid xid, long resourceId, final Flag<XAFlags> flags)
+    protected CasualTransactionResourcePrepareRequestMessage  createTransactionRequestMessage(final UUID execution, final Xid xid, int resourceId, final Flag<XAFlags> flags)
     {
         return CasualTransactionResourcePrepareRequestMessage.of(execution, xid, resourceId, flags);
     }

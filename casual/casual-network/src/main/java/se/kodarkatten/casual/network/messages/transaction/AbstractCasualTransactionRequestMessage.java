@@ -19,7 +19,7 @@ public abstract class AbstractCasualTransactionRequestMessage extends AbstractCa
 {
     private int flags;
 
-    protected AbstractCasualTransactionRequestMessage(final UUID execution, final Xid xid, long resourceId, int flags)
+    protected AbstractCasualTransactionRequestMessage(final UUID execution, final Xid xid, int resourceId, int flags)
     {
         super(execution, xid, resourceId);
         this.flags = flags;

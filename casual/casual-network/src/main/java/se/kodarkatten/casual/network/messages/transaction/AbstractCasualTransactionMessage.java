@@ -22,7 +22,7 @@ public abstract class AbstractCasualTransactionMessage implements CasualNetworkT
 {
     protected final UUID execution;
     protected final Xid xid;
-    protected final long resourceId;
+    protected final int resourceId;
 
     // not part of the message
     // used for testing
@@ -30,7 +30,7 @@ public abstract class AbstractCasualTransactionMessage implements CasualNetworkT
     // Defaults to Integer.MAX_VALUE
     private int maxMessageSize = Integer.MAX_VALUE;
 
-    protected AbstractCasualTransactionMessage(final UUID execution, final Xid xid, long resourceId)
+    protected AbstractCasualTransactionMessage(final UUID execution, final Xid xid, int resourceId)
     {
         this.execution = execution;
         this.xid = xid;
@@ -57,7 +57,7 @@ public abstract class AbstractCasualTransactionMessage implements CasualNetworkT
         return XID.of(xid);
     }
 
-    public long getResourceId()
+    public int getResourceId()
     {
         return resourceId;
     }
@@ -120,13 +120,11 @@ public abstract class AbstractCasualTransactionMessage implements CasualNetworkT
         ByteBuffer b = ByteBuffer.allocate(messageSize);
         CasualNetworkWriterUtils.writeUUID(execution, b);
         CasualNetworkWriterUtils.writeXID(xid, b);
-        b.putLong(resourceId);
+        b.putInt(resourceId);
         createNetworkBytesFitsInOneBuffer(b);
         l.add(b.array());
         return l;
     }
-
-
 
     private List<byte[]> toNetworkBytesMultipleBuffers()
     {
@@ -137,7 +135,7 @@ public abstract class AbstractCasualTransactionMessage implements CasualNetworkT
         final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid));
         CasualNetworkWriterUtils.writeXID(xid, xidByteBuffer);
         l.add(xidByteBuffer.array());
-        l.add(CasualNetworkWriterUtils.writeLong(resourceId));
+        l.add(CasualNetworkWriterUtils.writeInt(resourceId));
         createNetworkBytesMultipleBuffers(l);
         return l;
     }

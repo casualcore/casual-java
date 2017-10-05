@@ -47,6 +47,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return FieldedTypeBufferEncoder.encode(m);
     }
 
+    @SuppressWarnings("squid:S1452")
     public FieldedData<?> getForName(final String name)
     {
         return getForName(name, 0);

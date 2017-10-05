@@ -10,31 +10,28 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class CasualTransactionResources
 {
     private static final CasualTransactionResources INSTANCE = new CasualTransactionResources();
-
+    private final ConcurrentHashMap<Xid, Integer> pendingCommitRequests = new ConcurrentHashMap<>();
     private CasualTransactionResources()
-    {
-    }
+    {}
 
     public static final CasualTransactionResources getInstance()
     {
         return INSTANCE;
     }
 
-    private final ConcurrentHashMap<Xid, Long> pendingCommitRequests = new ConcurrentHashMap<>();
-
-    public final Long getResourceIdForXid(final Xid xid)
+    public final Integer getResourceIdForXid(final Xid xid)
     {
-        Long rId = pendingCommitRequests.get(xid);
+        Integer rId = pendingCommitRequests.get(xid);
         if(null == rId)
         {
-            rId = ThreadLocalRandom.current().nextLong();
-            Long found = addResourceIdForXid(rId, xid);
+            rId = ThreadLocalRandom.current().nextInt();
+            Integer found = addResourceIdForXid(rId, xid);
             rId = ( found == null ) ? rId : found;
         }
         return rId;
     }
 
-    private final Long addResourceIdForXid(final Long resourceId, final Xid xid)
+    private final Integer addResourceIdForXid(final Integer resourceId, final Xid xid)
     {
         return pendingCommitRequests.putIfAbsent(xid, resourceId);
     }
