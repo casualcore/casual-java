@@ -3,6 +3,12 @@ pipeline {
 
     stages {
 
+        stage('Notify Slack')
+        {
+            steps {
+                slackSend color: "good", message: "Build started: ${env.JOB_NAME} - ${env.BUILD_NUMBER} (<${env.JOB_URL}|Open>)"
+            }
+        }
         stage('Pull docker image') {
             steps {
                 sh 'docker pull openjdk:8'
@@ -42,5 +48,15 @@ pipeline {
                 echo 'Deploying.... to something... possibly'
             }
         }
+    }
+
+    post {
+       success {
+         slackSend color: "good", message: "Build finished: ${env.JOB_NAME} - ${env.BUILD_NUMBER} (<${env.JOB_URL}|Open>)"
+       }
+
+       failure {
+         slackSend color: "danger", message: "Build failed: ${env.JOB_NAME} - ${env.BUILD_NUMBER} (<${env.JOB_URL}|Open>)"
+       }
     }
 }
