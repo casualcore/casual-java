@@ -38,6 +38,18 @@ public class CasualActivationSpec implements ActivationSpec
    private static Logger logger = Logger.getLogger(CasualActivationSpec.class.getName());
    private ResourceAdapter ra;
 
+   private int port = 7772;
+
+   public int getPort()
+   {
+      return port;
+   }
+
+   public void setPort( int port )
+   {
+      this.port = port;
+   }
+
    @Override
    public void validate() throws InvalidPropertyException
    {

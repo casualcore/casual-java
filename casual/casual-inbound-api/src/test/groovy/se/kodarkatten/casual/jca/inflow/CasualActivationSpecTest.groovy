@@ -30,4 +30,13 @@ class CasualActivationSpecTest extends Specification
         then:
         instance.getResourceAdapter() == adapter
     }
+
+    def "Validate does nothing"()
+    {
+        when:
+        instance.validate()
+
+        then:
+        noExceptionThrown()
+    }
 }

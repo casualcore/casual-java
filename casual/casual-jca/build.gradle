@@ -10,63 +10,35 @@ defaultTasks 'build'
 group = 'se.kodarkatten.casual'
 version = '0.0.1'
 
-repositories {
-    maven {
-        name 'jboss-nexus'
-        url "http://repository.jboss.org/nexus/content/groups/public/"
-    }
-    maven {
-        name "jboss-snapshots"
-        url "http://snapshots.jboss.org/maven2/"
-    }
-    mavenCentral()
-    maven {
-        name 'fungal'
-        url "http://jesperpedersen.github.com/fungal/maven2/"
-    }
-}
-
 configurations {
-    pack
+    resourceAdapter
 }
 
 dependencies {
     compile project(':casual:casual-api')
     compile project(':casual:casual-internal')
     compile project(':casual:casual-network')
+    compile project(':casual:casual-inbound')
     compile 'javax:javaee-api:7.0'
-    pack project(':casual:casual-api')
-    pack project(':casual:casual-internal')
-    pack project(':casual:casual-network')
-//    compile 'org.jboss.ironjacamar:ironjacamar-spec-api:1.2.7.Final'
-    testCompile files("${System.properties['java.home']}/../lib/tools.jar")
-    testCompile 'org.jboss.ironjacamar:ironjacamar-arquillian-embedded:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-arquillian-embedded-byteman:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-common-api:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-common-impl:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-common-spi:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-core-api:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-core-impl:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-depchain:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-deployers-common:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-deployers-fungal:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-embedded:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-test-eis:1.2.7.Final'
-    testCompile 'org.jboss.ironjacamar:ironjacamar-validator:1.2.7.Final'
+
+    resourceAdapter project(':casual:casual-api')
+    resourceAdapter project(':casual:casual-internal')
+    resourceAdapter project(':casual:casual-network')
+    resourceAdapter project(':casual:casual-inbound-api')
+
     testCompile 'junit:junit:4.8.2+'
-
     testCompile 'org.hamcrest:hamcrest-all:1.3'
-
     // for spock
     testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testCompile 'cglib:cglib-nodep:3.2.4'
     testCompile 'org.objenesis:objenesis:1.2'
-}
-test {
+
+    //Integration test.
+    integrationCompile files('../../../casual-java-testapp/test-api/build/libs/test-api.jar')
 }
 
-task resourceAdapterArchive(type: Jar) {
+task rar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'Casual Resource Adapter with XA', 'Implementation-Version': '1.0', 'Specification-Version': '1.0'
     }
@@ -75,11 +47,11 @@ task resourceAdapterArchive(type: Jar) {
         from jar
     }
     into('') {
-        from configurations.pack
+        from configurations.resourceAdapter
     }
     into('') {
         from sourceSets.main.resources
     }
 }
 
-build.finalizedBy resourceAdapterArchive
+artifacts.add( "resourceAdapter", rar )

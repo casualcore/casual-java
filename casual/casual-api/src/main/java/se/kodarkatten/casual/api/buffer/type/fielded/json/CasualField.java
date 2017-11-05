@@ -39,5 +39,42 @@ public final class CasualField
     {
         return realId;
     }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        CasualField that = (CasualField) o;
+        return id == that.id &&
+                realId == that.realId &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(type, that.type) &&
+                fieldtype == that.fieldtype;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(name, id, type, fieldtype, realId);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "CasualField{" +
+                "name='" + name + '\'' +
+                ", id=" + id +
+                ", type='" + type + '\'' +
+                ", fieldtype=" + fieldtype +
+                ", realId=" + realId +
+                '}';
+    }
 }
 

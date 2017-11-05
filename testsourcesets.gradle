@@ -1,0 +1,24 @@
+allprojects {   
+    plugins.withType(JavaPlugin) {
+        configurations{
+           integration        
+        }        
+        sourceSets{
+           integration{
+              compileClasspath += main.output + test.output
+              runtimeClasspath += main.output + test.output
+              compileClasspath += configurations.testCompile
+              runtimeClasspath += configurations.testRuntime                                     
+           }
+        }      
+        
+        task intTest( type: Test){
+           testClassesDir = sourceSets.integration.output.classesDir
+           classpath += sourceSets.integration.compileClasspath
+           classpath += sourceSets.integration.runtimeClasspath           
+           reports.html.destination = file("$reports.html.destination/../integration")
+           reports.junitXml.destination = file("$reports.junitXml.destination/../integration")
+        }
+        
+    }
+}

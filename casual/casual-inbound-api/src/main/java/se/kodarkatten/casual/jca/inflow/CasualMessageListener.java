@@ -21,6 +21,12 @@
  */
 package se.kodarkatten.casual.jca.inflow;
 
+import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
+
+import javax.resource.spi.XATerminator;
+import javax.resource.spi.work.WorkManager;
+import java.nio.channels.SocketChannel;
+
 /**
  * CasualMessageListener
  *
@@ -28,9 +34,15 @@ package se.kodarkatten.casual.jca.inflow;
  */
 public interface CasualMessageListener
 {
-   /**
-    * Receive message
-    * @param msg String.
-    */
-   public void onMessage(String msg);
+   void domainConnectRequest( CasualNWMessageHeader header, SocketChannel channel );
+
+   void domainDiscoveryRequest( CasualNWMessageHeader header, SocketChannel channel );
+
+   void serviceCallRequest(CasualNWMessageHeader header, SocketChannel channel, WorkManager workManager );
+
+   void prepareRequest(CasualNWMessageHeader header, SocketChannel channel, XATerminator xaTerminator);
+
+   void commitRequest(CasualNWMessageHeader header, SocketChannel channel, XATerminator xaTerminator);
+
+   void requestRollback(CasualNWMessageHeader header, SocketChannel channel, XATerminator xaTerminator);
 }

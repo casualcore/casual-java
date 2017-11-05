@@ -87,16 +87,24 @@ public final class CasualNetworkReader
         }
     }
 
-
-    public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel)
+    public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel, CasualNWMessageHeader header )
     {
-        final ByteBuffer headerBuffer = ByteUtils.readFully(channel, MessageHeaderSizes.getHeaderNetworkSize());
-        final CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader(headerBuffer.array());
-
         NetworkReader<T> networkReader = getNetworkReader( header );
 
         return readMessage( channel, header, networkReader );
+    }
 
+    public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel)
+    {
+        final CasualNWMessageHeader header = networkHeaderToCasualHeader( channel );
+
+        return read( channel, header );
+    }
+
+    public static CasualNWMessageHeader networkHeaderToCasualHeader( final ReadableByteChannel channel )
+    {
+        final ByteBuffer headerBuffer = ByteUtils.readFully(channel, MessageHeaderSizes.getHeaderNetworkSize());
+        return CasualNetworkReader.networkHeaderToCasualHeader(headerBuffer.array());
     }
 
     public static CasualNWMessageHeader networkHeaderToCasualHeader(final byte[] message)

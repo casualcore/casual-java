@@ -1,0 +1,50 @@
+{
+  "jndiName": "jndivalue",
+  "className": "java.math.BigDecimal",
+  "methodName": "methodnamevalue",
+  "methodParamTypes": [
+    "java.lang.String",
+    "java.lang.Integer"
+  ],
+  "methodParams": [
+    "value1",
+    123
+  ]
+}
+
+
+{
+  "methodName": "methodnamevalue",
+  "methodParamTypes": [
+    "java.lang.String",
+    "se.kodarkatten.casual.api.buffer.type.fielded.json.CasualField"
+  ],
+  "methodParams": [
+    "value1",
+    {
+      "name": "name",
+      "id": 0,
+      "fieldtype": "CASUAL_FIELD_FLOAT",
+      "realId": 12
+    }
+  ]
+}
+
+{
+  "jndiName": "jndivalue",
+  "className": "java.math.BigDecimal",
+  "methodName": "methodnamevalue",
+  "methodParamTypes": [
+    "java.lang.String",
+    "se.kodarkatten.casual.api.buffer.type.fielded.json.CasualField"
+  ],
+  "methodParams": [
+    "value1",
+    {
+      "name": "name",
+      "id": 0,
+      "fieldtype": "CASUAL_FIELD_FLOAT",
+      "realId": 12
+    }
+  ]
+}

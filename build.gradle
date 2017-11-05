@@ -3,6 +3,8 @@ plugins {
     id 'org.sonarqube' version '2.5'
 }
 
+apply from: 'testsourcesets.gradle'
+
 defaultTasks 'build'
 
 group = 'se.kodarkatten.casual'
@@ -21,6 +23,9 @@ allprojects{
     sourceCompatibility = "1.8"
     targetCompatibility = "1.8"
     options.compilerArgs << "-Xlint:all" << "-Werror"
+  }
+  repositories {
+    mavenCentral()
   }
 }
 

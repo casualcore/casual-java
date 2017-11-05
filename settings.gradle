@@ -4,5 +4,6 @@ include 'casual:casual-api'
 include 'casual:casual-network'
 include 'casual:casual-network-test-client'
 include 'casual:casual-internal'
-
-include 'casual:test-app'
+include 'casual:casual-app'
+include 'casual:casual-inbound-api'
+include 'casual:casual-inbound'

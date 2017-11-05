@@ -1,0 +1,25 @@
+plugins {
+  id 'ear'
+  id 'java'
+}
+
+def appVersion = '0.0.1'
+
+dependencies {
+  deploy project( path: ':casual:casual-jca', configuration:'resourceAdapter' )
+  deploy project(':casual:casual-inbound' )
+  compileOnly 'javax:javaee-api:7.0'
+}
+
+ear{
+  deploymentDescriptor{
+    applicationName = "casual-jca-app"
+    initializeInOrder = true
+    displayName = "Casual JCA App"
+    description = "Casual implementation of JCA with outbound and inbound implementations."
+    module( "casual-jca-" + appVersion + ".rar", "connector")
+  }
+  archiveName = "casual-jca-" + appVersion + ".ear"
+}
+
+

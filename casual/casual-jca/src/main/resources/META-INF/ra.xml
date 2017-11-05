@@ -51,5 +51,17 @@
       <transaction-support>XATransaction</transaction-support>
       <reauthentication-support>false</reauthentication-support>
     </outbound-resourceadapter>
+    <!-- Inbound Configuration -->
+    <inbound-resourceadapter>
+      <messageadapter>
+        <messagelistener>
+          <messagelistener-type>se.kodarkatten.casual.jca.inflow.CasualMessageListener</messagelistener-type>
+          <activationspec>
+            <activationspec-class>se.kodarkatten.casual.jca.inflow.CasualActivationSpec</activationspec-class>
+           </activationspec>
+        </messagelistener>
+      </messageadapter>
+    </inbound-resourceadapter>
+
   </resourceadapter>
 </connector>

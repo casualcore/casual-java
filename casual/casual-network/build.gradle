@@ -17,8 +17,4 @@ dependencies {
   testCompile 'cglib:cglib-nodep:3.2.4'
 }
 
-repositories {
-    mavenCentral()
-}
-
 

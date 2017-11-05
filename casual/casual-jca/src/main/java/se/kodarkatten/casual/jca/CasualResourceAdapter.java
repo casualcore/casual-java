@@ -21,12 +21,19 @@
  */
 package se.kodarkatten.casual.jca;
 
-import se.kodarkatten.casual.jca.inflow.CasualActivation;
 import se.kodarkatten.casual.jca.inflow.CasualActivationSpec;
+import se.kodarkatten.casual.jca.inflow.work.CasualInboundWork;
 
 import javax.resource.ResourceException;
-import javax.resource.spi.*;
+import javax.resource.spi.ActivationSpec;
+import javax.resource.spi.BootstrapContext;
+import javax.resource.spi.Connector;
+import javax.resource.spi.ResourceAdapter;
+import javax.resource.spi.ResourceAdapterInternalException;
+import javax.resource.spi.TransactionSupport;
+import javax.resource.spi.XATerminator;
 import javax.resource.spi.endpoint.MessageEndpointFactory;
+import javax.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAResource;
 import java.io.Serializable;
 import java.util.Objects;
@@ -47,7 +54,10 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
 {
     private static final long serialVersionUID = 1L;
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
-    private ConcurrentHashMap<CasualActivationSpec, CasualActivation> activations;
+    private ConcurrentHashMap<Integer, CasualActivationSpec> activations;
+
+    private WorkManager workManager;
+    private XATerminator xaTerminator;
 
     public CasualResourceAdapter()
     {
@@ -58,9 +68,12 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
     public void endpointActivation(MessageEndpointFactory endpointFactory,
                                    ActivationSpec spec) throws ResourceException
     {
-        CasualActivation activation = new CasualActivation(this, endpointFactory, (CasualActivationSpec) spec);
-        activations.put((CasualActivationSpec) spec, activation);
-        activation.start();
+        CasualActivationSpec as = (CasualActivationSpec) spec;
+        CasualInboundWork worker = new CasualInboundWork( as, endpointFactory, workManager, xaTerminator );
+        long startup = workManager.startWork( worker );
+        log.info( ()->"Worker startup time: " + startup + "ms" );
+        activations.put( as.getPort(), as );
+
         log.finest("endpointActivation()");
 
     }
@@ -69,11 +82,7 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
     public void endpointDeactivation(MessageEndpointFactory endpointFactory,
                                      ActivationSpec spec)
     {
-        CasualActivation activation = activations.remove(spec);
-        if (activation != null)
-        {
-            activation.stop();
-        }
+        activations.remove((CasualActivationSpec)spec);
 
         log.finest("endpointDeactivation()");
 
@@ -84,6 +93,8 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
             throws ResourceAdapterInternalException
     {
         log.finest("start()");
+        workManager = ctx.getWorkManager();
+        xaTerminator = ctx.getXATerminator();
     }
 
     @Override
@@ -98,8 +109,17 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
             throws ResourceException
     {
         log.finest("getXAResources()");
-
         return null;
+    }
+
+    public WorkManager getWorkManager()
+    {
+        return this.workManager;
+    }
+
+    public XATerminator getXATerminator()
+    {
+        return this.xaTerminator;
     }
 
     @Override
@@ -128,6 +148,8 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
     {
         return "CasualResourceAdapter{" +
                 "activations=" + activations +
+                ", workManager=" + workManager +
+                ", xaTerminator=" + xaTerminator +
                 '}';
     }
 }
