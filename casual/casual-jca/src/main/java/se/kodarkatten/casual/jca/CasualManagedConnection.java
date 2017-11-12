@@ -5,6 +5,7 @@ import se.kodarkatten.casual.jca.event.ConnectionEventHandler;
 import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
 import javax.resource.spi.*;
+import javax.resource.spi.work.WorkManager;
 import javax.security.auth.Subject;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
@@ -200,6 +201,16 @@ public class CasualManagedConnection implements ManagedConnection
     private void removeHandle(CasualConnectionImpl handle)
     {
         connectionHandles.remove(handle);
+    }
+
+    public WorkManager getWorkManager()
+    {
+        ResourceAdapter ra = mcf.getResourceAdapter();
+        if(ra instanceof CasualResourceAdapter)
+        {
+            return ((CasualResourceAdapter) ra).getWorkManager();
+        }
+        throw new CasualResourceAdapterException("resource adapter should be a casual resource adapter");
     }
 
     @Override

@@ -5,6 +5,8 @@ import se.kodarkatten.casual.api.buffer.ServiceReturn
 import se.kodarkatten.casual.api.buffer.type.JsonBuffer
 import se.kodarkatten.casual.api.flags.*
 import se.kodarkatten.casual.api.xa.XID
+import se.kodarkatten.casual.jca.CasualManagedConnectionFactory
+import se.kodarkatten.casual.jca.CasualResourceAdapter
 import se.kodarkatten.casual.jca.NetworkConnection
 import se.kodarkatten.casual.jca.CasualManagedConnection
 import se.kodarkatten.casual.network.connection.CasualConnectionException
@@ -18,6 +20,12 @@ import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMe
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
+
+import javax.resource.spi.work.Work
+import javax.resource.spi.work.WorkException
+import javax.resource.spi.work.WorkManager
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
 
 import static se.kodarkatten.casual.jca.test.CasualNWMessageMatchers.matching
 import static spock.util.matcher.HamcrestSupport.expect
@@ -38,11 +46,18 @@ class CasualServiceCallerTest extends Specification
     @Shared CasualNWMessage<CasualServiceCallReplyMessage> serviceReply
     @Shared CasualNWMessage<CasualDomainDiscoveryRequestMessage> actualDiscoveryRequest
     @Shared CasualNWMessage<CasualServiceCallRequestMessage> actualServiceRequest
+    @Shared mcf
+    @Shared ra
+    @Shared workManager
 
     def setup()
     {
+        workManager = Mock(WorkManager)
+        ra = new CasualResourceAdapter()
+        ra.workManager = workManager
+        mcf = Mock(CasualManagedConnectionFactory)
         networkConnection = Mock(NetworkConnection)
-        connection = new CasualManagedConnection( null, null )
+        connection = new CasualManagedConnection( mcf, null )
         connection.networkConnection =  networkConnection
 
         connection.getXAResource().start( XID.of(), 0 )
@@ -182,13 +197,50 @@ class CasualServiceCallerTest extends Specification
         expect actualServiceRequest, matching( expectedServiceRequest )
     }
 
-    def "Tpacall not yet  implemented throws exception"()
+    def "Tpacall service is available performs service call and returns result of service call."()
     {
         when:
-        instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG), CasualBuffer.class )
+        ServiceReturn<CasualBuffer> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG), CasualBuffer.class ).get()
 
         then:
-        thrown CasualConnectionException
+        noExceptionThrown()
+        result != null
+        result.getServiceReturnState() == ServiceReturnState.TPSUCCESS
+
+        1 * networkConnection.requestReply( _ ) >> {
+            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
+                actualDiscoveryRequest = input
+                return discoveryReply
+        }
+        1 * networkConnection.requestReply( _ ) >> {
+            CasualNWMessage<CasualServiceCallRequestMessage> input ->
+                actualServiceRequest = input
+                return serviceReply
+        }
+
+        1 * workManager.scheduleWork(_) >> {
+            Work w ->
+                Executors.callable(w).call()
+        }
+
+        1 * mcf.getResourceAdapter() >> ra
+
+        expect actualDiscoveryRequest, matching( expectedDiscoverRequest )
+        expect actualServiceRequest, matching( expectedServiceRequest )
+    }
+
+    def "Tpacall service scheduling of work fails"()
+    {
+        when:
+        CompletableFuture<ServiceReturn<CasualBuffer>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG), CasualBuffer.class )
+
+        then:
+        noExceptionThrown()
+        result.isCompletedExceptionally()
+        1 * workManager.scheduleWork(_) >> {
+            throw new WorkException('oops')
+        }
+        1 * mcf.getResourceAdapter() >> ra
     }
 
     def "toString test."()

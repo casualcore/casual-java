@@ -8,6 +8,8 @@ import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.ServiceReturnState;
 import se.kodarkatten.casual.internal.buffer.CasualBufferBase;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
+import se.kodarkatten.casual.jca.CasualResourceAdapterException;
+import se.kodarkatten.casual.jca.service.work.FutureServiceReturnWork;
 import se.kodarkatten.casual.network.connection.CasualConnectionException;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
@@ -17,6 +19,7 @@ import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMess
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 
+import javax.resource.spi.work.WorkException;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -47,7 +50,16 @@ public class CasualServiceCaller
 
     public <X extends CasualBuffer> CompletableFuture<ServiceReturn<X>> tpacall( String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass )
     {
-        throw new CasualConnectionException("not yet implemented");
+        CompletableFuture<ServiceReturn<X>> f = new CompletableFuture<>();
+        try
+        {
+            connection.getWorkManager().scheduleWork(FutureServiceReturnWork.of(f, () -> tpcall(serviceName, data, flags, bufferClass)));
+        }
+        catch (WorkException e)
+        {
+            f.completeExceptionally(new CasualResourceAdapterException("tpacall, failed dispatching work calling service: " + serviceName, e));
+        }
+        return f;
     }
 
     private <X extends CasualBuffer> ServiceReturn<X> makeServiceCall( UUID corrid, String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass)
