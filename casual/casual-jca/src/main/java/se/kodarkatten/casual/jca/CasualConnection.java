@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.jca;
 
+import se.kodarkatten.casual.api.CasualQueueApi;
 import se.kodarkatten.casual.api.CasualServiceApi;
 
 /**
@@ -7,7 +8,7 @@ import se.kodarkatten.casual.api.CasualServiceApi;
  *
  * @version $Revision: $
  */
-public interface CasualConnection extends CasualServiceApi, AutoCloseable //ConversationApi and Queue API too probably
+public interface CasualConnection extends CasualServiceApi, CasualQueueApi, AutoCloseable
 {
     /**
      * Clean up the connection handle and close.

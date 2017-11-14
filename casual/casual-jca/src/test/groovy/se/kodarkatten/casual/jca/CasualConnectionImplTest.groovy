@@ -1,11 +1,12 @@
 package se.kodarkatten.casual.jca
 
-import se.kodarkatten.casual.api.buffer.CasualBuffer
 import se.kodarkatten.casual.api.buffer.type.JsonBuffer
 import se.kodarkatten.casual.api.flags.AtmiFlags
 import se.kodarkatten.casual.api.flags.Flag
-import se.kodarkatten.casual.jca.CasualConnectionImpl
-import se.kodarkatten.casual.jca.CasualManagedConnection
+import se.kodarkatten.casual.api.queue.MessageSelector
+import se.kodarkatten.casual.api.queue.QueueInfo
+import se.kodarkatten.casual.api.queue.QueueMessage
+import se.kodarkatten.casual.jca.queue.CasualQueueCaller
 import se.kodarkatten.casual.jca.service.CasualServiceCaller
 import se.kodarkatten.casual.network.connection.CasualConnectionException
 import spock.lang.Shared
@@ -82,7 +83,7 @@ class CasualConnectionImplTest extends Specification
     {
         when:
         instance.invalidate()
-        instance.tpcall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG), CasualBuffer.class )
+        instance.tpcall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG))
         then:
         thrown CasualConnectionException
     }
@@ -91,7 +92,31 @@ class CasualConnectionImplTest extends Specification
     {
         when:
         instance.invalidate()
-        instance.tpacall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG), CasualBuffer.class )
+        instance.tpacall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG))
+        then:
+        thrown CasualConnectionException
+    }
+
+    def 'enqueue when invalidated throws exception'()
+    {
+        when:
+        instance.invalidate()
+        instance.enqueue(QueueInfo.createBuilder()
+                                  .withQspace('qspace')
+                                  .withQname('qname')
+                                  .build(), QueueMessage.of(JsonBuffer.of( "{}")))
+        then:
+        thrown CasualConnectionException
+    }
+
+    def 'dequeue when invalidated throws exception'()
+    {
+        when:
+        instance.invalidate()
+        instance.dequeue(QueueInfo.createBuilder()
+                                  .withQspace('qspace')
+                                  .withQname('qname')
+                                  .build(), MessageSelector.of())
         then:
         thrown CasualConnectionException
     }
@@ -102,9 +127,9 @@ class CasualConnectionImplTest extends Specification
         CasualServiceCaller serviceCallerMock = Mock(CasualServiceCaller)
         instance.setCasualServiceCaller( serviceCallerMock )
         when:
-        instance.tpcall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG ), CasualBuffer.class )
+        instance.tpcall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG ))
         then:
-        1 * serviceCallerMock.tpcall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG ), CasualBuffer.class )
+        1 * serviceCallerMock.tpcall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG ))
     }
 
     def "Tpacall forwards request to CasaulServiceCaller."()
@@ -113,9 +138,44 @@ class CasualConnectionImplTest extends Specification
         CasualServiceCaller serviceCallerMock = Mock(CasualServiceCaller)
         instance.setCasualServiceCaller( serviceCallerMock )
         when:
-        instance.tpacall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG ), CasualBuffer.class )
+        instance.tpacall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG ))
         then:
-        1 * serviceCallerMock.tpacall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG ), CasualBuffer.class )
+        1 * serviceCallerMock.tpacall( "test", JsonBuffer.of( "{}"), Flag.of( AtmiFlags.NOFLAG ))
+    }
+
+    def "enqueue forwards request to CasaulServiceCaller"()
+    {
+        setup:
+        CasualQueueCaller queueCaller = Mock(CasualQueueCaller)
+        ((CasualConnectionImpl) instance).queueCaller = queueCaller
+        def msg = QueueMessage.of(JsonBuffer.of( "{}"))
+        when:
+        instance.enqueue(QueueInfo.createBuilder()
+                .withQspace('qspace')
+                .withQname('qname')
+                .build(), msg)
+        then:
+        1 * queueCaller.enqueue(QueueInfo.createBuilder()
+                .withQspace('qspace')
+                .withQname('qname')
+                .build(), msg)
+    }
+
+    def "dequeue forwards request to CasaulServiceCaller"()
+    {
+        setup:
+        CasualQueueCaller queueCaller = Mock(CasualQueueCaller)
+        ((CasualConnectionImpl) instance).queueCaller = queueCaller
+        when:
+        instance.dequeue(QueueInfo.createBuilder()
+                .withQspace('qspace')
+                .withQname('qname')
+                .build(), MessageSelector.of())
+        then:
+        1 * queueCaller.dequeue(QueueInfo.createBuilder()
+                .withQspace('qspace')
+                .withQname('qname')
+                .build(), MessageSelector.of())
     }
 
     def "getCasaulServiceCaller when not test injected returns a new instance"()

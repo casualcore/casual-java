@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.network.messages.queue;
 
+import se.kodarkatten.casual.api.queue.QueueMessage;
 import se.kodarkatten.casual.network.io.writers.utils.CasualNetworkWriterUtils;
 import se.kodarkatten.casual.network.messages.parseinfo.EnqueueRequestSizes;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
@@ -15,23 +16,18 @@ import java.nio.ByteBuffer;
 
 public final class EnqueueMessage
 {
-    private final UUID id;
-    private final String properties;
-    private final String replyData;
+    private final QueueMessage msg;
     private final ServiceBuffer payload;
-    private final LocalDateTime availableForDequeueSince;
-    private EnqueueMessage(final UUID id, final String properties, final String replyData, final ServiceBuffer payload, final LocalDateTime availableForDequeueSince)
+    private EnqueueMessage(final QueueMessage msg)
     {
-        this.id = id;
-        this.properties = properties;
-        this.replyData = replyData;
-        this.payload = payload;
-        this.availableForDequeueSince = availableForDequeueSince;
+        this.msg = msg;
+        this.payload = ServiceBuffer.of(msg.getPayload());
     }
 
-    public static Builder createBuilder()
+    public static EnqueueMessage of(final QueueMessage msg)
     {
-        return new Builder();
+        Objects.requireNonNull(msg, "msg can not be null");
+        return new EnqueueMessage(msg);
     }
 
     public ServiceBuffer getPayload()
@@ -39,24 +35,30 @@ public final class EnqueueMessage
         return payload;
     }
 
-    public String getProperties()
+    public String getCorrelationInformation()
     {
-        return properties;
+        return msg.getCorrelationInformation();
     }
 
     public UUID getId()
     {
-        return id;
+        return msg.getId();
     }
 
-    public LocalDateTime getAvailableForDequeueSince()
+    public LocalDateTime getAvailableSince()
     {
-        return availableForDequeueSince;
+        return msg.getAvailableSince();
     }
 
-    public String getReplyData()
+    public String getReplyQueue()
     {
-        return replyData;
+        return msg.getReplyQueue();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(msg);
     }
 
     // Expressions should not be too complex
@@ -73,46 +75,37 @@ public final class EnqueueMessage
             return false;
         }
         EnqueueMessage that = (EnqueueMessage) o;
-        return Objects.equals(id, that.id) &&
-            Objects.equals(properties, that.properties) &&
-            Objects.equals(replyData, that.replyData) &&
-            Objects.equals(payload, that.payload) &&
-            Objects.equals(availableForDequeueSince, that.availableForDequeueSince);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(id, properties, replyData, payload, availableForDequeueSince);
+        return Objects.equals(msg.getCorrelationInformation(), that.msg.getCorrelationInformation()) &&
+            Objects.equals(msg.getId(), that.msg.getId()) &&
+            Objects.equals(msg.getAvailableSince(), that.msg.getAvailableSince()) &&
+            Objects.equals(msg.getReplyQueue(), that.msg.getReplyQueue()) &&
+            Objects.equals(msg.getPayload(), that.msg.getPayload());
     }
 
     @Override
     public String toString()
     {
         final StringBuilder sb = new StringBuilder("EnqueueMessage{");
-        sb.append("id=").append(id);
-        sb.append(", properties='").append(properties).append('\'');
-        sb.append(", replyData='").append(replyData).append('\'');
-        sb.append(", payload=").append(payload);
-        sb.append(", availableForDequeueSince=").append(availableForDequeueSince);
+        sb.append("msg=").append(msg);
         sb.append('}');
         return sb.toString();
     }
 
     public List<byte[]> toNetworkBytes()
     {
-        final byte[] propertiesBytes = properties.getBytes(StandardCharsets.UTF_8);
-        final byte[] replyDataBytes = replyData.getBytes(StandardCharsets.UTF_8);
+        final byte[] propertiesBytes = getCorrelationInformation().getBytes(StandardCharsets.UTF_8);
+        final byte[] replyDataBytes = getReplyQueue().getBytes(StandardCharsets.UTF_8);
 
         ByteBuffer partialContent = ByteBuffer.allocate(EnqueueRequestSizes.MESSAGE_ID.getNetworkSize() + EnqueueRequestSizes.MESSAGE_PROPERTIES_SIZE.getNetworkSize() +
                                                   EnqueueRequestSizes.MESSAGE_REPLY_SIZE.getNetworkSize() + propertiesBytes.length + replyDataBytes.length +
                                                   EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize());
-        CasualNetworkWriterUtils.writeUUID(id, partialContent);
+        CasualNetworkWriterUtils.writeUUID(getId(), partialContent);
         partialContent.putLong(propertiesBytes.length);
         partialContent.put(propertiesBytes);
         partialContent.putLong(replyDataBytes.length);
         partialContent.put(replyDataBytes);
-        partialContent.putLong(availableForDequeueSince.toEpochSecond(OffsetDateTime.now().getOffset()));
+        final long v = getAvailableSince().toInstant(OffsetDateTime.now().getOffset()).toEpochMilli();
+        partialContent.putLong(v);
 
         List<byte[]> l = new ArrayList<>();
         l.add(partialContent.array());
@@ -120,55 +113,4 @@ public final class EnqueueMessage
         return l;
     }
 
-    public static final class Builder
-    {
-        private UUID id;
-        private String properties;
-        private String replyData;
-        private ServiceBuffer payload;
-        private long availableForDequeueSinceEpoc;
-
-        private Builder()
-        {}
-
-        public Builder withProperties(final String properties)
-        {
-            this.properties = properties;
-            return this;
-        }
-
-        public Builder withAvailableForDequeueSince(long availableForDequeueSince)
-        {
-            this.availableForDequeueSinceEpoc = availableForDequeueSince;
-            return this;
-        }
-
-        public Builder withPayload(final ServiceBuffer payload)
-        {
-            this.payload = payload;
-            return this;
-        }
-
-        public Builder withReplyData(final String replyData)
-        {
-            this.replyData = replyData;
-            return this;
-        }
-
-        public Builder withId(final UUID id)
-        {
-            this.id = id;
-            return this;
-        }
-
-        public EnqueueMessage build()
-        {
-            Objects.requireNonNull(id, "id is not allowed to be null");
-            Objects.requireNonNull(properties, "properties is not allowed to be null");
-            Objects.requireNonNull(replyData, "replyData is not allowed to be null");
-            Objects.requireNonNull(payload, "payload is not allowed to be null");
-            LocalDateTime availableForDequeueSince = LocalDateTime.ofEpochSecond(availableForDequeueSinceEpoc, 0 , OffsetDateTime.now().getOffset());
-            return new EnqueueMessage(id, properties, replyData, payload, availableForDequeueSince);
-        }
-    }
 }

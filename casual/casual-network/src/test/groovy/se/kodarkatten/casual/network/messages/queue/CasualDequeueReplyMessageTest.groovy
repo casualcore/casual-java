@@ -1,7 +1,7 @@
 package se.kodarkatten.casual.network.messages.queue
 
+import se.kodarkatten.casual.api.queue.QueueMessage
 import se.kodarkatten.casual.network.io.CasualNetworkReader
-import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer
 import se.kodarkatten.casual.network.utils.LocalAsyncByteChannel
@@ -11,7 +11,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 
 class CasualDequeueReplyMessageTest extends Specification
 {
@@ -80,15 +79,15 @@ class CasualDequeueReplyMessageTest extends Specification
         def messages = []
         for(;numberOfMessages != 0; --numberOfMessages)
         {
-            messages << DequeueMessage.createBuilder()
-                                      .withId(UUID.randomUUID())
-                                      .withPayload(createServiceBuffer())
-                                      .withAvailableForDequeueSince(LocalDateTime.now().toEpochSecond(OffsetDateTime.now().getOffset()))
-                                      .withProperties('properties')
-                                      .withReplyData('replydata')
-                                      .withNumberOfRedeliveries(0)
-                                      .withTimestamp(LocalDateTime.now().toEpochSecond(OffsetDateTime.now().getOffset()))
-                                      .build()
+            messages << DequeueMessage.of(QueueMessage.createBuilder()
+                                                      .withId(UUID.randomUUID())
+                                                      .withCorrelationInformation('correlationInformation')
+                                                      .withReplyQueue('replydata')
+                                                      .withAvailableSince(LocalDateTime.now())
+                                                      .withTimestamp(LocalDateTime.now())
+                                                      .withRedelivered(0)
+                                                      .withPayload(createServiceBuffer())
+                                                      .build())
         }
         return messages
     }

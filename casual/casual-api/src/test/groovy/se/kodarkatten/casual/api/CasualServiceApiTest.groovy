@@ -4,6 +4,9 @@ import se.kodarkatten.casual.api.buffer.CasualBuffer
 import se.kodarkatten.casual.api.buffer.ServiceReturn
 import se.kodarkatten.casual.api.flags.Flag
 import se.kodarkatten.casual.api.flags.ServiceReturnState
+import se.kodarkatten.casual.api.queue.MessageSelector
+import se.kodarkatten.casual.api.queue.QueueInfo
+import se.kodarkatten.casual.api.queue.QueueMessage
 import spock.lang.Specification
 
 import java.util.concurrent.CompletableFuture
@@ -21,7 +24,7 @@ class CasualServiceApiTest extends Specification
         setup:
         def api = new CasualAPIImpl()
         when:
-        def reply = api.tpcall("test", new CasualTestBuffer(), new Flag.Builder().build(), CasualTestBuffer.class)
+        def reply = api.tpcall("test", new CasualTestBuffer(), new Flag.Builder().build())
         then:
         reply.getServiceReturnState() == ServiceReturnState.TPSUCCESS
     }
@@ -31,7 +34,7 @@ class CasualServiceApiTest extends Specification
         setup:
         def api = new CasualAPIImpl()
         when:
-        def reply = api.tpacall("test", new CasualTestBuffer(), new Flag.Builder().build(), CasualTestBuffer.class)
+        def reply = api.tpacall("test", new CasualTestBuffer(), new Flag.Builder().build())
         then:
         reply.get().getServiceReturnState() == ServiceReturnState.TPSUCCESS
     }
@@ -54,13 +57,12 @@ class CasualServiceApiTest extends Specification
     class CasualAPIImpl implements CasualServiceApi
     {
         @Override
-        <X extends CasualBuffer> ServiceReturn<X> tpcall(String serviceName, X data, Flag flags, Class<X> bufferClass)
+        ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag flags)
         {
             try
             {
-                CasualBuffer replyData = bufferClass.newInstance()
-
-                ServiceReturn<X> reply = new ServiceReturn<X>(bufferClass.cast(replyData), ServiceReturnState.TPSUCCESS, null)
+                CasualBuffer replyData = CasualTestBuffer.class.newInstance()
+                ServiceReturn<CasualBuffer> reply = new ServiceReturn<CasualBuffer>(replyData, ServiceReturnState.TPSUCCESS, null)
                 return reply
             } catch (Throwable t)
             {
@@ -70,11 +72,11 @@ class CasualServiceApiTest extends Specification
         }
 
         @Override
-        <X extends CasualBuffer> CompletableFuture<ServiceReturn<X>> tpacall(String serviceName, X data, Flag flags, Class<X> bufferClass)
+        CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag flags)
         {
             try
             {
-                CompletableFuture<ServiceReturn<X>> reply = CompletableFuture.supplyAsync(new CasualSupplier<X>(bufferClass))
+                CompletableFuture<ServiceReturn<CasualBuffer>> reply = CompletableFuture.supplyAsync(new CasualSupplier<CasualBuffer>(CasualTestBuffer.class))
                 return reply
             } catch (Throwable t)
             {

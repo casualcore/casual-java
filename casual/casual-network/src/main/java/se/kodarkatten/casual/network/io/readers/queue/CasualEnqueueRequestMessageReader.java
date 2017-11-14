@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.network.io.readers.queue;
 
+import se.kodarkatten.casual.api.queue.QueueMessage;
 import se.kodarkatten.casual.api.util.Pair;
 import se.kodarkatten.casual.network.io.readers.NetworkReader;
 import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
@@ -118,15 +119,15 @@ public class CasualEnqueueRequestMessageReader implements NetworkReader<CasualEn
         String properties = CasualNetworkReaderUtils.readString(channel, propertiesSize);
         int replyDataSize = (int) ByteUtils.readFully(channel, EnqueueRequestSizes.MESSAGE_REPLY_SIZE.getNetworkSize()).getLong();
         String replyData = CasualNetworkReaderUtils.readString(channel, replyDataSize);
-        long availableSinceEpoc = (int) ByteUtils.readFully(channel, EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize()).getLong();
+        long availableSinceEpoc = ByteUtils.readFully(channel, EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize()).getLong();
         ServiceBuffer serviceBuffer = CasualNetworkReaderUtils.readServiceBuffer(channel, Integer.MAX_VALUE);
-        return EnqueueMessage.createBuilder()
-                             .withId(msgId)
-                             .withProperties(properties)
-                             .withReplyData(replyData)
-                             .withPayload(serviceBuffer)
-                             .withAvailableForDequeueSince(availableSinceEpoc)
-                             .build();
+        return EnqueueMessage.of(QueueMessage.createBuilder()
+                                             .withId(msgId)
+                                             .withCorrelationInformation(properties)
+                                             .withReplyQueue(replyData)
+                                             .withAvailableSince(availableSinceEpoc)
+                                             .withPayload(serviceBuffer)
+                                             .build());
     }
 
     private static EnqueueMessage readEnqueueMessage(final AsynchronousByteChannel channel)
@@ -140,13 +141,13 @@ public class CasualEnqueueRequestMessageReader implements NetworkReader<CasualEn
             String replyData = CasualNetworkReaderUtils.readString(channel, replyDataSize);
             long availableSinceEpoc = ByteUtils.readFully(channel, EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize()).get().getLong();
             ServiceBuffer serviceBuffer = CasualNetworkReaderUtils.readServiceBuffer(channel, Integer.MAX_VALUE);
-            return EnqueueMessage.createBuilder()
-                                 .withId(msgId)
-                                 .withProperties(properties)
-                                 .withReplyData(replyData)
-                                 .withPayload(serviceBuffer)
-                                 .withAvailableForDequeueSince(availableSinceEpoc)
-                                 .build();
+            return EnqueueMessage.of(QueueMessage.createBuilder()
+                                                 .withId(msgId)
+                                                 .withCorrelationInformation(properties)
+                                                 .withReplyQueue(replyData)
+                                                 .withAvailableSince(availableSinceEpoc)
+                                                 .withPayload(serviceBuffer)
+                                                 .build());
         }
         catch(InterruptedException | ExecutionException e)
         {
@@ -169,19 +170,17 @@ public class CasualEnqueueRequestMessageReader implements NetworkReader<CasualEn
         String replyData = CasualNetworkReaderUtils.getAsString(bytes, currentOffset, replyDataSize);
         currentOffset += replyDataSize;
 
-        long availableSinceEpoc = (int) ByteBuffer.wrap(bytes, currentOffset , EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize()).getLong();
+        long availableSinceEpoc = ByteBuffer.wrap(bytes, currentOffset , EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize()).getLong();
         currentOffset += EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize();
 
         Pair<Integer, ServiceBuffer> p = CasualNetworkReaderUtils.readServiceBuffer(bytes, currentOffset);
-
-        return  EnqueueMessage.createBuilder()
-                              .withId(msgId)
-                              .withProperties(properties)
-                              .withReplyData(replyData)
-                              .withPayload(p.second())
-                              .withAvailableForDequeueSince(availableSinceEpoc)
-                              .build();
+        return EnqueueMessage.of(QueueMessage.createBuilder()
+                                             .withId(msgId)
+                                             .withCorrelationInformation(properties)
+                                             .withReplyQueue(replyData)
+                                             .withAvailableSince(availableSinceEpoc)
+                                             .withPayload(p.second())
+                                             .build());
     }
-
 
 }

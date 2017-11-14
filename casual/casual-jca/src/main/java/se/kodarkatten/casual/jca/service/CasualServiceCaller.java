@@ -1,12 +1,12 @@
 package se.kodarkatten.casual.jca.service;
 
+import se.kodarkatten.casual.api.CasualServiceApi;
 import se.kodarkatten.casual.api.buffer.CasualBuffer;
 import se.kodarkatten.casual.api.buffer.ServiceReturn;
 import se.kodarkatten.casual.api.flags.AtmiFlags;
 import se.kodarkatten.casual.api.flags.ErrorState;
 import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.ServiceReturnState;
-import se.kodarkatten.casual.internal.buffer.CasualBufferBase;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
 import se.kodarkatten.casual.jca.service.work.FutureServiceReturnWork;
@@ -24,8 +24,9 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class CasualServiceCaller
+public class CasualServiceCaller implements CasualServiceApi
 {
+    private static final String DOES_NOT_EXIST = " does not exist";
     private CasualManagedConnection connection;
 
     private CasualServiceCaller( CasualManagedConnection connection )
@@ -38,22 +39,24 @@ public class CasualServiceCaller
         return new CasualServiceCaller( connection );
     }
 
-    public <X extends CasualBuffer> ServiceReturn<X> tpcall( String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass )
+    @Override
+    public ServiceReturn<CasualBuffer> tpcall( String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         final UUID corrid = UUID.randomUUID();
         if(serviceExists( corrid, serviceName))
         {
-            return makeServiceCall( corrid, serviceName, data, flags, bufferClass);
+            return makeServiceCall( corrid, serviceName, data, flags);
         }
-        throw new CasualConnectionException("service " + serviceName + " does not exist");
+        throw new CasualConnectionException("service " + serviceName + DOES_NOT_EXIST);
     }
 
-    public <X extends CasualBuffer> CompletableFuture<ServiceReturn<X>> tpacall( String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass )
+    @Override
+    public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall( String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        CompletableFuture<ServiceReturn<X>> f = new CompletableFuture<>();
+        CompletableFuture<ServiceReturn<CasualBuffer>> f = new CompletableFuture<>();
         try
         {
-            connection.getWorkManager().scheduleWork(FutureServiceReturnWork.of(f, () -> tpcall(serviceName, data, flags, bufferClass)));
+            connection.getWorkManager().scheduleWork(FutureServiceReturnWork.of(f, () -> tpcall(serviceName, data, flags)));
         }
         catch (WorkException e)
         {
@@ -62,20 +65,19 @@ public class CasualServiceCaller
         return f;
     }
 
-    private <X extends CasualBuffer> ServiceReturn<X> makeServiceCall( UUID corrid, String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass)
+
+    private ServiceReturn<CasualBuffer> makeServiceCall( UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
                 .setExecution(UUID.randomUUID())
-                .setServiceBuffer(ServiceBuffer.of(data.getType(), data.getBytes()))
+                .setServiceBuffer(ServiceBuffer.of(data))
                 .setServiceName(serviceName)
                 .setXid( connection.getCurrentXid() )
                 .setXatmiFlags(flags).build();
-
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessage.of(corrid, serviceRequestMessage);
         CasualNWMessage<CasualServiceCallReplyMessage> serviceReplyNetworkMessage = connection.getNetworkConnection().requestReply(serviceRequestNetworkMessage);
         CasualServiceCallReplyMessage serviceReplyMessage = serviceReplyNetworkMessage.getMessage();
-        CasualBufferBase<X> buffer = CasualBufferBase.of(serviceReplyMessage.getServiceBuffer(), bufferClass);
-        return new ServiceReturn<>(bufferClass.cast(buffer), (serviceReplyMessage.getError() == ErrorState.OK) ? ServiceReturnState.TPSUCCESS : ServiceReturnState.TPFAIL, serviceReplyMessage.getError());
+        return new ServiceReturn<>(serviceReplyMessage.getServiceBuffer(), (serviceReplyMessage.getError() == ErrorState.OK) ? ServiceReturnState.TPSUCCESS : ServiceReturnState.TPFAIL, serviceReplyMessage.getError());
     }
 
     private boolean serviceExists( UUID corrid, String serviceName)

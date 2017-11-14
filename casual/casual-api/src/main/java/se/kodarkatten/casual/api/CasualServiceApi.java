@@ -4,7 +4,12 @@ import se.kodarkatten.casual.api.buffer.CasualBuffer;
 import se.kodarkatten.casual.api.buffer.ServiceReturn;
 import se.kodarkatten.casual.api.flags.AtmiFlags;
 import se.kodarkatten.casual.api.flags.Flag;
+import se.kodarkatten.casual.api.queue.MessageSelector;
+import se.kodarkatten.casual.api.queue.QueueInfo;
+import se.kodarkatten.casual.api.queue.QueueMessage;
 
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -22,12 +27,18 @@ public interface CasualServiceApi
      * @param serviceName name of the service to call.
      * @param data to send to the given service.
      * @param flags to send to the given service.
-     * @param bufferClass type of buffer being sent to the service.
-     * @param <X>
+     *
      * @return result of the service call, which can be a failure result.
      */
-    <X extends CasualBuffer> ServiceReturn<X> tpcall(String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass);
+    ServiceReturn<CasualBuffer> tpcall( String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
 
-
-    <X extends CasualBuffer> CompletableFuture<ServiceReturn<X>> tpacall(String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass);
+    /**
+     * Async call
+     * Wraps up a call to tpcall in a worker thread
+     * @param serviceName
+     * @param data
+     * @param flags
+     * @return The future from which the result can be obtained
+     */
+    CompletableFuture<ServiceReturn<CasualBuffer>> tpacall( String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
 }

@@ -56,8 +56,7 @@ public final class CasualDequeueReplyMessage implements CasualNetworkTransmittab
             return false;
         }
         CasualDequeueReplyMessage that = (CasualDequeueReplyMessage) o;
-        return Objects.equals(execution, that.execution) &&
-            Objects.equals(messages, that.messages);
+        return Objects.equals(execution, that.execution) && Objects.equals(messages, that.messages);
     }
 
     @Override

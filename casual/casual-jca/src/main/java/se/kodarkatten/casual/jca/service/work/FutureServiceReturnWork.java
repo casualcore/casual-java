@@ -22,6 +22,9 @@ public final class FutureServiceReturnWork<X extends CasualBuffer>  implements W
     @Override
     public void release()
     {
+        // This is a hint that we should complete asap
+        // however we have no way to hurry up completion
+        // we could cancel the future but not sure if that's what we should do?
     }
 
     @Override

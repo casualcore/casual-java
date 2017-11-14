@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.network.messages.queue
 
+import se.kodarkatten.casual.api.queue.QueueMessage
 import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.messages.CasualNWMessage
@@ -9,9 +10,7 @@ import se.kodarkatten.casual.network.utils.LocalByteChannel
 import se.kodarkatten.casual.network.utils.TestUtils
 import spock.lang.Shared
 import spock.lang.Specification
-
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 
 class CasualEnqueueRequestMessageTest extends Specification
 {
@@ -49,13 +48,13 @@ class CasualEnqueueRequestMessageTest extends Specification
     def "roundtrip"()
     {
         setup:
-        def enqueueMsg = EnqueueMessage.createBuilder()
-                                       .withId(UUID.randomUUID())
-                                       .withReplyData("replydata")
-                                       .withProperties("properties")
-                                       .withAvailableForDequeueSince(LocalDateTime.now().toEpochSecond(OffsetDateTime.now().getOffset()))
-                                       .withPayload(serviceBuffer)
-                                       .build()
+        def enqueueMsg = EnqueueMessage.of(QueueMessage.createBuilder()
+                                                       .withId(UUID.randomUUID())
+                                                       .withReplyQueue("qspace:qname")
+                                                       .withCorrelationInformation("correlationInformation")
+                                                       .withAvailableSince(LocalDateTime.now())
+                                                       .withPayload(serviceBuffer)
+                                                       .build())
         def requestMsg = CasualEnqueueRequestMessage.createBuilder()
                                                     .withExecution(UUID.randomUUID())
                                                     .withQueueName("best.queue.ever")
@@ -76,13 +75,13 @@ class CasualEnqueueRequestMessageTest extends Specification
     def "roundtrip - force chunking"()
     {
         setup:
-        def enqueueMsg = EnqueueMessage.createBuilder()
-                .withId(UUID.randomUUID())
-                .withReplyData("replydata")
-                .withProperties("properties")
-                .withAvailableForDequeueSince(LocalDateTime.now().toEpochSecond(OffsetDateTime.now().getOffset()))
-                .withPayload(serviceBuffer)
-                .build()
+        def enqueueMsg = EnqueueMessage.of(QueueMessage.createBuilder()
+                                                       .withId(UUID.randomUUID())
+                                                       .withReplyQueue("qspace:qname")
+                                                       .withCorrelationInformation("correlationInformation")
+                                                       .withAvailableSince(LocalDateTime.now())
+                                                       .withPayload(serviceBuffer)
+                                                       .build())
         def requestMsg = CasualEnqueueRequestMessage.createBuilder()
                 .withExecution(UUID.randomUUID())
                 .withQueueName("best.queue.ever")

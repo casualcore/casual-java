@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.network.io.readers.queue;
 
+import se.kodarkatten.casual.api.queue.QueueMessage;
 import se.kodarkatten.casual.api.util.Pair;
 import se.kodarkatten.casual.network.io.readers.NetworkReader;
 import se.kodarkatten.casual.network.io.readers.utils.CasualNetworkReaderUtils;
@@ -105,15 +106,15 @@ public final class CasualDequeueReplyMessageReader  implements NetworkReader<Cas
             ServiceBuffer serviceBuffer = CasualNetworkReaderUtils.readServiceBuffer(channel, Integer.MAX_VALUE);
             long redelivered = ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_REDELIVERED_COUNT.getNetworkSize()).get().getLong();
             long timeStampSinceEpoc = ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_TIMESTAMP_SINCE_EPOC.getNetworkSize()).get().getLong();
-            return DequeueMessage.createBuilder()
-                                 .withId(msgId)
-                                 .withProperties(properties)
-                                 .withReplyData(replyData)
-                                 .withPayload(serviceBuffer)
-                                 .withAvailableForDequeueSince(availableSinceEpoc)
-                                 .withNumberOfRedeliveries(redelivered)
-                                 .withTimestamp(timeStampSinceEpoc)
-                                 .build();
+            return DequeueMessage.of(QueueMessage.createBuilder()
+                                                 .withId(msgId)
+                                                 .withCorrelationInformation(properties)
+                                                 .withReplyQueue(replyData)
+                                                 .withAvailableSince(availableSinceEpoc)
+                                                 .withTimestamp(timeStampSinceEpoc)
+                                                 .withRedelivered(redelivered)
+                                                 .withPayload(serviceBuffer)
+                                                 .build());
         }
         catch (InterruptedException | ExecutionException e)
         {
@@ -132,15 +133,15 @@ public final class CasualDequeueReplyMessageReader  implements NetworkReader<Cas
         ServiceBuffer serviceBuffer = CasualNetworkReaderUtils.readServiceBuffer(channel, Integer.MAX_VALUE);
         long redelivered = ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_REDELIVERED_COUNT.getNetworkSize()).getLong();
         long timestampSinceEpoc = ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_TIMESTAMP_SINCE_EPOC.getNetworkSize()).getLong();
-        return DequeueMessage.createBuilder()
-                             .withId(msgId)
-                             .withProperties(properties)
-                             .withReplyData(replyData)
-                             .withPayload(serviceBuffer)
-                             .withAvailableForDequeueSince(availableSinceEpoc)
-                             .withNumberOfRedeliveries(redelivered)
-                             .withTimestamp(timestampSinceEpoc)
-                             .build();
+        return DequeueMessage.of(QueueMessage.createBuilder()
+                                             .withId(msgId)
+                                             .withCorrelationInformation(properties)
+                                             .withReplyQueue(replyData)
+                                             .withAvailableSince(availableSinceEpoc)
+                                             .withTimestamp(timestampSinceEpoc)
+                                             .withRedelivered(redelivered)
+                                             .withPayload(serviceBuffer)
+                                             .build());
     }
 
     private static Pair<Integer, DequeueMessage> readDequeueMessage(final byte[] bytes, int offset)
@@ -168,15 +169,15 @@ public final class CasualDequeueReplyMessageReader  implements NetworkReader<Cas
         currentOffset += DequeueReplySizes.MESSAGE_REDELIVERED_COUNT.getNetworkSize();
         long timestampSinceEpoc = ByteBuffer.wrap(bytes, currentOffset , DequeueReplySizes.MESSAGE_TIMESTAMP_SINCE_EPOC.getNetworkSize()).getLong();
         currentOffset += DequeueReplySizes.MESSAGE_TIMESTAMP_SINCE_EPOC.getNetworkSize();
-        final DequeueMessage msg = DequeueMessage.createBuilder()
-                                                 .withId(msgId)
-                                                 .withProperties(properties)
-                                                 .withReplyData(replyData)
-                                                 .withPayload(p.second())
-                                                 .withAvailableForDequeueSince(availableSinceEpoc)
-                                                 .withNumberOfRedeliveries(redelivered)
-                                                 .withTimestamp(timestampSinceEpoc)
-                                                 .build();
+        DequeueMessage msg =  DequeueMessage.of(QueueMessage.createBuilder()
+                                                                  .withId(msgId)
+                                                                  .withCorrelationInformation(properties)
+                                                                  .withReplyQueue(replyData)
+                                                                  .withAvailableSince(availableSinceEpoc)
+                                                                  .withTimestamp(timestampSinceEpoc)
+                                                                  .withRedelivered(redelivered)
+                                                                  .withPayload(p.second())
+                                                                  .build());
         return Pair.of(currentOffset, msg);
     }
 

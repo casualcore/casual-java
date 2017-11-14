@@ -4,6 +4,9 @@ package se.kodarkatten.casual.network.messages.service;
  * Created by aleph on 2017-03-15.
  */
 
+import se.kodarkatten.casual.api.buffer.CasualBuffer;
+import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +15,7 @@ import java.util.Objects;
 /**
  * Used in service call request and reply
  */
-public final class ServiceBuffer
+public final class ServiceBuffer implements CasualBuffer
 {
     private String type;
     private List<byte[]> payload;
@@ -31,12 +34,31 @@ public final class ServiceBuffer
      */
     public static ServiceBuffer of(final String type, final List<byte[]> bytes)
     {
+        Objects.requireNonNull(type, "type can not be null");
+        Objects.requireNonNull(bytes, "bytes can not be null");
+        if(type.isEmpty())
+        {
+            throw new CasualTransportException("type can not be and empty string");
+        }
         return new ServiceBuffer(type, bytes);
     }
 
+    public static ServiceBuffer of(final CasualBuffer b)
+    {
+        Objects.requireNonNull(b, "buffer can not be null");
+        return ServiceBuffer.of(b.getType(), b.getBytes());
+    }
+
+    @Override
     public String getType()
     {
         return type;
+    }
+
+    @Override
+    public List<byte[]> getBytes()
+    {
+        return getPayload();
     }
 
     /**

@@ -14,7 +14,7 @@ public final class CasualDomainDiscoveryRequestMessageMatcher
             @Override
             protected boolean matchesSafely(CasualNWMessage<CasualDomainDiscoveryRequestMessage> item)
             {
-                if( item.getMessage().getServiceNames().equals( expected.getServiceNames() ) )
+                if( item.getMessage().getServiceNames().equals( expected.getServiceNames() ) && item.getMessage().getQueueNames().equals( expected.getQueueNames() ) )
                 {
                     return true;
                 }

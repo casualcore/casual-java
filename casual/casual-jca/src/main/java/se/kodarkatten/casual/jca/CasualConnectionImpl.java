@@ -4,9 +4,15 @@ import se.kodarkatten.casual.api.buffer.CasualBuffer;
 import se.kodarkatten.casual.api.buffer.ServiceReturn;
 import se.kodarkatten.casual.api.flags.AtmiFlags;
 import se.kodarkatten.casual.api.flags.Flag;
+import se.kodarkatten.casual.api.queue.MessageSelector;
+import se.kodarkatten.casual.api.queue.QueueInfo;
+import se.kodarkatten.casual.api.queue.QueueMessage;
+import se.kodarkatten.casual.jca.queue.CasualQueueCaller;
 import se.kodarkatten.casual.jca.service.CasualServiceCaller;
 import se.kodarkatten.casual.network.connection.CasualConnectionException;
 
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -18,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 public class CasualConnectionImpl implements CasualConnection
 {
     private CasualServiceCaller serviceCaller;
+    private CasualQueueCaller queueCaller;
     private CasualManagedConnection managedConnection;
 
     /**
@@ -29,6 +36,7 @@ public class CasualConnectionImpl implements CasualConnection
     public CasualConnectionImpl(CasualManagedConnection mc)
     {
         this.managedConnection = mc;
+        queueCaller = CasualQueueCaller.of(mc);
     }
 
     /**
@@ -58,17 +66,31 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
-    public <X extends CasualBuffer> ServiceReturn<X> tpcall(String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass)
+    public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         throwIfInvalidated();
-        return getCasualServiceCaller().tpcall( serviceName, data, flags, bufferClass );
+        return getCasualServiceCaller().tpcall( serviceName, data, flags);
     }
 
     @Override
-    public <X extends CasualBuffer> CompletableFuture<ServiceReturn<X>> tpacall(String serviceName, X data, Flag<AtmiFlags> flags, Class<X> bufferClass)
+    public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         throwIfInvalidated();
-        return getCasualServiceCaller().tpacall( serviceName, data, flags, bufferClass );
+        return getCasualServiceCaller().tpacall( serviceName, data, flags);
+    }
+
+    @Override
+    public UUID enqueue(QueueInfo qinfo, QueueMessage msg)
+    {
+        throwIfInvalidated();
+        return getCasualQueueCaller().enqueue(qinfo, msg);
+    }
+
+    @Override
+    public List<QueueMessage> dequeue(QueueInfo qinfo, MessageSelector selector)
+    {
+        throwIfInvalidated();
+        return getCasualQueueCaller().dequeue(qinfo, selector);
     }
 
     private void throwIfInvalidated()
@@ -107,6 +129,12 @@ public class CasualConnectionImpl implements CasualConnection
         }
         return serviceCaller;
     }
+
+    CasualQueueCaller getCasualQueueCaller()
+    {
+        return queueCaller;
+    }
+
 
     void setCasualServiceCaller( CasualServiceCaller serviceCaller )
     {

@@ -77,8 +77,7 @@ public class InboundTest
             String data = getJsonProvider().toJson( callDef );
             CasualBuffer msg = JsonBuffer.of( data );
 
-
-            ServiceReturn<CasualBuffer> reply = connection.tpcall(serviceName, msg, Flag.of(AtmiFlags.NOFLAG), CasualBuffer.class);
+            ServiceReturn<CasualBuffer> reply = connection.tpcall(serviceName, msg, Flag.of(AtmiFlags.NOFLAG));
 
             assertThat(reply.getServiceReturnState(), is(equalTo(ServiceReturnState.TPSUCCESS)));
 

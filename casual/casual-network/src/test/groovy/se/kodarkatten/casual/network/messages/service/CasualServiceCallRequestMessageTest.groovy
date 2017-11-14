@@ -91,7 +91,6 @@ class CasualServiceCallRequestMessageTest extends Specification
 
         then:
         networkBytes != null
-        requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().serviceBuffer.payload
@@ -124,11 +123,9 @@ class CasualServiceCallRequestMessageTest extends Specification
         def collectedServicePayload = collectServicePayload(resurrectedMsg.getMessage().getServiceBuffer().getPayload())
         then:
         networkBytes != null
-        requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == serviceBuffer.payload.get(0).length
         requestMsg.getServiceBuffer().getPayload() == collectedServicePayload
-
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()

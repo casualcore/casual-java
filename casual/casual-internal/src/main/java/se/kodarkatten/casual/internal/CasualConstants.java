@@ -5,10 +5,16 @@ package se.kodarkatten.casual.internal;
  */
 public final class CasualConstants
 {
-    //Note this is not final because we dont want compiler inlining
-    public static String CASUAL_API_VERSION = "1.0";
-    public static String CASUAL_NAME = "casual-middleware";
-    public static String CASUAL_ADAPTER_NAME = "casual-jca-connector";
-    public static String CASUAL_ADAPTER_DESCRIPTION = "A XA Connector to Casual EIS";
-    public static String CASUAL_ADAPTER_JCA_SPEC_VERSION = "1.7";
+    //Note this is done this way because we do not want compiler inlining
+    public static final String CASUAL_API_VERSION = str("1.0");
+    public static final String CASUAL_NAME = str("casual-middleware");
+    public static final String CASUAL_ADAPTER_NAME = str("casual-jca-connector");
+    public static final String CASUAL_ADAPTER_DESCRIPTION = str("A XA Connector to Casual EIS");
+    public static final String CASUAL_ADAPTER_JCA_SPEC_VERSION = str("1.7");
+    private CasualConstants()
+    {}
+    private static String str(String s)
+    {
+        return s;
+    }
 }

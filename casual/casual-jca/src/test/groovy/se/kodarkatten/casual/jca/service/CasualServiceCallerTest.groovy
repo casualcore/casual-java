@@ -119,7 +119,7 @@ class CasualServiceCallerTest extends Specification
                         .setError( errorState)
                         .setTransactionState( transactionState )
                         .setXid( XID.of() )
-                        .setServiceBuffer(ServiceBuffer.of( message.getType(), message.getBytes() ))
+                        .setServiceBuffer(ServiceBuffer.of(message))
                         .build()
         )
     }
@@ -127,7 +127,7 @@ class CasualServiceCallerTest extends Specification
     def "Tpcall service is available performs service call and returns result of service call."()
     {
         when:
-        ServiceReturn<CasualBuffer> result = instance.tpcall( serviceName, message, Flag.of( AtmiFlags.NOFLAG), CasualBuffer.class )
+        ServiceReturn<CasualBuffer> result = instance.tpcall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
 
         then:
         result != null
@@ -155,7 +155,7 @@ class CasualServiceCallerTest extends Specification
         discoveryReply = createDomainDiscoveryReplyMessage( "other" )
 
         when:
-        instance.tpcall( serviceName, message, Flag.of( AtmiFlags.NOFLAG), CasualBuffer.class )
+        instance.tpcall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
 
         then:
         thrown CasualConnectionException
@@ -175,7 +175,7 @@ class CasualServiceCallerTest extends Specification
         serviceReply = createServiceCallReplyMessage( ErrorState.TPESVCFAIL, TransactionState.ROLLBACK_ONLY, JsonBuffer.of( new ArrayList<byte[]>() ) )
 
         when:
-        ServiceReturn<CasualBuffer> result = instance.tpcall( serviceName, message, Flag.of( AtmiFlags.NOFLAG), CasualBuffer.class )
+        ServiceReturn<CasualBuffer> result = instance.tpcall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
 
         then:
         result != null
@@ -200,7 +200,7 @@ class CasualServiceCallerTest extends Specification
     def "Tpacall service is available performs service call and returns result of service call."()
     {
         when:
-        ServiceReturn<CasualBuffer> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG), CasualBuffer.class ).get()
+        ServiceReturn<CasualBuffer> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG)).get()
 
         then:
         noExceptionThrown()
@@ -232,7 +232,7 @@ class CasualServiceCallerTest extends Specification
     def "Tpacall service scheduling of work fails"()
     {
         when:
-        CompletableFuture<ServiceReturn<CasualBuffer>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG), CasualBuffer.class )
+        CompletableFuture<ServiceReturn<CasualBuffer>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
 
         then:
         noExceptionThrown()
