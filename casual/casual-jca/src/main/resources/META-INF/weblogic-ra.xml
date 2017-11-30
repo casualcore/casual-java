@@ -6,4 +6,14 @@
   <!-- See http://docs.oracle.com/middleware/12212/wls/ADAPT/weblogic_ra_xml.htm#ADAPT243 -->
   <enable-access-outside-app>true</enable-access-outside-app>
   <enable-global-access-to-classes>true</enable-global-access-to-classes>
+  <!-- This section is created so that we can get a hold of a connectionfactory -->
+  <outbound-resource-adapter>
+    <connection-definition-group>
+      <connection-factory-interface>se.kodarkatten.casual.jca.CasualConnectionFactory</connection-factory-interface>
+      <connection-instance>
+        <description>Casual Connection Factory</description>
+        <jndi-name>eis/casualConnectionFactory</jndi-name>
+      </connection-instance>
+    </connection-definition-group>
+  </outbound-resource-adapter>
 </weblogic-connector>
