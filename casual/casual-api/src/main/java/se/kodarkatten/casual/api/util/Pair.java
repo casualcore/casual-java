@@ -1,5 +1,7 @@
 package se.kodarkatten.casual.api.util;
 
+import java.util.Objects;
+
 public final class Pair<K,V>
 {
     private final K first;
@@ -20,5 +22,37 @@ public final class Pair<K,V>
     public V second()
     {
         return second;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        Pair<?, ?> pair = (Pair<?, ?>) o;
+        return Objects.equals(first, pair.first) &&
+            Objects.equals(second, pair.second);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(first, second);
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("Pair{");
+        sb.append("first=").append(first);
+        sb.append(", second=").append(second);
+        sb.append('}');
+        return sb.toString();
     }
 }

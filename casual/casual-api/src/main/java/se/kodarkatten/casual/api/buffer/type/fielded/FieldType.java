@@ -46,6 +46,15 @@ public enum FieldType
         return t.orElseThrow(() -> new IllegalArgumentException(FIELD_TYPE + type));
     }
 
+    public static boolean isOfFieldType(Class<?> type)
+    {
+        return Arrays.stream(FieldType.values())
+                     .filter(n -> n.getClazz().equals(type))
+                     .map(v -> true)
+                     .findFirst()
+                     .orElse(false);
+    }
+
     public static int marshall(FieldType f)
     {
         return f.getValue();

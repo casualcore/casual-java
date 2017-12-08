@@ -36,7 +36,7 @@ class RoundTripTest extends Specification
         expect:
         def fb1 = FieldedTypeBuffer.create(l)
         def fb2 = FieldedTypeBuffer.create(fb1.encode())
-        fb1.getForName(name) == fb2.getForName(name2)
+        fb1.read(name) == fb2.read(name2)
         where:
         name         |name2
         'FLD_SHORT1' |'FLD_SHORT1'

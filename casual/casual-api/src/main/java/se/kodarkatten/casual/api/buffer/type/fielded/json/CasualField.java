@@ -40,6 +40,8 @@ public final class CasualField
         return realId;
     }
 
+    // comparison complexity - sonar is dead wrong here
+    @SuppressWarnings("squid:S1067")
     @Override
     public boolean equals(Object o)
     {
@@ -68,7 +70,7 @@ public final class CasualField
     @Override
     public String toString()
     {
-        return "CasualField{" +
+        return "CasualFieldElement{" +
                 "name='" + name + '\'' +
                 ", id=" + id +
                 ", type='" + type + '\'' +

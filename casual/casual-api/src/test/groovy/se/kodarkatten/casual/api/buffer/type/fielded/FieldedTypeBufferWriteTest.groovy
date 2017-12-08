@@ -10,7 +10,7 @@ class FieldedTypeBufferWriteTest extends Specification
         expect:
         def fb = FieldedTypeBuffer.create()
                                   .write(name, v)
-        v == fb.getForName(name).getData()
+        v == fb.read(name).getData()
         where:
         name         | v
         'FLD_SHORT1' | (short)42
@@ -28,8 +28,8 @@ class FieldedTypeBufferWriteTest extends Specification
         def fb = FieldedTypeBuffer.create()
                                   .write(name, v1)
                                   .write(name, v2)
-        v1 == fb.getForName(name).getData()
-        v2 == fb.getForName(name, 1).getData()
+        v1 == fb.read(name).getData()
+        v2 == fb.read(name, 1).getData()
         where:
         name         | v1                                                 | v2
         'FLD_SHORT1' | (short)42                                          | (short)84

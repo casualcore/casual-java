@@ -34,6 +34,11 @@
           "type": "long"
         },
         {
+          "id": 4,
+          "name": "FLD_LONG4",
+          "type": "long"
+        },
+        {
           "id": 1,
           "name": "FLD_CHAR1",
           "type": "char"

@@ -2,7 +2,7 @@ package se.kodarkatten.casual.api.buffer.type.fielded.json
 
 import spock.lang.Specification
 
-class CasualFieldedLookupTest extends Specification
+class CasualFieldedLookupTestElement extends Specification
 {
     def "lookup realId"()
     {

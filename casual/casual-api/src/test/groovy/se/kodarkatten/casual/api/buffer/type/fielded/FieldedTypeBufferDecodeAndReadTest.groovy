@@ -37,7 +37,7 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         def l = [data]
         when:
         def fb = FieldedTypeBuffer.create(l)
-        def v = fb.getForName('FLD_LONG1')
+        def v = fb.read('FLD_LONG1')
         then:
         v.getData() == 1048576
     }
@@ -48,7 +48,7 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         def l = [data]
         when:
         def fb = FieldedTypeBuffer.create(l)
-        def v = fb.getForName('FLD_SHORT1')
+        def v = fb.read('FLD_SHORT1')
         then:
         v.getData() == 42
     }
@@ -59,7 +59,7 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         def l = [data]
         when:
         def fb = FieldedTypeBuffer.create(l)
-        def v = fb.getForName('FLD_BINARY1')
+        def v = fb.read('FLD_BINARY1')
         def s = new String(v.getData())
         then:
         s == '123123123123'
@@ -71,7 +71,7 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         def l = [data]
         when:
         def fb = FieldedTypeBuffer.create(l)
-        def v = fb.getForName('FLD_DOUBLE1')
+        def v = fb.read('FLD_DOUBLE1')
         then:
         v.getData() == 0.023809523809523808
     }
@@ -82,7 +82,7 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         def l = [data]
         when:
         def fb = FieldedTypeBuffer.create(l)
-        def v = fb.getForName('FLD_FLOAT1')
+        def v = fb.read('FLD_FLOAT1')
         then:
         v.getData() == 0.023809524f
     }
@@ -93,7 +93,7 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         def l = [data]
         when:
         def fb = FieldedTypeBuffer.create(l)
-        def v = fb.getForName('FLD_CHAR1')
+        def v = fb.read('FLD_CHAR1')
         then:
         v.getData() == 'a'
     }
@@ -104,7 +104,7 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         def l = [data]
         when:
         def fb = FieldedTypeBuffer.create(l)
-        def v = fb.getForName('FLD_STRING1')
+        def v = fb.read('FLD_STRING1')
         then:
         v.getData() == 'casual'
     }
@@ -116,7 +116,7 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         def name = 'NA'
         when:
         def fb = FieldedTypeBuffer.create(l)
-        def v = fb.getForName(name)
+        def v = fb.read(name)
         then:
         v == null
         def e = thrown(CasualFieldedLookupException)

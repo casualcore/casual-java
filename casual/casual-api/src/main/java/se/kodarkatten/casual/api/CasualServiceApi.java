@@ -4,12 +4,7 @@ import se.kodarkatten.casual.api.buffer.CasualBuffer;
 import se.kodarkatten.casual.api.buffer.ServiceReturn;
 import se.kodarkatten.casual.api.flags.AtmiFlags;
 import se.kodarkatten.casual.api.flags.Flag;
-import se.kodarkatten.casual.api.queue.MessageSelector;
-import se.kodarkatten.casual.api.queue.QueueInfo;
-import se.kodarkatten.casual.api.queue.QueueMessage;
 
-import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**

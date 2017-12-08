@@ -236,7 +236,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         l.add(executionBuffer.array());
         l.add(CasualNetworkWriterUtils.writeInt(error.getValue()));
         l.add(CasualNetworkWriterUtils.writeLong(userSuppliedError));
-        // note we add the transaction state as well here
+        // note we put the transaction state as well here
         final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid) + ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize());
         CasualNetworkWriterUtils.writeXID(xid, xidByteBuffer);
         xidByteBuffer.put((byte)(transactionState.getId() & 0xff ));
