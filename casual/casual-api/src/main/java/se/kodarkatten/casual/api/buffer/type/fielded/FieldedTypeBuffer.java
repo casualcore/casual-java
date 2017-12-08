@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 
 public final class FieldedTypeBuffer implements CasualBuffer
@@ -53,6 +54,16 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return FieldedTypeBufferEncoder.encode(m);
     }
 
+    /**
+     * Note, this leaks out a reference to our internal representation
+     * Use with extreme caution!!!
+     * @return
+     */
+    public Map<String, List<FieldedData<?>>> getInternalRepresentation()
+    {
+        return m;
+    }
+
     // "Generic wildcard types should not be used in return parameters"
     // This is for framework use only, no user will ever use this code
     // So no risk of confusion
@@ -87,7 +98,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
         {
             throw new CasualFieldedLookupException("nothing found for: " + name);
         }
-        return l;
+        return l.stream().collect(Collectors.toList());
     }
 
     public <T> FieldedTypeBuffer writeAll(final String name, final List<T> values)
