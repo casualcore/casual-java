@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 public final class FieldedTypeBuffer implements CasualBuffer
 {
-    private final Map<String, List<FieldedData<?>>> m;
+    private Map<String, List<FieldedData<?>>> m;
     private FieldedTypeBuffer(final Map<String, List<FieldedData<?>>> m)
     {
         this.m = m;
@@ -55,13 +55,14 @@ public final class FieldedTypeBuffer implements CasualBuffer
     }
 
     /**
-     * Note, this leaks out a reference to our internal representation
-     * Use with extreme caution!!!
+     * Extract the internal representation setting the state of this buffer to empty
      * @return
      */
-    public Map<String, List<FieldedData<?>>> getInternalRepresentation()
+    public Map<String, List<FieldedData<?>>> extract()
     {
-        return m;
+        Map<String, List<FieldedData<?>>> r = m;
+        m = new HashMap<>();
+        return r;
     }
 
     // "Generic wildcard types should not be used in return parameters"
