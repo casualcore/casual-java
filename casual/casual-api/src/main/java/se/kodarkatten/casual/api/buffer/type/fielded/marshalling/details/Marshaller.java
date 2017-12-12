@@ -44,7 +44,7 @@ public final class Marshaller
                 Object returnValue = m.invoke(o);
                 Object v = CommonDetails.wrapIfPrimitive(returnValue.getClass()).cast(returnValue);
                 v = CommonDetails.adaptValueToFielded(v);
-                writeFielded(b, annotation, v);
+                writeValue(b, annotation, v);
             }
             catch (IllegalAccessException | InvocationTargetException e)
             {
@@ -58,7 +58,7 @@ public final class Marshaller
         return b;
     }
 
-    public static FieldedTypeBuffer writeFields(final Object o, final List<Field> fields, FieldedTypeBuffer b)
+    private static FieldedTypeBuffer writeFields(final Object o, final List<Field> fields, FieldedTypeBuffer b)
     {
         for(Field f : fields)
         {
@@ -73,11 +73,11 @@ public final class Marshaller
                 Object fieldValue = f.get(o);
                 Object v = CommonDetails.wrapIfPrimitive(fieldValue.getClass()).cast(fieldValue);
                 v = CommonDetails.adaptValueToFielded(v);
-                writeFielded(b, annotation, v);
+                writeValue(b, annotation, v);
             }
             catch (IllegalAccessException e)
             {
-                throw new FieldedMarshallingException("can't access field: " + f);
+                throw new FieldedMarshallingException("can't access field: " + f, e);
             }
             finally
             {
@@ -87,7 +87,7 @@ public final class Marshaller
         return b;
     }
 
-    public static void writeFielded(final FieldedTypeBuffer b, final CasualFieldElement annotation, final Object v) throws IllegalAccessException
+    public static void writeValue(final FieldedTypeBuffer b, final CasualFieldElement annotation, final Object v) throws IllegalAccessException
     {
         if(CommonDetails.isListType(v.getClass()))
         {
@@ -135,9 +135,23 @@ public final class Marshaller
 
     public static void writeListType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final List<?> l)
     {
-        for(Object v : l)
+        if(l.isEmpty())
         {
-            b.write(annotation.name(), CommonDetails.adaptValueToFielded(v));
+            return;
+        }
+        if(CommonDetails.isFieldedType(CommonDetails.wrapIfPrimitive(CommonDetails.adaptValueToFielded(l.get(0)).getClass())))
+        {
+            for (Object v : l)
+            {
+                b.write(annotation.name(), CommonDetails.adaptValueToFielded(v));
+            }
+        }
+        else
+        {
+            for(Object v: l)
+            {
+                writeFields(v, b);
+            }
         }
     }
 

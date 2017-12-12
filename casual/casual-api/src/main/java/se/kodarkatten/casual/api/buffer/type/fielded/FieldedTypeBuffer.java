@@ -41,7 +41,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
     }
 
     /**
-     * Use this to create an empty buffer that you want to write to
+     * Use this to create an empty buffer that you want to writeFields to
      * @return
      */
     public static FieldedTypeBuffer create()
@@ -58,11 +58,43 @@ public final class FieldedTypeBuffer implements CasualBuffer
      * Extract the internal representation setting the state of this buffer to empty
      * @return
      */
+    // "Generic wildcard types should not be used in return parameters"
+    // This is for framework use only, no user will ever use this code
+    // So no risk of confusion
+    @SuppressWarnings("squid:S1452")
     public Map<String, List<FieldedData<?>>> extract()
     {
         Map<String, List<FieldedData<?>>> r = m;
         m = new HashMap<>();
         return r;
+    }
+
+    public boolean isEmpty()
+    {
+        return m.isEmpty();
+    }
+
+    /**
+     * Clears the current fielded data and replaces it with the incoming data
+     * Uses the {@link #writeAll(String, List<T>) writeAll} method
+     * This is to verify that the data is correct in case it was created/manipulated outside of a FieldedTypeBuffer
+     * It also ensures that we do not keep any references to anything mutable
+     * @param d
+     * @return
+     */
+    // "Generic wildcard types should not be used in return parameters"
+    // This is for framework use only, no user will ever use this code
+    // So no risk of confusion
+    // squid:S1612 - sonar hates lambdas
+    @SuppressWarnings({"squid:S1452", "squid:S1612"})
+    public FieldedTypeBuffer replace(final Map<String, List<FieldedData<?>>> d)
+    {
+        m = new HashMap<>();
+        d.forEach((key, value) ->
+            writeAll(key, value.stream()
+                               .map(v -> v.getData())
+                               .collect(Collectors.toList())));
+        return this;
     }
 
     // "Generic wildcard types should not be used in return parameters"
@@ -80,12 +112,21 @@ public final class FieldedTypeBuffer implements CasualBuffer
     @SuppressWarnings("squid:S1452")
     public FieldedData<?> read(String name, int index)
     {
+        Optional<FieldedData<?>> d = peek(name, index);
+        return d.orElseThrow(() -> new CasualFieldedLookupException("index out of bounds " + index + " for name " + name));
+    }
+    // "Generic wildcard types should not be used in return parameters"
+    // This is for framework use only, no user will ever use this code
+    // So no risk of confusion
+    @SuppressWarnings("squid:S1452")
+    public Optional<FieldedData<?>> peek(String name, int index)
+    {
         List<FieldedData<?>> l = m.get(name);
         if(null == l)
         {
             throw createNameMissingException(name, Optional.of(index)).get();
         }
-        return l.get(index);
+        return index < l.size() ? Optional.of(l.get(index)) : Optional.empty();
     }
 
     // "Generic wildcard types should not be used in return parameters"

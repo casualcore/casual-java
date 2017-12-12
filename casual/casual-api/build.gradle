@@ -8,6 +8,7 @@ defaultTasks 'build'
 
 dependencies {
   compile 'com.google.code.gson:gson:2.8.1'
+  compile 'org.objenesis:objenesis:2.6'
   testCompile 'junit:junit:4.8.2+'
   // for spock
   testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'

@@ -13,4 +13,8 @@ public class FieldedUnmarshallingException extends CasualRuntimeException
     {
         super(t);
     }
+    public FieldedUnmarshallingException(String msg, Throwable t)
+    {
+        super(msg, t);
+    }
 }

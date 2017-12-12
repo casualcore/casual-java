@@ -2,21 +2,16 @@ package se.kodarkatten.casual.api.testdata;
 
 import se.kodarkatten.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public final class SimplePojo
+public final class SimplePojo implements Serializable
 {
+    private static final long serialVersionUID = 1;
     @CasualFieldElement(name = "FLD_STRING2")
     private final String name;
     @CasualFieldElement(name = "FLD_LONG1")
     private final int age;
-
-    // for reflection instance creation
-    private SimplePojo()
-    {
-        this.name = null;
-        this.age = 0;
-    }
 
     private SimplePojo(final String name, int age)
     {

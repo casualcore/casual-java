@@ -5,6 +5,8 @@ import se.kodarkatten.casual.api.testdata.PojoWithAnnotatedMethods
 import se.kodarkatten.casual.api.testdata.SimpleArrayPojo
 import se.kodarkatten.casual.api.testdata.SimpleListPojo
 import se.kodarkatten.casual.api.testdata.SimplePojo
+import se.kodarkatten.casual.api.testdata.WrappedListPojo
+import se.kodarkatten.casual.api.testdata.WrappedListPojoWithAnnotatedMethods
 import se.kodarkatten.casual.api.testdata.WrappedPojo
 import spock.lang.Shared
 import spock.lang.Specification
@@ -28,7 +30,12 @@ class FieldedTypeBufferProcessorTest extends Specification
     @Shared
     SimpleArrayPojo sap = SimpleArrayPojo.of(valueArray, wrappedNumbers)
     @Shared
-    PojoWithAnnotatedMethods withAnnotatedMethods = PojoWithAnnotatedMethods.of(age, name, ['070-737373', '0730-808080'])
+    PojoWithAnnotatedMethods withAnnotatedMethods = PojoWithAnnotatedMethods.of(age, name, ['070-737373', '0730-808080'], Arrays.asList(valueArray))
+    @Shared
+    WrappedListPojo wlp = WrappedListPojo.of(Arrays.asList(SimplePojo.of('Jane Doe', 39), SimplePojo.of('Tarzan', 32)))
+    @Shared
+    WrappedListPojoWithAnnotatedMethods wlpam = WrappedListPojoWithAnnotatedMethods.of(Arrays.asList(SimplePojo.of('Jane Doe', 39), SimplePojo.of('Tarzan', 32)))
+
 
     def 'marshall simple pojo'()
     {
@@ -105,10 +112,36 @@ class FieldedTypeBufferProcessorTest extends Specification
     {
         when:
         FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(withAnnotatedMethods)
-        println b
         then:
         b.read('FLD_LONG1').getData() == age
         b.read('FLD_STRING1').getData() == name
+    }
+
+    def 'roundtrip pojo with annotated method params'()
+    {
+        when:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(withAnnotatedMethods)
+        PojoWithAnnotatedMethods p = FieldedTypeBufferProcessor.unmarshall(b, PojoWithAnnotatedMethods.class)
+        then:
+        p == withAnnotatedMethods
+    }
+
+    def 'roundtrip wrapped list pojo'()
+    {
+        when:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(wlp)
+        WrappedListPojo p = FieldedTypeBufferProcessor.unmarshall(b, WrappedListPojo.class)
+        then:
+        p == wlp
+    }
+
+    def 'roundtrip wrapped list pojo with annotated methods'()
+    {
+        when:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(wlpam)
+        WrappedListPojoWithAnnotatedMethods p = FieldedTypeBufferProcessor.unmarshall(b, WrappedListPojoWithAnnotatedMethods .class)
+        then:
+        p == wlpam
     }
 
     def verifyArray(FieldedTypeBuffer b, name, values)

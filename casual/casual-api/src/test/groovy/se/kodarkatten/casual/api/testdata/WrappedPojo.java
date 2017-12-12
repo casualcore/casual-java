@@ -1,24 +1,22 @@
 package se.kodarkatten.casual.api.testdata;
 
 import se.kodarkatten.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
-import se.kodarkatten.casual.api.util.Pair;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class WrappedPojo
+public class WrappedPojo implements Serializable
 {
-    @CasualFieldElement(name = "THIS DOES NOT MATTER")
+    private static final long serialVersionUID = 1;
+    // note: name is not needed for a wrapped fielded POJO
+    // however, if it is provided it is just ignored
+    @CasualFieldElement
     private final SimplePojo sp;
     @CasualFieldElement(name = "FLD_STRING1")
     private final String symbol;
 
-    // non fielded POJO
-    private final Pair<String, String> p = Pair.of("hello", "there");
-    private WrappedPojo()
-    {
-        this.sp = null;
-        this.symbol = null;
-    }
+    // non fielded field
+    private final String sneakyField = "sneaky";
     private WrappedPojo(final SimplePojo sp, String symbol)
     {
         this.sp = sp;
@@ -41,11 +39,6 @@ public class WrappedPojo
         return symbol;
     }
 
-    public Pair<String, String> getP()
-    {
-        return p;
-    }
-
     @Override
     public boolean equals(Object o)
     {
@@ -59,14 +52,13 @@ public class WrappedPojo
         }
         WrappedPojo that = (WrappedPojo) o;
         return Objects.equals(sp, that.sp) &&
-            Objects.equals(symbol, that.symbol) &&
-            Objects.equals(p, that.p);
+            Objects.equals(symbol, that.symbol);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(sp, symbol, p);
+        return Objects.hash(sp, symbol);
     }
 
     @Override
@@ -75,7 +67,6 @@ public class WrappedPojo
         final StringBuilder sb = new StringBuilder("WrappedPojo{");
         sb.append("sp=").append(sp);
         sb.append(", symbol='").append(symbol).append('\'');
-        sb.append(", p=").append(p);
         sb.append('}');
         return sb.toString();
     }

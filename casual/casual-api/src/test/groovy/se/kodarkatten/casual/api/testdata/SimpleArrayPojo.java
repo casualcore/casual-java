@@ -2,11 +2,13 @@ package se.kodarkatten.casual.api.testdata;
 
 import se.kodarkatten.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class SimpleArrayPojo
+public class SimpleArrayPojo implements Serializable
 {
+    private static final long serialVersionUID = 1;
     @CasualFieldElement(name = "FLD_LONG2")
     private final int[] numbers;
     @CasualFieldElement(name = "FLD_LONG4")

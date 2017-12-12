@@ -2,12 +2,14 @@ package se.kodarkatten.casual.api.testdata;
 
 import se.kodarkatten.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class SimpleListPojo
+public class SimpleListPojo implements Serializable
 {
+    private static final long serialVersionUID = 1;
     @CasualFieldElement(name = "FLD_STRING1")
     final List<String> strings;
 
