@@ -178,8 +178,8 @@ public final class Unmarshaller
         {
             final boolean castToInt = elementType.equals(Integer.class);
             l = b.readAll(annotation.name()).stream()
-                              .map(v -> toObject(v, castToInt))
-                              .collect(Collectors.toList());
+                                            .map(v -> toObject(v, castToInt))
+                                            .collect(Collectors.toList());
         }
         else
         {

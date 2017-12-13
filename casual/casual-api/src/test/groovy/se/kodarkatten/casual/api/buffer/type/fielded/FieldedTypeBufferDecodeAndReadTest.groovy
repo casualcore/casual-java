@@ -123,4 +123,58 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         e.message == "name: ${name} does not exist with index: 0"
     }
 
+    def 'read index out of bounds'()
+    {
+        setup:
+        def l = [data]
+        def name = 'FLD_STRING1'
+        def index = 1
+        when:
+        def b = FieldedTypeBuffer.create(l)
+        def v = b.read(name, index)
+        then:
+        v == null
+        def e = thrown(CasualFieldedLookupException)
+        e.message == "index out of bounds index: ${index} for name: ${name}"
+    }
+
+    def "peek non existent field"()
+    {
+        setup:
+        def l = [data]
+        def name = 'NA'
+        when:
+        def fb = FieldedTypeBuffer.create(l)
+        def v = fb.peek(name, 0)
+        then:
+        noExceptionThrown()
+        !v.isPresent()
+    }
+
+    def 'peek index out of bounds'()
+    {
+        setup:
+        def l = [data]
+        def name = 'FLD_STRING1'
+        def index = 1
+        when:
+        def b = FieldedTypeBuffer.create(l)
+        def v = b.peek(name, index)
+        then:
+        noExceptionThrown()
+        !v.isPresent()
+    }
+
+    def 'readAll missing key'()
+    {
+        setup:
+        def l = [data]
+        when:
+        def b = FieldedTypeBuffer.create(l)
+        def r = b.readAll('NOT_THERE')
+        then:
+        noExceptionThrown()
+        r.isEmpty()
+    }
+
 }

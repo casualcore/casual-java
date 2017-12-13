@@ -24,6 +24,8 @@ class FieldedTypeBufferProcessorTest extends Specification
     @Shared
     SimpleListPojo slp = SimpleListPojo.of(['sometimes', 'when', 'you', 'fall', 'you', 'fly'], [1,2,3,4,5])
     @Shared
+    SimpleListPojo emptySimpleListPojo = SimpleListPojo.of([], [1,2,3,42])
+    @Shared
     int[] valueArray = [1, 2, 3, 4, 5, 6]
     @Shared
     Long[] wrappedNumbers = [10,11,12,13]
@@ -32,10 +34,15 @@ class FieldedTypeBufferProcessorTest extends Specification
     @Shared
     PojoWithAnnotatedMethods withAnnotatedMethods = PojoWithAnnotatedMethods.of(age, name, ['070-737373', '0730-808080'], Arrays.asList(valueArray))
     @Shared
+    PojoWithAnnotatedMethods emptyWithAnnotatedMethods = PojoWithAnnotatedMethods.of(age, name, ['070-737373', '0730-808080'], [])
+    @Shared
     WrappedListPojo wlp = WrappedListPojo.of(Arrays.asList(SimplePojo.of('Jane Doe', 39), SimplePojo.of('Tarzan', 32)))
     @Shared
+    WrappedListPojo emptyWlp = WrappedListPojo.of([])
+    @Shared
     WrappedListPojoWithAnnotatedMethods wlpam = WrappedListPojoWithAnnotatedMethods.of(Arrays.asList(SimplePojo.of('Jane Doe', 39), SimplePojo.of('Tarzan', 32)))
-
+    @Shared
+    WrappedListPojoWithAnnotatedMethods emptyWlpam = WrappedListPojoWithAnnotatedMethods.of([])
 
     def 'marshall simple pojo'()
     {
@@ -70,6 +77,15 @@ class FieldedTypeBufferProcessorTest extends Specification
         SimpleListPojo r = FieldedTypeBufferProcessor.unmarshall(b, SimpleListPojo.class)
         then:
         slp == r
+    }
+
+    def 'roundtrip empty simple list pojo'()
+    {
+        when:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(emptySimpleListPojo)
+        SimpleListPojo r = FieldedTypeBufferProcessor.unmarshall(b, SimpleListPojo.class)
+        then:
+        emptySimpleListPojo == r
     }
 
     def 'marshall simple array pojo'()
@@ -126,6 +142,15 @@ class FieldedTypeBufferProcessorTest extends Specification
         p == withAnnotatedMethods
     }
 
+    def 'roundtrip pojo with annotated method params - with one empty list'()
+    {
+        when:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(emptyWithAnnotatedMethods)
+        PojoWithAnnotatedMethods p = FieldedTypeBufferProcessor.unmarshall(b, PojoWithAnnotatedMethods.class)
+        then:
+        p == emptyWithAnnotatedMethods
+    }
+
     def 'roundtrip wrapped list pojo'()
     {
         when:
@@ -135,6 +160,15 @@ class FieldedTypeBufferProcessorTest extends Specification
         p == wlp
     }
 
+    def 'roundtrip empty wrapped list pojo'()
+    {
+        when:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(emptyWlp)
+        WrappedListPojo p = FieldedTypeBufferProcessor.unmarshall(b, WrappedListPojo.class)
+        then:
+        p == emptyWlp
+    }
+
     def 'roundtrip wrapped list pojo with annotated methods'()
     {
         when:
@@ -142,6 +176,15 @@ class FieldedTypeBufferProcessorTest extends Specification
         WrappedListPojoWithAnnotatedMethods p = FieldedTypeBufferProcessor.unmarshall(b, WrappedListPojoWithAnnotatedMethods .class)
         then:
         p == wlpam
+    }
+
+    def 'roundtrip empty wrapped list pojo with annotated methods'()
+    {
+        when:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(emptyWlpam)
+        WrappedListPojoWithAnnotatedMethods p = FieldedTypeBufferProcessor.unmarshall(b, WrappedListPojoWithAnnotatedMethods .class)
+        then:
+        p == emptyWlpam
     }
 
     def verifyArray(FieldedTypeBuffer b, name, values)

@@ -113,8 +113,19 @@ public final class FieldedTypeBuffer implements CasualBuffer
     public FieldedData<?> read(String name, int index)
     {
         Optional<FieldedData<?>> d = peek(name, index);
-        return d.orElseThrow(() -> new CasualFieldedLookupException("index out of bounds " + index + " for name " + name));
+        return d.orElseThrow(generateExceptionWhenReading(name, index));
     }
+
+    private Supplier<CasualFieldedLookupException> generateExceptionWhenReading(String name, int index)
+    {
+        List<FieldedData<?>> l = m.get(name);
+        if(null == l)
+        {
+            return createNameMissingException(name, Optional.of(index));
+        }
+        return () -> new CasualFieldedLookupException("index out of bounds index: " + index + " for name: " + name);
+    }
+
     // "Generic wildcard types should not be used in return parameters"
     // This is for framework use only, no user will ever use this code
     // So no risk of confusion
@@ -124,11 +135,16 @@ public final class FieldedTypeBuffer implements CasualBuffer
         List<FieldedData<?>> l = m.get(name);
         if(null == l)
         {
-            throw createNameMissingException(name, Optional.of(index)).get();
+            return Optional.empty();
         }
         return index < l.size() ? Optional.of(l.get(index)) : Optional.empty();
     }
 
+    /**
+     * Note, in case name is not found - returns an empty list
+     * @param name
+     * @return List with data or if name is not found, and empty list
+     */
     // "Generic wildcard types should not be used in return parameters"
     // This is for framework use only, no user will ever use this code
     // So no risk of confusion
@@ -138,7 +154,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
         List<FieldedData<?>> l = m.get(name);
         if(null == l)
         {
-            throw new CasualFieldedLookupException("nothing found for: " + name);
+            return new ArrayList<>();
         }
         return l.stream().collect(Collectors.toList());
     }
