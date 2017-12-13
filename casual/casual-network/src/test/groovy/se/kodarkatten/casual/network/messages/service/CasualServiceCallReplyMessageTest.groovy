@@ -59,7 +59,7 @@ class CasualServiceCallReplyMessageTest extends Specification
         then:
         msg.getExecution() == execution
         msg.getError() == callError
-        msg.getUserSuppliedError() == userError
+        msg.getUserDefinedCode() == userError
         msg.getXid() == nullXID
         msg.getTransactionState() == transactionState
         msg.getServiceBuffer() == serviceBuffer

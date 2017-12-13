@@ -14,11 +14,14 @@ public final class ServiceReturn<X extends CasualBuffer>
 
     private final ErrorState errorState;
 
-    public ServiceReturn(X replyBuffer, ServiceReturnState serviceReturnState, ErrorState errorState)
+    private final long userDefinedCode;
+
+    public ServiceReturn(X replyBuffer, ServiceReturnState serviceReturnState, ErrorState errorState, long userDefinedCode)
     {
         this.replyBuffer = replyBuffer;
         this.serviceReturnState = serviceReturnState;
         this.errorState = errorState;
+        this.userDefinedCode = userDefinedCode;
     }
 
     public X getReplyBuffer()
@@ -34,5 +37,10 @@ public final class ServiceReturn<X extends CasualBuffer>
     public ErrorState getErrorState()
     {
         return errorState;
+    }
+
+    public long getUserDefinedCode()
+    {
+        return userDefinedCode;
     }
 }

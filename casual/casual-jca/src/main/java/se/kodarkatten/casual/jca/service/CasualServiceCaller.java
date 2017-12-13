@@ -77,7 +77,7 @@ public class CasualServiceCaller implements CasualServiceApi
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessage.of(corrid, serviceRequestMessage);
         CasualNWMessage<CasualServiceCallReplyMessage> serviceReplyNetworkMessage = connection.getNetworkConnection().requestReply(serviceRequestNetworkMessage);
         CasualServiceCallReplyMessage serviceReplyMessage = serviceReplyNetworkMessage.getMessage();
-        return new ServiceReturn<>(serviceReplyMessage.getServiceBuffer(), (serviceReplyMessage.getError() == ErrorState.OK) ? ServiceReturnState.TPSUCCESS : ServiceReturnState.TPFAIL, serviceReplyMessage.getError());
+        return new ServiceReturn<>(serviceReplyMessage.getServiceBuffer(), (serviceReplyMessage.getError() == ErrorState.OK) ? ServiceReturnState.TPSUCCESS : ServiceReturnState.TPFAIL, serviceReplyMessage.getError(), serviceReplyMessage.getUserDefinedCode());
     }
 
     private boolean serviceExists( UUID corrid, String serviceName)

@@ -62,7 +62,7 @@ class CasualServiceApiTest extends Specification
             try
             {
                 CasualBuffer replyData = CasualTestBuffer.class.newInstance()
-                ServiceReturn<CasualBuffer> reply = new ServiceReturn<CasualBuffer>(replyData, ServiceReturnState.TPSUCCESS, null)
+                ServiceReturn<CasualBuffer> reply = new ServiceReturn<CasualBuffer>(replyData, ServiceReturnState.TPSUCCESS, null,0)
                 return reply
             } catch (Throwable t)
             {
@@ -105,7 +105,7 @@ class CasualServiceApiTest extends Specification
             {
                 CasualBuffer replyData = replyBufferType.newInstance()
 
-                ServiceReturn<Y> reply = new ServiceReturn<Y>(replyBufferType.cast(replyData), ServiceReturnState.TPSUCCESS, null)
+                ServiceReturn<Y> reply = new ServiceReturn<Y>(replyBufferType.cast(replyData), ServiceReturnState.TPSUCCESS, null, 0)
                 return reply
 
             } catch (Throwable t)
