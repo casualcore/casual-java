@@ -4,6 +4,24 @@ import spock.lang.Specification
 
 class CasualFieldedLookupTestElement extends Specification
 {
+    def 'get URL'()
+    {
+        when:
+        def url = CasualFieldedLookup.getURL();
+        then:
+        noExceptionThrown()
+        null != url
+    }
+
+    def 'get names'()
+    {
+        when:
+        def l = CasualFieldedLookup.getNames()
+        then:
+        noExceptionThrown()
+        !l.isEmpty()
+    }
+
     def "lookup realId"()
     {
         setup:

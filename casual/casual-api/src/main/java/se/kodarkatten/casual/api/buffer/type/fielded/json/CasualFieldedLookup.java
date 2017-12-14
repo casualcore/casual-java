@@ -13,16 +13,21 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public final class CasualFieldedLookup
 {
-    static Map<String, CasualField> stringToField = new HashMap<>();
-    static Map<Long, CasualField> realIdToField = new HashMap<>();
+    private static Map<String, CasualField> stringToField;
+    private static Map<Long, CasualField> realIdToField;
+    private static URL jsonURL;
     private CasualFieldedLookup()
     {}
     static
     {
-        CasualFielded fielded = slurpJSON(getSystemFieldedJsonSupplier().orElse(() -> getResource(Constants.CASUAL_FIELD_JSON_EMBEDDED)));
+        stringToField = new HashMap<>();
+        realIdToField = new HashMap<>();
+        jsonURL = getSystemFieldedJsonSupplier().orElse(() -> getResource(Constants.CASUAL_FIELD_JSON_EMBEDDED)).get();
+        CasualFielded fielded = slurpJSON(jsonURL);
         initializeData(fielded);
         stringToField = Collections.unmodifiableMap(stringToField);
         realIdToField = Collections.unmodifiableMap(realIdToField);
@@ -38,12 +43,21 @@ public final class CasualFieldedLookup
         return Optional.ofNullable(realIdToField.get(id));
     }
 
-    private static CasualFielded slurpJSON(final Supplier<URL> resource)
+    public static URL getURL()
+    {
+        return jsonURL;
+    }
+
+    public static List<String> getNames()
+    {
+        return stringToField.keySet().stream().collect(Collectors.toList());
+    }
+
+    private static CasualFielded slurpJSON(final URL resource)
     {
         try
         {
-
-            return JsonProviderFactory.getJsonProvider().fromJson(new FileReader(new File(resource.get().toURI())), CasualFielded.class);
+            return JsonProviderFactory.getJsonProvider().fromJson(new FileReader(new File(resource.toURI())), CasualFielded.class);
         }
         catch (FileNotFoundException | URISyntaxException e)
         {
