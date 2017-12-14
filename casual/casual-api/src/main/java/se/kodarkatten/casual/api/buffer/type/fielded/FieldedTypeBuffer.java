@@ -101,6 +101,25 @@ public final class FieldedTypeBuffer implements CasualBuffer
     // This is for framework use only, no user will ever use this code
     // So no risk of confusion
     @SuppressWarnings("squid:S1452")
+    public FieldedData<?> read(long realId)
+    {
+        return read(realId, 0);
+    }
+
+    // "Generic wildcard types should not be used in return parameters"
+    // This is for framework use only, no user will ever use this code
+    // So no risk of confusion
+    @SuppressWarnings("squid:S1452")
+    public FieldedData<?> read(long realId, int index)
+    {
+        CasualField f = CasualFieldedLookup.forRealId(realId).orElseThrow(() -> new CasualFieldedLookupException("realId: " + realId + " does not exist"));
+        return read(f.getName(), index);
+    }
+
+    // "Generic wildcard types should not be used in return parameters"
+    // This is for framework use only, no user will ever use this code
+    // So no risk of confusion
+    @SuppressWarnings("squid:S1452")
     public FieldedData<?> read(final String name)
     {
         return read(name, 0);
