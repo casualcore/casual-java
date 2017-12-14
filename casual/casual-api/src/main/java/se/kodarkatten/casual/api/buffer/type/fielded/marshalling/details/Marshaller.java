@@ -3,6 +3,8 @@ package se.kodarkatten.casual.api.buffer.type.fielded.marshalling.details;
 import se.kodarkatten.casual.api.buffer.type.fielded.FieldedTypeBuffer;
 import se.kodarkatten.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedMarshallingException;
+import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessorMode;
+import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedUnmarshallingException;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -16,15 +18,15 @@ public final class Marshaller
     {
     }
 
-    public static FieldedTypeBuffer writeFields(final Object o, FieldedTypeBuffer b)
+    public static FieldedTypeBuffer write(final Object o, FieldedTypeBuffer b, FieldedTypeBufferProcessorMode mode)
     {
-        List<Field> fields = CommonDetails.getCasuallyAnnotatedFields(o);
-        writeFields(o, fields, b);
-        List<Method> methods = CommonDetails.getCasuallyAnnotatedMethods(o);
-        return writeMethodReturnValues(o, methods, b);
+        List<Field> fields = CommonDetails.getCasuallyAnnotatedFields(o.getClass());
+        writeFields(o, fields, b, mode);
+        List<Method> methods = CommonDetails.getCasuallyAnnotatedMethods(o.getClass());
+        return writeMethodReturnValues(o, methods, b, mode);
     }
 
-    private static FieldedTypeBuffer writeMethodReturnValues(Object o, List<Method> methods, FieldedTypeBuffer b)
+    private static FieldedTypeBuffer writeMethodReturnValues(Object o, List<Method> methods, FieldedTypeBuffer b, FieldedTypeBufferProcessorMode mode)
     {
         // For methods we get the return value and store it
         for(Method m : methods)
@@ -42,9 +44,7 @@ public final class Marshaller
             try
             {
                 Object returnValue = m.invoke(o);
-                Object v = CommonDetails.wrapIfPrimitive(returnValue.getClass()).cast(returnValue);
-                v = CommonDetails.adaptValueToFielded(v);
-                writeValue(b, annotation, v);
+                writeBasedOnMode(returnValue, b, annotation, mode);
             }
             catch (IllegalAccessException | InvocationTargetException e)
             {
@@ -58,7 +58,7 @@ public final class Marshaller
         return b;
     }
 
-    private static FieldedTypeBuffer writeFields(final Object o, final List<Field> fields, FieldedTypeBuffer b)
+    private static FieldedTypeBuffer writeFields(final Object o, final List<Field> fields, FieldedTypeBuffer b, FieldedTypeBufferProcessorMode mode)
     {
         for(Field f : fields)
         {
@@ -71,9 +71,7 @@ public final class Marshaller
             try
             {
                 Object fieldValue = f.get(o);
-                Object v = CommonDetails.wrapIfPrimitive(fieldValue.getClass()).cast(fieldValue);
-                v = CommonDetails.adaptValueToFielded(v);
-                writeValue(b, annotation, v);
+                writeBasedOnMode(fieldValue, b, annotation, mode);
             }
             catch (IllegalAccessException e)
             {
@@ -87,16 +85,42 @@ public final class Marshaller
         return b;
     }
 
-    public static void writeValue(final FieldedTypeBuffer b, final CasualFieldElement annotation, final Object v) throws IllegalAccessException
+    private static void writeBasedOnMode(Object maybeValue, FieldedTypeBuffer b, CasualFieldElement annotation, FieldedTypeBufferProcessorMode mode)
+    {
+        if(FieldedTypeBufferProcessorMode.RELAXED == mode)
+        {
+            writeRelaxed(maybeValue, b, annotation, mode);
+        }
+        else
+        {
+            if(null == maybeValue)
+            {
+                throw new FieldedMarshallingException("strict mode but the value for @CasualFieldElement: " + annotation + " is null");
+            }
+            writeRelaxed(maybeValue, b, annotation, mode);
+        }
+    }
+
+    private static void writeRelaxed(Object maybeValue, FieldedTypeBuffer b, CasualFieldElement annotation, FieldedTypeBufferProcessorMode mode)
+    {
+        if(null != maybeValue)
+        {
+            Object v = CommonDetails.wrapIfPrimitive(maybeValue.getClass()).cast(maybeValue);
+            v = CommonDetails.adaptValueToFielded(v);
+            writeValue(b, annotation, v, mode);
+        }
+    }
+
+    public static void writeValue(final FieldedTypeBuffer b, final CasualFieldElement annotation, final Object v, FieldedTypeBufferProcessorMode mode)
     {
         if(CommonDetails.isListType(v.getClass()))
         {
             List<?> l = (List<?>)v;
-            writeListType(b, annotation, l);
+            writeListType(b, annotation, l, mode);
         }
         else if(CommonDetails.isArrayType(v.getClass()))
         {
-            writeArrayType(b, annotation, v);
+            writeArrayType(b, annotation, v, mode);
         }
         else if(CommonDetails.isFieldedType(v.getClass()))
         {
@@ -105,26 +129,40 @@ public final class Marshaller
         else
         {
             // should be POJO type
-            writeFields(v, b);
+            write(v, b, mode);
         }
     }
 
-    public static void writeArrayType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final Object o)
+    public static void writeArrayType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final Object o, FieldedTypeBufferProcessorMode mode)
     {
-        for(Object v : toObjectArray(o))
+        Class<?> componentType = o.getClass().getComponentType();
+        int arrayLength = Array.getLength(o);
+        String listLengthName = CommonDetails.getListLengthName(annotation).orElseThrow(() -> new FieldedUnmarshallingException("array type but @CasualFieldElement is missing lengthName!"));
+        b.write(listLengthName, (long)arrayLength);
+        if(componentType.isPrimitive() || CommonDetails.isFieldedType(componentType))
         {
-            b.write(annotation.name(), CommonDetails.adaptValueToFielded(v));
+            Object[] array = toObjectArray(o, componentType, arrayLength);
+            for (Object v : array)
+            {
+                b.write(annotation.name(), CommonDetails.adaptValueToFielded(v));
+            }
+        }
+        else
+        {
+            Object[] array = (Object[])o;
+            for(Object v : array)
+            {
+                write(v, b, mode);
+            }
         }
     }
 
-    public static Object[] toObjectArray(Object array)
+    public static Object[] toObjectArray(Object array, Class<?> componentType, int arrayLength)
     {
-        Class<?> componentType = array.getClass().getComponentType();
         if (componentType.isPrimitive())
         {
-            int length = Array.getLength(array);
-            Object[] r = new Object[length];
-            for (int i = 0; i < length; ++i)
+            Object[] r = new Object[arrayLength];
+            for (int i = 0; i < arrayLength; ++i)
             {
                 r[i] = Array.get(array, i);
             }
@@ -133,8 +171,10 @@ public final class Marshaller
         return (Object[]) array;
     }
 
-    public static void writeListType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final List<?> l)
+    public static void writeListType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final List<?> l, FieldedTypeBufferProcessorMode mode)
     {
+        String listLengthName = CommonDetails.getListLengthName(annotation).orElseThrow(() -> new FieldedUnmarshallingException("list type but @CasualFieldElement is missing lengthName!"));
+        b.write(listLengthName, (long)l.size());
         if(l.isEmpty())
         {
             return;
@@ -150,7 +190,7 @@ public final class Marshaller
         {
             for(Object v: l)
             {
-                writeFields(v, b);
+                write(v, b, mode);
             }
         }
     }

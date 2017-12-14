@@ -135,7 +135,7 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         then:
         v == null
         def e = thrown(CasualFieldedLookupException)
-        e.message == "index out of bounds index: ${index} for name: ${name}"
+        e.message == "name: ${name} does not exist with index: ${index}"
     }
 
     def "peek non existent field"()

@@ -17,6 +17,10 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 
+// "Generic wildcard types should not be used in return parameters"
+// This is for framework use only, no user will ever use this code
+// So no risk of confusion
+@SuppressWarnings("squid:S1452")
 public final class FieldedTypeBuffer implements CasualBuffer
 {
     private Map<String, List<FieldedData<?>>> m;
@@ -41,12 +45,21 @@ public final class FieldedTypeBuffer implements CasualBuffer
     }
 
     /**
-     * Use this to create an empty buffer that you want to writeFields to
+     * Use this to create an empty buffer that you want to write to
      * @return
      */
     public static FieldedTypeBuffer create()
     {
         return new FieldedTypeBuffer(new HashMap<>());
+    }
+
+    public static FieldedTypeBuffer of(FieldedTypeBuffer b)
+    {
+        Objects.requireNonNull(b, "buffer can not be null");
+        FieldedTypeBuffer r = FieldedTypeBuffer.create();
+        // shallow copy, keys and values are immutable
+        b.m.forEach((key, val) -> r.m.put(key, val.stream().collect(Collectors.toList())));
+        return r;
     }
 
     public List<byte[]> encode()
@@ -58,10 +71,6 @@ public final class FieldedTypeBuffer implements CasualBuffer
      * Extract the internal representation setting the state of this buffer to empty
      * @return
      */
-    // "Generic wildcard types should not be used in return parameters"
-    // This is for framework use only, no user will ever use this code
-    // So no risk of confusion
-    @SuppressWarnings("squid:S1452")
     public Map<String, List<FieldedData<?>>> extract()
     {
         Map<String, List<FieldedData<?>>> r = m;
@@ -76,17 +85,14 @@ public final class FieldedTypeBuffer implements CasualBuffer
 
     /**
      * Clears the current fielded data and replaces it with the incoming data
-     * Uses the {@link #writeAll(String, List<T>) writeAll} method
+     * Uses the {@link #writeAll(String, List) writeAll} method
      * This is to verify that the data is correct in case it was created/manipulated outside of a FieldedTypeBuffer
      * It also ensures that we do not keep any references to anything mutable
      * @param d
      * @return
      */
-    // "Generic wildcard types should not be used in return parameters"
-    // This is for framework use only, no user will ever use this code
-    // So no risk of confusion
     // squid:S1612 - sonar hates lambdas
-    @SuppressWarnings({"squid:S1452", "squid:S1612"})
+    @SuppressWarnings("squid:S1612")
     public FieldedTypeBuffer replace(final Map<String, List<FieldedData<?>>> d)
     {
         m = new HashMap<>();
@@ -97,66 +103,95 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return this;
     }
 
-    // "Generic wildcard types should not be used in return parameters"
-    // This is for framework use only, no user will ever use this code
-    // So no risk of confusion
-    @SuppressWarnings("squid:S1452")
     public FieldedData<?> read(long realId)
     {
         return read(realId, 0);
     }
 
-    // "Generic wildcard types should not be used in return parameters"
-    // This is for framework use only, no user will ever use this code
-    // So no risk of confusion
-    @SuppressWarnings("squid:S1452")
-    public FieldedData<?> read(long realId, int index)
+    public FieldedData<?> read(long realId, boolean remove)
     {
-        CasualField f = CasualFieldedLookup.forRealId(realId).orElseThrow(() -> new CasualFieldedLookupException("realId: " + realId + " does not exist"));
-        return read(f.getName(), index);
+        return read(realId, 0, remove);
     }
 
-    // "Generic wildcard types should not be used in return parameters"
-    // This is for framework use only, no user will ever use this code
-    // So no risk of confusion
-    @SuppressWarnings("squid:S1452")
+    public FieldedData<?> read(long realId, int index)
+    {
+        return read(realId, index, false);
+    }
+
+    public FieldedData<?> read(long realId, int index, boolean remove)
+    {
+        CasualField f = CasualFieldedLookup.forRealId(realId).orElseThrow(() -> new CasualFieldedLookupException("realId: " + realId + " does not exist"));
+        return read(f.getName(), index, remove);
+    }
+
     public FieldedData<?> read(final String name)
     {
         return read(name, 0);
     }
 
-    // "Generic wildcard types should not be used in return parameters"
-    // This is for framework use only, no user will ever use this code
-    // So no risk of confusion
-    @SuppressWarnings("squid:S1452")
-    public FieldedData<?> read(String name, int index)
+    public FieldedData<?> read(final String name, boolean remove)
     {
-        Optional<FieldedData<?>> d = peek(name, index);
-        return d.orElseThrow(generateExceptionWhenReading(name, index));
+        return read(name, 0, remove);
     }
 
-    private Supplier<CasualFieldedLookupException> generateExceptionWhenReading(String name, int index)
+    public FieldedData<?> read(String name, int index)
+    {
+        return read(name, index, false);
+    }
+
+    public FieldedData<?> read(String name, int index, boolean remove)
+    {
+        Optional<FieldedData<?>> d = peek(name, index);
+        if(remove && d.isPresent())
+        {
+            return remove(name, index);
+        }
+        return d.orElseThrow(createNameMissingException(name, Optional.of(index)));
+    }
+
+
+    public FieldedData<?> remove(String name, int index)
     {
         List<FieldedData<?>> l = m.get(name);
         if(null == l)
         {
-            return createNameMissingException(name, Optional.of(index));
+            throw createNameMissingException(name, Optional.of(index)).get();
         }
-        return () -> new CasualFieldedLookupException("index out of bounds index: " + index + " for name: " + name);
+        if(index >= l.size())
+        {
+            throw createIndexOutOfBoundException(name, index).get();
+        }
+        FieldedData<?> r =  l.remove(index);
+        if(l.isEmpty())
+        {
+            m.remove(name);
+        }
+        return r;
     }
 
-    // "Generic wildcard types should not be used in return parameters"
-    // This is for framework use only, no user will ever use this code
-    // So no risk of confusion
-    @SuppressWarnings("squid:S1452")
     public Optional<FieldedData<?>> peek(String name, int index)
+    {
+        return peek(name, index, false);
+    }
+
+    public Optional<FieldedData<?>> peek(String name, int index, boolean remove)
     {
         List<FieldedData<?>> l = m.get(name);
         if(null == l)
         {
             return Optional.empty();
         }
+        if(remove)
+        {
+            return index < l.size() ? Optional.of(remove(name, index)) : Optional.empty();
+        }
         return index < l.size() ? Optional.of(l.get(index)) : Optional.empty();
+    }
+
+
+    public List<FieldedData<?>> readAll(final String name)
+    {
+        return readAll(name, false);
     }
 
     /**
@@ -164,16 +199,16 @@ public final class FieldedTypeBuffer implements CasualBuffer
      * @param name
      * @return List with data or if name is not found, and empty list
      */
-    // "Generic wildcard types should not be used in return parameters"
-    // This is for framework use only, no user will ever use this code
-    // So no risk of confusion
-    @SuppressWarnings("squid:S1452")
-    public List<FieldedData<?>> readAll(final String name)
+    public List<FieldedData<?>> readAll(final String name, boolean remove)
     {
         List<FieldedData<?>> l = m.get(name);
         if(null == l)
         {
             return new ArrayList<>();
+        }
+        if(remove)
+        {
+            m.remove(name);
         }
         return l.stream().collect(Collectors.toList());
     }
@@ -278,4 +313,10 @@ public final class FieldedTypeBuffer implements CasualBuffer
         b.append(index.orElse(0));
         return () -> new CasualFieldedLookupException(b.toString());
     }
+
+    public static Supplier<CasualFieldedLookupException> createIndexOutOfBoundException(String name, Integer index)
+    {
+        return () -> new CasualFieldedLookupException("index out of bounds index: " + index + " for name: " + name);
+    }
+
 }

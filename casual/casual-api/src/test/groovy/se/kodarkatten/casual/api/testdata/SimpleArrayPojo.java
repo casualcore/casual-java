@@ -9,9 +9,9 @@ import java.util.Objects;
 public class SimpleArrayPojo implements Serializable
 {
     private static final long serialVersionUID = 1;
-    @CasualFieldElement(name = "FLD_LONG2")
+    @CasualFieldElement(name = "FLD_LONG2", lengthName = "FLD_LONG1")
     private final int[] numbers;
-    @CasualFieldElement(name = "FLD_LONG4")
+    @CasualFieldElement(name = "FLD_LONG4", lengthName = "FLD_LONG2")
     private final Long[] wrappedNumbers;
     private SimpleArrayPojo()
     {

@@ -108,7 +108,7 @@ class CasualServiceCallRequestMessageTest extends Specification
                                                         .setXatmiFlags(xatmiFlags)
                                                         .setServiceBuffer(serviceBuffer)
                                                         .build()
-        // force writeFields chunking
+        // force write chunking
         requestMsg.setMaxMessageSize(1)
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalAsyncByteChannel()
@@ -168,7 +168,7 @@ class CasualServiceCallRequestMessageTest extends Specification
                 .setXatmiFlags(xatmiFlags)
                 .setServiceBuffer(serviceBuffer)
                 .build()
-        // force writeFields chunking
+        // force write chunking
         requestMsg.setMaxMessageSize(1)
         CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()

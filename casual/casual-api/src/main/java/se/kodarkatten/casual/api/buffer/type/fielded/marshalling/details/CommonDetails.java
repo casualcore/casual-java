@@ -45,24 +45,24 @@ public final class CommonDetails
     private CommonDetails()
     {}
 
-    public static List<Field> getCasuallyAnnotatedFields(final Object o)
+    public static List<Field> getCasuallyAnnotatedFields(final Class<?> c)
     {
-        return Arrays.stream(o.getClass().getDeclaredFields())
+        return Arrays.stream(c.getDeclaredFields())
                      .filter(f -> hasCasualFieldAnnotation(f))
                      .collect(Collectors.toList());
     }
 
 
-    public static List<Method> getCasuallyAnnotatedMethods(final Object o)
+    public static List<Method> getCasuallyAnnotatedMethods(final Class<?> c)
     {
-        return Arrays.stream(o.getClass().getMethods())
+        return Arrays.stream(c.getMethods())
                      .filter(m -> hasCasualFieldAnnotation(m))
                      .collect(Collectors.toList());
     }
 
-    public static Map<Method, List<AnnotatedParameterInfo>> getCasuallyAnnotatedParameters(final Object o)
+    public static Map<Method, List<AnnotatedParameterInfo>> getCasuallyAnnotatedParameters(final Class<?> c)
     {
-        List<Method> methods = Arrays.stream(o.getClass().getMethods())
+        List<Method> methods = Arrays.stream(c.getMethods())
                                      .collect(Collectors.toList());
         Map<Method, List<AnnotatedParameterInfo>> map = new HashMap<>();
         for(Method m : methods)
@@ -141,5 +141,10 @@ public final class CommonDetails
     public static Class<?> adaptTypeToFielded(Class<?> clazz)
     {
         return clazz.equals(Integer.class) ? Long.class : clazz;
+    }
+
+    public static Optional<String> getListLengthName(final CasualFieldElement annotation)
+    {
+        return annotation.lengthName().isEmpty() ? Optional.empty() : Optional.of(annotation.lengthName());
     }
 }

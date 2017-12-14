@@ -1,13 +1,10 @@
 package se.kodarkatten.casual.api.buffer.type.fielded
 
+import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedMarshallingException
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessor
-import se.kodarkatten.casual.api.testdata.PojoWithAnnotatedMethods
-import se.kodarkatten.casual.api.testdata.SimpleArrayPojo
-import se.kodarkatten.casual.api.testdata.SimpleListPojo
-import se.kodarkatten.casual.api.testdata.SimplePojo
-import se.kodarkatten.casual.api.testdata.WrappedListPojo
-import se.kodarkatten.casual.api.testdata.WrappedListPojoWithAnnotatedMethods
-import se.kodarkatten.casual.api.testdata.WrappedPojo
+import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessorMode
+import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedUnmarshallingException
+import se.kodarkatten.casual.api.testdata.*
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -18,190 +15,127 @@ class FieldedTypeBufferProcessorTest extends Specification
     @Shared
     def age = 42
     @Shared
-    SimplePojo p = SimplePojo.of(name, age)
+    SimplePojo simplePojo = SimplePojo.of(name, age)
     @Shared
-    WrappedPojo wp = WrappedPojo.of(p, 'burrito')
+    WrappedPojo wrappedSimplePojo = WrappedPojo.of(simplePojo, 'burrito')
     @Shared
-    SimpleListPojo slp = SimpleListPojo.of(['sometimes', 'when', 'you', 'fall', 'you', 'fly'], [1,2,3,4,5])
+    SimpleListPojo listSimplePojo = SimpleListPojo.of(['sometimes', 'when', 'you', 'fall', 'you', 'fly'], [1, 2, 3, 4, 5])
     @Shared
-    SimpleListPojo emptySimpleListPojo = SimpleListPojo.of([], [1,2,3,42])
+    SimpleListPojo emptyListSimplePojo = SimpleListPojo.of([], [1, 2, 3, 42])
     @Shared
     int[] valueArray = [1, 2, 3, 4, 5, 6]
     @Shared
+    int[] cats = [1,2,3,4]
+    @Shared
+    int[] dogs = [20,30,40,50,60,70]
+    @Shared
     Long[] wrappedNumbers = [10,11,12,13]
     @Shared
-    SimpleArrayPojo sap = SimpleArrayPojo.of(valueArray, wrappedNumbers)
+    SimplePojo[] simplePojoArray = [SimplePojo.of('Jane Doe', 22), SimplePojo.of('Tarzan', 36)]
+    @Shared
+    SimpleArrayPojo arraySimplePojo = SimpleArrayPojo.of(valueArray, wrappedNumbers)
+    @Shared
+    ArraysSameNamePojo arraysSameNamePojo = ArraysSameNamePojo.of(cats, dogs)
+    @Shared
+    ArrayWithWrappedPojo arrayWithWrappedPojo = ArrayWithWrappedPojo.of(simplePojoArray)
     @Shared
     PojoWithAnnotatedMethods withAnnotatedMethods = PojoWithAnnotatedMethods.of(age, name, ['070-737373', '0730-808080'], Arrays.asList(valueArray))
     @Shared
     PojoWithAnnotatedMethods emptyWithAnnotatedMethods = PojoWithAnnotatedMethods.of(age, name, ['070-737373', '0730-808080'], [])
     @Shared
-    WrappedListPojo wlp = WrappedListPojo.of(Arrays.asList(SimplePojo.of('Jane Doe', 39), SimplePojo.of('Tarzan', 32)))
+    WrappedListPojo wrappedListPojo = WrappedListPojo.of(Arrays.asList(SimplePojo.of('Jane Doe', 39), SimplePojo.of('Tarzan', 32)))
     @Shared
-    WrappedListPojo emptyWlp = WrappedListPojo.of([])
+    WrappedListPojo emptyWrappedListPojo = WrappedListPojo.of([])
     @Shared
-    WrappedListPojoWithAnnotatedMethods wlpam = WrappedListPojoWithAnnotatedMethods.of(Arrays.asList(SimplePojo.of('Jane Doe', 39), SimplePojo.of('Tarzan', 32)))
+    WrappedListPojoWithAnnotatedMethods wrappedListPojoWithParameters = WrappedListPojoWithAnnotatedMethods.of(Arrays.asList(SimplePojo.of('Jane Doe', 39), SimplePojo.of('Tarzan', 32)))
     @Shared
-    WrappedListPojoWithAnnotatedMethods emptyWlpam = WrappedListPojoWithAnnotatedMethods.of([])
+    WrappedListPojoWithAnnotatedMethods emptyWrappedListPojoWithParameters = WrappedListPojoWithAnnotatedMethods.of([])
+    @Shared
+    TwoListsSameName twoListsSameName = TwoListsSameName.of([1,2,3,4], [10,20,30,40,50])
+    @Shared
+    TwoListsSameName twoListsSameNameFirstEmpty = TwoListsSameName.of([], [10,20,30,40,50])
+    @Shared
+    TwoListsSameName twoListsSameNameSecondEmpty = TwoListsSameName.of([1,2,3,4,5,], [])
+    @Shared
+    PojoWithNullableFields pojoWithNullableFieldsMissingName = PojoWithNullableFields.of(null, 42)
 
-    def 'marshall simple pojo'()
+    def 'roundtripping - relaxed'()
+    {
+        expect:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(instance, FieldedTypeBufferProcessorMode.RELAXED)
+        !b.isEmpty()
+        def r = FieldedTypeBufferProcessor.unmarshall(b, instanceClass, FieldedTypeBufferProcessorMode.RELAXED)
+        r == instance
+        !b.isEmpty()
+        where:
+        instance                           | instanceClass
+        twoListsSameName                   | TwoListsSameName.class
+        twoListsSameNameFirstEmpty         | TwoListsSameName.class
+        twoListsSameNameSecondEmpty        | TwoListsSameName.class
+        simplePojo                         | SimplePojo.class
+        listSimplePojo                     | SimpleListPojo.class
+        emptyListSimplePojo                | SimpleListPojo.class
+        arraySimplePojo                    | SimpleArrayPojo.class
+        arraysSameNamePojo                 | ArraysSameNamePojo.class
+        arrayWithWrappedPojo               | ArrayWithWrappedPojo.class
+        wrappedSimplePojo                  | WrappedPojo.class
+        withAnnotatedMethods               | PojoWithAnnotatedMethods.class
+        emptyWithAnnotatedMethods          | PojoWithAnnotatedMethods.class
+        wrappedListPojo                    | WrappedListPojo.class
+        emptyWrappedListPojo               | WrappedListPojo.class
+        wrappedListPojoWithParameters      | WrappedListPojoWithAnnotatedMethods.class
+        emptyWrappedListPojoWithParameters | WrappedListPojoWithAnnotatedMethods.class
+        pojoWithNullableFieldsMissingName  | PojoWithNullableFields.class
+    }
+
+    def 'roundtripping - strict'()
+    {
+        expect:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(instance, FieldedTypeBufferProcessorMode.STRICT)
+        !b.isEmpty()
+        def r = FieldedTypeBufferProcessor.unmarshall(b, instanceClass, FieldedTypeBufferProcessorMode.STRICT)
+        r == instance
+        !b.isEmpty()
+        where:
+        instance                           | instanceClass
+        twoListsSameName                   | TwoListsSameName.class
+        twoListsSameNameFirstEmpty         | TwoListsSameName.class
+        twoListsSameNameSecondEmpty        | TwoListsSameName.class
+        simplePojo                         | SimplePojo.class
+        listSimplePojo                     | SimpleListPojo.class
+        emptyListSimplePojo                | SimpleListPojo.class
+        arraySimplePojo                    | SimpleArrayPojo.class
+        arraysSameNamePojo                 | ArraysSameNamePojo.class
+        arrayWithWrappedPojo               | ArrayWithWrappedPojo.class
+        wrappedSimplePojo                  | WrappedPojo.class
+        withAnnotatedMethods               | PojoWithAnnotatedMethods.class
+        emptyWithAnnotatedMethods          | PojoWithAnnotatedMethods.class
+        wrappedListPojo                    | WrappedListPojo.class
+        emptyWrappedListPojo               | WrappedListPojo.class
+        wrappedListPojoWithParameters      | WrappedListPojoWithAnnotatedMethods.class
+        emptyWrappedListPojoWithParameters | WrappedListPojoWithAnnotatedMethods.class
+    }
+
+    def 'strict marshalling and null field value'()
     {
         when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(p)
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(pojoWithNullableFieldsMissingName, FieldedTypeBufferProcessorMode.STRICT)
         then:
-        b.read('FLD_STRING2').getData() == name
-        b.read('FLD_LONG1').getData() == age
+        b == null
+        def e = thrown(FieldedMarshallingException)
+        e.message.contains('strict mode but the value for @CasualFieldElement: ')
     }
 
-    def 'roundtrip simple pojo'()
+    def 'relaxed marshalling and strict unmarshalling'()
     {
         when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(p)
-        SimplePojo r = FieldedTypeBufferProcessor.unmarshall(b, SimplePojo.class)
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(pojoWithNullableFieldsMissingName, FieldedTypeBufferProcessorMode.RELAXED)
+        def r = FieldedTypeBufferProcessor.unmarshall(b, PojoWithNullableFields.class, FieldedTypeBufferProcessorMode.STRICT)
         then:
-        p == r
+        r == null
+        def e = thrown(FieldedUnmarshallingException)
+        //FieldedUnmarshallingException("strict mode and missing value for name: " + name + " with index: " + index);
+        e.message == 'strict mode and missing value for name: FLD_STRING1 with index: 0'
     }
 
-    def 'marshall simple list pojo'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(slp)
-        then:
-        verifyList(b, slp.getStrings())
-    }
-
-    def 'roundtrip simple list pojo'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(slp)
-        SimpleListPojo r = FieldedTypeBufferProcessor.unmarshall(b, SimpleListPojo.class)
-        then:
-        slp == r
-    }
-
-    def 'roundtrip empty simple list pojo'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(emptySimpleListPojo)
-        SimpleListPojo r = FieldedTypeBufferProcessor.unmarshall(b, SimpleListPojo.class)
-        then:
-        emptySimpleListPojo == r
-    }
-
-    def 'marshall simple array pojo'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(sap)
-        then:
-        verifyArray(b, 'FLD_LONG2', sap.getNumbers())
-        verifyArray(b, 'FLD_LONG4', sap.getWrappedNumbers())
-    }
-
-    def 'roundtrip simple array pojo'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(sap)
-        SimpleArrayPojo r = FieldedTypeBufferProcessor.unmarshall(b, SimpleArrayPojo.class)
-        then:
-        sap == r
-    }
-
-    def 'marshall wrapped pojo'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(wp)
-        then:
-        b.read('FLD_STRING2').getData() == name
-        b.read('FLD_LONG1').getData() == age
-    }
-
-    def 'roundtrip wrapped pojo'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(wp)
-        WrappedPojo r = FieldedTypeBufferProcessor.unmarshall(b, WrappedPojo.class)
-        then:
-        wp == r
-    }
-
-    def 'marshall pojo with annotated methods'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(withAnnotatedMethods)
-        then:
-        b.read('FLD_LONG1').getData() == age
-        b.read('FLD_STRING1').getData() == name
-    }
-
-    def 'roundtrip pojo with annotated method params'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(withAnnotatedMethods)
-        PojoWithAnnotatedMethods p = FieldedTypeBufferProcessor.unmarshall(b, PojoWithAnnotatedMethods.class)
-        then:
-        p == withAnnotatedMethods
-    }
-
-    def 'roundtrip pojo with annotated method params - with one empty list'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(emptyWithAnnotatedMethods)
-        PojoWithAnnotatedMethods p = FieldedTypeBufferProcessor.unmarshall(b, PojoWithAnnotatedMethods.class)
-        then:
-        p == emptyWithAnnotatedMethods
-    }
-
-    def 'roundtrip wrapped list pojo'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(wlp)
-        WrappedListPojo p = FieldedTypeBufferProcessor.unmarshall(b, WrappedListPojo.class)
-        then:
-        p == wlp
-    }
-
-    def 'roundtrip empty wrapped list pojo'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(emptyWlp)
-        WrappedListPojo p = FieldedTypeBufferProcessor.unmarshall(b, WrappedListPojo.class)
-        then:
-        p == emptyWlp
-    }
-
-    def 'roundtrip wrapped list pojo with annotated methods'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(wlpam)
-        WrappedListPojoWithAnnotatedMethods p = FieldedTypeBufferProcessor.unmarshall(b, WrappedListPojoWithAnnotatedMethods .class)
-        then:
-        p == wlpam
-    }
-
-    def 'roundtrip empty wrapped list pojo with annotated methods'()
-    {
-        when:
-        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(emptyWlpam)
-        WrappedListPojoWithAnnotatedMethods p = FieldedTypeBufferProcessor.unmarshall(b, WrappedListPojoWithAnnotatedMethods .class)
-        then:
-        p == emptyWlpam
-    }
-
-    def verifyArray(FieldedTypeBuffer b, name, values)
-    {
-        for(int i = 0; i < values.length; ++i)
-        {
-            assert b.read(name, i).getData() == values[i]
-        }
-        return true
-    }
-
-    def verifyList(FieldedTypeBuffer fieldedTypeBuffer, List<String> strings)
-    {
-        for(int i = 0; i < strings.size(); ++i)
-        {
-            assert fieldedTypeBuffer.read('FLD_STRING1', i).getData() == strings.get(i)
-        }
-        return true
-    }
 }

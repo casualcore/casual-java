@@ -24,4 +24,21 @@ class FieldedTypeBufferExtractReplaceTest extends Specification
         b.isEmpty()
         validateAgainst == replacementBuffer
     }
+
+    def 'copy constructor'()
+    {
+        setup:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(slp)
+        FieldedTypeBuffer copy = FieldedTypeBuffer.of(b)
+        when:
+        def mapB = b.extract()
+        //assert !copy.isEmpty()
+        mapB.clear()
+        //assert !copy.isEmpty()
+        then:
+        noExceptionThrown()
+        !copy.isEmpty()
+        copy.extract() != mapB
+    }
+
 }

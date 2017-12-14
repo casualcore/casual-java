@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public final class WrappedListPojo implements Serializable
 {
     private static final long serialVersionUID = 1;
-    @CasualFieldElement
+    @CasualFieldElement(lengthName = "FLD_LONG2")
     private final List<SimplePojo> simplePojos;
     private WrappedListPojo(final List<SimplePojo> simplePojos)
     {

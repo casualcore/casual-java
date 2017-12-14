@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 public class SimpleListPojo implements Serializable
 {
     private static final long serialVersionUID = 1;
-    @CasualFieldElement(name = "FLD_STRING1")
+    @CasualFieldElement(name = "FLD_STRING1", lengthName = "FLD_LONG1")
     final List<String> strings;
 
-    @CasualFieldElement(name = "FLD_LONG3")
+    @CasualFieldElement(name = "FLD_LONG3", lengthName = "FLD_LONG2")
     final List<Integer> numbers;
 
     private SimpleListPojo()

@@ -20,13 +20,13 @@ public final class WrappedListPojoWithAnnotatedMethods implements Serializable
         Objects.requireNonNull(simplePojos);
         return new WrappedListPojoWithAnnotatedMethods(simplePojos.stream().collect(Collectors.toList()));
     }
-    @CasualFieldElement
+    @CasualFieldElement(lengthName = "FLD_LONG2")
     public List<SimplePojo> getSimplePojos()
     {
         return simplePojos;
     }
 
-    public void setSimplePojos(@CasualFieldElement List<SimplePojo> simplePojos)
+    public void setSimplePojos(@CasualFieldElement(lengthName = "FLD_LONG2") List<SimplePojo> simplePojos)
     {
         this.simplePojos = simplePojos;
     }

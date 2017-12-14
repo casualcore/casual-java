@@ -48,7 +48,7 @@ import java.lang.annotation.Target;
  * @<code>
  * class Y
  * {
- *     @CasualFieldElement
+ *     @CasualFieldElement(lengthName ="FLD_LONG1")
  *     List<X> theXs;
  * }
  *</code>
@@ -62,13 +62,13 @@ import java.lang.annotation.Target;
  * {
  *     private List<X> theXs;
  *
- *     @CasualFieldElement
+ *     @CasualFieldElement(lengthName ="FLD_LONG1")
  *     public List<X> getTheXs()
  *     {
  *        return theXs;
  *     }
  *
- *     public void setTheXs( @CasualFieldElement List<X> theXs)
+ *     public void setTheXs( @CasualFieldElement(lengthName ="FLD_LONG1") List<X> theXs)
  *     {
  *        this.theXs = theXs;
  *     }
@@ -104,13 +104,30 @@ import java.lang.annotation.Target;
  *</code>
  * </pre>
  * Notice that with wrapped POJOs you do not need to supply a name
+ * If they are in an array/list you do still do need to supply a lengthName
  *
  * Regarding lists:
- * Interface type should be list and the concrete type should be ArrayList
+ * Interface type should be List<Type> and you can not make any assumptions of what the actual list type is after unmarshalling
+ *
+ * For arrays and lists you need to supply a lengthName that will be used for the number of items
+ * in the list/array.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 public @interface CasualFieldElement
 {
+    /**
+     * A name from your fielded json
+     * Note that for int/Integer types you should use a name that maps to long
+     * as int/Integer are transported as longs
+     * @return
+     */
     String name() default "";
+
+    /**
+     * If the annotation annotates an array or a list
+     * The name should be a name from your fielded json
+     * @return
+     */
+    String lengthName() default "";
 }

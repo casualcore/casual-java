@@ -44,12 +44,6 @@ public final class PojoWithAnnotatedMethods implements Serializable
         return name;
     }
 
-    @CasualFieldElement(name = "FLD_STRING2")
-    public List<String> getPhoneNumbers()
-    {
-        return phoneNumbers;
-    }
-
     public void setAge(@CasualFieldElement(name = "FLD_LONG1") int age)
     {
         this.age = age;
@@ -60,18 +54,23 @@ public final class PojoWithAnnotatedMethods implements Serializable
         this.name = name;
     }
 
-    public void setPhoneNumbers(@CasualFieldElement(name = "FLD_STRING2") List<String> l)
+    @CasualFieldElement(name = "FLD_STRING2", lengthName = "FLD_LONG3")
+    public List<String> getPhoneNumbers()
+    {
+        return phoneNumbers;
+    }
+    public void setPhoneNumbers(@CasualFieldElement(name = "FLD_STRING2", lengthName = "FLD_LONG3") List<String> l)
     {
         this.phoneNumbers = l.stream().collect(Collectors.toList());
     }
 
-    @CasualFieldElement(name = "FLD_LONG2")
+    @CasualFieldElement(name = "FLD_LONG2", lengthName = "FLD_LONG4")
     public List<Integer> getLuckyNumbers()
     {
         return luckyNumbers;
     }
 
-    public void setLuckyNumbers(@CasualFieldElement(name = "FLD_LONG2") List<Integer> numbers)
+    public void setLuckyNumbers(@CasualFieldElement(name = "FLD_LONG2", lengthName = "FLD_LONG4") List<Integer> numbers)
     {
         this.luckyNumbers = numbers;
     }
