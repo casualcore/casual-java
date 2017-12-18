@@ -44,14 +44,14 @@ public final class Unmarshaller
         T instance = clazzInstantiator.newInstance();
         List<Field> fields = CommonDetails.getCasuallyAnnotatedFields(instance.getClass());
         boolean didReadField = readFields(b, instance, fields, listIndex, mode);
-        Map<Method, List<AnnotatedParameterInfo>> methodInfo = CommonDetails.getCasuallyAnnotatedParameters(instance.getClass());
+        Map<Method, List<ParameterInfo>> methodInfo = CommonDetails.getParameterInfo(instance.getClass());
         boolean didReadAnnotatedParam = readMethodsWithAnnotatedParameters(b, instance, methodInfo, listIndex, mode);
         return (didReadField || didReadAnnotatedParam) ? Optional.of(instance) : Optional.empty();
     }
 
     public static Object[] createMethodParameterObjects(FieldedTypeBuffer b, Method m, FieldedTypeBufferProcessorMode mode)
     {
-        List<AnnotatedParameterInfo> parameterInfo = CommonDetails.getAnnotatedParameterInfo(m);
+        List<ParameterInfo> parameterInfo = CommonDetails.getParameterInfo(m);
         try
         {
             return instantiateMethodParameters(b, parameterInfo, 0 , mode);
@@ -62,10 +62,10 @@ public final class Unmarshaller
         }
     }
 
-    private static <T> boolean readMethodsWithAnnotatedParameters(FieldedTypeBuffer b, T instance, Map<Method, List<AnnotatedParameterInfo>> methodInfo, int listIndex, FieldedTypeBufferProcessorMode mode)
+    private static <T> boolean readMethodsWithAnnotatedParameters(FieldedTypeBuffer b, T instance, Map<Method, List<ParameterInfo>> methodInfo, int listIndex, FieldedTypeBufferProcessorMode mode)
     {
         boolean readFieldedParam = false;
-        for(Map.Entry<Method, List<AnnotatedParameterInfo>> m : methodInfo.entrySet())
+        for(Map.Entry<Method, List<ParameterInfo>> m : methodInfo.entrySet())
         {
             Object[] instantiatedMethodParameters;
             try
@@ -86,15 +86,23 @@ public final class Unmarshaller
         return readFieldedParam;
     }
 
-    private static Object[] instantiateMethodParameters(FieldedTypeBuffer b, List<AnnotatedParameterInfo> parameterInfo, int index, FieldedTypeBufferProcessorMode mode) throws ClassNotFoundException
+    private static Object[] instantiateMethodParameters(FieldedTypeBuffer b, List<ParameterInfo> parameterInfo, int index, FieldedTypeBufferProcessorMode mode) throws ClassNotFoundException
     {
         // we need to instantiate each parameter
         Object[] l = new Object[parameterInfo.size()];
         for(int i = 0; i < parameterInfo.size(); ++i)
         {
             final int finalIndex = i;
-            final AnnotatedParameterInfo info = parameterInfo.get(i);
-            readValue(b, info.getAnnotation(), (Object v) -> l[finalIndex] = v, info.getType(), () -> info.getParameterizedType(), index, mode);
+            final ParameterInfo p = parameterInfo.get(i);
+            if(p instanceof AnnotatedParameterInfo)
+            {
+                AnnotatedParameterInfo info = (AnnotatedParameterInfo)p;
+                readValue(b, info.getAnnotation(), (Object v) -> l[finalIndex] = v, info.getType(), () -> info.getParameterizedType(), index, mode);
+            }
+            else
+            {
+                l[i] = createObject(b, p.getType(), mode);
+            }
         }
         return l;
     }

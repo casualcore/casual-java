@@ -15,15 +15,14 @@ import java.util.Optional;
  */
 // sonar hates lambdas
 @SuppressWarnings("squid:S1612")
-public final class AnnotatedParameterInfo
+public final class AnnotatedParameterInfo extends ParameterInfo
 {
     private final CasualFieldElement annotation;
-    private final Class<?> type;
     private final Optional<ParameterizedType> parameterizedType;
     public AnnotatedParameterInfo(final CasualFieldElement annotation, final Class<?> type, final Optional<ParameterizedType> parameterizedType)
     {
+        super(type);
         this.annotation = annotation;
-        this.type = type;
         this.parameterizedType = parameterizedType;
     }
     public static AnnotatedParameterInfo of(final CasualFieldElement annotation, final Class<?> type, final Optional<ParameterizedType> parameterizedType)
@@ -43,18 +42,26 @@ public final class AnnotatedParameterInfo
         return AnnotatedParameterInfo.of(cfe, type, parameterizedType);
     }
 
+    public static ParameterInfo of(final Annotation annotation, final Class<?> type, final Optional<ParameterizedType> parameterizedType)
+    {
+        Objects.requireNonNull(annotation, "annotation can not be null");
+        Objects.requireNonNull(type, "type can not be null");
+        if(!(annotation instanceof CasualFieldElement))
+        {
+            throw new FieldedUnmarshallingException("expected @CasualFieldElement, not : " + annotation);
+        }
+        return new AnnotatedParameterInfo((CasualFieldElement) annotation, type, parameterizedType);
+    }
+
     public CasualFieldElement getAnnotation()
     {
         return annotation;
-    }
-
-    public Class<?> getType()
-    {
-        return type;
     }
 
     public ParameterizedType getParameterizedType()
     {
         return parameterizedType.orElseThrow(() -> new FieldedUnmarshallingException("missing parameterized type!"));
     }
+
+
 }

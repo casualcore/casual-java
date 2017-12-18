@@ -12,6 +12,7 @@ import se.kodarkatten.casual.api.util.Pair;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -65,14 +66,14 @@ public final class CommonDetails
                      .collect(Collectors.toList());
     }
 
-    public static Map<Method, List<AnnotatedParameterInfo>> getCasuallyAnnotatedParameters(final Class<?> c)
+    public static Map<Method, List<ParameterInfo>> getParameterInfo(final Class<?> c)
     {
         List<Method> methods = Arrays.stream(c.getMethods())
                                      .collect(Collectors.toList());
-        Map<Method, List<AnnotatedParameterInfo>> map = new HashMap<>();
+        Map<Method, List<ParameterInfo>> map = new HashMap<>();
         for(Method m : methods)
         {
-            List<AnnotatedParameterInfo> l = getAnnotatedParameterInfo(m);
+            List<ParameterInfo> l = getParameterInfo(m);
             if(!l.isEmpty())
             {
                 map.put(m, l);
@@ -81,30 +82,53 @@ public final class CommonDetails
         return map;
     }
 
-    public static List<AnnotatedParameterInfo> getAnnotatedParameterInfo(final Method m)
+    public static List<ParameterInfo> getParameterInfo(final Method m)
     {
-        List<AnnotatedParameterInfo> parameterInfoList = new ArrayList<>();
-        List<Class<?>> types = Arrays.stream(m.getParameterTypes()).collect(Collectors.toList());
         List<Type> genericParameterTypes = Arrays.stream(m.getGenericParameterTypes()).collect(Collectors.toList());
-        List<List<Annotation>> l = Arrays.stream(m.getParameterAnnotations())
-                                         .map(v -> Arrays.stream(v)
-                                                          .filter(a -> a instanceof CasualFieldElement)
-                                                          .collect(Collectors.toList()))
-                                         .filter(f -> !f.isEmpty())
-                                         .collect(Collectors.toList());
-        if(!l.isEmpty())
+        List<ParameterInfo> parameterInfo = new ArrayList<>();
+        Parameter[] parameters = m.getParameters();
+        for(int i = 0; i < m.getParameterCount(); ++i)
         {
-            if(genericParameterTypes.size() != l.size())
-            {
-                throw new FieldedUnmarshallingException("# of annotations: " + l.size() + " does not match # of types: " + genericParameterTypes.size());
-            }
-            for(int i = 0; i < genericParameterTypes.size(); ++i)
+            Parameter p = parameters[i];
+            Optional<Annotation> a = Arrays.stream(p.getDeclaredAnnotations())
+                                           .filter(v -> v instanceof CasualFieldElement)
+                                           .findFirst();
+            if(a.isPresent())
             {
                 boolean isParameterizedType = genericParameterTypes.get(i) instanceof ParameterizedType;
-                parameterInfoList.add(AnnotatedParameterInfo.of(l.get(i), types.get(i), isParameterizedType ? Optional.of((ParameterizedType)genericParameterTypes.get(i)) : Optional.empty()));
+                parameterInfo.add(AnnotatedParameterInfo.of(a.get(), p.getType(), isParameterizedType ? Optional.of((ParameterizedType)genericParameterTypes.get(i)) : Optional.empty()));
+            }
+            else
+            {
+                // if there's no annotation and the parameter type itself does not contain any @CasualFieldElement
+                // then we just bail and continue
+                if(!hasCasualFieldAnnotation(p.getType()))
+                {
+                    return new ArrayList<>();
+                }
+                parameterInfo.add(ParameterInfo.of(p.getType()));
             }
         }
-        return parameterInfoList;
+        return parameterInfo;
+    }
+
+    private static boolean hasCasualFieldAnnotation(final Class<?> type)
+    {
+        for(Field f : type.getDeclaredFields())
+        {
+            if(hasCasualFieldAnnotation(f))
+            {
+                return true;
+            }
+        }
+        for(Method m : type.getDeclaredMethods())
+        {
+            if(hasCasualFieldAnnotation(m))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean hasCasualFieldAnnotation(final Field f)

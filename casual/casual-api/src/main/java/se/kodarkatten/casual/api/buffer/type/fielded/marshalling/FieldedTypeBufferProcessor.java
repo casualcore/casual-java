@@ -54,7 +54,10 @@ public final class FieldedTypeBufferProcessor
     {
         Objects.requireNonNull(b, "buffer can not be null");
         Objects.requireNonNull(m, "method can not be null");
-        return Unmarshaller.createMethodParameterObjects(b, m, mode);
+        // we make a copy of the buffer since operations that we will use are destructive
+        // note: this is not very expensive since we use the same immutable references
+        FieldedTypeBuffer copy = FieldedTypeBuffer.of(b);
+        return Unmarshaller.createMethodParameterObjects(copy, m, mode);
     }
 
 }

@@ -4,7 +4,6 @@ import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedMarshall
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessor
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessorMode
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedUnmarshallingException
-import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.details.Unmarshaller
 import se.kodarkatten.casual.api.testdata.*
 import spock.lang.Shared
 import spock.lang.Specification
@@ -46,6 +45,8 @@ class FieldedTypeBufferProcessorTest extends Specification
     PojoWithAnnotatedMethods withAnnotatedMethods = PojoWithAnnotatedMethods.of(age, name, ['070-737373', '0730-808080'], Arrays.asList(valueArray))
     @Shared
     LuckyPhoneBookService luckyPhoneBookService = LuckyPhoneBookService.of(age, name, ['070-737373', '0730-808080'], Arrays.asList(valueArray))
+    @Shared
+    SimplePojoService simplePojoService = SimplePojoService.of(simplePojo)
     @Shared
     PojoWithAnnotatedMethods emptyWithAnnotatedMethods = PojoWithAnnotatedMethods.of(age, name, ['070-737373', '0730-808080'], [])
     @Shared
@@ -164,7 +165,6 @@ class FieldedTypeBufferProcessorTest extends Specification
         then:
         r == null
         def e = thrown(FieldedUnmarshallingException)
-        //FieldedUnmarshallingException("strict mode and missing value for name: " + name + " with index: " + index);
         e.message == 'strict mode and missing value for name: FLD_STRING1 with index: 0'
     }
 
@@ -173,24 +173,34 @@ class FieldedTypeBufferProcessorTest extends Specification
         setup:
         FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(withAnnotatedMethods, FieldedTypeBufferProcessorMode.STRICT)
         when:
-        LuckyPhoneBookService s = invokeAllServiceMethods(b)
+        LuckyPhoneBookService s = invokeAllServiceMethods(b, LuckyPhoneBookService.of())
         then:
         s != null
         s == luckyPhoneBookService
     }
 
-    LuckyPhoneBookService invokeAllServiceMethods(FieldedTypeBuffer b)
+    def 'service unmarshalling non annotated method param'()
     {
-        LuckyPhoneBookService s = LuckyPhoneBookService.of()
-        for(Method m : LuckyPhoneBookService.getMethods())
+        setup:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(simplePojo, FieldedTypeBufferProcessorMode.STRICT)
+        when:
+        SimplePojoService  s = invokeAllServiceMethods(b, SimplePojoService.of())
+        then:
+        s != null
+        s == simplePojoService
+    }
+
+    Object invokeAllServiceMethods(FieldedTypeBuffer b, Object instance)
+    {
+        for(Method m : instance.getClass().getMethods())
         {
             Object[] instantiatedParameters = FieldedTypeBufferProcessor.unmarshall(b, m)
             if(instantiatedParameters.length > 0)
             {
-                m.invoke(s, instantiatedParameters)
+                m.invoke(instance, instantiatedParameters)
             }
         }
-        return s
+        return instance
     }
 
 }
