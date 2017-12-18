@@ -1,5 +1,8 @@
 package se.kodarkatten.casual.api.buffer.type.fielded.annotation;
 
+import se.kodarkatten.casual.api.buffer.type.fielded.mapper.CasualObjectMapper;
+import se.kodarkatten.casual.api.buffer.type.fielded.mapper.PassThroughMapper;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -130,4 +133,12 @@ public @interface CasualFieldElement
      * @return
      */
     String lengthName() default "";
+
+    /**
+     * Default pass through mapper
+     * That is, if no other mapper is supplied - no mapping will take place
+     * @return
+     */
+    Class<? extends CasualObjectMapper<? extends Object, ? extends Object>> mapper() default PassThroughMapper.class;
+
 }

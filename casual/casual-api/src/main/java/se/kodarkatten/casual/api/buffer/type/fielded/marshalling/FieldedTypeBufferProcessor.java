@@ -4,6 +4,7 @@ import se.kodarkatten.casual.api.buffer.type.fielded.FieldedTypeBuffer;
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.details.Marshaller;
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.details.Unmarshaller;
 
+import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
@@ -42,6 +43,18 @@ public final class FieldedTypeBufferProcessor
         // note: this is not very expensive since we use the same immutable references
         FieldedTypeBuffer copy = FieldedTypeBuffer.of(b);
         return Unmarshaller.createObject(copy, clazz, mode);
+    }
+
+    public static Object[] unmarshall(final FieldedTypeBuffer b, final Method m)
+    {
+        return unmarshall(b, m, FieldedTypeBufferProcessorMode.RELAXED);
+    }
+
+    public static Object[] unmarshall(final FieldedTypeBuffer b, final Method m, FieldedTypeBufferProcessorMode mode)
+    {
+        Objects.requireNonNull(b, "buffer can not be null");
+        Objects.requireNonNull(m, "method can not be null");
+        return Unmarshaller.createMethodParameterObjects(b, m, mode);
     }
 
 }

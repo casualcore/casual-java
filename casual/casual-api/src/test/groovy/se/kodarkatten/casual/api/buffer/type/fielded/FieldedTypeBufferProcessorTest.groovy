@@ -4,9 +4,13 @@ import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedMarshall
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessor
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessorMode
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedUnmarshallingException
+import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.details.Unmarshaller
 import se.kodarkatten.casual.api.testdata.*
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.lang.reflect.Method
+import java.time.LocalDate
 
 class FieldedTypeBufferProcessorTest extends Specification
 {
@@ -41,6 +45,8 @@ class FieldedTypeBufferProcessorTest extends Specification
     @Shared
     PojoWithAnnotatedMethods withAnnotatedMethods = PojoWithAnnotatedMethods.of(age, name, ['070-737373', '0730-808080'], Arrays.asList(valueArray))
     @Shared
+    LuckyPhoneBookService luckyPhoneBookService = LuckyPhoneBookService.of(age, name, ['070-737373', '0730-808080'], Arrays.asList(valueArray))
+    @Shared
     PojoWithAnnotatedMethods emptyWithAnnotatedMethods = PojoWithAnnotatedMethods.of(age, name, ['070-737373', '0730-808080'], [])
     @Shared
     WrappedListPojo wrappedListPojo = WrappedListPojo.of(Arrays.asList(SimplePojo.of('Jane Doe', 39), SimplePojo.of('Tarzan', 32)))
@@ -58,6 +64,20 @@ class FieldedTypeBufferProcessorTest extends Specification
     TwoListsSameName twoListsSameNameSecondEmpty = TwoListsSameName.of([1,2,3,4,5,], [])
     @Shared
     PojoWithNullableFields pojoWithNullableFieldsMissingName = PojoWithNullableFields.of(null, 42)
+    @Shared
+    PojoWithMappableField pojoWithMappableField = PojoWithMappableField.of(LocalDate.of(1972, 1, 1), LocalDate.of(2017, 1, 1))
+    @Shared
+    PojoWithMappableParam pojoWithMappableParam = PojoWithMappableParam.of(LocalDate.of(1972, 1, 1), LocalDate.of(2017, 1, 1))
+    @Shared
+    PojoWithMappableFieldList pojoWithMappableFieldList = PojoWithMappableFieldList.of([LocalDate.of(1972, 1, 1), LocalDate.of(2017, 1, 1)])
+    @Shared
+    PojoWithMappableParamList pojoWithMappableParamList = PojoWithMappableParamList.of([LocalDate.of(1972, 1, 1), LocalDate.of(2017, 1, 1)])
+    @Shared
+    LocalDate[] localDates = [LocalDate.of(1972, 1, 1), LocalDate.of(2017, 1, 1)]
+    @Shared
+    PojoWithMappableFieldArray pojoWithMappableFieldArray = PojoWithMappableFieldArray.of(localDates)
+    @Shared
+    PojoWithMappableParamArray pojoWithMappableParamArray = PojoWithMappableParamArray.of(localDates)
 
     def 'roundtripping - relaxed'()
     {
@@ -86,6 +106,12 @@ class FieldedTypeBufferProcessorTest extends Specification
         wrappedListPojoWithParameters      | WrappedListPojoWithAnnotatedMethods.class
         emptyWrappedListPojoWithParameters | WrappedListPojoWithAnnotatedMethods.class
         pojoWithNullableFieldsMissingName  | PojoWithNullableFields.class
+        pojoWithMappableField              | PojoWithMappableField.class
+        pojoWithMappableFieldList          | PojoWithMappableFieldList.class
+        pojoWithMappableParam              | PojoWithMappableParam.class
+        pojoWithMappableParamList          | PojoWithMappableParamList.class
+        pojoWithMappableFieldArray         | PojoWithMappableFieldArray.class
+        pojoWithMappableParamArray         | PojoWithMappableParamArray.class
     }
 
     def 'roundtripping - strict'()
@@ -114,6 +140,10 @@ class FieldedTypeBufferProcessorTest extends Specification
         emptyWrappedListPojo               | WrappedListPojo.class
         wrappedListPojoWithParameters      | WrappedListPojoWithAnnotatedMethods.class
         emptyWrappedListPojoWithParameters | WrappedListPojoWithAnnotatedMethods.class
+        pojoWithMappableField              | PojoWithMappableField.class
+        pojoWithMappableFieldList          | PojoWithMappableFieldList.class
+        pojoWithMappableParam              | PojoWithMappableParam.class
+        pojoWithMappableParamList          | PojoWithMappableParamList.class
     }
 
     def 'strict marshalling and null field value'()
@@ -136,6 +166,31 @@ class FieldedTypeBufferProcessorTest extends Specification
         def e = thrown(FieldedUnmarshallingException)
         //FieldedUnmarshallingException("strict mode and missing value for name: " + name + " with index: " + index);
         e.message == 'strict mode and missing value for name: FLD_STRING1 with index: 0'
+    }
+
+    def 'service unmarshalling annotated parameter methods'()
+    {
+        setup:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(withAnnotatedMethods, FieldedTypeBufferProcessorMode.STRICT)
+        when:
+        LuckyPhoneBookService s = invokeAllServiceMethods(b)
+        then:
+        s != null
+        s == luckyPhoneBookService
+    }
+
+    LuckyPhoneBookService invokeAllServiceMethods(FieldedTypeBuffer b)
+    {
+        LuckyPhoneBookService s = LuckyPhoneBookService.of()
+        for(Method m : LuckyPhoneBookService.getMethods())
+        {
+            Object[] instantiatedParameters = FieldedTypeBufferProcessor.unmarshall(b, m)
+            if(instantiatedParameters.length > 0)
+            {
+                m.invoke(s, instantiatedParameters)
+            }
+        }
+        return s
     }
 
 }

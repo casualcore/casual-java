@@ -11,6 +11,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 public final class Marshaller
 {
@@ -48,7 +50,7 @@ public final class Marshaller
             }
             catch (IllegalAccessException | InvocationTargetException e)
             {
-                throw new FieldedMarshallingException("problems invoking method: " + m, e);
+                throw new FieldedMarshallingException("can not marshall parameter annotations for method: " + m, e);
             }
             finally
             {
@@ -75,7 +77,7 @@ public final class Marshaller
             }
             catch (IllegalAccessException e)
             {
-                throw new FieldedMarshallingException("can't access field: " + f, e);
+                throw new FieldedMarshallingException("can not marshall field: " + f, e);
             }
             finally
             {
@@ -111,29 +113,30 @@ public final class Marshaller
         }
     }
 
-    public static void writeValue(final FieldedTypeBuffer b, final CasualFieldElement annotation, final Object v, FieldedTypeBufferProcessorMode mode)
+    public static void writeValue(final FieldedTypeBuffer b, final CasualFieldElement annotation,  final Object v, FieldedTypeBufferProcessorMode mode)
     {
-        if(CommonDetails.isListType(v.getClass()))
+        Optional<Function<Object, ? extends Object>> mapper = CommonDetails.getMapperTo(annotation);
+        Class<?> clazz = v.getClass();
+        if(CommonDetails.isListType(clazz))
         {
             List<?> l = (List<?>)v;
-            writeListType(b, annotation, l, mode);
+            writeListType(b, annotation, l, mode, mapper);
         }
-        else if(CommonDetails.isArrayType(v.getClass()))
+        else if(CommonDetails.isArrayType(clazz))
         {
-            writeArrayType(b, annotation, v, mode);
+            writeArrayType(b, annotation, v, mode, mapper);
         }
-        else if(CommonDetails.isFieldedType(v.getClass()))
+        else if(CommonDetails.isFieldedType(clazz))
         {
             b.write(annotation.name(), v);
         }
         else
         {
-            // should be POJO type
-            write(v, b, mode);
+            writePOJO(v, b, mode, mapper.orElseGet(() -> null), annotation.name());
         }
     }
 
-    public static void writeArrayType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final Object o, FieldedTypeBufferProcessorMode mode)
+    public static void writeArrayType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final Object o, FieldedTypeBufferProcessorMode mode, Optional<Function<Object, ?>> mapper)
     {
         Class<?> componentType = o.getClass().getComponentType();
         int arrayLength = Array.getLength(o);
@@ -152,8 +155,21 @@ public final class Marshaller
             Object[] array = (Object[])o;
             for(Object v : array)
             {
-                write(v, b, mode);
+                writePOJO(v, b, mode, mapper.orElseGet(() -> null), annotation.name());
             }
+        }
+    }
+
+    private static void writePOJO(Object v, FieldedTypeBuffer b, FieldedTypeBufferProcessorMode mode, Function<Object, ?> mapper, String name)
+    {
+        Object mapped = (null == mapper) ? v : CommonDetails.adaptValueToFielded(mapper.apply(v));
+        if(CommonDetails.isFieldedType(mapped.getClass()))
+        {
+            b.write(name, mapped);
+        }
+        else
+        {
+            write(v, b, mode);
         }
     }
 
@@ -171,7 +187,7 @@ public final class Marshaller
         return (Object[]) array;
     }
 
-    public static void writeListType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final List<?> l, FieldedTypeBufferProcessorMode mode)
+    public static void writeListType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final List<?> l, FieldedTypeBufferProcessorMode mode, Optional<Function<Object, ?>> mapper)
     {
         String listLengthName = CommonDetails.getListLengthName(annotation).orElseThrow(() -> new FieldedUnmarshallingException("list type but @CasualFieldElement is missing lengthName!"));
         b.write(listLengthName, (long)l.size());
@@ -190,7 +206,7 @@ public final class Marshaller
         {
             for(Object v: l)
             {
-                write(v, b, mode);
+                writePOJO(v, b, mode, mapper.orElseGet(() -> null), annotation.name());
             }
         }
     }

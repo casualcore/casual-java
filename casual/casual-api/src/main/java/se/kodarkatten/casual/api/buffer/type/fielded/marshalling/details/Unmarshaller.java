@@ -8,6 +8,7 @@ import se.kodarkatten.casual.api.buffer.type.fielded.FieldedTypeBuffer;
 import se.kodarkatten.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessorMode;
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedUnmarshallingException;
+import se.kodarkatten.casual.api.util.Pair;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 // sonar hates lambdas
@@ -41,37 +43,44 @@ public final class Unmarshaller
         ObjectInstantiator<T> clazzInstantiator = objenesis.getInstantiatorOf(clazz);
         T instance = clazzInstantiator.newInstance();
         List<Field> fields = CommonDetails.getCasuallyAnnotatedFields(instance.getClass());
+        boolean didReadField = readFields(b, instance, fields, listIndex, mode);
+        Map<Method, List<AnnotatedParameterInfo>> methodInfo = CommonDetails.getCasuallyAnnotatedParameters(instance.getClass());
+        boolean didReadAnnotatedParam = readMethodsWithAnnotatedParameters(b, instance, methodInfo, listIndex, mode);
+        return (didReadField || didReadAnnotatedParam) ? Optional.of(instance) : Optional.empty();
+    }
+
+    public static Object[] createMethodParameterObjects(FieldedTypeBuffer b, Method m, FieldedTypeBufferProcessorMode mode)
+    {
+        List<AnnotatedParameterInfo> parameterInfo = CommonDetails.getAnnotatedParameterInfo(m);
         try
         {
-            boolean didReadField = readFields(b, instance, fields, listIndex, mode);
-            Map<Method, List<AnnotatedParameterInfo>> methodInfo = CommonDetails.getCasuallyAnnotatedParameters(instance.getClass());
-            boolean didReadAnnotatedParam = readMethodsWithAnnotatedParameters(b, instance, methodInfo, listIndex, mode);
-            return (didReadField || didReadAnnotatedParam) ? Optional.of(instance) : Optional.empty();
+            return instantiateMethodParameters(b, parameterInfo, 0 , mode);
         }
         catch (ClassNotFoundException e)
         {
-            throw new FieldedUnmarshallingException(e);
+            throw new FieldedUnmarshallingException("could not create parameter objects for method:" + m + " with buffer: " + b + " using mode: " + mode, e);
         }
     }
 
-    private static <T> boolean readMethodsWithAnnotatedParameters(FieldedTypeBuffer b, T instance, Map<Method, List<AnnotatedParameterInfo>> methodInfo, int listIndex, FieldedTypeBufferProcessorMode mode) throws ClassNotFoundException
+    private static <T> boolean readMethodsWithAnnotatedParameters(FieldedTypeBuffer b, T instance, Map<Method, List<AnnotatedParameterInfo>> methodInfo, int listIndex, FieldedTypeBufferProcessorMode mode)
     {
         boolean readFieldedParam = false;
         for(Map.Entry<Method, List<AnnotatedParameterInfo>> m : methodInfo.entrySet())
         {
-            // parameter info is in parameter order
-            Object[] instantiatedMethodParameters = instantiateMethodParameters(b, m.getValue(), listIndex, mode);
+            Object[] instantiatedMethodParameters;
             try
             {
+                // parameter info is in parameter order
+                instantiatedMethodParameters = instantiateMethodParameters(b, m.getValue(), listIndex, mode);
                 if(instantiatedMethodParameters.length > 0)
                 {
                     m.getKey().invoke(instance, instantiatedMethodParameters);
                     readFieldedParam = true;
                 }
             }
-            catch (IllegalAccessException |  InvocationTargetException e)
+            catch (IllegalAccessException |  InvocationTargetException | ClassNotFoundException e)
             {
-                throw new FieldedUnmarshallingException("could not invoke method: " + m + "\nmethod params: " + instantiatedMethodParameters + "\n parameter info:" + methodInfo, e);
+                throw new FieldedUnmarshallingException("could not invoke method: " + m + "\n parameter info:" + methodInfo, e);
             }
         }
         return readFieldedParam;
@@ -90,7 +99,7 @@ public final class Unmarshaller
         return l;
     }
 
-    private static <T> boolean readFields(FieldedTypeBuffer b, T instance, List<Field> fields, int index, FieldedTypeBufferProcessorMode mode) throws ClassNotFoundException
+    private static <T> boolean readFields(FieldedTypeBuffer b, T instance, List<Field> fields, int index, FieldedTypeBufferProcessorMode mode)
     {
         AtomicBoolean fieldedValueUnmarshalled = new AtomicBoolean(false);
         for(Field f : fields)
@@ -103,17 +112,11 @@ public final class Unmarshaller
             }
             try
             {
-                readValue(b, annotation, (Object v) -> {
-                    try
-                    {
-                        f.set(instance, v);
-                        fieldedValueUnmarshalled.set(true);
-                    }
-                    catch (IllegalAccessException e)
-                    {
-                        throw new FieldedUnmarshallingException(e);
-                    }
-                },f.getType(), () -> f.getGenericType(), index, mode);
+                readValue(b, annotation, (Object v) -> setField(instance, f, v, fieldedValueUnmarshalled),f.getType(), () -> f.getGenericType(), index, mode);
+            }
+            catch (ClassNotFoundException e)
+            {
+                throw new FieldedUnmarshallingException(e);
             }
             finally
             {
@@ -125,26 +128,54 @@ public final class Unmarshaller
 
     public static void readValue(FieldedTypeBuffer b, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, Supplier<Type> listComponentType, int listIndex, FieldedTypeBufferProcessorMode mode) throws ClassNotFoundException
     {
+        Optional<Pair<Function<Object, ?>, Class<?>>> mappingInfo = CommonDetails.getMapperFrom(annotation);
+        Class<?> mapperReturnType = mappingInfo.isPresent() ? mappingInfo.get().second() : null;
+        final Optional<Function<Object, ? extends Object>> mapper = mappingInfo.isPresent() ? Optional.of(mappingInfo.get().first()) : Optional.empty();
         Class<?> wrappedType = CommonDetails.wrapIfPrimitive(type);
         boolean castToInt = wrappedType.equals(Integer.class);
         if(CommonDetails.isListType(wrappedType))
         {
-            readListValue(b, annotation, consumer, listComponentType, mode);
+            readListValue(b, annotation, consumer, listComponentType, mode, mapper);
         }
         else if(CommonDetails.isArrayType(wrappedType))
         {
-            readArrayValue(b, annotation, consumer, type, mode);
+            readArrayValue(b, annotation, consumer, type, mode, mapper);
         }
         else if(CommonDetails.isFieldedType(wrappedType) || wrappedType.equals(Integer.class))
         {
             Optional<FieldedData<?>> v = readAccordingToMode(b, annotation.name(), listIndex, mode);
-            v.ifPresent(r -> consumer.accept(toObject(r, castToInt)));
+            v.ifPresent(value -> consumer.accept(mapValue(toObject(value, castToInt), mapper.orElseGet(() -> null))));
         }
         else
         {
-            // should be POJO type
-            consumer.accept(createObject(b, type, mode));
+            if(null != mapperReturnType)
+            {
+                readValue(b, annotation, consumer, mapperReturnType, listComponentType, listIndex, mode);
+            }
+            else
+            {
+                // should be a fielded POJO type
+                consumer.accept(createObject(b, type, mode));
+            }
         }
+    }
+
+    private static void setField(final Object instance, final Field f, final Object v, final AtomicBoolean fieldedValueUnmarshalled )
+    {
+        try
+        {
+            f.set(instance, v);
+            fieldedValueUnmarshalled.set(true);
+        }
+        catch (IllegalAccessException e)
+        {
+            throw new FieldedUnmarshallingException(e);
+        }
+    }
+
+    private static Object mapValue(Object o, Function<Object, ? extends Object> mapper)
+    {
+        return (null == mapper) ? o : mapper.apply(o);
     }
 
     private static Optional<FieldedData<?>> readAccordingToMode(FieldedTypeBuffer b, String name, int index, FieldedTypeBufferProcessorMode mode)
@@ -157,7 +188,7 @@ public final class Unmarshaller
         return v;
     }
 
-    public static void readArrayValue(FieldedTypeBuffer b, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, FieldedTypeBufferProcessorMode mode)
+    public static void readArrayValue(FieldedTypeBuffer b, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, FieldedTypeBufferProcessorMode mode, Optional<Function<Object, ?>> mapper)
     {
         String listLengthName = CommonDetails.getListLengthName(annotation).orElseThrow(() -> new FieldedUnmarshallingException("list type but @CasualFieldElement is missing lengthName!"));
         int arraySize = (int)toObject(b.read(listLengthName, 0, true), true);
@@ -181,13 +212,27 @@ public final class Unmarshaller
         {
             for (int i = 0; i < arraySize; ++i)
             {
-                Array.set(array, i, createObject(b, componentType, mode));
+                readArrayPOJO(array, i, b, componentType, mode, mapper, annotation.name(), castToInt);
             }
         }
         consumer.accept(array);
     }
 
-    public static void readListValue(FieldedTypeBuffer b, CasualFieldElement annotation, Consumer<Object> consumer, Supplier<Type> listComponentType, FieldedTypeBufferProcessorMode mode) throws ClassNotFoundException
+    // squid:S00107 - too many method arguments, we do need them all though
+    @SuppressWarnings("squid:S00107")
+    private static void readArrayPOJO(final Object array, int i, final FieldedTypeBuffer b, final Class<?> componentType, FieldedTypeBufferProcessorMode mode, final Optional<Function<Object, ?>> mapper, String name, boolean castToInt)
+    {
+        mapper.ifPresent(m -> {
+            Optional<FieldedData<?>> v = readAccordingToMode(b, name, 0, mode);
+            v.ifPresent(value -> Array.set(array, i, m.apply(toObject(value, castToInt))));
+        });
+        if(!mapper.isPresent())
+        {
+            Array.set(array, i, createObject(b, componentType, mode));
+        }
+    }
+
+    public static void readListValue(FieldedTypeBuffer b, CasualFieldElement annotation, Consumer<Object> consumer, Supplier<Type> listComponentType, FieldedTypeBufferProcessorMode mode, Optional<Function<Object, ?>> mapper) throws ClassNotFoundException
     {
         Type listType = listComponentType.get();
         if(!(listType instanceof ParameterizedType))
@@ -200,9 +245,9 @@ public final class Unmarshaller
         String listLengthName = CommonDetails.getListLengthName(annotation).orElseThrow(() -> new FieldedUnmarshallingException("list type but @CasualFieldElement is missing lengthName!"));
         int listSize = (int)toObject(b.read(listLengthName, 0, true), true);
         List<Object> l = new ArrayList<>(listSize);
+        final boolean castToInt = elementType.equals(Integer.class);
         if(CommonDetails.isFieldedType(elementClass))
         {
-            final boolean castToInt = elementType.equals(Integer.class);
             for(int i = 0; i < listSize; ++i)
             {
                 Optional<FieldedData<?>> v = readAccordingToMode(b, annotation.name(), 0, mode);
@@ -213,17 +258,30 @@ public final class Unmarshaller
         {
             for(int i = 0; i < listSize; ++i)
             {
-                Object v = createObject(b, elementClass, 0, mode).orElseGet(() -> null);
-                if(null != v)
-                {
-                    l.add(v);
-                }
+                readListPojo(b, annotation.name(), mode, l, mapper, elementClass, castToInt);
             }
         }
         consumer.accept(l);
     }
 
-    private static Object toObject(FieldedData<?> f, boolean castToInt)
+    private static void readListPojo(FieldedTypeBuffer b, String name, FieldedTypeBufferProcessorMode mode, List<Object> l, Optional<Function<Object, ?>> mapper, Class<?> elementClass, boolean castToInt)
+    {
+        mapper.ifPresent(m -> {
+            Optional<FieldedData<?>> v = readAccordingToMode(b, name, 0, mode);
+            v.ifPresent(value -> l.add(m.apply(toObject(value, castToInt))));
+        });
+        if(!mapper.isPresent())
+        {
+            Object v = createObject(b, elementClass, 0, mode).orElseGet(() -> null);
+            if (null != v)
+            {
+                l.add(v);
+            }
+        }
+    }
+
+
+    private static Object toObject(final FieldedData<?> f, boolean castToInt)
     {
         // since int is transported as long
         Object v = f.getData();
@@ -233,5 +291,6 @@ public final class Unmarshaller
         }
         return v;
     }
+
 
 }

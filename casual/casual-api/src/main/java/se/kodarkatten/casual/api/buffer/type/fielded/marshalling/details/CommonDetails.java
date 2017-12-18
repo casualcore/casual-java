@@ -2,8 +2,12 @@ package se.kodarkatten.casual.api.buffer.type.fielded.marshalling.details;
 
 import se.kodarkatten.casual.api.buffer.type.fielded.FieldType;
 import se.kodarkatten.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
+import se.kodarkatten.casual.api.buffer.type.fielded.mapper.CasualObjectMapper;
+import se.kodarkatten.casual.api.buffer.type.fielded.mapper.PassThroughMapper;
+import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedMarshallingException;
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedUnmarshallingException;
 import se.kodarkatten.casual.api.util.FluentMap;
+import se.kodarkatten.casual.api.util.Pair;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -17,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 // sonar sucks understanding lambdas
@@ -76,7 +81,7 @@ public final class CommonDetails
         return map;
     }
 
-    public static List<AnnotatedParameterInfo> getAnnotatedParameterInfo(Method m)
+    public static List<AnnotatedParameterInfo> getAnnotatedParameterInfo(final Method m)
     {
         List<AnnotatedParameterInfo> parameterInfoList = new ArrayList<>();
         List<Class<?>> types = Arrays.stream(m.getParameterTypes()).collect(Collectors.toList());
@@ -147,4 +152,37 @@ public final class CommonDetails
     {
         return annotation.lengthName().isEmpty() ? Optional.empty() : Optional.of(annotation.lengthName());
     }
+
+    // squid:S1452 - generic wildcard
+    @SuppressWarnings({"unchecked", "squid:S1452"})
+    public static Optional<Function<Object, ? extends Object>> getMapperTo(CasualFieldElement annotation)
+    {
+        final CasualObjectMapper<Object, ? extends Object> instance;
+        try
+        {
+            instance = (CasualObjectMapper<Object, ? extends Object>)annotation.mapper().newInstance();
+            return instance.getClass().equals(PassThroughMapper.class) ? Optional.empty() : Optional.of(v -> instance.to(v));
+        }
+        catch (InstantiationException | IllegalAccessException e)
+        {
+            throw new FieldedMarshallingException("can not get object mapper for: " + annotation, e);
+        }
+    }
+
+    // squid:S1452 - generic wildcard
+    @SuppressWarnings({"unchecked", "squid:S1452"})
+    public static Optional<Pair<Function<Object, ? extends Object>, Class<?>>> getMapperFrom(CasualFieldElement annotation)
+    {
+        final CasualObjectMapper<? extends Object, Object> instance;
+        try
+        {
+            instance = (CasualObjectMapper<? extends Object, Object>)annotation.mapper().newInstance();
+            return instance.getClass().equals(PassThroughMapper.class) ? Optional.empty() : Optional.of(Pair.of(v -> instance.from(v), instance.getDstType()));
+        }
+        catch (InstantiationException | IllegalAccessException e)
+        {
+            throw new FieldedUnmarshallingException("can not get object mapper for: " + annotation, e);
+        }
+    }
+
 }
