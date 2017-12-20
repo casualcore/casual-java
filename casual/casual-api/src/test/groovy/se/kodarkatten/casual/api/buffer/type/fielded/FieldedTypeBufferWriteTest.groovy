@@ -97,4 +97,31 @@ class FieldedTypeBufferWriteTest extends Specification
         e.message == 'class: class java.lang.Float is not compatible with field class: class java.lang.Double'
     }
 
+    def 'casting'()
+    {
+        setup:
+        def fb = FieldedTypeBuffer.create()
+                                  .write('FLD_SHORT1', (short)42)
+                                  .write('FLD_LONG1', 42l)
+                                  .write('FLD_CHAR2' , (byte)'a')
+                                  .write('FLD_FLOAT3', 128f)
+                                  .write('FLD_DOUBLE2', 1024d)
+                                  .write('FLD_STRING2', 'casually')
+        when:
+        Short shortValue = fb.peek('FLD_SHORT1').get().getData(Short.class)
+        Long longValue = fb.peek('FLD_LONG1').get().getData(Long.class)
+        Byte charValue = fb.peek('FLD_CHAR2').get().getData(Byte.class)
+        Float floatValue = fb.peek('FLD_FLOAT3').get().getData(Float.class)
+        Float doubleValue = fb.peek('FLD_DOUBLE2').get().getData(Double.class)
+        String stringValue = fb.peek('FLD_STRING2').get().getData(String.class)
+        then:
+        noExceptionThrown()
+        shortValue == (short) 42
+        longValue == 42l
+        charValue == (byte)'a'
+        floatValue == 128f
+        doubleValue == 1024d
+        stringValue == 'casually'
+    }
+
 }

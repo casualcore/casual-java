@@ -169,6 +169,11 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return r;
     }
 
+    public Optional<FieldedData<?>> peek(String name)
+    {
+        return peek(name, 0, false);
+    }
+
     public Optional<FieldedData<?>> peek(String name, int index)
     {
         return peek(name, index, false);

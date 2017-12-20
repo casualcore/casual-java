@@ -27,6 +27,12 @@ public final class FieldedDataImpl<T> implements FieldedData<T>
     }
 
     @Override
+    public <T> T getData(Class<T> clazz)
+    {
+        return clazz.cast(v);
+    }
+
+    @Override
     public FieldType getType()
     {
         return type;
