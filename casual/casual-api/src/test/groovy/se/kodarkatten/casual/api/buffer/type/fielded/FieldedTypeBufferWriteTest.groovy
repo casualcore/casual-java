@@ -15,7 +15,7 @@ class FieldedTypeBufferWriteTest extends Specification
         name         | v
         'FLD_SHORT1' | (short)42
         'FLD_LONG1'  | 42l
-        'FLD_CHAR2'  | (byte)'a'
+        'FLD_CHAR2'  | (char)'a'
         'FLD_FLOAT3' | 128f
         'FLD_DOUBLE2'| 1024d
         'FLD_STRING2'| 'casually'
@@ -34,7 +34,7 @@ class FieldedTypeBufferWriteTest extends Specification
         name         | v1                                                 | v2
         'FLD_SHORT1' | (short)42                                          | (short)84
         'FLD_LONG3'  | 42l                                                | 84l
-        'FLD_CHAR2'  | (byte)'a'                                          | (byte)'b'
+        'FLD_CHAR2'  | (char)'a'                                          | (char)'b'
         'FLD_FLOAT3' | 128f                                               | 256f
         'FLD_DOUBLE2'| 1024d                                              | 2048d
         'FLD_STRING2'| 'casually'                                         | 'casual'
@@ -103,14 +103,14 @@ class FieldedTypeBufferWriteTest extends Specification
         def fb = FieldedTypeBuffer.create()
                                   .write('FLD_SHORT1', (short)42)
                                   .write('FLD_LONG1', 42l)
-                                  .write('FLD_CHAR2' , (byte)'a')
+                                  .write('FLD_CHAR2' , (char)'a')
                                   .write('FLD_FLOAT3', 128f)
                                   .write('FLD_DOUBLE2', 1024d)
                                   .write('FLD_STRING2', 'casually')
         when:
         Short shortValue = fb.peek('FLD_SHORT1').get().getData(Short.class)
         Long longValue = fb.peek('FLD_LONG1').get().getData(Long.class)
-        Byte charValue = fb.peek('FLD_CHAR2').get().getData(Byte.class)
+        Character charValue = fb.peek('FLD_CHAR2').get().getData(Character.class)
         Float floatValue = fb.peek('FLD_FLOAT3').get().getData(Float.class)
         Float doubleValue = fb.peek('FLD_DOUBLE2').get().getData(Double.class)
         String stringValue = fb.peek('FLD_STRING2').get().getData(String.class)
@@ -118,7 +118,7 @@ class FieldedTypeBufferWriteTest extends Specification
         noExceptionThrown()
         shortValue == (short) 42
         longValue == 42l
-        charValue == (byte)'a'
+        charValue == (char)'a'
         floatValue == 128f
         doubleValue == 1024d
         stringValue == 'casually'

@@ -7,7 +7,7 @@ public enum FieldType
 {
     CASUAL_FIELD_SHORT(1, "short", Short.class),
     CASUAL_FIELD_LONG(2, "long", Long.class),
-    CASUAL_FIELD_CHAR(3, "char", Byte.class),
+    CASUAL_FIELD_CHAR(3, "char", Character.class),
     CASUAL_FIELD_FLOAT(4, "float", Float.class),
     CASUAL_FIELD_DOUBLE(5, "double", Double.class),
     CASUAL_FIELD_STRING(6, "string", String.class),
