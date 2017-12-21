@@ -1,9 +1,25 @@
 //-*- coding: utf-8 -*-
+buildscript {
+    repositories {
+        maven { url 'http://repo.spring.io/plugins-release' }
+    }
+    dependencies {
+        classpath 'io.spring.gradle:propdeps-plugin:0.0.9.RELEASE'
+    }
+}
+
 plugins {
     id 'org.sonarqube' version '2.5'
 }
 
 apply from: 'testsourcesets.gradle'
+
+allprojects{
+    apply plugin: 'propdeps'
+    apply plugin: 'propdeps-maven'
+    apply plugin: 'propdeps-idea'
+    apply plugin: 'propdeps-eclipse'
+}
 
 defaultTasks 'build'
 
@@ -17,6 +33,10 @@ sonarqube {
         properties['sonar.java.source'] = 8
     }
 }
+
+
+
+
 
 allprojects{
   tasks.withType(JavaCompile) { 

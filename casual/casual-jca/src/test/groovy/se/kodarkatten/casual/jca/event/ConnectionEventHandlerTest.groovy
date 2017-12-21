@@ -1,6 +1,5 @@
 package se.kodarkatten.casual.jca.event
 
-import se.kodarkatten.casual.jca.event.ConnectionEventHandler
 import se.kodarkatten.casual.network.connection.CasualConnectionException
 import spock.lang.Shared
 import spock.lang.Specification

@@ -8,7 +8,7 @@ plugins {
 defaultTasks 'build'
 
 dependencies {
-  compileOnly 'javax:javaee-api:7.0'
+  provided 'javax:javaee-api:7.0'
   implementation project(':casual:casual-api')
   testCompile 'junit:junit:4.8.2+'
   // for spock

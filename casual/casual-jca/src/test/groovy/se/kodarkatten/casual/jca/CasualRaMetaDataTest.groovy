@@ -1,6 +1,5 @@
 package se.kodarkatten.casual.jca
 
-import se.kodarkatten.casual.jca.CasualRaMetaData
 import spock.lang.Shared
 import spock.lang.Specification
 

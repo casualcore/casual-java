@@ -5,10 +5,6 @@ import se.kodarkatten.casual.api.flags.Flag
 import se.kodarkatten.casual.api.flags.XAFlags
 import se.kodarkatten.casual.api.xa.XAReturnCode
 import se.kodarkatten.casual.api.xa.XID
-import se.kodarkatten.casual.jca.CasualTransactionResources
-import se.kodarkatten.casual.jca.CasualXAResource
-import se.kodarkatten.casual.jca.NetworkConnection
-import se.kodarkatten.casual.jca.CasualManagedConnection
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.transaction.*
 import spock.lang.Shared

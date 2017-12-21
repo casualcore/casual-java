@@ -19,7 +19,7 @@ dependencies {
     compile project(':casual:casual-internal')
     compile project(':casual:casual-network')
     compile project(':casual:casual-inbound')
-    compile 'javax:javaee-api:7.0'
+    provided 'javax:javaee-api:7.0'
 
     resourceAdapter project(':casual:casual-api')
     resourceAdapter project(':casual:casual-internal')
@@ -35,6 +35,7 @@ dependencies {
     testCompile 'org.objenesis:objenesis:1.2'
 
     //Integration test.
+    integrationCompile project(':casual:casual-fielded-annotations')
     integrationCompile files('../../../casual-java-testapp/test-api/build/libs/test-api.jar')
 }
 

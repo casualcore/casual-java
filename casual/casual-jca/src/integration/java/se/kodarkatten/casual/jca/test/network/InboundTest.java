@@ -8,12 +8,15 @@ import se.kodarkatten.casual.api.buffer.CasualBuffer;
 import se.kodarkatten.casual.api.buffer.ServiceReturn;
 import se.kodarkatten.casual.api.buffer.type.JavaServiceCallDefinition;
 import se.kodarkatten.casual.api.buffer.type.JsonBuffer;
+import se.kodarkatten.casual.api.buffer.type.fielded.FieldedTypeBuffer;
+import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessor;
 import se.kodarkatten.casual.api.flags.AtmiFlags;
 import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.ServiceReturnState;
 import se.kodarkatten.casual.api.xa.XAReturnCode;
 import se.kodarkatten.casual.api.xa.XID;
 import se.kodarkatten.casual.example.service.SimpleObject;
+import se.kodarkatten.casual.example.service.order.CasualOrder;
 import se.kodarkatten.casual.jca.CasualConnection;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
 import se.kodarkatten.casual.jca.CasualManagedConnectionFactory;
@@ -26,6 +29,8 @@ import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static se.kodarkatten.casual.api.external.json.JsonProviderFactory.getJsonProvider;
 
@@ -65,7 +70,7 @@ public class InboundTest
         //Integer message = 123;
         JavaServiceCallDefinition callDef = JavaServiceCallDefinition.of( "echo", message );
 
-        for( int i = 0; i<=3; i++ )
+        for( int i = 0; i<=2; i++ )
         {
             String gid = "1231" + i;
             String b = "3211" + i;
@@ -111,4 +116,63 @@ public class InboundTest
             managedConnection.cleanup();
         }
     }
+
+    @Test
+    public void tpCall_fielded_prepare_commit_rolback() throws XAException, ResourceException, InterruptedException {
+        managedConnection = new CasualManagedConnection( managedConnectionFactory, null );
+
+        String serviceName = "TestCreateOrder";
+        CasualOrder message = new CasualOrder( );
+        message.setProduct( "New fielded product." );
+        FieldedTypeBuffer buffer = FieldedTypeBufferProcessor.marshall( message );
+
+        for( int i = 0; i<=2; i++ )
+        {
+            String gid = "4561" + i;
+            String b = "65461" + i;
+            Xid id = XID.of(gid.getBytes(Charsets.UTF_8), b.getBytes(Charsets.UTF_8), 0);
+            managedConnection.getXAResource().start(id, 0);
+
+            connection = (CasualConnection) managedConnection.getConnection(null, null);
+
+            CasualBuffer msg = buffer;
+
+            ServiceReturn<CasualBuffer> reply = connection.tpcall(serviceName, msg, Flag.of(AtmiFlags.NOFLAG));
+
+            assertThat(reply.getServiceReturnState(), is(equalTo(ServiceReturnState.TPSUCCESS)));
+
+            CasualOrder actual = FieldedTypeBufferProcessor.unmarshall(FieldedTypeBuffer.create(reply.getReplyBuffer().getBytes()), CasualOrder.class);
+
+
+            assertThat(actual.getId(), is(not(nullValue())));
+            assertThat(actual.getVersion(), is(not(nullValue())));
+            assertThat(actual.getProduct(), is(equalTo(message.getProduct())));
+
+
+            switch (i)
+            {
+                case 0:
+                    int status = managedConnection.getXAResource().prepare(id);
+                    boolean ok = status == XAReturnCode.XA_RDONLY.getId() || status == XAReturnCode.XA_OK.getId();
+                    assertThat(ok, is(equalTo(true)));
+                    if (status == XAReturnCode.XA_OK.getId())
+                    {
+                        managedConnection.getXAResource().commit(id, false);
+                    }
+                    managedConnection.getXAResource().end(id, XAResource.TMSUCCESS);
+                    break;
+                case 1:
+                    managedConnection.getXAResource().rollback(id);
+                    managedConnection.getXAResource().end(id, XAResource.TMFAIL);
+                    break;
+                case 2:
+                    managedConnection.getXAResource().commit(id, true);
+                    managedConnection.getXAResource().end(id, XAResource.TMSUCCESS);
+                    break;
+            }
+        }
+
+        managedConnection.cleanup();
+    }
+
 }

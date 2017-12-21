@@ -12,16 +12,12 @@ import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.kodarkatten.casual.network.messages.domain.Queue
-import se.kodarkatten.casual.network.messages.queue.CasualDequeueReplyMessage
-import se.kodarkatten.casual.network.messages.queue.CasualDequeueRequestMessage
-import se.kodarkatten.casual.network.messages.queue.CasualEnqueueReplyMessage
-import se.kodarkatten.casual.network.messages.queue.CasualEnqueueRequestMessage
-import se.kodarkatten.casual.network.messages.queue.DequeueMessage
-import se.kodarkatten.casual.network.messages.queue.EnqueueMessage
-import static se.kodarkatten.casual.jca.test.CasualNWMessageMatchers.matching
-import static spock.util.matcher.HamcrestSupport.expect
+import se.kodarkatten.casual.network.messages.queue.*
 import spock.lang.Shared
 import spock.lang.Specification
+
+import static se.kodarkatten.casual.jca.test.CasualNWMessageMatchers.matching
+import static spock.util.matcher.HamcrestSupport.expect
 
 class CasualQueueCallerTest extends Specification
 {

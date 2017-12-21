@@ -2,7 +2,6 @@ package se.kodarkatten.casual.jca
 
 import groovy.json.internal.Charsets
 import se.kodarkatten.casual.api.xa.XID
-import se.kodarkatten.casual.jca.CasualTransactionResources
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll

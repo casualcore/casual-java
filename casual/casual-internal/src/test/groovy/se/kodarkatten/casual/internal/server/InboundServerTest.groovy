@@ -1,9 +1,9 @@
 package se.kodarkatten.casual.internal.server
 
-import java.nio.ByteBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 import java.util.concurrent.Semaphore
 import java.util.function.Consumer

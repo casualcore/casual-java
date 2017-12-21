@@ -1,0 +1,18 @@
+plugins {
+  id 'java'
+  id 'jacoco'
+  id 'groovy'
+}
+
+dependencies {
+  compile project( ":casual:casual-api" )
+  compile project( ":casual:casual-internal" )
+  compile project(":casual:casual-inbound-handler-api")
+  provided 'javax:javaee-api:7.0'
+
+  // for spock
+  testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'
+  testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+  testCompile 'cglib:cglib-nodep:3.2.4'
+  testCompile 'org.objenesis:objenesis:1.2'
+}

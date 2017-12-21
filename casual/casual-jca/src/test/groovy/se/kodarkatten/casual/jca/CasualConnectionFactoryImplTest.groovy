@@ -1,8 +1,5 @@
 package se.kodarkatten.casual.jca
 
-import se.kodarkatten.casual.jca.CasualConnectionFactory
-import se.kodarkatten.casual.jca.CasualConnectionFactoryImpl
-import se.kodarkatten.casual.jca.CasualManagedConnectionFactory
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll

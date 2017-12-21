@@ -1,12 +1,6 @@
 package se.kodarkatten.casual.jca
 
 import se.kodarkatten.casual.api.xa.XID
-import se.kodarkatten.casual.jca.CasualConnection
-import se.kodarkatten.casual.jca.CasualConnectionImpl
-import se.kodarkatten.casual.jca.CasualManagedConnection
-import se.kodarkatten.casual.jca.CasualManagedConnectionFactory
-import se.kodarkatten.casual.jca.NetworkConnection
-import se.kodarkatten.casual.jca.CasualXAResource
 import spock.lang.Shared
 import spock.lang.Specification
 

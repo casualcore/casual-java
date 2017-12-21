@@ -9,9 +9,9 @@ dependencies {
   compile project(':casual:casual-internal')
   compile project(':casual:casual-network')
   compile project(':casual:casual-inbound-api')
-  compileOnly 'javax:javaee-api:7.0'
+  provided 'javax:javaee-api:7.0'
 
-  testCompile 'javax:javaee-api:7.0'
+  testCompile project(':casual:casual-inbound-handler-api')
   // for spock
   testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'
   testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'

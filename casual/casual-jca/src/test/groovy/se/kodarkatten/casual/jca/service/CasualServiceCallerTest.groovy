@@ -5,10 +5,10 @@ import se.kodarkatten.casual.api.buffer.ServiceReturn
 import se.kodarkatten.casual.api.buffer.type.JsonBuffer
 import se.kodarkatten.casual.api.flags.*
 import se.kodarkatten.casual.api.xa.XID
+import se.kodarkatten.casual.jca.CasualManagedConnection
 import se.kodarkatten.casual.jca.CasualManagedConnectionFactory
 import se.kodarkatten.casual.jca.CasualResourceAdapter
 import se.kodarkatten.casual.jca.NetworkConnection
-import se.kodarkatten.casual.jca.CasualManagedConnection
 import se.kodarkatten.casual.network.connection.CasualConnectionException
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage

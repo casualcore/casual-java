@@ -45,7 +45,6 @@ public final class InboundServer
         {
             ssc = ServerSocketChannel.open();
             ssc.socket().bind(address);
-            ssc.configureBlocking( false );
         }
         catch (IOException e)
         {
@@ -101,7 +100,15 @@ public final class InboundServer
 
     public void stop()
     {
-        this.running.set(false);
+        try
+        {
+            this.running.set(false);
+            this.ssc.close();
+        } catch (IOException e)
+        {
+            log.warning( ()->"Close of inbound socket was not graceful." + e.getMessage() );
+        }
+
     }
 
     public boolean running()

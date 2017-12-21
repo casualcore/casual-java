@@ -8,7 +8,9 @@ def appVersion = '0.0.1'
 dependencies {
   deploy project( path: ':casual:casual-jca', configuration:'resourceAdapter' )
   deploy project(':casual:casual-inbound' )
-  compileOnly 'javax:javaee-api:7.0'
+  deploy project(':casual:casual-inbound-handler-jndi')
+  deploy project(':casual:casual-inbound-handler-fielded')
+  provided 'javax:javaee-api:7.0'
 }
 
 ear{
