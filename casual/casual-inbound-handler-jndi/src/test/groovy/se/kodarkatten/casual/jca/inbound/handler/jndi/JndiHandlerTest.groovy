@@ -78,6 +78,25 @@ class JndiHandlerTest extends Specification
         jp.fromJson( json, String.class ) == methodParam
     }
 
+    def "Call Service with buffer and return null with empty service buffer result."()
+    {
+        given:
+        1 * context.lookup( jndiServiceName ) >> {
+            return jndiObject
+        }
+
+        when:
+        InboundResponse reply = instance.invokeService( message )
+
+        then:
+        1 * proxyService.echo( methodParam ) >> {
+            return null
+        }
+
+        reply.isSuccessful()
+        reply.getPayload().isEmpty()
+    }
+
     def "Call Service with buffer service throws exception return ErrorState.TPSVCERR."()
     {
         given:

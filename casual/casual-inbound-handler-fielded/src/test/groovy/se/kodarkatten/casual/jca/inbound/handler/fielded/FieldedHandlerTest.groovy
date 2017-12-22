@@ -82,6 +82,26 @@ class FieldedHandlerTest extends Specification
         actual == buffer
     }
 
+    def "Call Service with buffer returns null and return empty buffer."()
+    {
+        given:
+        1 * context.lookup( jndiServiceName ) >> {
+            return jndiObject
+        }
+
+        when:
+        InboundResponse reply = instance.invokeService( message )
+
+        then:
+        1 * proxyService.echo( methodObject ) >> {
+            return null
+        }
+
+        reply.isSuccessful()
+
+        reply.getPayload().isEmpty()
+    }
+
     def "Call Service get no such method exception on first invocation, tries and returns result."()
     {
         given:

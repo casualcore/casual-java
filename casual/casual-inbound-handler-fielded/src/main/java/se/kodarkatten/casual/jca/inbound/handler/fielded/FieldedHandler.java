@@ -69,11 +69,15 @@ public class FieldedHandler implements CasualHandler
             Object r = loadService(entry.getCasualService().jndiName() );
             tool.loadClassLoader( r );
             Object result = callService( r, entry, request.getPayload() );
-            FieldedTypeBuffer resultBuffer = FieldedTypeBufferProcessor.marshall( result );
-            payload = resultBuffer.getBytes();
+            if( result != null )
+            {
+                FieldedTypeBuffer resultBuffer = FieldedTypeBufferProcessor.marshall(result);
+                payload = resultBuffer.getBytes();
+            }
         }
         catch( Throwable e )
         {
+            LOG.warning(()-> "Error invoking service: " + e.getMessage() );
             success = false;
         }
         finally

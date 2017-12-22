@@ -65,10 +65,14 @@ public class JndiHandler implements CasualHandler
             Object r = loadService(request.getServiceName());
             tool.loadClassLoader( r );
             Object result = callService( r, request.getPayload() );
-            payload.add( jp.toJson( result ).getBytes( StandardCharsets.UTF_8) );
+            if( result != null )
+            {
+                payload.add(jp.toJson(result).getBytes(StandardCharsets.UTF_8));
+            }
         }
         catch( Throwable e )
         {
+            LOG.warning(()-> "Error invoking service: " + e.getMessage() );
             success = false;
             payload.add( jp.toJson( e ).getBytes( StandardCharsets.UTF_8) );
         }
