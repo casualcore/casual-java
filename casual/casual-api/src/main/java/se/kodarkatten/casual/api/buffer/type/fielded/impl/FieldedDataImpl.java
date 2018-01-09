@@ -27,8 +27,12 @@ public final class FieldedDataImpl<T> implements FieldedData<T>
     }
 
     @Override
-    public <T> T getData(Class<T> clazz)
+    public <X> X getData(Class<X> clazz)
     {
+        if(clazz.equals(Integer.class) && v.getClass().equals(Long.class))
+        {
+            return clazz.cast(Math.toIntExact((Long)v));
+        }
         return clazz.cast(v);
     }
 

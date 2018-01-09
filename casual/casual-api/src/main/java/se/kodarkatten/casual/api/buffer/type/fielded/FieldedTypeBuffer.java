@@ -234,8 +234,15 @@ public final class FieldedTypeBuffer implements CasualBuffer
         Class<?> valueClazz = value.getClass();
         if(!clazz.equals(valueClazz))
         {
-            // maybe always go with a stringified version in case we don't support a type?
-            throw new CasualFieldedLookupException("class: " + valueClazz + " is not compatible with field class: " + clazz);
+            // int is widened to long
+            if (valueClazz.equals(Integer.class) && clazz.equals(Long.class))
+            {
+                return write(name, ((Integer)value).longValue());
+            }
+            else
+            {
+                throw new CasualFieldedLookupException("class: " + valueClazz + " is not compatible with field class: " + clazz);
+            }
         }
         if (!m.containsKey(f.getName()))
         {
