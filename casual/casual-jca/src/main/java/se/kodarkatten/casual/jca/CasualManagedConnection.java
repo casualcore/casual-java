@@ -109,6 +109,10 @@ public class CasualManagedConnection implements ManagedConnection
             c.invalidate();
         }
         connectionHandles.clear();
+        if(null != xaResource)
+        {
+            xaResource.reset();
+        }
     }
 
     @Override

@@ -3,6 +3,7 @@ package se.kodarkatten.casual.jca;
 import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.XAFlags;
 import se.kodarkatten.casual.api.xa.XAReturnCode;
+import se.kodarkatten.casual.api.xa.XID;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitReplyMessage;
 import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitRequestMessage;
@@ -23,7 +24,7 @@ public class CasualXAResource implements XAResource
 {
 
     private final CasualManagedConnection casualManagedConnection;
-    private Xid currentXid;
+    private Xid currentXid = XID.of();
 
     public CasualXAResource(final CasualManagedConnection connection)
     {
@@ -32,7 +33,7 @@ public class CasualXAResource implements XAResource
 
     public Xid getCurrentXid()
     {
-        return this.currentXid;
+        return currentXid;
     }
 
     @Override
@@ -64,6 +65,7 @@ public class CasualXAResource implements XAResource
     @Override
     public void end(Xid xid, int flag) throws XAException
     {
+        reset();
         XAFlags f = XAFlags.unmarshall(flag);
         switch(f)
         {
@@ -134,7 +136,6 @@ public class CasualXAResource implements XAResource
         CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> requestEnvelope = CasualNWMessage.of(UUID.randomUUID(), request);
         CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyEnvelope = casualManagedConnection.getNetworkConnection().requestReply(requestEnvelope);
         CasualTransactionResourceRollbackReplyMessage replyMsg = replyEnvelope.getMessage();
-
         throwWhenTransactionErrorCode( replyMsg.getTransactionReturnCode() );
     }
 
@@ -155,6 +156,19 @@ public class CasualXAResource implements XAResource
         currentXid = xid;
     }
 
+    @Override
+    public String toString()
+    {
+        return "CasualXAResource{" +
+            "currentXid=" + currentXid +
+            '}';
+    }
+
+    public void reset()
+    {
+        currentXid = XID.of();
+    }
+
     private void throwWhenTransactionErrorCode(final XAReturnCode transactionReturnCode) throws XAException
     {
         switch( transactionReturnCode )
@@ -167,11 +181,4 @@ public class CasualXAResource implements XAResource
         }
     }
 
-    @Override
-    public String toString()
-    {
-        return "CasualXAResource{" +
-                "currentXid=" + currentXid +
-                '}';
-    }
 }
