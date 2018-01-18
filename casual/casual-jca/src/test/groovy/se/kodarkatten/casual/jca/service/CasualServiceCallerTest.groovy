@@ -8,6 +8,7 @@ import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.jca.CasualManagedConnection
 import se.kodarkatten.casual.jca.CasualManagedConnectionFactory
 import se.kodarkatten.casual.jca.CasualResourceAdapter
+import se.kodarkatten.casual.jca.CasualResourceManager
 import se.kodarkatten.casual.jca.NetworkConnection
 import se.kodarkatten.casual.network.connection.CasualConnectionException
 import se.kodarkatten.casual.network.messages.CasualNWMessage
@@ -60,7 +61,9 @@ class CasualServiceCallerTest extends Specification
         connection = new CasualManagedConnection( mcf, null )
         connection.networkConnection =  networkConnection
 
+        CasualResourceManager.getInstance().remove(XID.of())
         connection.getXAResource().start( XID.of(), 0 )
+        CasualResourceManager.getInstance().remove(XID.of())
 
         instance = CasualServiceCaller.of( connection )
 

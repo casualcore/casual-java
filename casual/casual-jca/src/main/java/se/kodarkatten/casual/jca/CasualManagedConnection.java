@@ -163,7 +163,7 @@ public class CasualManagedConnection implements ManagedConnection
         log.finest("getXAResource()");
         if( this.xaResource == null )
         {
-            this.xaResource = new CasualXAResource(this);
+            this.xaResource = new CasualXAResource(this, mcf.getResourceId());
         }
         return this.xaResource;
     }

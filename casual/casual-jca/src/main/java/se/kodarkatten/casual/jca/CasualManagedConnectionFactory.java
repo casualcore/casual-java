@@ -22,7 +22,13 @@
 package se.kodarkatten.casual.jca;
 
 import javax.resource.ResourceException;
-import javax.resource.spi.*;
+import javax.resource.spi.ConnectionDefinition;
+import javax.resource.spi.ConnectionManager;
+import javax.resource.spi.ConnectionRequestInfo;
+import javax.resource.spi.ManagedConnection;
+import javax.resource.spi.ManagedConnectionFactory;
+import javax.resource.spi.ResourceAdapter;
+import javax.resource.spi.ResourceAdapterAssociation;
 import javax.security.auth.Subject;
 import java.io.PrintWriter;
 import java.util.Objects;
@@ -49,6 +55,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    private String hostName;
    private Integer portNumber;
    private Long casualProtocolVersion = 1000L;
+   private final int resourceId = CasualResourceManager.getInstance().getNextId();
 
    public String getHostName()
    {
@@ -174,5 +181,10 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
               ", hostName='" + hostName + '\'' +
               ", portNumber=" + portNumber +
               '}';
+   }
+
+   public int getResourceId()
+   {
+      return resourceId;
    }
 }

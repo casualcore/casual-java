@@ -24,11 +24,13 @@ public class CasualXAResource implements XAResource
 {
 
     private final CasualManagedConnection casualManagedConnection;
+    private final int resourceManagerId;
     private Xid currentXid = XID.of();
 
-    public CasualXAResource(final CasualManagedConnection connection)
+    public CasualXAResource(final CasualManagedConnection connection, int resourceManagerId)
     {
         casualManagedConnection = connection;
+        this.resourceManagerId = resourceManagerId;
     }
 
     public Xid getCurrentXid()
@@ -44,10 +46,8 @@ public class CasualXAResource implements XAResource
         {
             flags = Flag.of(XAFlags.TMONEPHASE);
         }
-        Integer resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
         CasualTransactionResourceCommitRequestMessage commitRequest =
-                CasualTransactionResourceCommitRequestMessage.of(UUID.randomUUID(), xid, resourceId, flags);
-        CasualTransactionResources.getInstance().removeResourceIdForXid(xid);
+            CasualTransactionResourceCommitRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourceCommitRequestMessage> requestEnvelope = CasualNWMessage.of(UUID.randomUUID(), commitRequest);
         CasualNWMessage<CasualTransactionResourceCommitReplyMessage> replyEnvelope = casualManagedConnection.getNetworkConnection().requestReply(requestEnvelope);
         CasualTransactionResourceCommitReplyMessage replyMsg = replyEnvelope.getMessage();
@@ -65,6 +65,7 @@ public class CasualXAResource implements XAResource
     @Override
     public void end(Xid xid, int flag) throws XAException
     {
+        CasualResourceManager.getInstance().remove(xid);
         reset();
         XAFlags f = XAFlags.unmarshall(flag);
         switch(f)
@@ -108,8 +109,7 @@ public class CasualXAResource implements XAResource
     public int prepare(Xid xid) throws XAException
     {
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
-        Integer resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
-        CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(),xid,resourceId,flags);
+        CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> requestEnvelope = CasualNWMessage.of(UUID.randomUUID(), prepareRequest);
         CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> replyEnvelope = casualManagedConnection.getNetworkConnection().requestReply(requestEnvelope);
         CasualTransactionResourcePrepareReplyMessage replyMsg = replyEnvelope.getMessage();
@@ -129,10 +129,8 @@ public class CasualXAResource implements XAResource
     public void rollback(Xid xid) throws XAException
     {
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
-        Integer resourceId = CasualTransactionResources.getInstance().getResourceIdForXid(xid);
         CasualTransactionResourceRollbackRequestMessage request =
-                CasualTransactionResourceRollbackRequestMessage.of(UUID.randomUUID(), xid, resourceId, flags);
-        CasualTransactionResources.getInstance().removeResourceIdForXid(xid);
+                CasualTransactionResourceRollbackRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> requestEnvelope = CasualNWMessage.of(UUID.randomUUID(), request);
         CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyEnvelope = casualManagedConnection.getNetworkConnection().requestReply(requestEnvelope);
         CasualTransactionResourceRollbackReplyMessage replyMsg = replyEnvelope.getMessage();
@@ -149,11 +147,15 @@ public class CasualXAResource implements XAResource
     public void start(Xid xid, int i) throws XAException
     {
         if(!(XAFlags.TMJOIN.getValue() == i || XAFlags.TMRESUME.getValue() == i) &&
-            CasualTransactionResources.getInstance().xidPending(xid))
+            CasualResourceManager.getInstance().isPending(xid))
         {
             throw new XAException(XAException.XAER_DUPID);
         }
         currentXid = xid;
+        if(!CasualResourceManager.getInstance().isPending(currentXid))
+        {
+            CasualResourceManager.getInstance().put(currentXid);
+        }
     }
 
     @Override

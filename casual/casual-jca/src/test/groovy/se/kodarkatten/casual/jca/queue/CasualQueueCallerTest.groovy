@@ -6,6 +6,8 @@ import se.kodarkatten.casual.api.queue.QueueInfo
 import se.kodarkatten.casual.api.queue.QueueMessage
 import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.jca.CasualManagedConnection
+import se.kodarkatten.casual.jca.CasualManagedConnectionFactory
+import se.kodarkatten.casual.jca.CasualResourceManager
 import se.kodarkatten.casual.jca.NetworkConnection
 import se.kodarkatten.casual.network.connection.CasualConnectionException
 import se.kodarkatten.casual.network.messages.CasualNWMessage
@@ -23,6 +25,7 @@ class CasualQueueCallerTest extends Specification
 {
     @Shared CasualQueueCaller instance
     @Shared CasualManagedConnection connection
+    @Shared CasualManagedConnectionFactory mcf
     @Shared NetworkConnection networkConnection
     @Shared UUID executionId
     @Shared UUID domainId
@@ -42,16 +45,22 @@ class CasualQueueCallerTest extends Specification
     @Shared CasualNWMessage<CasualDequeueReplyMessage> dequeueReply
     @Shared CasualNWMessage<CasualDomainDiscoveryRequestMessage> actualDiscoveryRequest
     @Shared CasualNWMessage<CasualEnqueueRequestMessage> actualEnqueueRequest
-    @Shared CasualNWMessage<CasualEnqueueRequestMessage> actualDequeueRequest
     @Shared def bigBaddaBoom = 'big badda boom'
+    @Shared int resourceId = 42
 
     def setup()
     {
+        mcf = Mock(CasualManagedConnectionFactory)
+        mcf.getResourceId() >> {
+            resourceId
+        }
         networkConnection = Mock(NetworkConnection)
-        connection = new CasualManagedConnection( null, null )
+        connection = new CasualManagedConnection( mcf, null )
         connection.networkConnection =  networkConnection
 
+        CasualResourceManager.getInstance().remove(XID.of())
         connection.getXAResource().start( XID.of(), 0 )
+        CasualResourceManager.getInstance().remove(XID.of())
 
         instance = CasualQueueCaller.of( connection )
 

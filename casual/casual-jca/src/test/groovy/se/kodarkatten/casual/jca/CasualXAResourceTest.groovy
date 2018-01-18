@@ -17,6 +17,7 @@ import javax.transaction.xa.Xid
 
 class CasualXAResourceTest extends Specification
 {
+    @Shared CasualManagedConnectionFactory mcf
     @Shared CasualXAResource instance
     @Shared CasualManagedConnection managedConnection
     @Shared NetworkConnection networkConnection
@@ -30,19 +31,24 @@ class CasualXAResourceTest extends Specification
     @Shared CasualNWMessage<CasualTransactionResourceCommitRequestMessage> expectedCommitRequestMessage
     @Shared CasualNWMessage<CasualTransactionResourceCommitRequestMessage> actualCommitRequestMessage
     @Shared CasualNWMessage<CasualTransactionResourceCommitReplyMessage> commitReplyMessage
-    @Shared CasualTransactionResources transactionResources
+    @Shared CasualResourceManager transactionResources
+    @Shared int resourceId = 42
 
     def setup()
     {
+        mcf = Mock(CasualManagedConnectionFactory)
+        mcf.getResourceId() >> {
+            resourceId
+        }
         networkConnection = Mock(NetworkConnection)
         managedConnection = new CasualManagedConnection( null, null )
         managedConnection.networkConnection = networkConnection
-        instance = new CasualXAResource( managedConnection )
+        instance = new CasualXAResource( managedConnection, mcf.getResourceId() )
 
         xid1 = XID.of( "123".getBytes(Charsets.UTF_8), "321".getBytes(Charsets.UTF_8), 0 )
         xid2 = XID.of( "456".getBytes(Charsets.UTF_8), "654".getBytes(Charsets.UTF_8), 0 )
 
-        transactionResources = CasualTransactionResources.getInstance()
+        transactionResources = CasualResourceManager.getInstance()
 
         initialiseExpectedRequests()
         initialiseReplies()
@@ -50,8 +56,8 @@ class CasualXAResourceTest extends Specification
 
     def cleanup()
     {
-        transactionResources.removeResourceIdForXid( xid1 )
-        transactionResources.removeResourceIdForXid( xid2 )
+        transactionResources.remove( xid1 )
+        transactionResources.remove( xid2 )
     }
 
     def initialiseExpectedRequests()
@@ -66,7 +72,7 @@ class CasualXAResourceTest extends Specification
         return CasualNWMessage.of(null,
                 CasualTransactionResourcePrepareRequestMessage.of(null,
                         xid,
-                        transactionResources.getResourceIdForXid(xid),
+                        mcf.getResourceId(),
                         flags) )
     }
 
@@ -75,7 +81,7 @@ class CasualXAResourceTest extends Specification
         return CasualNWMessage.of(null,
                 CasualTransactionResourceRollbackRequestMessage.of(null,
                         xid,
-                        transactionResources.getResourceIdForXid(xid),
+                        mcf.getResourceId(),
                         flags) )
     }
 
@@ -84,7 +90,7 @@ class CasualXAResourceTest extends Specification
         return CasualNWMessage.of(null,
                 CasualTransactionResourceCommitRequestMessage.of(null,
                         xid,
-                        transactionResources.getResourceIdForXid(xid),
+                        mcf.getResourceId(),
                         flags) )
     }
 
@@ -100,7 +106,7 @@ class CasualXAResourceTest extends Specification
         CasualNWMessage.of( null,
                 CasualTransactionResourcePrepareReplyMessage.of( null,
                         xid,
-                        transactionResources.getResourceIdForXid( xid ),
+                        mcf.getResourceId(),
                         returnCode
                 )
         )
@@ -111,7 +117,7 @@ class CasualXAResourceTest extends Specification
         CasualNWMessage.of( null,
                 CasualTransactionResourceRollbackReplyMessage.of( null,
                         xid,
-                        transactionResources.getResourceIdForXid( xid ),
+                        mcf.getResourceId(),
                         returnCode
                 )
         )
@@ -122,7 +128,7 @@ class CasualXAResourceTest extends Specification
         CasualNWMessage.of( null,
                 CasualTransactionResourceCommitReplyMessage.of( null,
                         xid,
-                        transactionResources.getResourceIdForXid( xid ),
+                        mcf.getResourceId(),
                         returnCode
                 )
         )
@@ -138,7 +144,7 @@ class CasualXAResourceTest extends Specification
     def "GetCurrentXid returns value given during start."()
     {
         when:
-        transactionResources.removeResourceIdForXid( xid1 )
+        transactionResources.remove( xid1 )
         instance.start( xid1, 0 )
 
         then:
@@ -148,7 +154,7 @@ class CasualXAResourceTest extends Specification
     def 'getCurrentXid returns null xid after reset'()
     {
         setup:
-        transactionResources.removeResourceIdForXid( xid1 )
+        transactionResources.remove( xid1 )
         instance.start(xid1, 0)
         when:
         instance.reset()
@@ -159,7 +165,7 @@ class CasualXAResourceTest extends Specification
     def "Start called with xid with already pending transaction throws XAException."()
     {
         setup:
-        CasualTransactionResources.getInstance().getResourceIdForXid( xid1 )
+        instance.start( xid1, 0 )
 
         when:
         instance.start( xid1, 0 )
@@ -172,7 +178,7 @@ class CasualXAResourceTest extends Specification
     def "Start called with xid with already pending transaction though #flag throws no Exception."()
     {
         setup:
-        CasualTransactionResources.getInstance().getResourceIdForXid( xid1 )
+        instance.start( xid1, flag )
 
         when:
         instance.start( xid1, flag )
