@@ -69,6 +69,7 @@ public final class ByteUtils
     {
         final ByteBuffer buffer = ByteBuffer.allocate(length);
         int numberOfBytesRead = 0;
+        int totalNumberOfBytesRead = 0;
         while(-1 != numberOfBytesRead && buffer.remaining() > 0)
         {
             try
@@ -76,11 +77,17 @@ public final class ByteUtils
                 // not using += is not an error, we only look if eos has been reached
                 // for knowing if we've read fully we check the buffer.remaining()
                 numberOfBytesRead = channel.read(buffer);
+                totalNumberOfBytesRead += numberOfBytesRead;
             }
             catch (IOException e)
             {
                 throw new CasualTransportException("failed reading fully, number of bytes read: " + numberOfBytesRead + "\n" + e);
             }
+        }
+        totalNumberOfBytesRead += (-1 == numberOfBytesRead) ? 1 : 0;
+        if(totalNumberOfBytesRead != length)
+        {
+            throw new CasualTransportException("expected to read: " + length + " but could only read: " + totalNumberOfBytesRead + " bytes, broken pipe?");
         }
         //prepare for reading
         buffer.flip();

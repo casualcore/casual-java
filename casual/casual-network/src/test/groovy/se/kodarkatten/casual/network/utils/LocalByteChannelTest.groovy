@@ -3,6 +3,7 @@ package se.kodarkatten.casual.network.utils
 import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.messages.CasualNWMessage
+import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException
 
 import java.nio.ByteBuffer
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
@@ -61,4 +62,20 @@ class LocalByteChannelTest extends Specification
         then:
         msg == resurrectedMsg
     }
+
+    def "readFully fail"()
+    {
+        setup:
+        byte[] data = payload.getBytes(StandardCharsets.UTF_8)
+        ByteBuffer b = ByteBuffer.wrap(data)
+        LocalByteChannel sink = new LocalByteChannel()
+        def badReadLength = data.length * 2
+        when:
+        ByteUtils.writeFully(sink, b, data.length)
+        ByteUtils.readFully(sink, badReadLength)
+        then:
+        def e = thrown(CasualTransportException)
+        e.message == "expected to read: ${badReadLength} but could only read: ${data.length} bytes, broken pipe?"
+    }
+
 }

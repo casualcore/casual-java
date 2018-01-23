@@ -16,7 +16,7 @@ class LocalByteChannel implements ByteChannel
         else
         {
             readBytes(dst)
-            return dst.array().length
+            return dst.position()
         }
     }
 
