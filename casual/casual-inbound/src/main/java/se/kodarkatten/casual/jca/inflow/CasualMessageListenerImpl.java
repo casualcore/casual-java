@@ -2,6 +2,7 @@ package se.kodarkatten.casual.jca.inflow;
 
 import se.kodarkatten.casual.api.flags.XAFlags;
 import se.kodarkatten.casual.api.xa.XAReturnCode;
+import se.kodarkatten.casual.api.xa.XID;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
 import se.kodarkatten.casual.jca.inflow.work.CasualServiceCallWork;
 import se.kodarkatten.casual.network.io.CasualNetworkReader;
@@ -95,25 +96,46 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         log.info( "serviceCallRequest()." );
 
         CasualNWMessage<CasualServiceCallRequestMessage> message = CasualNetworkReader.read( channel, header );
+
+        CasualServiceCallWork work = new CasualServiceCallWork(header, message.getMessage(), channel );
+
         Xid xid = message.getMessage().getXid();
-        TransactionContext context = new TransactionContext();
-        context.setXid( xid );
+
         try
         {
-            context.setTransactionTimeout( message.getMessage().getTimeout() );
+            long startup = isServiceCallTransactional( xid ) ?
+                    workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), null ) :
+                    workManager.startWork( work );
+            log.finest( ()->"Service call startup: "+ startup + "ms.");
         }
-        catch( NotSupportedException e )
-        {
-            log.warning( "Timeout is not set as is not supported. " + e.getMessage() );
-        }
-        try
-        {
-            long startup = workManager.startWork( new CasualServiceCallWork(header, message.getMessage(), channel ), WorkManager.INDEFINITE, context, null );
-            log.info( ()->"Service call startup: %s ms"+ startup + "ms.");
-        } catch (WorkException e)
+        catch (WorkException e)
         {
             throw new CasualResourceAdapterException( "Error starting work.", e );
         }
+    }
+
+    private boolean isServiceCallTransactional( Xid xid )
+    {
+        return ! xid.equals( XID.NULL_XID);
+    }
+
+    private TransactionContext createTransactionContext( Xid xid, long timeout )
+    {
+        TransactionContext context = new TransactionContext();
+        context.setXid(xid);
+
+        if (timeout > 0)
+        {
+            try
+            {
+                context.setTransactionTimeout(timeout);
+            }
+            catch (NotSupportedException e)
+            {
+                log.warning("Timeout is not set as is not supported. " + e.getMessage());
+            }
+        }
+        return context;
     }
 
     @Override

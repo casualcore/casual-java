@@ -26,7 +26,7 @@ class CasualServiceCallReplyMessageTest extends Specification
     @Shared
     def userError = 45656l
     @Shared
-    def nullXID = XID.of()
+    def nullXID = XID.NULL_XID
     @Shared
     def transactionState = TransactionState.ROLLBACK_ONLY
     @Shared

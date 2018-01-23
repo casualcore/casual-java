@@ -19,7 +19,7 @@ class CasualTransactionResourceRollbackReplyMessageTest extends Specification
     def execution = UUID.randomUUID()
 
     @Shared
-    def xid = XID.of()
+    def xid = XID.NULL_XID
 
     @Shared
     def resourceId = 12345

@@ -138,7 +138,7 @@ class CasualXAResourceTest extends Specification
     def "GetCurrentXid is a null xid until start is called."()
     {
         expect:
-        instance.getCurrentXid() == XID.of()
+        instance.getCurrentXid() == XID.NULL_XID
     }
 
     def "GetCurrentXid returns value given during start."()
@@ -159,7 +159,7 @@ class CasualXAResourceTest extends Specification
         when:
         instance.reset()
         then:
-        instance.getCurrentXid() == XID.of()
+        instance.getCurrentXid() == XID.NULL_XID
     }
 
     def "Start called with xid with already pending transaction throws XAException."()

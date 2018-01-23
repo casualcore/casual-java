@@ -28,6 +28,8 @@ import javax.resource.spi.work.WorkManager
 import javax.transaction.xa.XAException
 import javax.transaction.xa.Xid
 import java.nio.channels.SocketChannel
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ThreadLocalRandom
 
 class CasualMessageListenerImplTest extends Specification
 {
@@ -40,7 +42,7 @@ class CasualMessageListenerImplTest extends Specification
     @Shared UUID domainId = UUID.randomUUID()
     @Shared String domainName = "java"
     @Shared UUID execution = UUID.randomUUID()
-    @Shared Xid xid = XID.of()
+    @Shared Xid xid
 
 
     def setup()
@@ -49,6 +51,15 @@ class CasualMessageListenerImplTest extends Specification
         channel = new LocalEchoSocketChannel()
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )
+
+        xid = createXid()
+    }
+
+    Xid createXid()
+    {
+        String gid = Integer.toString( ThreadLocalRandom.current().nextInt() );
+        String b = Integer.toString( ThreadLocalRandom.current().nextInt() );
+        return XID.of(gid.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8), 0);
     }
 
 
@@ -158,6 +169,41 @@ class CasualMessageListenerImplTest extends Specification
         actualExecutionContext.getXid() == xid
         actualExecutionContext.getTransactionTimeout() == timeout
         actualWorkListener == null
+    }
+
+    def "ServiceCallRequest with null xid calls service work without transaction context."()
+    {
+        given:
+        xid = XID.NULL_XID
+        CasualServiceCallWork actualWork
+
+        String serviceName = "echo"
+        CasualNWMessage<CasualServiceCallRequestMessage> message = CasualNWMessage.of( correlationId,
+                CasualServiceCallRequestMessage.createBuilder()
+                        .setXid( xid )
+                        .setExecution(execution)
+                        .setServiceName( serviceName )
+                        .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
+                        .setXatmiFlags( Flag.of())
+                        .build()
+        )
+        CasualNetworkWriter.write(channel, message)
+
+        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
+
+        when:
+        instance.serviceCallRequest( header, channel, workManager )
+
+        then:
+        1 * workManager.startWork( _) >> {
+            CasualServiceCallWork work ->
+                actualWork = work
+                return 1L
+        }
+
+        actualWork != null
+        actualWork.getHeader() == header
+        actualWork.getSocketChannel() == channel
     }
 
     def "ServiceCallRequest startWork throws exception, wrapped and thrown."()

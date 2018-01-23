@@ -28,7 +28,7 @@ class CasualServiceCallRequestMessageTest extends Specification
     @Shared
     def parentName = 'Jane Doe'
     @Shared
-    def nullXID = XID.of()
+    def nullXID = XID.NULL_XID
     @Shared
     def xatmiFlags = Flag.of(AtmiFlags.TPNOBLOCK)
     @Shared

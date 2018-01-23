@@ -60,7 +60,7 @@ class CasualServiceCallWorkTest extends Specification
         json = jp.toJson( serialisedCall )
 
         message = CasualServiceCallRequestMessage.createBuilder()
-                        .setXid( XID.of())
+                        .setXid( XID.NULL_XID)
                         .setExecution(UUID.randomUUID())
                         .setServiceName( jndiServiceName )
                         .setServiceBuffer( ServiceBuffer.of( "json",

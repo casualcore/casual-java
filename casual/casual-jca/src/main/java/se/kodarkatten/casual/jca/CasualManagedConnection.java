@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.jca;
 
+import se.kodarkatten.casual.api.xa.XID;
 import se.kodarkatten.casual.jca.event.ConnectionEventHandler;
 
 import javax.resource.NotSupportedException;
@@ -175,7 +176,7 @@ public class CasualManagedConnection implements ManagedConnection
      */
     public Xid getCurrentXid()
     {
-        return (xaResource) == null ? null : xaResource.getCurrentXid();
+        return (xaResource) == null ? XID.NULL_XID : xaResource.getCurrentXid();
     }
 
     @Override

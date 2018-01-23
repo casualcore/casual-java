@@ -61,9 +61,9 @@ class CasualServiceCallerTest extends Specification
         connection = new CasualManagedConnection( mcf, null )
         connection.networkConnection =  networkConnection
 
-        CasualResourceManager.getInstance().remove(XID.of())
-        connection.getXAResource().start( XID.of(), 0 )
-        CasualResourceManager.getInstance().remove(XID.of())
+        CasualResourceManager.getInstance().remove(XID.NULL_XID)
+        connection.getXAResource().start( XID.NULL_XID, 0 )
+        CasualResourceManager.getInstance().remove(XID.NULL_XID)
 
         instance = CasualServiceCaller.of( connection )
 
@@ -121,7 +121,7 @@ class CasualServiceCallerTest extends Specification
                         .setExecution( executionId )
                         .setError( errorState)
                         .setTransactionState( transactionState )
-                        .setXid( XID.of() )
+                        .setXid( XID.NULL_XID )
                         .setServiceBuffer(ServiceBuffer.of(message))
                         .build()
         )

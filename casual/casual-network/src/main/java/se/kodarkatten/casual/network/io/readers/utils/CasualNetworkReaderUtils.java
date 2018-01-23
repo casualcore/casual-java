@@ -244,7 +244,7 @@ public final class CasualNetworkReaderUtils
         int currentOffset = offset;
         long xidFormat = ByteBuffer.wrap(data, currentOffset, CommonSizes.XID_FORMAT.getNetworkSize()).getLong();
         currentOffset += CommonSizes.XID_FORMAT.getNetworkSize();
-        Xid xid = XID.of();
+        Xid xid = XID.NULL_XID;
         if(!XIDFormatType.isNullType(xidFormat))
         {
             int gtridLength = (int)ByteBuffer.wrap(data, currentOffset, CommonSizes.XID_GTRID_LENGTH.getNetworkSize()).getLong();

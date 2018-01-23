@@ -10,6 +10,8 @@ import javax.transaction.xa.Xid;
  */
 public final class XID implements Xid
 {
+    public static final Xid NULL_XID = new XID();
+
     public static final int MAX_XID_DATA_SIZE = 128;
     // default to null format
     private final long formatType;
@@ -34,20 +36,11 @@ public final class XID implements Xid
         this(0, 0, XIDFormatType.NULL.getType(), null, null);
     }
 
-    /**
-     * Null XID
-     * @return
-     */
-    public static Xid of()
-    {
-        return new XID();
-    }
-
     public static Xid of(final Xid xid)
     {
         if(XIDFormatType.isNullType(xid.getFormatId()))
         {
-            return XID.of();
+            return NULL_XID;
         }
         final byte[] gtridId = xid.getGlobalTransactionId();
         final byte[] bqual = xid.getBranchQualifier();

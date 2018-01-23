@@ -8,21 +8,30 @@ import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
 import javax.resource.spi.UnavailableException;
 import javax.resource.spi.endpoint.MessageEndpoint;
 import javax.resource.spi.work.Work;
+import javax.resource.spi.work.WorkContext;
+import javax.resource.spi.work.WorkContextProvider;
 import java.nio.channels.SocketChannel;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
-public final class CasualSocketWork implements Work
+import static se.kodarkatten.casual.jca.inflow.work.WorkContextFactory.createLongRunningContext;
+
+public final class CasualSocketWork implements Work, WorkContextProvider
 {
+    private static final long serialVersionUID = 1L;
+
     private static Logger log = Logger.getLogger(CasualSocketWork.class.getName());
     private AtomicBoolean released = new AtomicBoolean( false );
     private final SocketChannel channel;
     private final CasualInboundWork work;
+    private final List<WorkContext> workContexts;
 
     public CasualSocketWork( SocketChannel channel, CasualInboundWork work )
     {
         this.channel = channel;
         this.work = work;
+        this.workContexts = createLongRunningContext();
     }
 
     public SocketChannel getSocketChannel()
@@ -81,5 +90,12 @@ public final class CasualSocketWork implements Work
                 throw new CasualResourceAdapterException("Error creating endpoint.", e);
             }
         }
+        log.finest( ()-> "Exiting socket work." );
+    }
+
+    @Override
+    public List<WorkContext> getWorkContexts()
+    {
+        return workContexts;
     }
 }

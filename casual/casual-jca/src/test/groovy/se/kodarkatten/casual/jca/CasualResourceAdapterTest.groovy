@@ -1,6 +1,7 @@
 package se.kodarkatten.casual.jca
 
 import se.kodarkatten.casual.jca.inflow.CasualActivationSpec
+import se.kodarkatten.casual.jca.inflow.work.CasualInboundWork
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -48,24 +49,39 @@ class CasualResourceAdapterTest extends Specification
         instance.getXATerminator() == xat
     }
 
-    def "Activate endpoint, deactivation."()
+    def "Activate endpoint."()
     {
         setup:
-        BootstrapContext context = Mock( BootstrapContext )
-        WorkManager manager = Mock( WorkManager )
-        XATerminator xat = Mock( XATerminator )
+        BootstrapContext context = Mock(BootstrapContext)
+        WorkManager manager = Mock(WorkManager)
+        XATerminator xat = Mock(XATerminator)
         context.getWorkManager() >> manager
         context.getXATerminator() >> xat
-        instance.start( context )
-        MessageEndpointFactory factory = Mock( MessageEndpointFactory )
-        CasualActivationSpec spec = new CasualActivationSpec( )
-        spec.setPort( okAddress.getPort() )
+        instance.start(context)
+        MessageEndpointFactory factory = Mock(MessageEndpointFactory)
+        CasualActivationSpec spec = new CasualActivationSpec()
+        spec.setPort(okAddress.getPort())
 
         when:
-        instance.endpointActivation( factory, spec )
+        instance.endpointActivation(factory, spec)
+
+        then:
+        1 * manager.startWork(_)
+    }
+
+    def "Deactivate endpoint"()
+    {
+        setup:
+        CasualInboundWork work = GroovyMock()
+        instance.worker = work
+        MessageEndpointFactory factory = Mock(MessageEndpointFactory)
+        CasualActivationSpec spec = new CasualActivationSpec()
+        spec.setPort(okAddress.getPort())
+
+        when:
         instance.endpointDeactivation( factory, spec )
 
         then:
-        1 * manager.startWork( _ )
+        1 * work.release()
     }
 }

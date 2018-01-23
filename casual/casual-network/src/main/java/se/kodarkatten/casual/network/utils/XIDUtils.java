@@ -43,7 +43,7 @@ public final class XIDUtils
             final long xidFormat = xidFormatBuffer.getLong();
             if (XIDFormatType.isNullType(xidFormat))
             {
-                return XID.of();
+                return XID.NULL_XID;
             }
             final ByteBuffer gtridAndBqualLengthBuffer = ByteUtils.readFully(channel, XID_GTRID_NETWORK_SIZE + XID_BQUAL_NETWORK_SIZE).get();
             final int gtrid = (int) gtridAndBqualLengthBuffer.getLong();
@@ -63,7 +63,7 @@ public final class XIDUtils
         final long xidFormat = xidFormatBuffer.getLong();
         if (XIDFormatType.isNullType(xidFormat))
         {
-            return XID.of();
+            return XID.NULL_XID;
         }
         final ByteBuffer gtridAndBqualLengthBuffer = ByteUtils.readFully(channel, XID_GTRID_NETWORK_SIZE + XID_BQUAL_NETWORK_SIZE);
         final int gtrid = (int) gtridAndBqualLengthBuffer.getLong();

@@ -161,16 +161,16 @@ class CasualManagedConnectionTest extends Specification
         resource == resource2
     }
 
-    def "GetCurrentXid when no XAResource returns null."()
+    def "GetCurrentXid when no XAResource returns null xid."()
     {
         expect:
-        instance.getCurrentXid() == null
+        instance.getCurrentXid() == XID.NULL_XID
     }
 
     def "GetCurrentXid XAResource exists and returns XAResource XID."()
     {
         setup:
-        Xid xid = XID.of()
+        Xid xid = XID.NULL_XID
         CasualXAResource resource = instance.getXAResource()
         resource.start( xid, 0 )
 

@@ -78,7 +78,7 @@ public final class CasualTestClient
         CasualServiceCallRequestMessage requestMsg = CasualServiceCallRequestMessage.createBuilder()
                                                                                     .setExecution(UUID.randomUUID())
                                                                                     .setServiceName(sEchoService)
-                                                                                    .setXid(XID.of())
+                                                                                    .setXid(XID.NULL_XID)
                                                                                     .setXatmiFlags(flags)
                                                                                     .setServiceBuffer(buffer)
                                                                                     .build();

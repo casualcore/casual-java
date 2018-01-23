@@ -25,7 +25,7 @@ public class CasualXAResource implements XAResource
 
     private final CasualManagedConnection casualManagedConnection;
     private final int resourceManagerId;
-    private Xid currentXid = XID.of();
+    private Xid currentXid = XID.NULL_XID;
 
     public CasualXAResource(final CasualManagedConnection connection, int resourceManagerId)
     {
@@ -168,7 +168,7 @@ public class CasualXAResource implements XAResource
 
     public void reset()
     {
-        currentXid = XID.of();
+        currentXid = XID.NULL_XID;
     }
 
     private void throwWhenTransactionErrorCode(final XAReturnCode transactionReturnCode) throws XAException

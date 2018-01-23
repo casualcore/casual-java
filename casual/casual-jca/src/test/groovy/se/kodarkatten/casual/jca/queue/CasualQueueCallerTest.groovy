@@ -58,9 +58,9 @@ class CasualQueueCallerTest extends Specification
         connection = new CasualManagedConnection( mcf, null )
         connection.networkConnection =  networkConnection
 
-        CasualResourceManager.getInstance().remove(XID.of())
-        connection.getXAResource().start( XID.of(), 0 )
-        CasualResourceManager.getInstance().remove(XID.of())
+        CasualResourceManager.getInstance().remove(XID.NULL_XID)
+        connection.getXAResource().start( XID.NULL_XID, 0 )
+        CasualResourceManager.getInstance().remove(XID.NULL_XID)
 
         instance = CasualQueueCaller.of( connection )
 

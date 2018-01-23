@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public final class CasualInboundWork implements Work, WorkContextProvider
+import static se.kodarkatten.casual.jca.inflow.work.WorkContextFactory.createLongRunningContext;
+
+public class CasualInboundWork implements Work, WorkContextProvider
 {
     private static final long serialVersionUID = 1L;
 
@@ -34,7 +36,7 @@ public final class CasualInboundWork implements Work, WorkContextProvider
         this.workManager = workManager;
         this.xaTerminator = xaTerminator;
 
-        workContexts = createWorkContexts();
+        workContexts = createLongRunningContext();
 
         server = InboundServer.of( spec.getPort(), new SocketChannelConsumer( this ) );
     }
@@ -86,16 +88,5 @@ public final class CasualInboundWork implements Work, WorkContextProvider
     public XATerminator getXaTerminator()
     {
         return xaTerminator;
-    }
-
-    private List<WorkContext> createWorkContexts()
-    {
-        List<WorkContext> contexts = new ArrayList<>();
-
-        HintsContext hintsContext = new HintsContext();
-        hintsContext.setHint( HintsContext.LONGRUNNING_HINT, Boolean.TRUE );
-        contexts.add( hintsContext );
-
-        return contexts;
     }
 }

@@ -27,6 +27,8 @@ import javax.resource.spi.UnavailableException
 import javax.resource.spi.XATerminator
 import javax.resource.spi.endpoint.MessageEndpoint
 import javax.resource.spi.endpoint.MessageEndpointFactory
+import javax.resource.spi.work.HintsContext
+import javax.resource.spi.work.WorkContext
 import javax.resource.spi.work.WorkManager
 import java.nio.channels.SocketChannel
 
@@ -127,7 +129,7 @@ class CasualSocketWorkTest extends Specification
         given:
         CasualNWMessage<CasualServiceCallRequestMessage> message = CasualNWMessage.of(UUID.randomUUID(),
                 CasualServiceCallRequestMessage.createBuilder()
-                        .setXid( XID.of())
+                        .setXid( XID.NULL_XID)
                         .setExecution(UUID.randomUUID())
                         .setServiceName( "echo" )
                         .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
@@ -158,7 +160,7 @@ class CasualSocketWorkTest extends Specification
         CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessage.of(UUID.randomUUID(),
                 CasualTransactionResourcePrepareRequestMessage.of(
                         UUID.randomUUID(),
-                        XID.of(),
+                        XID.NULL_XID,
                         1,
                         Flag.of()
                 )
@@ -187,7 +189,7 @@ class CasualSocketWorkTest extends Specification
         CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message = CasualNWMessage.of(UUID.randomUUID(),
                 CasualTransactionResourceRollbackRequestMessage.of(
                         UUID.randomUUID(),
-                        XID.of(),
+                        XID.NULL_XID,
                         1,
                         Flag.of()
                 )
@@ -216,7 +218,7 @@ class CasualSocketWorkTest extends Specification
         CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessage.of(UUID.randomUUID(),
                 CasualTransactionResourceCommitRequestMessage.of(
                         UUID.randomUUID(),
-                        XID.of(),
+                        XID.NULL_XID,
                         1,
                         Flag.of()
                 )
@@ -245,7 +247,7 @@ class CasualSocketWorkTest extends Specification
         CasualNWMessage<CasualTransactionResourceCommitReplyMessage> message = CasualNWMessage.of(UUID.randomUUID(),
                 CasualTransactionResourceCommitReplyMessage.of(
                         UUID.randomUUID(),
-                        XID.of(),
+                        XID.NULL_XID,
                         1,
                         XAReturnCode.XA_OK
                 )
@@ -289,6 +291,17 @@ class CasualSocketWorkTest extends Specification
         0 * mdb._()
     }
 
+    def "Get WorkContext returns hint for long running."()
+    {
+        when:
+        List<WorkContext> context = instance.getWorkContexts()
+        HintsContext c = (HintsContext)context.get( 0 )
+
+        then:
+        context.size() == 1
+        c.getHints().size() == 1
+        c.getHints().get( HintsContext.LONGRUNNING_HINT ) == Boolean.TRUE
+    }
 
 
     abstract class MdbListener implements CasualMessageListener, MessageEndpoint
