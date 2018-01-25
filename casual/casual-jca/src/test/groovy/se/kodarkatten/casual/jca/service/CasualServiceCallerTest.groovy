@@ -5,12 +5,7 @@ import se.kodarkatten.casual.api.buffer.ServiceReturn
 import se.kodarkatten.casual.api.buffer.type.JsonBuffer
 import se.kodarkatten.casual.api.flags.*
 import se.kodarkatten.casual.api.xa.XID
-import se.kodarkatten.casual.jca.CasualManagedConnection
-import se.kodarkatten.casual.jca.CasualManagedConnectionFactory
-import se.kodarkatten.casual.jca.CasualResourceAdapter
-import se.kodarkatten.casual.jca.CasualResourceManager
-import se.kodarkatten.casual.jca.NetworkConnection
-import se.kodarkatten.casual.network.connection.CasualConnectionException
+import se.kodarkatten.casual.jca.*
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
@@ -41,12 +36,13 @@ class CasualServiceCallerTest extends Specification
     @Shared String domainName
     @Shared String serviceName
     @Shared JsonBuffer message
-    @Shared CasualDomainDiscoveryRequestMessage expectedDiscoverRequest
     @Shared CasualServiceCallRequestMessage expectedServiceRequest
-    @Shared CasualNWMessage<CasualDomainDiscoveryReplyMessage> discoveryReply
     @Shared CasualNWMessage<CasualServiceCallReplyMessage> serviceReply
-    @Shared CasualNWMessage<CasualDomainDiscoveryRequestMessage> actualDiscoveryRequest
     @Shared CasualNWMessage<CasualServiceCallRequestMessage> actualServiceRequest
+    @Shared CasualNWMessage<CasualDomainDiscoveryRequestMessage> actualDomainDiscoveryRequest
+    @Shared CasualDomainDiscoveryRequestMessage expectedDomainDiscoveryRequest
+    @Shared CasualNWMessage<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyFound
+    @Shared CasualNWMessage<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyNotFound
     @Shared mcf
     @Shared ra
     @Shared workManager
@@ -83,35 +79,39 @@ class CasualServiceCallerTest extends Specification
 
     def initialiseExpectedRequests()
     {
-        expectedDiscoverRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
-                .setDomainName( connection.getDomainName() )
-                .setServiceNames(Arrays.asList(serviceName))
-                .build()
-
         expectedServiceRequest = CasualServiceCallRequestMessage.createBuilder()
                 .setServiceBuffer(ServiceBuffer.of(message.getType(), message.getBytes()))
                 .setServiceName(serviceName)
                 .setXid( connection.getCurrentXid() )
                 .build()
+        expectedDomainDiscoveryRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
+                .setServiceNames([serviceName])
+                .setDomainName(connection.getDomainName())
+                .build()
     }
 
     def initialiseReplies()
     {
-        discoveryReply = createDomainDiscoveryReplyMessage( serviceName )
-
         serviceReply = createServiceCallReplyMessage( ErrorState.OK, TransactionState.TX_ACTIVE, message )
+        domainDiscoveryReplyFound = createDomainDiscoveryReply(asServices([serviceName]))
+        domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asServices([]))
     }
 
-    CasualNWMessage<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReplyMessage( String...services )
+    List<Service> asServices(List<String> serviceNames)
     {
-        CasualDomainDiscoveryReplyMessage msg = CasualDomainDiscoveryReplyMessage.of( executionId, domainId, domainName )
-        List<Service> available = new ArrayList<>()
-        for( String s: services )
+        List<Service> l = new ArrayList<>()
+        for(String s : serviceNames)
         {
-            available.add(Service.of(s, "", TransactionType.ATOMIC))
+            l.add(Service.of(s, '', TransactionType.AUTOMATIC))
         }
-        msg.setServices( available )
-        return CasualNWMessage.of( executionId, msg )
+        return l
+    }
+
+    CasualNWMessage<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Service> services)
+    {
+        CasualNWMessage.of(executionId,
+                CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
+                                                 .setServices(services))
     }
 
     CasualNWMessage<CasualServiceCallReplyMessage> createServiceCallReplyMessage( ErrorState errorState, TransactionState transactionState, JsonBuffer message )
@@ -137,39 +137,29 @@ class CasualServiceCallerTest extends Specification
         result.getServiceReturnState() == ServiceReturnState.TPSUCCESS
 
         1 * networkConnection.requestReply( _ ) >> {
-                CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
-                    actualDiscoveryRequest = input
-                    return discoveryReply
+            CasualNWMessage<CasualServiceCallRequestMessage> input ->
+                actualServiceRequest = input
+                return serviceReply
         }
+        expect actualServiceRequest, matching( expectedServiceRequest )
+    }
+
+    def "Tpcall service not available returns TPNOENT"()
+    {
+        setup:
+        serviceReply = createServiceCallReplyMessage( ErrorState.TPENOENT, TransactionState.ROLLBACK_ONLY, JsonBuffer.of( new ArrayList<byte[]>() ) )
+        when:
+        instance.tpcall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
+
+        then:
+        noExceptionThrown()
         1 * networkConnection.requestReply( _ ) >> {
             CasualNWMessage<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
                 return serviceReply
         }
 
-        expect actualDiscoveryRequest, matching( expectedDiscoverRequest )
-
         expect actualServiceRequest, matching( expectedServiceRequest )
-    }
-
-    def "Tpcall service not available throws CasualConnectionException no further network calls."()
-    {
-        setup:
-        discoveryReply = createDomainDiscoveryReplyMessage( "other" )
-
-        when:
-        instance.tpcall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
-
-        then:
-        thrown CasualConnectionException
-
-        1 * networkConnection.requestReply( _ ) >> {
-            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
-                actualDiscoveryRequest = input
-                return discoveryReply
-        }
-
-        expect actualDiscoveryRequest, matching( expectedDiscoverRequest )
     }
 
     def "Tpcall service is available performs service call which fails, returns failure result."()
@@ -185,17 +175,10 @@ class CasualServiceCallerTest extends Specification
         result.getServiceReturnState() == ServiceReturnState.TPFAIL
 
         1 * networkConnection.requestReply( _ ) >> {
-            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
-                actualDiscoveryRequest = input
-                return discoveryReply
-        }
-        1 * networkConnection.requestReply( _ ) >> {
             CasualNWMessage<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
                 return serviceReply
         }
-
-        expect actualDiscoveryRequest, matching( expectedDiscoverRequest )
 
         expect actualServiceRequest, matching( expectedServiceRequest )
     }
@@ -211,11 +194,6 @@ class CasualServiceCallerTest extends Specification
         result.getServiceReturnState() == ServiceReturnState.TPSUCCESS
 
         1 * networkConnection.requestReply( _ ) >> {
-            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
-                actualDiscoveryRequest = input
-                return discoveryReply
-        }
-        1 * networkConnection.requestReply( _ ) >> {
             CasualNWMessage<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
                 return serviceReply
@@ -228,7 +206,6 @@ class CasualServiceCallerTest extends Specification
 
         1 * mcf.getResourceAdapter() >> ra
 
-        expect actualDiscoveryRequest, matching( expectedDiscoverRequest )
         expect actualServiceRequest, matching( expectedServiceRequest )
     }
 
@@ -244,6 +221,36 @@ class CasualServiceCallerTest extends Specification
             throw new WorkException('oops')
         }
         1 * mcf.getResourceAdapter() >> ra
+    }
+
+    def 'serviceExists'()
+    {
+        when:
+        def r = instance.serviceExists(serviceName)
+        then:
+        noExceptionThrown()
+        r == true
+        1 * networkConnection.requestReply(_) >> {
+            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
+                actualDomainDiscoveryRequest = input
+                return domainDiscoveryReplyFound
+        }
+        expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
+    }
+
+    def 'serviceExists - not found'()
+    {
+        when:
+        def r = instance.serviceExists(serviceName)
+        then:
+        noExceptionThrown()
+        r == false
+        1 * networkConnection.requestReply(_) >> {
+            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
+                actualDomainDiscoveryRequest = input
+                return domainDiscoveryReplyNotFound
+        }
+        expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }
 
     def "toString test."()

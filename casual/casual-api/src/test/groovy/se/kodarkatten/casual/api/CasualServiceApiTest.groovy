@@ -84,6 +84,12 @@ class CasualServiceApiTest extends Specification
                 throw new RuntimeException(t)
             }
         }
+
+        @Override
+        boolean serviceExists(String serviceName)
+        {
+            return false
+        }
     }
 
     class CasualSupplier<Y extends CasualBuffer> implements Supplier<ServiceReturn<Y>>

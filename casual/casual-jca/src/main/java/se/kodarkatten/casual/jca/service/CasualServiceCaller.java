@@ -10,7 +10,6 @@ import se.kodarkatten.casual.api.flags.ServiceReturnState;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
 import se.kodarkatten.casual.jca.service.work.FutureServiceReturnWork;
-import se.kodarkatten.casual.network.connection.CasualConnectionException;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
@@ -26,7 +25,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class CasualServiceCaller implements CasualServiceApi
 {
-    private static final String DOES_NOT_EXIST = " does not exist";
     private CasualManagedConnection connection;
 
     private CasualServiceCaller( CasualManagedConnection connection )
@@ -42,12 +40,7 @@ public class CasualServiceCaller implements CasualServiceApi
     @Override
     public ServiceReturn<CasualBuffer> tpcall( String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        final UUID corrid = UUID.randomUUID();
-        if(serviceExists( corrid, serviceName))
-        {
-            return makeServiceCall( corrid, serviceName, data, flags);
-        }
-        throw new CasualConnectionException("service " + serviceName + DOES_NOT_EXIST);
+        return makeServiceCall( UUID.randomUUID(), serviceName, data, flags);
     }
 
     @Override
@@ -65,6 +58,11 @@ public class CasualServiceCaller implements CasualServiceApi
         return f;
     }
 
+    @Override
+    public boolean serviceExists(String serviceName)
+    {
+        return serviceExists(UUID.randomUUID(), serviceName);
+    }
 
     private ServiceReturn<CasualBuffer> makeServiceCall( UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {

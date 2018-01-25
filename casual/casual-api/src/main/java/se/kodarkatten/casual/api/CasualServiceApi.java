@@ -36,4 +36,13 @@ public interface CasualServiceApi
      * @return The future from which the result can be obtained
      */
     CompletableFuture<ServiceReturn<CasualBuffer>> tpacall( String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
+
+    /**
+     * Lookup if service exists
+     * @param serviceName
+     * @return true if service exists
+     */
+    boolean serviceExists( String serviceName);
+
+
 }

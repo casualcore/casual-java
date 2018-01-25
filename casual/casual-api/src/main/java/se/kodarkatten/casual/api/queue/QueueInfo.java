@@ -1,9 +1,11 @@
 package se.kodarkatten.casual.api.queue;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public final class QueueInfo
+public final class QueueInfo implements Serializable
 {
+    private static final long serialVersionUID = 1L;
     private final String qspace;
     private final String qname;
     private QueueInfo(String qspace, String qname)

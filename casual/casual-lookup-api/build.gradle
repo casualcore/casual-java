@@ -1,0 +1,11 @@
+//-*- coding: utf-8 -*-
+plugins {
+    id 'java'
+    id 'jacoco'
+}
+defaultTasks 'build'
+
+dependencies {
+  provided project(":casual:casual-api")
+  provided project(":casual:casual-jca")
+}

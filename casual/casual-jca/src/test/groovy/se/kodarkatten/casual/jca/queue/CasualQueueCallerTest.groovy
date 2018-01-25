@@ -9,7 +9,6 @@ import se.kodarkatten.casual.jca.CasualManagedConnection
 import se.kodarkatten.casual.jca.CasualManagedConnectionFactory
 import se.kodarkatten.casual.jca.CasualResourceManager
 import se.kodarkatten.casual.jca.NetworkConnection
-import se.kodarkatten.casual.network.connection.CasualConnectionException
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
@@ -36,15 +35,15 @@ class CasualQueueCallerTest extends Specification
     @Shared QueueInfo queueInfo
     @Shared MessageSelector nullSelector = MessageSelector.of()
     @Shared JsonBuffer message
-    @Shared CasualDomainDiscoveryRequestMessage expectedDiscoverRequest
     @Shared CasualEnqueueRequestMessage expectedEnqueueRequest
     @Shared CasualDequeueRequestMessage expectedDequeueRequest
-    @Shared CasualNWMessage<CasualDomainDiscoveryReplyMessage> discoveryReply
-    @Shared CasualNWMessage<CasualDomainDiscoveryReplyMessage> failedDiscoveryReply
+    @Shared CasualDomainDiscoveryRequestMessage expectedDomainDiscoveryRequest
     @Shared CasualNWMessage<CasualEnqueueReplyMessage> enqueueReply
     @Shared CasualNWMessage<CasualDequeueReplyMessage> dequeueReply
-    @Shared CasualNWMessage<CasualDomainDiscoveryRequestMessage> actualDiscoveryRequest
+    @Shared CasualNWMessage<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyFound
+    @Shared CasualNWMessage<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyNotFound
     @Shared CasualNWMessage<CasualEnqueueRequestMessage> actualEnqueueRequest
+    @Shared CasualNWMessage<CasualDomainDiscoveryRequestMessage> actualDomainDiscoveryRequest
     @Shared def bigBaddaBoom = 'big badda boom'
     @Shared int resourceId = 42
 
@@ -83,13 +82,6 @@ class CasualQueueCallerTest extends Specification
 
     def initialiseExpectedRequests()
     {
-        expectedDiscoverRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
-                                                                     .setDomainId(domainId)
-                                                                     .setExecution(executionId)
-                                                                     .setDomainName( connection.getDomainName() )
-                                                                     .setQueueNames(Arrays.asList(queueInfo.compositeName))
-                                                                     .build()
-
         expectedEnqueueRequest = CasualEnqueueRequestMessage.createBuilder()
                                                             .withExecution(executionId)
                                                             .withXid(connection.getCurrentXid() )
@@ -105,28 +97,35 @@ class CasualQueueCallerTest extends Specification
                                                             .withQueueName(queueInfo.compositeName)
                                                             .withBlock(true)
                                                             .build()
+        expectedDomainDiscoveryRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
+                                                                            .setQueueNames([queueInfo.compositeName])
+                                                                            .setDomainName(connection.getDomainName())
+                                                                            .build()
     }
 
     def initialiseReplies()
     {
-        discoveryReply = createDomainDiscoveryReplyMessage( queueName )
-        failedDiscoveryReply = createDomainDiscoveryReplyMessage()
         enqueueReply = createEnqueueReplyMessage()
         dequeueReply = createDequeueReplyMessage()
+        domainDiscoveryReplyFound = createDomainDiscoveryReply(asQueues([queueInfo.compositeName]))
+        domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asQueues([]))
     }
 
-
-
-    CasualNWMessage<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReplyMessage(String... queues )
+    List<Queue> asQueues(List<String> queuenames)
     {
-        CasualDomainDiscoveryReplyMessage msg = CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName )
-        List<Queue> available = new ArrayList<>()
-        for( String s:  queues)
+        List<Queue> l = new ArrayList<>()
+        for(String qname : queuenames)
         {
-            available.add(Queue.of(queueInfo.compositeName))
+            l.add(Queue.of(qname))
         }
-        msg.setQueues(available)
-        return CasualNWMessage.of( executionId, msg )
+        return l
+    }
+
+    CasualNWMessage<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Queue> queues)
+    {
+        CasualNWMessage.of(executionId,
+                           CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
+                                                            .setQueues(queues))
     }
 
     CasualNWMessage<CasualEnqueueReplyMessage> createEnqueueReplyMessage()
@@ -156,16 +155,10 @@ class CasualQueueCallerTest extends Specification
         noExceptionThrown()
         msgId == enqueueReplyId
         1 * networkConnection.requestReply( _ ) >> {
-            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
-                actualDiscoveryRequest = input
-                return discoveryReply
-        }
-        1 * networkConnection.requestReply( _ ) >> {
             CasualNWMessage<CasualEnqueueRequestMessage> input ->
                 actualEnqueueRequest = input
                 return enqueueReply
         }
-        expect actualDiscoveryRequest, matching( expectedDiscoverRequest )
         expect actualEnqueueRequest, matching( expectedEnqueueRequest )
     }
 
@@ -178,15 +171,9 @@ class CasualQueueCallerTest extends Specification
         def e = thrown(RuntimeException)
         e.message == bigBaddaBoom
         1 * networkConnection.requestReply( _ ) >> {
-            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
-                actualDiscoveryRequest = input
-                return discoveryReply
-        }
-        1 * networkConnection.requestReply( _ ) >> {
             CasualNWMessage<CasualEnqueueRequestMessage> input ->
                 throw new RuntimeException(bigBaddaBoom)
         }
-        expect actualDiscoveryRequest, matching( expectedDiscoverRequest )
     }
 
     def 'dequeue goes big badda boom'()
@@ -197,49 +184,38 @@ class CasualQueueCallerTest extends Specification
         messages == null
         def e = thrown(RuntimeException)
         e.message == bigBaddaBoom
-        1 * networkConnection.requestReply( _ ) >> {
-            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
-                actualDiscoveryRequest = input
-                return discoveryReply
-        }
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.requestReply(_) >> {
             CasualNWMessage<CasualDequeueRequestMessage> input ->
                 throw new RuntimeException(bigBaddaBoom)
         }
-        expect actualDiscoveryRequest, matching( expectedDiscoverRequest)
     }
 
-    def 'domain discovery failure during enqueue request throws exception after discovery failure'()
+    def 'queueExists'()
     {
         when:
-        UUID msgId = instance.enqueue(queueInfo, QueueMessage.of(message))
+        def r = instance.queueExists(queueInfo)
         then:
-        null == msgId
-        def e = thrown(CasualConnectionException)
-        e.message == "queue ${queueInfo.compositeName} does not exist"
-        1 * networkConnection.requestReply( _ ) >> {
+        r == true
+        1 * networkConnection.requestReply(_) >> {
             CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
-                actualDiscoveryRequest = input
-                return failedDiscoveryReply
+                actualDomainDiscoveryRequest = input
+                return domainDiscoveryReplyFound
         }
-        0 * networkConnection.requestReply( _ as CasualNWMessage<CasualEnqueueRequestMessage> )
+        expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }
 
-    def 'domain discovery failure during dequeue request throws exception after discovery failure'()
+    def 'queueExists - not found'()
     {
         when:
-        List<QueueMessage> messages = instance.dequeue(queueInfo, MessageSelector.of())
+        def r = instance.queueExists(queueInfo)
         then:
-        null == messages
-        def e = thrown(CasualConnectionException)
-        e.message == "queue ${queueInfo.compositeName} does not exist"
-        1 * networkConnection.requestReply( _ ) >> {
+        r == false
+        1 * networkConnection.requestReply(_) >> {
             CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
-                actualDiscoveryRequest = input
-                return failedDiscoveryReply
+                actualDomainDiscoveryRequest = input
+                return domainDiscoveryReplyNotFound
         }
-        0 * networkConnection.requestReply( _ as CasualNWMessage<CasualDequeueRequestMessage> )
+        expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }
-
 
 }

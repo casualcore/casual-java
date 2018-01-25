@@ -80,6 +80,13 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
+    public boolean serviceExists(String serviceName)
+    {
+        throwIfInvalidated();
+        return getCasualServiceCaller().serviceExists(serviceName);
+    }
+
+    @Override
     public UUID enqueue(QueueInfo qinfo, QueueMessage msg)
     {
         throwIfInvalidated();
@@ -91,6 +98,13 @@ public class CasualConnectionImpl implements CasualConnection
     {
         throwIfInvalidated();
         return getCasualQueueCaller().dequeue(qinfo, selector);
+    }
+
+    @Override
+    public boolean queueExists(QueueInfo qinfo)
+    {
+        throwIfInvalidated();
+        return getCasualQueueCaller().queueExists(qinfo);
     }
 
     private void throwIfInvalidated()

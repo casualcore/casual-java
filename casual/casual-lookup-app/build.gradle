@@ -1,0 +1,23 @@
+plugins {
+  id 'ear'
+  id 'java'
+}
+
+def appVersion = '0.0.1'
+
+dependencies {
+  deploy project( path: ':casual:casual-lookup')
+  earlib project( path: ':casual:casual-api')
+  earlib project( path: ':casual:casual-lookup-api')
+  earlib 'com.google.code.gson:gson:2.8.1'
+}
+
+ear{
+  deploymentDescriptor{
+    applicationName = "casual-lookup-app"
+    initializeInOrder = true
+    displayName = "Casual Lookup App"
+    description = "Casual application to lookup connection factories for casual queues and services"
+  }
+  archiveName = "casual-lookup-app-" + appVersion + ".ear"
+}

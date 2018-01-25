@@ -24,4 +24,11 @@ public interface CasualQueueApi
      * @return
      */
     List<QueueMessage> dequeue(QueueInfo qinfo, MessageSelector selector);
+
+    /**
+     * Check if queue exists
+     * @param qinfo
+     * @return true if queue exists
+     */
+    boolean queueExists(QueueInfo qinfo);
 }

@@ -6,7 +6,6 @@ import se.kodarkatten.casual.api.queue.QueueInfo;
 import se.kodarkatten.casual.api.queue.QueueMessage;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
 import se.kodarkatten.casual.jca.service.Transformer;
-import se.kodarkatten.casual.network.connection.CasualConnectionException;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
@@ -24,7 +23,6 @@ import java.util.UUID;
 
 public class CasualQueueCaller implements CasualQueueApi
 {
-    private static final String DOES_NOT_EXIST = " does not exist";
     private CasualManagedConnection connection;
 
     private CasualQueueCaller(final CasualManagedConnection connection)
@@ -41,23 +39,19 @@ public class CasualQueueCaller implements CasualQueueApi
     @Override
     public UUID enqueue(QueueInfo qinfo, QueueMessage msg)
     {
-        final UUID corrid = UUID.randomUUID();
-        if(queueExists( corrid, qinfo.getCompositeName()))
-        {
-            return makeEnqueueCall(corrid, qinfo, msg);
-        }
-        throw new CasualConnectionException("queue " + qinfo.getCompositeName() + DOES_NOT_EXIST);
+        return makeEnqueueCall(UUID.randomUUID(), qinfo, msg);
     }
 
     @Override
     public List<QueueMessage> dequeue(QueueInfo qinfo, MessageSelector selector)
     {
-        final UUID corrid = UUID.randomUUID();
-        if(queueExists( corrid, qinfo.getCompositeName()))
-        {
-            return makeDequeueCall(corrid, qinfo, selector);
-        }
-        throw new CasualConnectionException("queue " + qinfo.getCompositeName() + DOES_NOT_EXIST);
+        return makeDequeueCall(UUID.randomUUID(), qinfo, selector);
+    }
+
+    @Override
+    public boolean queueExists(QueueInfo qinfo)
+    {
+        return queueExists( UUID.randomUUID(), qinfo.getCompositeName());
     }
 
     private UUID makeEnqueueCall(UUID corrid, QueueInfo qinfo, QueueMessage msg)
