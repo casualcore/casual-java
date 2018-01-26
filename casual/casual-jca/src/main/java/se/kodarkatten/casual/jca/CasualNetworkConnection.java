@@ -7,6 +7,7 @@ import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectReplyMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestMessage;
+import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
@@ -22,21 +23,24 @@ public final class CasualNetworkConnection implements NetworkConnection
     private final SocketChannel socketChannel;
     private final Object lock = new Object();
     private final CasualNetworkConnectionInformation ci;
+    private final ManagedConnectionInvalidator invalidator;
 
-    private CasualNetworkConnection(final SocketChannel socketChannel, final CasualNetworkConnectionInformation ci)
+    private CasualNetworkConnection(final SocketChannel socketChannel, final CasualNetworkConnectionInformation ci, final ManagedConnectionInvalidator invalidator)
     {
         this.socketChannel = socketChannel;
         this.ci = ci;
+        this.invalidator = invalidator;
     }
 
-    public static CasualNetworkConnection of(final CasualNetworkConnectionInformation ci)
+    public static CasualNetworkConnection of(final CasualNetworkConnectionInformation ci, final ManagedConnectionInvalidator invalidator)
     {
         Objects.requireNonNull(ci, "connection information is not allowed to be null");
+        Objects.requireNonNull(invalidator,  "invalidator can not be null");
         try
         {
             SocketChannel channel = SocketChannel.open();
             channel.connect(ci.getAddress());
-            CasualNetworkConnection c = new CasualNetworkConnection(channel, ci);
+            CasualNetworkConnection c = new CasualNetworkConnection(channel, ci, invalidator);
             c.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
             return c;
         }
@@ -51,8 +55,19 @@ public final class CasualNetworkConnection implements NetworkConnection
     {
         synchronized (lock)
         {
-            CasualNetworkWriter.write(socketChannel, message);
-            return CasualNetworkReader.read(socketChannel);
+            try
+            {
+                CasualNetworkWriter.write(socketChannel, message);
+                return CasualNetworkReader.read(socketChannel);
+            }
+            catch(CasualTransportException e)
+            {
+                if(e.getCause() instanceof IOException)
+                {
+                    invalidator.invalidate();
+                }
+                throw e;
+            }
         }
     }
 

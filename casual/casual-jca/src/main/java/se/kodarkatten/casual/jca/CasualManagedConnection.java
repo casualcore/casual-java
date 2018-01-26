@@ -5,14 +5,24 @@ import se.kodarkatten.casual.jca.event.ConnectionEventHandler;
 
 import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
-import javax.resource.spi.*;
+import javax.resource.spi.ConnectionEvent;
+import javax.resource.spi.ConnectionEventListener;
+import javax.resource.spi.ConnectionRequestInfo;
+import javax.resource.spi.LocalTransaction;
+import javax.resource.spi.ManagedConnection;
+import javax.resource.spi.ManagedConnectionMetaData;
+import javax.resource.spi.ResourceAdapter;
 import javax.resource.spi.work.WorkManager;
 import javax.security.auth.Subject;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -22,7 +32,7 @@ import java.util.logging.Logger;
  * These in turn knows their managed connection and can invoke network operations.
  * @version $Revision: $
  */
-public class CasualManagedConnection implements ManagedConnection
+public class CasualManagedConnection implements ManagedConnection, ManagedConnectionInvalidator
 {
     private static final String DOMAIN_NAME = "casual-java";
     private static final Logger log = Logger.getLogger(CasualManagedConnection.class.getName());
@@ -70,7 +80,7 @@ public class CasualManagedConnection implements ManagedConnection
         {
             CasualNetworkConnectionInformation ci = CasualNetworkConnectionInformation.of(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()),
                                                                                           mcf.getCasualProtocolVersion(), UUID.randomUUID(), DOMAIN_NAME);
-            networkConnection = CasualNetworkConnection.of(ci);
+            networkConnection = CasualNetworkConnection.of(ci, this);
         }
         return networkConnection;
     }
@@ -228,5 +238,12 @@ public class CasualManagedConnection implements ManagedConnection
                 ", networkConnection=" + networkConnection +
                 ", xaResource=" + xaResource +
                 '}';
+    }
+
+    @Override
+    public void invalidate()
+    {
+        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED);
+        connectionEventHandler.sendEvent(event);
     }
 }
