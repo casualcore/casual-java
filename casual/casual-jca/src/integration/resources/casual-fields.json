@@ -125,17 +125,17 @@
       "fields": [
         {
           "id": 1,
-          "name": "ID",
+          "name": "FML_LONG1",
           "type": "long"
         },
         {
           "id": 2,
-          "name": "VERSION",
+          "name": "FML_LONG2",
           "type": "long"
         },
         {
           "id": 3,
-          "name": "PRODUCT",
+          "name": "FML_STRING1",
           "type": "string"
         }
       ]

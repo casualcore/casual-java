@@ -36,11 +36,11 @@ class CasualDequeueReplyMessageTest extends Specification
     def "roundtrip"()
     {
         setup:
-        def requestMsg = CasualDequeueReplyMessage.createBuilder()
+        CasualDequeueReplyMessage requestMsg = CasualDequeueReplyMessage.createBuilder()
                                                   .withExecution(UUID.randomUUID())
                                                   .withMessages(createMessages(5))
                                                   .build()
-        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
+        CasualNWMessage<CasualDequeueReplyMessage> msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualNWMessage<CasualDequeueReplyMessage> asyncResurrectedMsg  = TestUtils.roundtripMessage(msg, asyncSink)
@@ -49,6 +49,14 @@ class CasualDequeueReplyMessageTest extends Specification
         networkBytes != null
         msg == asyncResurrectedMsg
         msg == syncResurrectedMsg
+        for( int i=0;i<msg.getMessage().getMessages().size();i++)
+        {
+            DequeueMessage m = msg.getMessage().getMessages().get( i )
+            DequeueMessage am = msg.getMessage().getMessages().get( i )
+            DequeueMessage sm = msg.getMessage().getMessages().get( i )
+            Arrays.deepEquals( m.getPayload().getPayload().toArray(), am.getPayload().getPayload().toArray( ) )
+            Arrays.deepEquals( m.getPayload().getPayload().toArray(), sm.getPayload().getPayload().toArray( ) )
+        }
     }
 
     def "roundtrip - force chunking"()
@@ -69,6 +77,15 @@ class CasualDequeueReplyMessageTest extends Specification
         networkBytes != null
         msg == asyncResurrectedMsg
         msg == syncResurrectedMsg
+
+        for( int i=0;i<msg.getMessage().getMessages().size();i++)
+        {
+            DequeueMessage m = msg.getMessage().getMessages().get( i )
+            DequeueMessage am = msg.getMessage().getMessages().get( i )
+            DequeueMessage sm = msg.getMessage().getMessages().get( i )
+            Arrays.deepEquals( m.getPayload().getPayload().toArray(), am.getPayload().getPayload().toArray( ) )
+            Arrays.deepEquals( m.getPayload().getPayload().toArray(), sm.getPayload().getPayload().toArray( ) )
+        }
     }
 
 

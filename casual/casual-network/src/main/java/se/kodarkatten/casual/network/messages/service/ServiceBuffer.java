@@ -7,6 +7,7 @@ package se.kodarkatten.casual.network.messages.service;
 import se.kodarkatten.casual.api.buffer.CasualBuffer;
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException;
 
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +16,9 @@ import java.util.Objects;
 /**
  * Used in service call request and reply
  */
-public final class ServiceBuffer implements CasualBuffer
+public final class ServiceBuffer implements CasualBuffer, Serializable
 {
+    private static final long serialVersionUID = 1L;
     private String type;
     private List<byte[]> payload;
     private ServiceBuffer(final String type, final List<byte[]> payload)
@@ -84,35 +86,5 @@ public final class ServiceBuffer implements CasualBuffer
         r.add(typeBytes);
         r.addAll(getPayload());
         return r;
-    }
-
-    /**
-     * Since paylods can be huge, we never ever compare them
-     * @param o
-     * @return
-     */
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
-        {
-            return false;
-        }
-        ServiceBuffer that = (ServiceBuffer) o;
-        return Objects.equals(type, that.type);
-    }
-
-    /**
-     * Be aware that payload can be huge
-     * @return
-     */
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(type, payload);
     }
 }

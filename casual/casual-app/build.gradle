@@ -8,8 +8,10 @@ def appVersion = '0.0.1'
 dependencies {
   deploy project( path: ':casual:casual-jca', configuration:'resourceAdapter' )
   deploy project(':casual:casual-inbound' )
-  deploy project(':casual:casual-inbound-handler-jndi')
-  deploy project(':casual:casual-inbound-handler-fielded')
+  deploy project(':casual:casual-inbound-handler-casual-service')
+  deploy project(':casual:casual-inbound-handler-javaee-service')
+  deploy project(':casual:casual-inbound-handler-jscd-buffer')
+  deploy project(':casual:casual-inbound-handler-fielded-buffer')
   provided 'javax:javaee-api:7.0'
 }
 

@@ -48,20 +48,20 @@ class CasualEnqueueRequestMessageTest extends Specification
     def "roundtrip"()
     {
         setup:
-        def enqueueMsg = EnqueueMessage.of(QueueMessage.createBuilder()
+        EnqueueMessage enqueueMsg = EnqueueMessage.of(QueueMessage.createBuilder()
                                                        .withId(UUID.randomUUID())
                                                        .withReplyQueue("qspace:qname")
                                                        .withCorrelationInformation("correlationInformation")
                                                        .withAvailableSince(LocalDateTime.now())
                                                        .withPayload(serviceBuffer)
                                                        .build())
-        def requestMsg = CasualEnqueueRequestMessage.createBuilder()
+        CasualEnqueueRequestMessage requestMsg = CasualEnqueueRequestMessage.createBuilder()
                                                     .withExecution(UUID.randomUUID())
                                                     .withQueueName("best.queue.ever")
                                                     .withXid(XID.NULL_XID)
                                                     .withMessage(enqueueMsg)
                                                     .build()
-        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
+        CasualNWMessage<CasualEnqueueRequestMessage> msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualNWMessage<CasualEnqueueRequestMessage> asyncResurrectedMsg = TestUtils.roundtripMessage(msg, asyncSink)
@@ -70,25 +70,32 @@ class CasualEnqueueRequestMessageTest extends Specification
         networkBytes != null
         msg == asyncResurrectedMsg
         msg == syncResurrectedMsg
+
+        EnqueueMessage m = msg.getMessage().getMessage()
+        EnqueueMessage am = msg.getMessage().getMessage()
+        EnqueueMessage sm = msg.getMessage().getMessage()
+        Arrays.deepEquals( m.getPayload().getPayload().toArray(), am.getPayload().getPayload().toArray( ) )
+        Arrays.deepEquals( m.getPayload().getPayload().toArray(), sm.getPayload().getPayload().toArray( ) )
+
     }
 
     def "roundtrip - force chunking"()
     {
         setup:
-        def enqueueMsg = EnqueueMessage.of(QueueMessage.createBuilder()
+        EnqueueMessage enqueueMsg = EnqueueMessage.of(QueueMessage.createBuilder()
                                                        .withId(UUID.randomUUID())
                                                        .withReplyQueue("qspace:qname")
                                                        .withCorrelationInformation("correlationInformation")
                                                        .withAvailableSince(LocalDateTime.now())
                                                        .withPayload(serviceBuffer)
                                                        .build())
-        def requestMsg = CasualEnqueueRequestMessage.createBuilder()
+        CasualEnqueueRequestMessage requestMsg = CasualEnqueueRequestMessage.createBuilder()
                 .withExecution(UUID.randomUUID())
                 .withQueueName("best.queue.ever")
                 .withXid(XID.NULL_XID)
                 .withMessage(enqueueMsg)
                 .build()
-        CasualNWMessage msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
+        CasualNWMessage<CasualEnqueueRequestMessage> msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg)
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualNetworkReader.setMaxSingleBufferByteSize(1)
@@ -99,6 +106,12 @@ class CasualEnqueueRequestMessageTest extends Specification
         networkBytes != null
         msg == asyncResurrectedMsg
         msg == syncResurrectedMsg
+
+        EnqueueMessage m = msg.getMessage().getMessage()
+        EnqueueMessage am = msg.getMessage().getMessage()
+        EnqueueMessage sm = msg.getMessage().getMessage()
+        Arrays.deepEquals( m.getPayload().getPayload().toArray(), am.getPayload().getPayload().toArray( ) )
+        Arrays.deepEquals( m.getPayload().getPayload().toArray(), sm.getPayload().getPayload().toArray( ) )
     }
 
 }

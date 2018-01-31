@@ -78,8 +78,7 @@ public final class EnqueueMessage
         return Objects.equals(msg.getCorrelationInformation(), that.msg.getCorrelationInformation()) &&
             Objects.equals(msg.getId(), that.msg.getId()) &&
             Objects.equals(msg.getAvailableSince(), that.msg.getAvailableSince()) &&
-            Objects.equals(msg.getReplyQueue(), that.msg.getReplyQueue()) &&
-            Objects.equals(msg.getPayload(), that.msg.getPayload());
+            Objects.equals(msg.getReplyQueue(), that.msg.getReplyQueue());
     }
 
     @Override

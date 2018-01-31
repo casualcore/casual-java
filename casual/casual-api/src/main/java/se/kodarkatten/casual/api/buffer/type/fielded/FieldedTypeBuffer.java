@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("squid:S1452")
 public final class FieldedTypeBuffer implements CasualBuffer
 {
+    private static final long serialVersionUID = 1L;
     private Map<String, List<FieldedData<?>>> m;
     private FieldedTypeBuffer(final Map<String, List<FieldedData<?>>> m)
     {

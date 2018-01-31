@@ -1,9 +1,10 @@
 package se.kodarkatten.casual.jca.inflow.work;
 
+import se.kodarkatten.casual.api.buffer.CasualBuffer;
 import se.kodarkatten.casual.api.flags.ErrorState;
 import se.kodarkatten.casual.api.flags.TransactionState;
-import se.kodarkatten.casual.jca.inbound.handler.CasualHandler;
-import se.kodarkatten.casual.jca.inbound.handler.CasualHandlerFactory;
+import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
+import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse;
 import se.kodarkatten.casual.network.io.CasualNetworkWriter;
@@ -16,7 +17,6 @@ import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 import javax.resource.spi.work.Work;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 public final class CasualServiceCallWork implements Work
@@ -27,7 +27,7 @@ public final class CasualServiceCallWork implements Work
     private final SocketChannel channel;
     private final CasualNWMessageHeader header;
 
-    private CasualHandler handler = null;
+    private ServiceHandler handler = null;
 
     public CasualServiceCallWork(CasualNWMessageHeader header, CasualServiceCallRequestMessage message, SocketChannel channel )
     {
@@ -70,14 +70,14 @@ public final class CasualServiceCallWork implements Work
                 .setXid( message.getXid() )
                 .setExecution( message.getExecution() );
 
-        List<byte[]> serviceResult = new ArrayList<>();
+        CasualBuffer serviceResult = ServiceBuffer.of( message.getServiceBuffer().getType(), new ArrayList<>());
         try
         {
-            CasualHandler h = getHandler(message.getServiceName());
+            ServiceHandler h = getHandler(message.getServiceName());
 
-            InboundRequest request = InboundRequest.of( message.getServiceName(), message.getServiceBuffer().getPayload() );
+            InboundRequest request = InboundRequest.of( message.getServiceName(), message.getServiceBuffer() );
             InboundResponse reply = h.invokeService( request );
-            serviceResult = reply.getPayload();
+            serviceResult = reply.getBuffer();
 
             if( reply.isSuccessful() )
             {
@@ -96,23 +96,23 @@ public final class CasualServiceCallWork implements Work
         finally
         {
             CasualServiceCallReplyMessage reply = replyBuilder
-                    .setServiceBuffer(ServiceBuffer.of( message.getServiceBuffer().getType(), serviceResult ) )
+                    .setServiceBuffer( ServiceBuffer.of( serviceResult ) )
                     .build();
             CasualNWMessage<CasualServiceCallReplyMessage> replyMessage = CasualNWMessage.of( header.getCorrelationId(),reply );
             CasualNetworkWriter.write( this.channel, replyMessage );
         }
     }
 
-    CasualHandler getHandler( String serviceName )
+    ServiceHandler getHandler(String serviceName )
     {
         if( this.handler != null )
         {
             return this.handler;
         }
-        return CasualHandlerFactory.getHandler( serviceName );
+        return ServiceHandlerFactory.getHandler( serviceName );
     }
 
-    void setHandler( CasualHandler handler )
+    void setHandler( ServiceHandler handler )
     {
         this.handler = handler;
     }

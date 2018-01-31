@@ -6,6 +6,7 @@ import java.util.Optional;
 public enum CasualBufferType
 {
     JSON(".json/"),
+    JSON_JSCD(".json/jscd"),
     FIELDED("CFIELD/");
     private final String name;
     CasualBufferType(final String name)

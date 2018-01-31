@@ -184,7 +184,7 @@ class CasualConnectionImplTest extends Specification
         instance.getCasualServiceCaller() != null
     }
 
-    def "Equals and HashCode tests confirm only equal through referencial equality."()
+    def "Equals and HashCode tests confirm only equal through referential equality."()
     {
         setup:
         CasualConnectionImpl instance2 = new CasualConnectionImpl( connection )

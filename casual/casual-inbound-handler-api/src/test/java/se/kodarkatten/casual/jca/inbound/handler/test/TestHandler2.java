@@ -1,10 +1,10 @@
 package se.kodarkatten.casual.jca.inbound.handler.test;
 
-import se.kodarkatten.casual.jca.inbound.handler.CasualHandler;
+import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse;
 
-public class TestHandler2 implements CasualHandler
+public class TestHandler2 implements ServiceHandler
 {
     public static final String SERVICE_2 = "testService2";
 

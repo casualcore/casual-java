@@ -5,12 +5,10 @@ import se.kodarkatten.casual.jca.inflow.CasualActivationSpec;
 
 import javax.resource.spi.XATerminator;
 import javax.resource.spi.endpoint.MessageEndpointFactory;
-import javax.resource.spi.work.HintsContext;
 import javax.resource.spi.work.Work;
 import javax.resource.spi.work.WorkContext;
 import javax.resource.spi.work.WorkContextProvider;
 import javax.resource.spi.work.WorkManager;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 

@@ -1,7 +1,8 @@
 package se.kodarkatten.casual.jca.inbound.handler;
 
+import se.kodarkatten.casual.api.buffer.CasualBuffer;
+
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 public class InboundResponse implements Serializable
@@ -9,18 +10,18 @@ public class InboundResponse implements Serializable
     private static final long serialVersionUID = 1L;
 
     private final boolean successful;
-    private final List<byte[]> payload;
+    private final CasualBuffer buffer;
 
-    private InboundResponse( boolean successful, List<byte[]> payload )
+    private InboundResponse( boolean successful, CasualBuffer buffer)
     {
         this.successful = successful;
-        this.payload = payload;
+        this.buffer = buffer;
     }
 
-    public static InboundResponse of( boolean successful, List<byte[]> payload )
+    public static InboundResponse of( boolean successful, CasualBuffer buffer )
     {
-        Objects.requireNonNull( payload, "Payload is null." );
-        return new InboundResponse( successful, payload );
+        Objects.requireNonNull( buffer, "Buffer is null." );
+        return new InboundResponse( successful, buffer );
     }
 
     public boolean isSuccessful()
@@ -28,31 +29,9 @@ public class InboundResponse implements Serializable
         return this.successful;
     }
 
-    public List<byte[]> getPayload( )
+    public CasualBuffer getBuffer( )
     {
-        return this.payload;
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
-        {
-            return false;
-        }
-        InboundResponse that = (InboundResponse) o;
-        return successful == that.successful &&
-                Objects.equals(payload, that.payload);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(successful, payload);
+        return this.buffer;
     }
 
     @Override
@@ -60,7 +39,7 @@ public class InboundResponse implements Serializable
     {
         return "InboundResponse{" +
                 "successful=" + successful +
-                ", payload=" + payload +
+                ", buffer=" + buffer +
                 '}';
     }
 }

@@ -1,7 +1,8 @@
 package se.kodarkatten.casual.jca.inbound.handler;
 
+import se.kodarkatten.casual.api.buffer.CasualBuffer;
+
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 public class InboundRequest implements Serializable
@@ -9,19 +10,19 @@ public class InboundRequest implements Serializable
     private static final long serialVersionUID = 1L;
 
     private final String serviceName;
-    private final List<byte[]> payload;
+    private final CasualBuffer buffer;
 
-    private InboundRequest(String serviceName, List<byte[]> payload )
+    private InboundRequest(String serviceName, CasualBuffer buffer )
     {
         this.serviceName = serviceName;
-        this.payload = payload;
+        this.buffer = buffer;
     }
 
-    public static InboundRequest of( String serviceName, List<byte[]> payload )
+    public static InboundRequest of( String serviceName, CasualBuffer buffer )
     {
         Objects.requireNonNull( serviceName, "Service name is null." );
-        Objects.requireNonNull( payload, "Payload is null." );
-        return new InboundRequest( serviceName, payload );
+        Objects.requireNonNull( buffer, "Buffer is null." );
+        return new InboundRequest( serviceName, buffer );
     }
 
     public String getServiceName()
@@ -29,31 +30,9 @@ public class InboundRequest implements Serializable
         return this.serviceName;
     }
 
-    public List<byte[]> getPayload()
+    public CasualBuffer getBuffer()
     {
-        return this.payload;
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
-        {
-            return false;
-        }
-        InboundRequest that = (InboundRequest) o;
-        return Objects.equals(serviceName, that.serviceName) &&
-                Objects.equals(payload, that.payload);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(serviceName, payload);
+        return this.buffer;
     }
 
     @Override
@@ -61,7 +40,7 @@ public class InboundRequest implements Serializable
     {
         return "InboundRequest{" +
                 "serviceName='" + serviceName + '\'' +
-                ", payload=" + payload +
+                ", buffer=" + buffer +
                 '}';
     }
 }

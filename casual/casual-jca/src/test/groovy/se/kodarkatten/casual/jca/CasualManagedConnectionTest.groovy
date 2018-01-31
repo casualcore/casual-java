@@ -248,7 +248,7 @@ class CasualManagedConnectionTest extends Specification
         0 * listener2.connectionClosed( _ )
     }
 
-    def "Equals and HashCode tests confirm only equal through referencial equality."()
+    def "Equals and HashCode tests confirm only equal through referential equality."()
     {
         setup:
         CasualManagedConnection instance2 = new CasualManagedConnection( managedConnectionFactory, connectionRequestInfo )

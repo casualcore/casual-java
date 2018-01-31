@@ -102,7 +102,6 @@ public final class QueueMessage
             Objects.equals(id, that.id) &&
             Objects.equals(correlationInformation, that.correlationInformation) &&
             Objects.equals(replyQueue, that.replyQueue) &&
-            Objects.equals(payload, that.payload) &&
             Objects.equals(availableSince, that.availableSince) &&
             Objects.equals(timestamp, that.timestamp);
     }
@@ -110,7 +109,7 @@ public final class QueueMessage
     @Override
     public int hashCode()
     {
-        return Objects.hash(id, correlationInformation, replyQueue, payload, redelivered, availableSince, timestamp);
+        return Objects.hash(id, correlationInformation, replyQueue, redelivered, availableSince, timestamp);
     }
 
     @Override

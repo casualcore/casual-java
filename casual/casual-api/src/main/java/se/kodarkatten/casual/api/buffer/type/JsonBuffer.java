@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 public class JsonBuffer implements CasualBuffer
 {
+    private static final long serialVersionUID = 1L;
     private final List<byte[]> payload;
     private JsonBuffer(final List<byte[]> payload)
     {

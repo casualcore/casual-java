@@ -37,6 +37,8 @@ dependencies {
     //Integration test.
     integrationCompile project(':casual:casual-fielded-annotations')
     integrationCompile files('../../../casual-java-testapp/test-api/build/libs/test-api.jar')
+
+    integrationCompile "commons-io:commons-io:2.4"
 }
 
 task rar(type: Jar) {

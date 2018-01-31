@@ -127,8 +127,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             Objects.equals(execution, that.execution) &&
             error == that.error &&
             Objects.equals(xid, that.xid) &&
-            transactionState == that.transactionState &&
-            Objects.equals(serviceBuffer, that.serviceBuffer);
+            transactionState == that.transactionState;
     }
 
     @Override

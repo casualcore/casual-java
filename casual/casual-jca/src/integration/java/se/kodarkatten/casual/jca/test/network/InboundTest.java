@@ -6,6 +6,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import se.kodarkatten.casual.api.buffer.CasualBuffer;
+import se.kodarkatten.casual.api.buffer.CasualBufferType;
 import se.kodarkatten.casual.api.buffer.ServiceReturn;
 import se.kodarkatten.casual.api.buffer.type.JavaServiceCallDefinition;
 import se.kodarkatten.casual.api.buffer.type.JsonBuffer;
@@ -21,6 +22,7 @@ import se.kodarkatten.casual.example.service.order.CasualOrder;
 import se.kodarkatten.casual.jca.CasualConnection;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
 import se.kodarkatten.casual.jca.CasualManagedConnectionFactory;
+import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 
 import javax.resource.ResourceException;
 import javax.transaction.xa.XAException;
@@ -104,7 +106,8 @@ public class InboundTest
         JavaServiceCallDefinition callDef = JavaServiceCallDefinition.of( "echo", message );
 
         String data = getJsonProvider().toJson( callDef );
-        CasualBuffer msg = JsonBuffer.of( data );
+
+        CasualBuffer msg = ServiceBuffer.of(CasualBufferType.JSON_JSCD.getName(), JsonBuffer.of( data ).getBytes() );
 
         ServiceReturn<CasualBuffer> reply = connection.tpcall(serviceName, msg, Flag.of(AtmiFlags.NOFLAG));
 
@@ -158,6 +161,33 @@ public class InboundTest
         assertThat(actual.getId(), is(not(nullValue())));
         assertThat(actual.getVersion(), is(not(nullValue())));
         assertThat(actual.getProduct(), is(equalTo(message.getProduct())));
+    }
+
+    @Test
+    public void tpcallTestEchoBuffer() throws Exception
+    {
+        callTestEcho();
+        onePhaseCommit();
+    }
+
+    public void callTestEcho()
+    {
+        String serviceName = "TestCasualEcho";
+        CasualOrder message = new CasualOrder();
+        message.setId( 123 );
+        message.setVersion( 3 );
+        message.setProduct( "this is the details in the product" );
+        FieldedTypeBuffer buffer = FieldedTypeBufferProcessor.marshall( message );
+
+        CasualBuffer msg = ServiceBuffer.of( "unknown", buffer.getBytes() );
+
+        ServiceReturn<CasualBuffer> reply = connection.tpcall( serviceName, msg, Flag.of( AtmiFlags.NOFLAG ) );
+
+        assertThat( reply.getServiceReturnState(), is( equalTo( ServiceReturnState.TPSUCCESS) ) );
+
+        CasualOrder actual = FieldedTypeBufferProcessor.unmarshall(FieldedTypeBuffer.create(reply.getReplyBuffer().getBytes()), CasualOrder.class);
+
+        assertThat( actual, is( equalTo( message ) ) );
     }
 
     private void twoPhaseCommit() throws ResourceException, XAException

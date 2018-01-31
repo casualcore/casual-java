@@ -5,6 +5,8 @@ import org.hamcrest.TypeSafeMatcher;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.queue.CasualEnqueueRequestMessage;
 
+import java.util.Arrays;
+
 public class CasualEnqueueRequestMessageMatcher
 {
     public static TypeSafeMatcher<CasualNWMessage<CasualEnqueueRequestMessage>> matching(final CasualEnqueueRequestMessage expected )
@@ -16,7 +18,7 @@ public class CasualEnqueueRequestMessageMatcher
             {
                 CasualEnqueueRequestMessage msg = item.getMessage();
                 return msg.getQueueName().equals(expected.getQueueName()) &&
-                       msg.getMessage().getPayload().equals(expected.getMessage().getPayload()) &&
+                       Arrays.deepEquals( msg.getMessage().getPayload().getPayload().toArray(), expected.getMessage().getPayload().getPayload().toArray() ) &&
                        msg.getMessage().getReplyQueue().equals(expected.getMessage().getReplyQueue());
             }
 

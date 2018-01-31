@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.jca.inflow.work
 
+import se.kodarkatten.casual.api.buffer.CasualBuffer
 import se.kodarkatten.casual.api.buffer.type.JavaServiceCallDefinition
 import se.kodarkatten.casual.api.buffer.type.JsonBuffer
 import se.kodarkatten.casual.api.external.json.JsonProvider
@@ -7,7 +8,7 @@ import se.kodarkatten.casual.api.external.json.JsonProviderFactory
 import se.kodarkatten.casual.api.flags.ErrorState
 import se.kodarkatten.casual.api.flags.Flag
 import se.kodarkatten.casual.api.xa.XID
-import se.kodarkatten.casual.jca.inbound.handler.CasualHandler
+import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse
 import se.kodarkatten.casual.jca.inflow.handler.test.TestHandler
@@ -42,16 +43,18 @@ class CasualServiceCallWorkTest extends Specification
     @Shared JsonProvider jp = JsonProviderFactory.getJsonProvider()
     @Shared String json
 
-    @Shared CasualHandler handler
+    @Shared ServiceHandler handler
     @Shared List<byte[]> payload
+    @Shared CasualBuffer buffer
 
 
     def setup()
     {
-        handler = Mock( CasualHandler )
+        handler = Mock( ServiceHandler )
         payload = new ArrayList<>()
         byte[] p = jp.toJson( methodParam ).getBytes( StandardCharsets.UTF_8 )
         payload.add( p )
+        buffer = JsonBuffer.of( payload )
 
         channel = new LocalEchoSocketChannel()
 
@@ -102,7 +105,7 @@ class CasualServiceCallWorkTest extends Specification
     {
         given:
         InboundRequest actualRequest = null
-        InboundResponse response = InboundResponse.of( true, payload)
+        InboundResponse response = InboundResponse.of( true, buffer)
         1 * handler.invokeService( _ as InboundRequest ) >> { InboundRequest request ->
             actualRequest = request
             return response
@@ -118,7 +121,7 @@ class CasualServiceCallWorkTest extends Specification
         jp.fromJson( j, String.class ) == methodParam
 
         actualRequest.getServiceName() == jndiServiceName
-        actualRequest.getPayload() == JsonBuffer.of( json ).getBytes()
+        actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
 
     }
 
@@ -127,7 +130,7 @@ class CasualServiceCallWorkTest extends Specification
         given:
         InboundRequest actualRequest = null
         String exceptionMessage = "Simulated failure."
-        InboundResponse response = InboundResponse.of( false, JsonBuffer.of( jp.toJson( exceptionMessage ) ).getBytes())
+        InboundResponse response = InboundResponse.of( false, JsonBuffer.of( jp.toJson( exceptionMessage ) ) )
         1 * handler.invokeService( _ as InboundRequest ) >> { InboundRequest request ->
             actualRequest = request
             return response
@@ -143,14 +146,14 @@ class CasualServiceCallWorkTest extends Specification
         j.contains( exceptionMessage )
 
         actualRequest.getServiceName() == jndiServiceName
-        actualRequest.getPayload() == JsonBuffer.of( json ).getBytes()
+        actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
     }
 
     def "Release does nothing."()
     {
         given:
         InboundRequest actualRequest = null
-        InboundResponse response = InboundResponse.of( true, payload)
+        InboundResponse response = InboundResponse.of( true, buffer)
         1 * handler.invokeService( _ as InboundRequest ) >> { InboundRequest request ->
             actualRequest = request
             return response
@@ -172,7 +175,7 @@ class CasualServiceCallWorkTest extends Specification
         instance.setHandler( null )
 
         when:
-        CasualHandler handler = instance.getHandler( TestHandler.SERVICE_1 )
+        ServiceHandler handler = instance.getHandler( TestHandler.SERVICE_1 )
 
         then:
         handler.getClass() == TestHandler.class

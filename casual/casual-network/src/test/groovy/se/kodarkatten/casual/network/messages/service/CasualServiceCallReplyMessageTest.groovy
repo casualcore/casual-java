@@ -90,7 +90,7 @@ class CasualServiceCallReplyMessageTest extends Specification
         requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
-        requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().getServiceBuffer().payload
+        Arrays.deepEquals( requestMsg.getServiceBuffer().getPayload().toArray(), resurrectedMsg.getMessage().getServiceBuffer().getPayload().toArray() )
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - forcing chunking"()
@@ -123,7 +123,7 @@ class CasualServiceCallReplyMessageTest extends Specification
         requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == serviceBuffer.payload.get(0).length
-        requestMsg.getServiceBuffer().getPayload() == collectedServicePayload
+        Arrays.deepEquals( requestMsg.getServiceBuffer().getPayload().toArray(), collectedServicePayload.toArray( ) )
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()
