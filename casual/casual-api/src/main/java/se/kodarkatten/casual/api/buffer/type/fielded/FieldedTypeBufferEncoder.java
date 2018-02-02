@@ -59,7 +59,8 @@ public final class FieldedTypeBufferEncoder
                 break;
             case CASUAL_FIELD_CHAR:
                 b = ByteBuffer.allocate(Byte.BYTES);
-                b.put((Byte)d.getData());
+                char c = d.getData(Character.class);
+                b.put((byte)c);
                 break;
             case CASUAL_FIELD_FLOAT:
                 b = ByteBuffer.allocate(Float.BYTES);
