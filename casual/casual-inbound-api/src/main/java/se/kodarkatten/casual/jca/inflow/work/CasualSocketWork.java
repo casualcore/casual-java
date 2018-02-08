@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
-import static se.kodarkatten.casual.jca.inflow.work.WorkContextFactory.createLongRunningContext;
+import static se.kodarkatten.casual.internal.work.WorkContextFactory.createLongRunningContext;
 
 public final class CasualSocketWork implements Work, WorkContextProvider
 {

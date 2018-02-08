@@ -12,7 +12,7 @@ import javax.resource.spi.work.WorkManager;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static se.kodarkatten.casual.jca.inflow.work.WorkContextFactory.createLongRunningContext;
+import static se.kodarkatten.casual.internal.work.WorkContextFactory.createLongRunningContext;
 
 public class CasualInboundWork implements Work, WorkContextProvider
 {

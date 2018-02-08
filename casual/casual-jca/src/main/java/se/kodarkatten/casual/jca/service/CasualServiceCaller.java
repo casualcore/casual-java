@@ -9,7 +9,6 @@ import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.ServiceReturnState;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
-import se.kodarkatten.casual.jca.service.work.FutureServiceReturnWork;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
@@ -18,10 +17,10 @@ import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMess
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 
-import javax.resource.spi.work.WorkException;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class CasualServiceCaller implements CasualServiceApi
 {
@@ -40,21 +39,29 @@ public class CasualServiceCaller implements CasualServiceApi
     @Override
     public ServiceReturn<CasualBuffer> tpcall( String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        return makeServiceCall( UUID.randomUUID(), serviceName, data, flags);
+        try
+        {
+            return tpacall(serviceName, data, flags).get();
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualResourceAdapterException(e);
+        }
     }
 
     @Override
     public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall( String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         CompletableFuture<ServiceReturn<CasualBuffer>> f = new CompletableFuture<>();
-        try
-        {
-            connection.getWorkManager().scheduleWork(FutureServiceReturnWork.of(f, () -> tpcall(serviceName, data, flags)));
-        }
-        catch (WorkException e)
-        {
-            f.completeExceptionally(new CasualResourceAdapterException("tpacall, failed dispatching work calling service: " + serviceName, e));
-        }
+        CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> ff = makeServiceCall( UUID.randomUUID(), serviceName, data, flags);
+        ff.whenComplete((v, e) ->{
+            if(null != e)
+            {
+                f.completeExceptionally(e);
+                return;
+            }
+            f.complete(toServiceReturn(v));
+        });
         return f;
     }
 
@@ -64,7 +71,7 @@ public class CasualServiceCaller implements CasualServiceApi
         return serviceExists(UUID.randomUUID(), serviceName);
     }
 
-    private ServiceReturn<CasualBuffer> makeServiceCall( UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    private CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> makeServiceCall( UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
                 .setExecution(UUID.randomUUID())
@@ -73,9 +80,7 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setXid( connection.getCurrentXid() )
                 .setXatmiFlags(flags).build();
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessage.of(corrid, serviceRequestMessage);
-        CasualNWMessage<CasualServiceCallReplyMessage> serviceReplyNetworkMessage = connection.getNetworkConnection().requestReply(serviceRequestNetworkMessage);
-        CasualServiceCallReplyMessage serviceReplyMessage = serviceReplyNetworkMessage.getMessage();
-        return new ServiceReturn<>(serviceReplyMessage.getServiceBuffer(), (serviceReplyMessage.getError() == ErrorState.OK) ? ServiceReturnState.TPSUCCESS : ServiceReturnState.TPFAIL, serviceReplyMessage.getError(), serviceReplyMessage.getUserDefinedCode());
+        return connection.getNetworkConnection().request(serviceRequestNetworkMessage);
     }
 
     private boolean serviceExists( UUID corrid, String serviceName)
@@ -87,10 +92,24 @@ public class CasualServiceCaller implements CasualServiceApi
                                                                                             .setServiceNames(Arrays.asList(serviceName))
                                                                                             .build();
         CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessage.of(corrid, requestMsg);
-        CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = connection.getNetworkConnection().requestReply(msg);
-        return replyMsg.getMessage().getServices().stream()
-                .map( Service::getName )
-                .anyMatch(v-> v.equals( serviceName ) );
+        CompletableFuture<CasualNWMessage<CasualDomainDiscoveryReplyMessage>> replyMsgFuture = connection.getNetworkConnection().request(msg);
+        try
+        {
+            CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.get();
+            return replyMsg.getMessage().getServices().stream()
+                           .map(Service::getName)
+                           .anyMatch(v -> v.equals(serviceName));
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualResourceAdapterException(e);
+        }
+    }
+
+    private ServiceReturn<CasualBuffer> toServiceReturn(CasualNWMessage<CasualServiceCallReplyMessage> v)
+    {
+        CasualServiceCallReplyMessage serviceReplyMessage = v.getMessage();
+        return new ServiceReturn<>(serviceReplyMessage.getServiceBuffer(), (serviceReplyMessage.getError() == ErrorState.OK) ? ServiceReturnState.TPSUCCESS : ServiceReturnState.TPFAIL, serviceReplyMessage.getError(), serviceReplyMessage.getUserDefinedCode());
     }
 
     @Override

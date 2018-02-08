@@ -17,7 +17,9 @@ import se.kodarkatten.casual.network.messages.queue.*
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static se.kodarkatten.casual.jca.test.CasualNWMessageMatchers.matching
+import java.util.concurrent.CompletableFuture
+
+import static se.kodarkatten.casual.test.matchers.CasualNWMessageMatchers.matching
 import static spock.util.matcher.HamcrestSupport.expect
 
 class CasualQueueCallerTest extends Specification
@@ -154,10 +156,10 @@ class CasualQueueCallerTest extends Specification
         then:
         noExceptionThrown()
         msgId == enqueueReplyId
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualEnqueueRequestMessage> input ->
                 actualEnqueueRequest = input
-                return enqueueReply
+                return new CompletableFuture<>(enqueueReply)
         }
         expect actualEnqueueRequest, matching( expectedEnqueueRequest )
     }
@@ -170,7 +172,7 @@ class CasualQueueCallerTest extends Specification
         null == msgId
         def e = thrown(RuntimeException)
         e.message == bigBaddaBoom
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualEnqueueRequestMessage> input ->
                 throw new RuntimeException(bigBaddaBoom)
         }
@@ -184,7 +186,7 @@ class CasualQueueCallerTest extends Specification
         messages == null
         def e = thrown(RuntimeException)
         e.message == bigBaddaBoom
-        1 * networkConnection.requestReply(_) >> {
+        1 * networkConnection.request(_) >> {
             CasualNWMessage<CasualDequeueRequestMessage> input ->
                 throw new RuntimeException(bigBaddaBoom)
         }
@@ -196,10 +198,10 @@ class CasualQueueCallerTest extends Specification
         def r = instance.queueExists(queueInfo)
         then:
         r == true
-        1 * networkConnection.requestReply(_) >> {
+        1 * networkConnection.request(_) >> {
             CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
-                return domainDiscoveryReplyFound
+                return new CompletableFuture<>(domainDiscoveryReplyFound)
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }
@@ -210,10 +212,10 @@ class CasualQueueCallerTest extends Specification
         def r = instance.queueExists(queueInfo)
         then:
         r == false
-        1 * networkConnection.requestReply(_) >> {
+        1 * networkConnection.request(_) >> {
             CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
-                return domainDiscoveryReplyNotFound
+                return new CompletableFuture<>(domainDiscoveryReplyNotFound)
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }

@@ -1,5 +1,6 @@
-package se.kodarkatten.casual.jca.inflow.work
+package se.kodarkatten.casual.internal.server.work
 
+import se.kodarkatten.casual.internal.work.WorkContextFactory
 import spock.lang.Specification
 
 import javax.resource.spi.work.HintsContext

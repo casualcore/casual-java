@@ -80,7 +80,8 @@ public class CasualManagedConnection implements ManagedConnection, ManagedConnec
         {
             CasualNetworkConnectionInformation ci = CasualNetworkConnectionInformation.of(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()),
                                                                                           mcf.getCasualProtocolVersion(), UUID.randomUUID(), DOMAIN_NAME);
-            networkConnection = CasualNetworkConnection.of(ci, this);
+            networkConnection = CasualNetworkConnection.of(ci, this, getWorkManager());
+            log.finest("created new nw connection " + this);
         }
         return networkConnection;
     }
@@ -129,7 +130,7 @@ public class CasualManagedConnection implements ManagedConnection, ManagedConnec
     @Override
     public void destroy() throws ResourceException
     {
-        log.finest("destroy()");
+        log.finest("destroy()" + this);
         getNetworkConnection().close();
         connectionHandles.clear();
     }
@@ -232,18 +233,16 @@ public class CasualManagedConnection implements ManagedConnection, ManagedConnec
     public String toString()
     {
         return "CasualManagedConnection{" +
-                "mcf=" + mcf +
-                ", connectionEventHandler=" + connectionEventHandler +
-                ", connectionHandles=" + connectionHandles +
-                ", networkConnection=" + networkConnection +
                 ", xaResource=" + xaResource +
                 '}';
     }
 
     @Override
-    public void invalidate()
+    public void invalidate(Exception e)
     {
-        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED);
+        log.finest("invalidated exception " + e + " ManagedConnection: " + this);
+        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED, e);
         connectionEventHandler.sendEvent(event);
     }
+
 }

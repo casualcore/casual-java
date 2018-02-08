@@ -14,6 +14,7 @@ import spock.lang.Unroll
 import javax.transaction.xa.XAException
 import javax.transaction.xa.XAResource
 import javax.transaction.xa.Xid
+import java.util.concurrent.CompletableFuture
 
 class CasualXAResourceTest extends Specification
 {
@@ -237,10 +238,10 @@ class CasualXAResourceTest extends Specification
 
         then:
         noExceptionThrown()
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualTransactionResourceCommitRequestMessage> input ->
                 actualCommitRequestMessage = input
-                return commitReplyMessage
+                return new CompletableFuture<>(commitReplyMessage)
         }
 
         actualCommitRequestMessage.getMessage().getXid() == xid1
@@ -254,10 +255,10 @@ class CasualXAResourceTest extends Specification
 
         then:
         noExceptionThrown()
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualTransactionResourceCommitRequestMessage> input ->
                 actualCommitRequestMessage = input
-                return commitReplyMessage
+                return new CompletableFuture<>(commitReplyMessage)
         }
 
         actualCommitRequestMessage.getMessage().getXid() == xid1
@@ -274,10 +275,10 @@ class CasualXAResourceTest extends Specification
 
         then:
         noExceptionThrown()
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualTransactionResourceCommitRequestMessage> input ->
                 actualCommitRequestMessage = input
-                return commitReplyMessage
+                return new CompletableFuture<>(commitReplyMessage)
         }
 
         actualCommitRequestMessage.getMessage().getXid() == xid1
@@ -293,10 +294,10 @@ class CasualXAResourceTest extends Specification
 
         then:
         thrown XAException
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualTransactionResourceCommitRequestMessage> input ->
                 actualCommitRequestMessage = input
-                return commitReplyMessage
+                return new CompletableFuture<>(commitReplyMessage)
         }
 
         actualCommitRequestMessage.getMessage().getXid() == xid1
@@ -326,10 +327,10 @@ class CasualXAResourceTest extends Specification
         then:
         reply == XAReturnCode.XA_OK.getId()
 
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> input ->
                 actualPrepareRequestMessage = input
-                return prepareReplyMessage
+                return new CompletableFuture<>(prepareReplyMessage)
         }
 
         actualPrepareRequestMessage.getMessage().getXid() == xid1
@@ -346,10 +347,10 @@ class CasualXAResourceTest extends Specification
         then:
         reply == XAReturnCode.XA_RDONLY.getId()
 
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> input ->
                 actualPrepareRequestMessage = input
-                return prepareReplyMessage
+                return new CompletableFuture<>(prepareReplyMessage)
         }
 
         actualPrepareRequestMessage.getMessage().getXid() == xid1
@@ -366,10 +367,10 @@ class CasualXAResourceTest extends Specification
         then:
         thrown XAException
 
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> input ->
                 actualPrepareRequestMessage = input
-                return prepareReplyMessage
+                return new CompletableFuture<>(prepareReplyMessage)
         }
 
         actualPrepareRequestMessage.getMessage().getXid() == xid1
@@ -391,10 +392,10 @@ class CasualXAResourceTest extends Specification
 
         then:
         noExceptionThrown()
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> input ->
                 actualRollbackRequestMessage = input
-                return rollbackReplyMessage
+                return new CompletableFuture<>(rollbackReplyMessage)
         }
 
         actualRollbackRequestMessage.getMessage().getXid() == xid1
@@ -410,10 +411,10 @@ class CasualXAResourceTest extends Specification
 
         then:
         noExceptionThrown()
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> input ->
                 actualRollbackRequestMessage = input
-                return rollbackReplyMessage
+                return new CompletableFuture<>(rollbackReplyMessage)
         }
 
         actualRollbackRequestMessage.getMessage().getXid() == xid1
@@ -429,10 +430,10 @@ class CasualXAResourceTest extends Specification
 
         then:
         thrown XAException
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> input ->
                 actualRollbackRequestMessage = input
-                return rollbackReplyMessage
+                return new CompletableFuture<>(rollbackReplyMessage)
         }
 
         actualRollbackRequestMessage.getMessage().getXid() == xid1

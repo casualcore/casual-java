@@ -5,6 +5,7 @@ import se.kodarkatten.casual.api.queue.MessageSelector;
 import se.kodarkatten.casual.api.queue.QueueInfo;
 import se.kodarkatten.casual.api.queue.QueueMessage;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
+import se.kodarkatten.casual.jca.CasualResourceAdapterException;
 import se.kodarkatten.casual.jca.service.Transformer;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
@@ -20,6 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class CasualQueueCaller implements CasualQueueApi
 {
@@ -63,9 +66,17 @@ public class CasualQueueCaller implements CasualQueueApi
                                                                                 .withMessage(EnqueueMessage.of(msg))
                                                                                 .build();
         CasualNWMessage<CasualEnqueueRequestMessage> networkRequestMessage = CasualNWMessage.of(corrid, requestMessage);
-        CasualNWMessage<CasualEnqueueReplyMessage> networkReplyMessage = connection.getNetworkConnection().requestReply(networkRequestMessage);
-        CasualEnqueueReplyMessage replyMessage = networkReplyMessage.getMessage();
-        return replyMessage.getId();
+        CompletableFuture<CasualNWMessage<CasualEnqueueReplyMessage>> networkReplyMessageFuture = connection.getNetworkConnection().request(networkRequestMessage);
+        try
+        {
+            CasualNWMessage<CasualEnqueueReplyMessage> networkReplyMessage = networkReplyMessageFuture.get();
+            CasualEnqueueReplyMessage replyMessage = networkReplyMessage.getMessage();
+            return replyMessage.getId();
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualResourceAdapterException(e);
+        }
     }
 
     private List<QueueMessage> makeDequeueCall(UUID corrid, QueueInfo qinfo, MessageSelector selector)
@@ -79,9 +90,17 @@ public class CasualQueueCaller implements CasualQueueApi
                                                                                 .withBlock(false)
                                                                                 .build();
         CasualNWMessage<CasualDequeueRequestMessage> networkRequestMessage = CasualNWMessage.of(corrid, requestMessage);
-        CasualNWMessage<CasualDequeueReplyMessage> networkReplyMessage = connection.getNetworkConnection().requestReply(networkRequestMessage);
-        CasualDequeueReplyMessage replyMessage = networkReplyMessage.getMessage();
-        return Transformer.transform(replyMessage.getMessages());
+        CompletableFuture<CasualNWMessage<CasualDequeueReplyMessage>> networkReplyMessageFuture = connection.getNetworkConnection().request(networkRequestMessage);
+        try
+        {
+            CasualNWMessage<CasualDequeueReplyMessage> networkReplyMessage = networkReplyMessageFuture.get();
+            CasualDequeueReplyMessage replyMessage = networkReplyMessage.getMessage();
+            return Transformer.transform(replyMessage.getMessages());
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualResourceAdapterException(e);
+        }
     }
 
     private boolean queueExists( UUID corrid, String queueName)
@@ -93,9 +112,17 @@ public class CasualQueueCaller implements CasualQueueApi
                                                                                             .setQueueNames(Arrays.asList(queueName))
                                                                                             .build();
         CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessage.of(corrid, requestMsg);
-        CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = connection.getNetworkConnection().requestReply(msg);
-        return replyMsg.getMessage().getQueues().stream()
-                       .map( Queue::getName )
-                       .anyMatch(v-> v.equals( queueName ) );
+        CompletableFuture<CasualNWMessage<CasualDomainDiscoveryReplyMessage>> replyMsgFuture = connection.getNetworkConnection().request(msg);
+        try
+        {
+            CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.get();
+            return replyMsg.getMessage().getQueues().stream()
+                           .map(Queue::getName)
+                           .anyMatch(v -> v.equals(queueName));
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            throw new CasualResourceAdapterException(e);
+        }
     }
 }

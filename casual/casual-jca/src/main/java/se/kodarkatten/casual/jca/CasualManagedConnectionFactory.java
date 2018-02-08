@@ -177,7 +177,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    public String toString()
    {
       return "CasualManagedConnectionFactory{" +
-              "ra=" + ra +
               ", hostName='" + hostName + '\'' +
               ", portNumber=" + portNumber +
               '}';

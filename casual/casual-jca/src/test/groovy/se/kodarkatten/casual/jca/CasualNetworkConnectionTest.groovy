@@ -1,34 +1,48 @@
 package se.kodarkatten.casual.jca
 
+import se.kodarkatten.casual.jca.message.impl.CorrelatorImpl
+import se.kodarkatten.casual.jca.work.NetworkReader
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException
+import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
+import se.kodarkatten.casual.network.utils.DummyWorkManager
 import se.kodarkatten.casual.network.utils.LocalEchoSocketChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.nio.channels.SocketChannel
+import java.util.concurrent.CompletableFuture
 
 class CasualNetworkConnectionTest extends Specification
 {
     @Shared CasualNetworkConnection instance
-    @Shared SocketChannel testChannel
+    @Shared LocalEchoSocketChannel testChannel
     @Shared ManagedConnectionInvalidator invalidator
     @Shared CasualNetworkConnectionInformation connectionInformation
+    @Shared NetworkReader reader
+    @Shared DummyWorkManager workManager = DummyWorkManager.of()
 
     def setup()
     {
         invalidator = Mock(ManagedConnectionInvalidator)
         connectionInformation = CasualNetworkConnectionInformation.of(new InetSocketAddress(3712), 1000l, UUID.randomUUID(), 'testDomain')
         testChannel = new LocalEchoSocketChannel()
-        instance = new CasualNetworkConnection( testChannel , connectionInformation, invalidator)
+        CorrelatorImpl correlator = CorrelatorImpl.of()
+        reader = NetworkReader.of(correlator, testChannel, invalidator)
+        instance = new CasualNetworkConnection( testChannel , connectionInformation, invalidator, reader , correlator)
+    }
+
+    def cleanup()
+    {
+        workManager.done()
     }
 
     def "Of with a null InetSocketAddress throws NullPointerException."()
     {
         when:
-        CasualNetworkConnection.of( null , null)
+        CasualNetworkConnection.of( null , null, null)
 
         then:
         thrown NullPointerException
@@ -40,8 +54,9 @@ class CasualNetworkConnectionTest extends Specification
         CasualNWMessage<CasualServiceCallRequestMessage> m = createRequestMessage()
 
         when:
-        CasualNWMessage<CasualServiceCallRequestMessage> reply = instance.requestReply( m )
-
+        CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> f = instance.request( m )
+        workManager.startWork(reader)
+        CasualNWMessage<CasualServiceCallReplyMessage> reply = f.get()
         then:
         reply == m
     }
@@ -61,13 +76,17 @@ class CasualNetworkConnectionTest extends Specification
         def exception = new CasualTransportException('bazinga', new IOException())
         def msg = createRequestMessage()
         def channel = Stub(SocketChannel)
-        def nwc = new CasualNetworkConnection( channel , connectionInformation, invalidator)
+        def reader = GroovyMock(NetworkReader)
+        def correlator = CorrelatorImpl.of()
+        def nwc = new CasualNetworkConnection( channel , connectionInformation, invalidator, reader, correlator)
         when:
         channel.write(_) >> {throw exception}
-        nwc.requestReply(msg)
+        nwc.request(msg)
         then:
-        thrown(CasualTransportException)
-        1 * invalidator.invalidate()
+        def e = thrown(CasualTransportException)
+        e == exception
+        1 * invalidator.invalidate(exception)
+        correlator.isEmpty()
     }
 
     def createRequestMessage()
@@ -86,4 +105,5 @@ class CasualNetworkConnectionTest extends Specification
         expect:
         instance.toString().contains "CasualNetworkConnection"
     }
+
 }

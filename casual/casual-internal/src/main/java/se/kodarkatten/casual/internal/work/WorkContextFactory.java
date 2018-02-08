@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.jca.inflow.work;
+package se.kodarkatten.casual.internal.work;
 
 import javax.resource.spi.work.HintsContext;
 import javax.resource.spi.work.WorkContext;

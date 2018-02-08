@@ -11,19 +11,17 @@ import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyM
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.kodarkatten.casual.network.messages.domain.Service
 import se.kodarkatten.casual.network.messages.domain.TransactionType
+import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.resource.spi.work.Work
-import javax.resource.spi.work.WorkException
 import javax.resource.spi.work.WorkManager
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
 
-import static se.kodarkatten.casual.jca.test.CasualNWMessageMatchers.matching
+import static se.kodarkatten.casual.test.matchers.CasualNWMessageMatchers.matching
 import static spock.util.matcher.HamcrestSupport.expect
 
 class CasualServiceCallerTest extends Specification
@@ -136,10 +134,10 @@ class CasualServiceCallerTest extends Specification
         result != null
         result.getServiceReturnState() == ServiceReturnState.TPSUCCESS
 
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
-                return serviceReply
+                return new CompletableFuture<>(serviceReply)
         }
         expect actualServiceRequest, matching( expectedServiceRequest )
     }
@@ -153,10 +151,10 @@ class CasualServiceCallerTest extends Specification
 
         then:
         noExceptionThrown()
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
-                return serviceReply
+                return new CompletableFuture<>(serviceReply)
         }
 
         expect actualServiceRequest, matching( expectedServiceRequest )
@@ -174,10 +172,10 @@ class CasualServiceCallerTest extends Specification
         result != null
         result.getServiceReturnState() == ServiceReturnState.TPFAIL
 
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
-                return serviceReply
+                return new CompletableFuture<>(serviceReply)
         }
 
         expect actualServiceRequest, matching( expectedServiceRequest )
@@ -193,34 +191,30 @@ class CasualServiceCallerTest extends Specification
         result != null
         result.getServiceReturnState() == ServiceReturnState.TPSUCCESS
 
-        1 * networkConnection.requestReply( _ ) >> {
+        1 * networkConnection.request( _ ) >> {
             CasualNWMessage<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
-                return serviceReply
+                return new CompletableFuture<>(serviceReply)
         }
-
-        1 * workManager.scheduleWork(_) >> {
-            Work w ->
-                Executors.callable(w).call()
-        }
-
-        1 * mcf.getResourceAdapter() >> ra
 
         expect actualServiceRequest, matching( expectedServiceRequest )
     }
 
-    def "Tpacall service scheduling of work fails"()
+    def 'tpacall fails'()
     {
         when:
         CompletableFuture<ServiceReturn<CasualBuffer>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
-
         then:
         noExceptionThrown()
         result.isCompletedExceptionally()
-        1 * workManager.scheduleWork(_) >> {
-            throw new WorkException('oops')
+
+        1 * networkConnection.request( _ ) >> {
+            CasualNWMessage<CasualServiceCallRequestMessage> input ->
+                actualServiceRequest = input
+                CompletableFuture<ServiceReturn<CasualBuffer>> f = new CompletableFuture<>()
+                f.completeExceptionally(new CasualTransportException('oopsie'))
+                return f
         }
-        1 * mcf.getResourceAdapter() >> ra
     }
 
     def 'serviceExists'()
@@ -230,10 +224,10 @@ class CasualServiceCallerTest extends Specification
         then:
         noExceptionThrown()
         r == true
-        1 * networkConnection.requestReply(_) >> {
+        1 * networkConnection.request(_) >> {
             CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
-                return domainDiscoveryReplyFound
+                return new CompletableFuture<>(domainDiscoveryReplyFound)
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }
@@ -245,10 +239,10 @@ class CasualServiceCallerTest extends Specification
         then:
         noExceptionThrown()
         r == false
-        1 * networkConnection.requestReply(_) >> {
+        1 * networkConnection.request(_) >> {
             CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
-                return domainDiscoveryReplyNotFound
+                return new CompletableFuture<>(domainDiscoveryReplyNotFound)
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }

@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.jca.test;
+package se.kodarkatten.casual.test.matchers;
 
 import org.hamcrest.TypeSafeMatcher;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;

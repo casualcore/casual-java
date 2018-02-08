@@ -156,7 +156,6 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
     {
         return "CasualResourceAdapter{" +
                 "activations=" + activations +
-                ", workManager=" + workManager +
                 ", xaTerminator=" + xaTerminator +
                 '}';
     }
