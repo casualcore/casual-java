@@ -73,7 +73,7 @@ public final class FieldedTypeBufferEncoder
             case CASUAL_FIELD_STRING:
                 // casual expects a cstring, ie nullterminated data
                 String v = d.getData() + "\0";
-                return v.getBytes(StandardCharsets.UTF_8);
+                return v.getBytes(EncodingInfo.getCharset());
             case CASUAL_FIELD_BINARY:
                 return (byte[])d.getData();
             default:

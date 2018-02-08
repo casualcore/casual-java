@@ -87,7 +87,7 @@ public final class FieldedTypeBufferDecoder
             case CASUAL_FIELD_DOUBLE:
                 return FieldedDataImpl.of(ByteBuffer.wrap(data).getDouble(), FieldType.CASUAL_FIELD_DOUBLE);
             case CASUAL_FIELD_STRING:
-                return FieldedDataImpl.of(new String(data, StandardCharsets.UTF_8), FieldType.CASUAL_FIELD_STRING);
+                return FieldedDataImpl.of(new String(data, EncodingInfo.getCharset()), FieldType.CASUAL_FIELD_STRING);
             case CASUAL_FIELD_BINARY:
                 return FieldedDataImpl.of(data, FieldType.CASUAL_FIELD_BINARY);
             default:
