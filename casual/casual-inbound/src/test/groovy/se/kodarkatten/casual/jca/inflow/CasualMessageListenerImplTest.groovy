@@ -9,6 +9,7 @@ import se.kodarkatten.casual.jca.CasualResourceAdapterException
 import se.kodarkatten.casual.jca.inflow.work.CasualServiceCallWork
 import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.io.CasualNetworkWriter
+import se.kodarkatten.casual.network.io.LockableSocketChannel
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.CasualNWMessageHeader
 import se.kodarkatten.casual.network.messages.CasualNWMessageType
@@ -34,7 +35,8 @@ import java.util.concurrent.ThreadLocalRandom
 class CasualMessageListenerImplTest extends Specification
 {
     @Shared CasualMessageListener instance
-    @Shared SocketChannel channel
+    @Shared LockableSocketChannel channel
+    @Shared SocketChannel socketChannel
     @Shared WorkManager workManager
     @Shared XATerminator xaTerminator
 
@@ -48,7 +50,8 @@ class CasualMessageListenerImplTest extends Specification
     def setup()
     {
         instance = new CasualMessageListenerImpl()
-        channel = new LocalEchoSocketChannel()
+        socketChannel = new LocalEchoSocketChannel()
+        channel = LockableSocketChannel.of( socketChannel )
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )
 
@@ -75,12 +78,9 @@ class CasualMessageListenerImplTest extends Specification
                         .withProtocols(Arrays.asList(protocolVersion))
                         .build()
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.domainConnectRequest( header, channel )
+        instance.domainConnectRequest( message, channel )
         CasualNWMessage<CasualDomainConnectReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
@@ -106,12 +106,9 @@ class CasualMessageListenerImplTest extends Specification
                         .setServiceNames( serviceNames )
                         .build()
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.domainDiscoveryRequest( header, channel )
+        instance.domainDiscoveryRequest( message, channel )
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
@@ -143,12 +140,9 @@ class CasualMessageListenerImplTest extends Specification
                         .setTimeout( timeout )
                         .build()
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.serviceCallRequest( header, channel, workManager )
+        instance.serviceCallRequest( message, channel, workManager )
 
         then:
         1 * workManager.startWork( _,_,_,_ ) >> {
@@ -161,7 +155,7 @@ class CasualMessageListenerImplTest extends Specification
         }
 
         actualWork != null
-        actualWork.getHeader() == header
+        actualWork.getCorrelationId() == correlationId
         actualWork.getSocketChannel() == channel
         actualStartTimeout != null
         actualStartTimeout == WorkManager.INDEFINITE
@@ -187,12 +181,9 @@ class CasualMessageListenerImplTest extends Specification
                         .setXatmiFlags( Flag.of())
                         .build()
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.serviceCallRequest( header, channel, workManager )
+        instance.serviceCallRequest( message, channel, workManager )
 
         then:
         1 * workManager.startWork( _) >> {
@@ -202,7 +193,7 @@ class CasualMessageListenerImplTest extends Specification
         }
 
         actualWork != null
-        actualWork.getHeader() == header
+        actualWork.getCorrelationId() == correlationId
         actualWork.getSocketChannel() == channel
     }
 
@@ -219,12 +210,9 @@ class CasualMessageListenerImplTest extends Specification
                         .setXatmiFlags( Flag.of())
                         .build()
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.serviceCallRequest( header, channel, workManager )
+        instance.serviceCallRequest( message, channel, workManager )
 
         then:
         1 * workManager.startWork( _,_,_,_ ) >> {
@@ -247,12 +235,9 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.prepareRequest( header, channel, xaTerminator )
+        instance.prepareRequest( message, channel, xaTerminator )
         CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
@@ -280,12 +265,9 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.prepareRequest( header, channel, xaTerminator )
+        instance.prepareRequest( message, channel, xaTerminator )
         CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
@@ -313,12 +295,9 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.prepareRequest( header, channel, xaTerminator )
+        instance.prepareRequest( message, channel, xaTerminator )
         CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
@@ -346,12 +325,9 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.commitRequest( header, channel, xaTerminator )
+        instance.commitRequest( message, channel, xaTerminator )
         CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
@@ -377,12 +353,9 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.commitRequest( header, channel, xaTerminator )
+        instance.commitRequest( message, channel, xaTerminator )
         CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
@@ -408,12 +381,9 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.commitRequest( header, channel, xaTerminator )
+        instance.commitRequest( message, channel, xaTerminator )
         CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
@@ -441,12 +411,9 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.requestRollback( header, channel, xaTerminator )
+        instance.requestRollback( message, channel, xaTerminator )
         CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
@@ -472,12 +439,9 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-        CasualNetworkWriter.write(channel, message)
-
-        CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader( channel )
 
         when:
-        instance.requestRollback( header, channel, xaTerminator )
+        instance.requestRollback( message, channel, xaTerminator )
         CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:

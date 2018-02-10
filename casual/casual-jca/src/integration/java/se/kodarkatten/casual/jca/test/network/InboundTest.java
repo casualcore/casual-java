@@ -22,6 +22,7 @@ import se.kodarkatten.casual.example.service.order.CasualOrder;
 import se.kodarkatten.casual.jca.CasualConnection;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
 import se.kodarkatten.casual.jca.CasualManagedConnectionFactory;
+import se.kodarkatten.casual.jca.CasualResourceAdapter;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 
 import javax.resource.ResourceException;
@@ -29,6 +30,8 @@ import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -51,8 +54,12 @@ public class InboundTest
     String host = "192.168.99.100";
     int port = 7772;
 
+    ExecutorService threadService = Executors.newSingleThreadExecutor();
+
     @Before
     public void setup() throws ResourceException, XAException {
+
+
         managedConnectionFactory = new CasualManagedConnectionFactory();
         managedConnectionFactory.setHostName( host );
         managedConnectionFactory.setPortNumber( port );
@@ -99,9 +106,9 @@ public class InboundTest
     private void callEcho( )
     {
         //Weblogic
-        //String serviceName = "se.kodarkatten.casual.example.service.ISimpleService#se.kodarkatten.casual.example.service.ISimpleService";
+        String serviceName = "se.kodarkatten.casual.example.service.ISimpleService#se.kodarkatten.casual.example.service.ISimpleService";
         //Wildfly
-        String serviceName = "java:jboss/exported/casual-java-testapp/SimpleService!se.kodarkatten.casual.example.service.ISimpleService";
+        //String serviceName = "java:jboss/exported/casual-java-testapp/SimpleService!se.kodarkatten.casual.example.service.ISimpleService";
         SimpleObject message = new SimpleObject( "Hello from the call definition." );
         JavaServiceCallDefinition callDef = JavaServiceCallDefinition.of( "echo", message );
 

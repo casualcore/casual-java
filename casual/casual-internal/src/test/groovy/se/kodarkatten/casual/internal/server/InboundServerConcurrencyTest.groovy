@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.internal.server
 
+import se.kodarkatten.casual.network.io.LockableSocketChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -21,16 +22,16 @@ class InboundServerConcurrencyTest extends Specification
     @Shared ExecutorService clientExecutor = Executors.newFixedThreadPool( numberOfClients )
 
     @Shared
-    Consumer<SocketChannel> closingConsumer = { s ->
+    Consumer<LockableSocketChannel> closingConsumer = { s ->
 
         Future task = executor.submit( new Thread(){
             @Override
             void run()
             {
                 assert(null != s)
-                String read = readMsg( s )
-                sendMsg( s, read )
-                s.close()
+                String read = readMsg( s.getSocketChannel() )
+                sendMsg( s.getSocketChannel(), read )
+                s.getSocketChannel().close()
                 count.getAndIncrement()
             }
         } )

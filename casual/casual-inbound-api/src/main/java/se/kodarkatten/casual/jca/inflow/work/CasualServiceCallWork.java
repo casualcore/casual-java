@@ -8,8 +8,8 @@ import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse;
 import se.kodarkatten.casual.network.io.CasualNetworkWriter;
+import se.kodarkatten.casual.network.io.LockableSocketChannel;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
@@ -17,6 +17,7 @@ import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 import javax.resource.spi.work.Work;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public final class CasualServiceCallWork implements Work
@@ -24,14 +25,14 @@ public final class CasualServiceCallWork implements Work
     private static Logger log = Logger.getLogger(CasualServiceCallWork.class.getName());
 
     private final CasualServiceCallRequestMessage message;
-    private final SocketChannel channel;
-    private final CasualNWMessageHeader header;
+    private final LockableSocketChannel channel;
+    private final UUID correlationId;
 
     private ServiceHandler handler = null;
 
-    public CasualServiceCallWork(CasualNWMessageHeader header, CasualServiceCallRequestMessage message, SocketChannel channel )
+    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, LockableSocketChannel channel )
     {
-        this.header = header;
+        this.correlationId = correlationId;
         this.message = message;
         this.channel = channel;
     }
@@ -41,14 +42,14 @@ public final class CasualServiceCallWork implements Work
         return message;
     }
 
-    public SocketChannel getSocketChannel()
+    public LockableSocketChannel getSocketChannel()
     {
         return channel;
     }
 
-    public CasualNWMessageHeader getHeader()
+    public UUID getCorrelationId()
     {
-        return header;
+        return correlationId;
     }
 
     @Override
@@ -98,7 +99,7 @@ public final class CasualServiceCallWork implements Work
             CasualServiceCallReplyMessage reply = replyBuilder
                     .setServiceBuffer( ServiceBuffer.of( serviceResult ) )
                     .build();
-            CasualNWMessage<CasualServiceCallReplyMessage> replyMessage = CasualNWMessage.of( header.getCorrelationId(),reply );
+            CasualNWMessage<CasualServiceCallReplyMessage> replyMessage = CasualNWMessage.of( correlationId,reply );
             CasualNetworkWriter.write( this.channel, replyMessage );
         }
     }

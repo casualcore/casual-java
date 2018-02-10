@@ -101,6 +101,28 @@ public final class CasualNetworkReader
         return read( channel, header );
     }
 
+    /**
+     * Lock the channel for read and then read an entire message.
+     *
+     * Blocks until read lock is acquired and then until message is read fully.
+     *
+     * @param channel to read from
+     * @param <T> of the message to return.
+     * @return message read from the channel.
+     */
+    public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final LockableSocketChannel channel )
+    {
+        try
+        {
+            channel.lockRead();
+            return read( channel.getSocketChannel() );
+        }
+        finally
+        {
+            channel.unlockRead();
+        }
+    }
+
     public static CasualNWMessageHeader networkHeaderToCasualHeader( final ReadableByteChannel channel )
     {
         final ByteBuffer headerBuffer = ByteUtils.readFully(channel, MessageHeaderSizes.getHeaderNetworkSize());

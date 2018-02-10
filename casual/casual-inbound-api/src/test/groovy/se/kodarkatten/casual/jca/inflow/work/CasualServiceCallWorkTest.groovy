@@ -13,6 +13,7 @@ import se.kodarkatten.casual.jca.inbound.handler.InboundRequest
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse
 import se.kodarkatten.casual.jca.inflow.handler.test.TestHandler
 import se.kodarkatten.casual.network.io.CasualNetworkReader
+import se.kodarkatten.casual.network.io.LockableSocketChannel
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.CasualNWMessageHeader
 import se.kodarkatten.casual.network.messages.CasualNWMessageType
@@ -31,9 +32,10 @@ class CasualServiceCallWorkTest extends Specification
 {
 
     @Shared CasualServiceCallWork instance
-    @Shared SocketChannel channel
+    @Shared LockableSocketChannel channel
+    @Shared SocketChannel socketChannel
 
-    @Shared CasualNWMessageHeader header
+    @Shared UUID correlationId
     @Shared CasualServiceCallRequestMessage message
 
     @Shared JavaServiceCallDefinition serialisedCall
@@ -56,7 +58,8 @@ class CasualServiceCallWorkTest extends Specification
         payload.add( p )
         buffer = JsonBuffer.of( payload )
 
-        channel = new LocalEchoSocketChannel()
+        socketChannel = new LocalEchoSocketChannel()
+        channel = LockableSocketChannel.of( socketChannel )
 
         serialisedCall = JavaServiceCallDefinition.of( methodName, methodParam )
 
@@ -73,20 +76,16 @@ class CasualServiceCallWorkTest extends Specification
                         .setXatmiFlags( Flag.of())
                         .build()
 
-        header = CasualNWMessageHeader.createBuilder()
-                    .setCorrelationId( UUID.randomUUID() )
-                    .setType( CasualNWMessageType.SERVICE_CALL_REQUEST )
-                    .setPayloadSize( CommonSizes.SERVICE_BUFFER_PAYLOAD_SIZE.getNetworkSize() )
-                    .build()
+        correlationId = UUID.randomUUID()
 
-        instance = new CasualServiceCallWork( header, message, channel )
+        instance = new CasualServiceCallWork( correlationId, message, channel )
         instance.setHandler( handler )
     }
 
     def "Get header."()
     {
         expect:
-        instance.getHeader() == header
+        instance.getCorrelationId() == correlationId
     }
 
     def "Get message."()

@@ -1,16 +1,24 @@
 package se.kodarkatten.casual.jca.inflow.work;
 
+import se.kodarkatten.casual.network.io.LockableSocketChannel;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
 import se.kodarkatten.casual.jca.inflow.CasualMessageListener;
 import se.kodarkatten.casual.network.io.CasualNetworkReader;
+import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
+import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
+import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestMessage;
+import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitRequestMessage;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
 import javax.resource.spi.UnavailableException;
 import javax.resource.spi.endpoint.MessageEndpoint;
 import javax.resource.spi.work.Work;
 import javax.resource.spi.work.WorkContext;
 import javax.resource.spi.work.WorkContextProvider;
-import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -23,18 +31,18 @@ public final class CasualSocketWork implements Work, WorkContextProvider
 
     private static Logger log = Logger.getLogger(CasualSocketWork.class.getName());
     private AtomicBoolean released = new AtomicBoolean( false );
-    private final SocketChannel channel;
+    private final LockableSocketChannel channel;
     private final CasualInboundWork work;
     private final List<WorkContext> workContexts;
 
-    public CasualSocketWork( SocketChannel channel, CasualInboundWork work )
+    public CasualSocketWork( LockableSocketChannel channel, CasualInboundWork work )
     {
         this.channel = channel;
         this.work = work;
         this.workContexts = createLongRunningContext();
     }
 
-    public SocketChannel getSocketChannel()
+    public LockableSocketChannel getSocketChannel()
     {
         return this.channel;
     }
@@ -50,39 +58,40 @@ public final class CasualSocketWork implements Work, WorkContextProvider
         released.set( true );
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void run()
     {
-        while( this.channel.isConnected() && !released.get() )
+        while( this.channel.getSocketChannel().isConnected() && !released.get() )
         {
             try
             {
                 MessageEndpoint endpoint = work.getMessageEndpointFactory().createEndpoint(null);
                 CasualMessageListener listener = (CasualMessageListener) endpoint;
 
-                CasualNWMessageHeader header = CasualNetworkReader.networkHeaderToCasualHeader(channel);
-                switch (header.getType())
+                CasualNWMessage<?> message = CasualNetworkReader.read( channel );
+                switch ( message.getType() )
                 {
                     case COMMIT_REQUEST:
-                        listener.commitRequest(header, channel, work.getXaTerminator());
+                        listener.commitRequest((CasualNWMessage<CasualTransactionResourceCommitRequestMessage>)message, channel, work.getXaTerminator());
                         break;
                     case PREPARE_REQUEST:
-                        listener.prepareRequest(header, channel, work.getXaTerminator());
+                        listener.prepareRequest((CasualNWMessage<CasualTransactionResourcePrepareRequestMessage>)message, channel, work.getXaTerminator());
                         break;
                     case REQUEST_ROLLBACK:
-                        listener.requestRollback(header, channel, work.getXaTerminator());
+                        listener.requestRollback((CasualNWMessage<CasualTransactionResourceRollbackRequestMessage>)message, channel, work.getXaTerminator());
                         break;
                     case SERVICE_CALL_REQUEST:
-                        listener.serviceCallRequest(header, channel, work.getWorkManager());
+                        listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, channel, work.getWorkManager());
                         break;
                     case DOMAIN_CONNECT_REQUEST:
-                        listener.domainConnectRequest(header, channel);
+                        listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, channel);
                         break;
                     case DOMAIN_DISCOVERY_REQUEST:
-                        listener.domainDiscoveryRequest(header, channel);
+                        listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, channel);
                         break;
                     default:
-                        log.warning("Message type not supported: " + header.getType());
+                        log.warning("Message type not supported: " + message.getType());
                 }
 
             } catch (UnavailableException e)

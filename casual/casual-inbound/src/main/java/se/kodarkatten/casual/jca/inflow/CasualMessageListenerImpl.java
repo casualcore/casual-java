@@ -5,10 +5,9 @@ import se.kodarkatten.casual.api.xa.XAReturnCode;
 import se.kodarkatten.casual.api.xa.XID;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
 import se.kodarkatten.casual.jca.inflow.work.CasualServiceCallWork;
-import se.kodarkatten.casual.network.io.CasualNetworkReader;
 import se.kodarkatten.casual.network.io.CasualNetworkWriter;
+import se.kodarkatten.casual.network.io.LockableSocketChannel;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectReplyMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
@@ -32,9 +31,9 @@ import javax.resource.spi.work.WorkException;
 import javax.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.Xid;
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @MessageDriven(messageListenerInterface = CasualMessageListener.class,
@@ -50,11 +49,9 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     private static final Long CASUAL_PROTOCOL_VERSION = 1000L;
 
     @Override
-    public void domainConnectRequest(CasualNWMessageHeader header, SocketChannel channel)
+    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, LockableSocketChannel channel)
     {
-        log.info( "domainConnectRequest()." );
-        CasualNWMessage<CasualDomainConnectRequestMessage> message = CasualNetworkReader.read( channel, header );
-
+        log.finest( "domainConnectRequest()." );
 
         CasualDomainConnectReplyMessage reply = CasualDomainConnectReplyMessage.createBuilder()
                 .withDomainId( message.getMessage().getDomainId() )
@@ -68,12 +65,9 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void domainDiscoveryRequest(CasualNWMessageHeader header, SocketChannel channel)
+    public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, LockableSocketChannel channel)
     {
-        log.info( "domainDiscoveryRequest()." );
-
-        CasualNWMessage<CasualDomainDiscoveryRequestMessage> message = CasualNetworkReader.read( channel, header );
-
+        log.finest( "domainDiscoveryRequest()." );
 
         CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), message.getMessage().getDomainId(), message.getMessage().getDomainName() );
 
@@ -91,13 +85,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void serviceCallRequest(CasualNWMessageHeader header, SocketChannel channel, WorkManager workManager )
+    public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, LockableSocketChannel channel, WorkManager workManager )
     {
-        log.info( "serviceCallRequest()." );
+        log.finest( "serviceCallRequest()." );
 
-        CasualNWMessage<CasualServiceCallRequestMessage> message = CasualNetworkReader.read( channel, header );
-
-        CasualServiceCallWork work = new CasualServiceCallWork(header, message.getMessage(), channel );
+        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage(), channel );
 
         Xid xid = message.getMessage().getXid();
 
@@ -139,11 +131,10 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void prepareRequest(CasualNWMessageHeader header, SocketChannel channel, XATerminator xaTerminator)
+    public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator)
     {
-        log.info( "prepareRequest()." );
+        log.finest( "prepareRequest()." );
 
-        CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message = CasualNetworkReader.read( channel, header );
         Xid xid = message.getMessage().getXid();
         int status = -1;
         try
@@ -154,7 +145,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         {
 
             status = e.errorCode;
-            log.warning( e.getMessage() );
+            log.log( Level.WARNING, e, ()-> "XAExcception prepare()" + e.getMessage() );
         }
         finally
         {
@@ -172,10 +163,10 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void commitRequest(CasualNWMessageHeader header, SocketChannel channel, XATerminator xaTerminator)
+    public void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator)
     {
-        log.info( "commitRequest()." );
-        CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message = CasualNetworkReader.read( channel, header );
+        log.finest( "commitRequest()." );
+
         Xid xid = message.getMessage().getXid();
         boolean onePhase = message.getMessage().getFlags().isSet( XAFlags.TMONEPHASE );
 
@@ -187,7 +178,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         } catch (XAException e)
         {
             status = e.errorCode;
-            log.warning( e.getMessage() );
+            log.log( Level.WARNING, e, ()-> "XAExcception commit()" + e.getMessage() );
         }
         finally
         {
@@ -204,10 +195,10 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void requestRollback(CasualNWMessageHeader header, SocketChannel channel, XATerminator xaTerminator)
+    public void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator)
     {
-        log.info( "requestRollback()." );
-        CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message = CasualNetworkReader.read( channel, header );
+        log.finest( "requestRollback()." );
+
         Xid xid = message.getMessage().getXid();
 
         int status = -1;
@@ -218,7 +209,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         } catch (XAException e)
         {
             status = e.errorCode;
-            log.warning( e.getMessage() );
+            log.log( Level.WARNING, e, ()-> "XAExcception rollback()" + e.getMessage() );
         }
         finally
         {

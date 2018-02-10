@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.internal.server
 
+import se.kodarkatten.casual.network.io.LockableSocketChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -11,10 +12,10 @@ import java.util.function.Consumer
 class InboundServerTest extends Specification
 {
     @Shared
-    Consumer<SocketChannel> closingConsumer = { s ->
+    Consumer<LockableSocketChannel> closingConsumer = { s ->
         assert(null != s)
         print "got socket channel"
-        s.close()
+        s.getSocketChannel().close()
     }
     @Shared
     def okAddress = new InetSocketAddress(0)
@@ -173,11 +174,11 @@ class InboundServerTest extends Specification
     {
         byte[] msgBytes = msg.bytes
         ByteBuffer buffer = ByteBuffer.allocate(msgBytes.length)
-        Consumer<SocketChannel> c = { s ->
+        Consumer<LockableSocketChannel> c = { s ->
             assert(null != s)
             new Thread({
-                s.read(buffer)
-                s.close()
+                s.getSocketChannel().read(buffer)
+                s.getSocketChannel().close()
                 assert (Arrays.equals(msgBytes, buffer.array()))
                 sem.acquire()
             }).start()

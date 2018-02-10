@@ -8,9 +8,11 @@ import se.kodarkatten.casual.jca.CasualResourceAdapterException
 import se.kodarkatten.casual.jca.inflow.CasualActivationSpec
 import se.kodarkatten.casual.jca.inflow.CasualMessageListener
 import se.kodarkatten.casual.network.io.CasualNetworkWriter
+import se.kodarkatten.casual.network.io.LockableSocketChannel
 import se.kodarkatten.casual.network.messages.CasualNWMessage
 import se.kodarkatten.casual.network.messages.CasualNWMessageHeader
 import se.kodarkatten.casual.network.messages.CasualNWMessageType
+import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable
 import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestMessage
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
@@ -42,10 +44,11 @@ class CasualSocketWorkTest extends Specification
     @Shared XATerminator xaTerminator
     @Shared InetSocketAddress okAddress = new InetSocketAddress(0)
 
-    @Shared SocketChannel channel
+    @Shared LockableSocketChannel channel
+    @Shared SocketChannel socketChannel
 
-    @Shared CasualNWMessageHeader actualHeader
-    @Shared SocketChannel actualChannel
+    @Shared CasualNWMessage<? extends CasualNetworkTransmittable> actualMessage
+    @Shared LockableSocketChannel actualChannel
     @Shared WorkManager actualWorkManager
     @Shared XATerminator actualXATerminator
     @Shared CasualMessageListener mdb
@@ -59,7 +62,8 @@ class CasualSocketWorkTest extends Specification
         xaTerminator = Mock( XATerminator )
         inboundWork = new CasualInboundWork( spec, factory, workManager, xaTerminator )
 
-        channel = new LocalEchoSocketChannel()
+        socketChannel = new LocalEchoSocketChannel()
+        channel = LockableSocketChannel.of( socketChannel )
 
         instance = new CasualSocketWork( channel, inboundWork )
 
@@ -81,10 +85,10 @@ class CasualSocketWorkTest extends Specification
                         .withProtocols(Arrays.asList(1000L))
                         .build()
         )
-        CasualNetworkWriter.write(channel, message)
+        CasualNetworkWriter.write(channel.getSocketChannel(), message)
 
-        1 * mdb.domainConnectRequest( _ , _ ) >> { CasualNWMessageHeader header, SocketChannel c ->
-            actualHeader = header
+        1 * mdb.domainConnectRequest( _ , _ ) >> { CasualNWMessage m, LockableSocketChannel c ->
+            actualMessage = m
             actualChannel = c
             disconnect( channel )
         }
@@ -93,7 +97,7 @@ class CasualSocketWorkTest extends Specification
         instance.run()
 
         then:
-        actualHeader.getType() == CasualNWMessageType.DOMAIN_CONNECT_REQUEST
+        actualMessage.getType() == CasualNWMessageType.DOMAIN_CONNECT_REQUEST
         actualChannel == channel
     }
 
@@ -110,8 +114,8 @@ class CasualSocketWorkTest extends Specification
         )
         CasualNetworkWriter.write(channel, message)
 
-        1 * mdb.domainDiscoveryRequest( _ , _ ) >> { CasualNWMessageHeader header, SocketChannel c ->
-            actualHeader = header
+        1 * mdb.domainDiscoveryRequest( _ , _ ) >> { CasualNWMessage m, LockableSocketChannel c ->
+            actualMessage = m
             actualChannel = c
             disconnect( channel )
         }
@@ -120,7 +124,7 @@ class CasualSocketWorkTest extends Specification
         instance.run()
 
         then:
-        actualHeader.getType() == CasualNWMessageType.DOMAIN_DISCOVERY_REQUEST
+        actualMessage.getType() == CasualNWMessageType.DOMAIN_DISCOVERY_REQUEST
         actualChannel == channel
     }
 
@@ -138,8 +142,8 @@ class CasualSocketWorkTest extends Specification
         )
         CasualNetworkWriter.write(channel, message)
 
-        1 * mdb.serviceCallRequest( _ , _, _ ) >> { CasualNWMessageHeader header, SocketChannel c, WorkManager wm ->
-            actualHeader = header
+        1 * mdb.serviceCallRequest( _ , _, _ ) >> { CasualNWMessage m, LockableSocketChannel c, WorkManager wm ->
+            actualMessage = m
             actualChannel = c
             actualWorkManager = wm
             disconnect( channel )
@@ -149,7 +153,7 @@ class CasualSocketWorkTest extends Specification
         instance.run()
 
         then:
-        actualHeader.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST
+        actualMessage.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST
         actualChannel == channel
         actualWorkManager == workManager
     }
@@ -167,8 +171,8 @@ class CasualSocketWorkTest extends Specification
         )
         CasualNetworkWriter.write(channel, message)
 
-        1 * mdb.prepareRequest( _ , _, _ ) >> { CasualNWMessageHeader header, SocketChannel c, XATerminator xat ->
-            actualHeader = header
+        1 * mdb.prepareRequest( _ , _, _ ) >> { CasualNWMessage m, LockableSocketChannel c, XATerminator xat ->
+            actualMessage = m
             actualChannel = c
             actualXATerminator = xat
             disconnect( channel )
@@ -178,7 +182,7 @@ class CasualSocketWorkTest extends Specification
         instance.run()
 
         then:
-        actualHeader.getType() == CasualNWMessageType.PREPARE_REQUEST
+        actualMessage.getType() == CasualNWMessageType.PREPARE_REQUEST
         actualChannel == channel
         actualXATerminator == xaTerminator
     }
@@ -196,8 +200,8 @@ class CasualSocketWorkTest extends Specification
         )
         CasualNetworkWriter.write(channel, message)
 
-        1 * mdb.requestRollback( _ , _, _ ) >> { CasualNWMessageHeader header, SocketChannel c, XATerminator xat ->
-            actualHeader = header
+        1 * mdb.requestRollback( _ , _, _ ) >> { CasualNWMessage m, LockableSocketChannel c, XATerminator xat ->
+            actualMessage = m
             actualChannel = c
             actualXATerminator = xat
             disconnect( channel )
@@ -207,7 +211,7 @@ class CasualSocketWorkTest extends Specification
         instance.run()
 
         then:
-        actualHeader.getType() == CasualNWMessageType.REQUEST_ROLLBACK
+        actualMessage.getType() == CasualNWMessageType.REQUEST_ROLLBACK
         actualChannel == channel
         actualXATerminator == xaTerminator
     }
@@ -225,8 +229,8 @@ class CasualSocketWorkTest extends Specification
         )
         CasualNetworkWriter.write(channel, message)
 
-        1 * mdb.commitRequest( _ , _, _ ) >> { CasualNWMessageHeader header, SocketChannel c, XATerminator xat ->
-            actualHeader = header
+        1 * mdb.commitRequest( _ , _, _ ) >> { CasualNWMessage m, LockableSocketChannel c, XATerminator xat ->
+            actualMessage = m
             actualChannel = c
             actualXATerminator = xat
             disconnect( channel )
@@ -236,7 +240,7 @@ class CasualSocketWorkTest extends Specification
         instance.run()
 
         then:
-        actualHeader.getType() == CasualNWMessageType.COMMIT_REQUEST
+        actualMessage.getType() == CasualNWMessageType.COMMIT_REQUEST
         actualChannel == channel
         actualXATerminator == xaTerminator
     }
@@ -309,8 +313,8 @@ class CasualSocketWorkTest extends Specification
 
     }
 
-    def disconnect( SocketChannel channel )
+    def disconnect( LockableSocketChannel channel )
     {
-        ((LocalEchoSocketChannel)channel).disconnect()
+        ((LocalEchoSocketChannel)channel.getSocketChannel()).disconnect()
     }
 }

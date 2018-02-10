@@ -42,4 +42,26 @@ public final class CasualNetworkWriter
         }
     }
 
+    /**
+     * Lock the channel for write and then write the msg fully to the channel.
+     *
+     * Blocks until write lock is acquired and write operation is complete.
+     *
+     * @param channel to write msg to.
+     * @param msg to send
+     * @param <T> type of message that is being sent.
+     */
+    public static <T extends CasualNetworkTransmittable> void write( final LockableSocketChannel channel, final CasualNWMessage<T> msg )
+    {
+        try
+        {
+            channel.lockWrite();
+            write( channel.getSocketChannel(), msg );
+        }
+        finally
+        {
+            channel.unlockWrite();
+        }
+    }
+
 }

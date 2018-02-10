@@ -1,12 +1,12 @@
 package se.kodarkatten.casual.jca.inflow.work;
 
+import se.kodarkatten.casual.network.io.LockableSocketChannel;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
 
 import javax.resource.spi.work.WorkException;
-import java.nio.channels.SocketChannel;
 import java.util.function.Consumer;
 
-public final class SocketChannelConsumer implements Consumer<SocketChannel>
+public final class SocketChannelConsumer implements Consumer<LockableSocketChannel>
 {
     private final CasualInboundWork work;
 
@@ -16,7 +16,7 @@ public final class SocketChannelConsumer implements Consumer<SocketChannel>
     }
 
     @Override
-    public void accept(SocketChannel socketChannel)
+    public void accept(LockableSocketChannel socketChannel)
     {
         try
         {

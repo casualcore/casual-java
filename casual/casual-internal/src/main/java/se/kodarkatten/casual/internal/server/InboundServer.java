@@ -1,9 +1,10 @@
 package se.kodarkatten.casual.internal.server;
 
+import se.kodarkatten.casual.network.io.LockableSocketChannel;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -23,9 +24,9 @@ public final class InboundServer
 {
     private static final Logger log = Logger.getLogger(InboundServer.class.getName());
     private final ServerSocketChannel ssc;
-    private final Consumer<SocketChannel> consumer;
+    private final Consumer<LockableSocketChannel> consumer;
     private AtomicBoolean running = new AtomicBoolean(true);
-    private InboundServer(final ServerSocketChannel ssc, final Consumer<SocketChannel> consumer)
+    private InboundServer(final ServerSocketChannel ssc, final Consumer<LockableSocketChannel> consumer)
     {
         this.ssc = ssc;
         this.consumer = consumer;
@@ -36,7 +37,7 @@ public final class InboundServer
     // we also close in case any IOExceptions while blocking on accept - except when the server is going down
     // due to being stopped
     @SuppressWarnings("squid:S2095")
-    public static InboundServer of(final InetSocketAddress address,  final Consumer<SocketChannel> consumer)
+    public static InboundServer of(final InetSocketAddress address,  final Consumer<LockableSocketChannel> consumer)
     {
         Objects.requireNonNull(address, "address can not be null");
         Objects.requireNonNull(consumer, "consumer can not be null");
@@ -53,7 +54,7 @@ public final class InboundServer
         return new InboundServer(ssc, consumer);
     }
 
-    public static InboundServer of( int port, final Consumer<SocketChannel> consumer )
+    public static InboundServer of( int port, final Consumer<LockableSocketChannel> consumer )
     {
         InetSocketAddress address = new InetSocketAddress( port );
         return of( address, consumer );
@@ -63,10 +64,10 @@ public final class InboundServer
     {
         while(running.get())
         {
-            SocketChannel sc = null;
+            LockableSocketChannel sc = null;
             try
             {
-                sc = ssc.accept();
+                sc = LockableSocketChannel.of( ssc.accept() );
             }
             catch (IOException e)
             {

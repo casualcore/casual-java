@@ -21,11 +21,18 @@
  */
 package se.kodarkatten.casual.jca.inflow;
 
+import se.kodarkatten.casual.network.io.LockableSocketChannel;
+import se.kodarkatten.casual.network.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
+import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestMessage;
+import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitRequestMessage;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
+import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
 import javax.resource.spi.XATerminator;
 import javax.resource.spi.work.WorkManager;
-import java.nio.channels.SocketChannel;
 
 /**
  * CasualMessageListener
@@ -34,15 +41,15 @@ import java.nio.channels.SocketChannel;
  */
 public interface CasualMessageListener
 {
-   void domainConnectRequest( CasualNWMessageHeader header, SocketChannel channel );
+   void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, LockableSocketChannel channel );
 
-   void domainDiscoveryRequest( CasualNWMessageHeader header, SocketChannel channel );
+   void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, LockableSocketChannel channel );
 
-   void serviceCallRequest(CasualNWMessageHeader header, SocketChannel channel, WorkManager workManager );
+   void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, LockableSocketChannel channel, WorkManager workManager );
 
-   void prepareRequest(CasualNWMessageHeader header, SocketChannel channel, XATerminator xaTerminator);
+   void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator);
 
-   void commitRequest(CasualNWMessageHeader header, SocketChannel channel, XATerminator xaTerminator);
+   void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator);
 
-   void requestRollback(CasualNWMessageHeader header, SocketChannel channel, XATerminator xaTerminator);
+   void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator);
 }

@@ -2,6 +2,7 @@ package se.kodarkatten.casual.jca.inflow.work
 
 import se.kodarkatten.casual.jca.CasualResourceAdapterException
 import se.kodarkatten.casual.jca.inflow.CasualActivationSpec
+import se.kodarkatten.casual.network.io.LockableSocketChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -21,7 +22,8 @@ class SocketChannelConsumerTest extends Specification
     @Shared WorkManager workManager
     @Shared XATerminator xaTerminator
     @Shared InetSocketAddress okAddress = new InetSocketAddress(0)
-    @Shared SocketChannel channel
+    @Shared LockableSocketChannel channel
+    @Shared SocketChannel socketChannel
 
 
     def setup()
@@ -31,7 +33,8 @@ class SocketChannelConsumerTest extends Specification
         factory = Mock( MessageEndpointFactory )
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )
-        channel = Mock( SocketChannel )
+        socketChannel = Mock( SocketChannel )
+        channel = LockableSocketChannel.of( socketChannel )
 
         inboundWork = new CasualInboundWork( spec, factory, workManager, xaTerminator )
 
