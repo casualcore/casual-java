@@ -179,4 +179,17 @@ class CasualServiceCallWorkTest extends Specification
         then:
         handler.getClass() == TestHandler.class
     }
+
+    def "Call Service which does not exist or is not available, returns result with TPNOENT status."()
+    {
+        given:
+        instance = new CasualServiceCallWork( correlationId, message, channel )
+
+        when:
+        instance.run()
+        CasualNWMessage<CasualServiceCallReplyMessage> reply = CasualNetworkReader.read( channel )
+
+        then:
+        reply.getMessage().getError() == ErrorState.TPENOENT
+    }
 }

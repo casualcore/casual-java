@@ -44,6 +44,6 @@ public final class ServiceHandlerFactory
                 return h;
             }
         }
-        throw new HandlerException( "None of the registered handlers, handle service named: " + serviceName );
+        throw new ServiceHandlerNotFoundException( "None of the registered handlers, handle service named: " + serviceName );
     }
 }

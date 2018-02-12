@@ -7,6 +7,7 @@ import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse;
+import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 import se.kodarkatten.casual.network.io.CasualNetworkWriter;
 import se.kodarkatten.casual.network.io.LockableSocketChannel;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
@@ -93,6 +94,12 @@ public final class CasualServiceCallWork implements Work
                         .setTransactionState( TransactionState.ROLLBACK_ONLY );
                 log.warning( ()->"Error occured whilst calling the service." );
             }
+        }
+        catch( ServiceHandlerNotFoundException e )
+        {
+            replyBuilder.setError( ErrorState.TPENOENT )
+                    .setTransactionState( TransactionState.ROLLBACK_ONLY );
+            log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
         }
         finally
         {

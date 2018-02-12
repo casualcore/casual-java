@@ -44,6 +44,6 @@ class ServiceHandlerFactoryTest extends Specification
         ServiceHandlerFactory.getHandler( "unknownn" )
 
         then:
-        thrown HandlerException.class
+        thrown ServiceHandlerNotFoundException.class
     }
 }

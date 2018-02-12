@@ -13,6 +13,7 @@ import se.kodarkatten.casual.api.buffer.type.JsonBuffer;
 import se.kodarkatten.casual.api.buffer.type.fielded.FieldedTypeBuffer;
 import se.kodarkatten.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessor;
 import se.kodarkatten.casual.api.flags.AtmiFlags;
+import se.kodarkatten.casual.api.flags.ErrorState;
 import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.ServiceReturnState;
 import se.kodarkatten.casual.api.xa.XAReturnCode;
@@ -23,13 +24,24 @@ import se.kodarkatten.casual.jca.CasualConnection;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
 import se.kodarkatten.casual.jca.CasualManagedConnectionFactory;
 import se.kodarkatten.casual.jca.CasualResourceAdapter;
+import se.kodarkatten.casual.jca.inflow.CasualActivationSpec;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
+import se.kodarkatten.casual.network.utils.DummyWorkManager;
 
+import javax.lang.model.type.ErrorType;
 import javax.resource.ResourceException;
+import javax.resource.spi.BootstrapContext;
+import javax.resource.spi.ResourceAdapter;
+import javax.resource.spi.UnavailableException;
+import javax.resource.spi.XATerminator;
+import javax.resource.spi.work.WorkContext;
+import javax.resource.spi.work.WorkManager;
+import javax.transaction.TransactionSynchronizationRegistry;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.nio.charset.StandardCharsets;
+import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
@@ -70,6 +82,10 @@ public class InboundTest
 
         connection  = (CasualConnection)managedConnection.getConnection( null, null );
         managedConnection.getXAResource().start( id, 0);
+        BootstrapContext context = new TestBootstrapContext();
+        ResourceAdapter r = new CasualResourceAdapter();
+        r.start( context );
+        managedConnectionFactory.setResourceAdapter( r );
     }
 
     @After
@@ -105,10 +121,8 @@ public class InboundTest
 
     private void callEcho( )
     {
-        //Weblogic
-        String serviceName = "se.kodarkatten.casual.example.service.ISimpleService#se.kodarkatten.casual.example.service.ISimpleService";
-        //Wildfly
-        //String serviceName = "java:jboss/exported/casual-java-testapp/SimpleService!se.kodarkatten.casual.example.service.ISimpleService";
+        String serviceName = "java:global/casual-java-testapp/SimpleService!se.kodarkatten.casual.example.service.ISimpleService";
+        
         SimpleObject message = new SimpleObject( "Hello from the call definition." );
         JavaServiceCallDefinition callDef = JavaServiceCallDefinition.of( "echo", message );
 
@@ -150,7 +164,7 @@ public class InboundTest
         onePhaseCommit();
     }
 
-    private void callTestCreateOrder()
+    private void callTestCreateOrder(  )
     {
         String serviceName = "TestCreateOrder";
         CasualOrder message = new CasualOrder( );
@@ -168,6 +182,28 @@ public class InboundTest
         assertThat(actual.getId(), is(not(nullValue())));
         assertThat(actual.getVersion(), is(not(nullValue())));
         assertThat(actual.getProduct(), is(equalTo(message.getProduct())));
+    }
+
+    @Test
+    public void tpCall_invalid_service_rollback() throws Exception
+    {
+        callInvalidService();
+        rollback();
+    }
+
+    private void callInvalidService(  )
+    {
+        String serviceName = "UnknownService";
+        CasualOrder message = new CasualOrder( );
+        message.setProduct( "New fielded product." );
+        FieldedTypeBuffer buffer = FieldedTypeBufferProcessor.marshall( message );
+
+        CasualBuffer msg = buffer;
+
+        ServiceReturn<CasualBuffer> reply = connection.tpcall(serviceName, msg, Flag.of(AtmiFlags.NOFLAG));
+
+        assertThat(reply.getServiceReturnState(), is(equalTo(ServiceReturnState.TPFAIL)));
+        assertThat( reply.getErrorState(), is( equalTo( ErrorState.TPENOENT ) ) );
     }
 
     @Test
@@ -226,6 +262,39 @@ public class InboundTest
         String gid = Integer.toString( ThreadLocalRandom.current().nextInt() );
         String b = Integer.toString( ThreadLocalRandom.current().nextInt() );
         return XID.of(gid.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8), 0);
+    }
+
+    public class TestBootstrapContext implements BootstrapContext
+    {
+        @Override
+        public WorkManager getWorkManager()
+        {
+            return DummyWorkManager.of();
+        }
+
+        @Override
+        public XATerminator getXATerminator()
+        {
+            return null;
+        }
+
+        @Override
+        public Timer createTimer() throws UnavailableException
+        {
+            return null;
+        }
+
+        @Override
+        public boolean isContextSupported(Class<? extends WorkContext> workContextClass)
+        {
+            return false;
+        }
+
+        @Override
+        public TransactionSynchronizationRegistry getTransactionSynchronizationRegistry()
+        {
+            return null;
+        }
     }
 
 }

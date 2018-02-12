@@ -48,7 +48,7 @@ public class DummyWorkManager implements WorkManager
     @Override
     public long startWork(Work work, long startTimeout, ExecutionContext execContext, WorkListener workListener) throws WorkException
     {
-        throw new WorkException("not implemented");
+        return startWork( work );
     }
 
     @Override
