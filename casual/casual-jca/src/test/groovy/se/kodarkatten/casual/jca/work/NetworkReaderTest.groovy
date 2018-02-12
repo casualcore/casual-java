@@ -17,6 +17,7 @@ import se.kodarkatten.casual.network.messages.CasualNWMessageType
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer
+import se.kodarkatten.casual.network.utils.BlockingSocketChannel
 import se.kodarkatten.casual.network.utils.DummyWorkManager
 import se.kodarkatten.casual.network.utils.LocalEchoSocketChannel
 import spock.lang.Shared
@@ -24,6 +25,7 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
 
 class NetworkReaderTest extends Specification
 {
@@ -137,10 +139,13 @@ class NetworkReaderTest extends Specification
     {
         setup:
         def localInvalidator = Mock(ManagedConnectionInvalidator)
-        def localInstance = NetworkReader.of(correlator, socketChannel , localInvalidator)
+        CountDownLatch latch = new CountDownLatch( 1 )
+        BlockingSocketChannel channel = BlockingSocketChannel.of( latch )
+        def localInstance = NetworkReader.of(correlator, channel , localInvalidator)
         when:
         workManager.startWork(localInstance)
         Thread.currentThread().yield()
+        channel.awaitRead()
         workManager.interruptWork()
         workManager.done()
         then:
