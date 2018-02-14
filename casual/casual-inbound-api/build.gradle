@@ -7,7 +7,6 @@ plugins {
 dependencies {
   provided project(':casual:casual-inbound-handler-api')
   compile project(":casual:casual-internal")
-  compile project(":casual:casual-network")
   provided 'javax:javaee-api:7.0'
 
   // for spock

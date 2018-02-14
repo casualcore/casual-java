@@ -1,7 +1,5 @@
 package se.kodarkatten.casual.jca.inbound.handler.service;
 
-import se.kodarkatten.casual.jca.inbound.handler.HandlerException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

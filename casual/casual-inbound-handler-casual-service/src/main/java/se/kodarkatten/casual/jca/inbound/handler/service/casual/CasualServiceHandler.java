@@ -1,18 +1,22 @@
 package se.kodarkatten.casual.jca.inbound.handler.service.casual;
 
 import se.kodarkatten.casual.api.buffer.CasualBuffer;
+import se.kodarkatten.casual.api.service.ServiceInfo;
+import se.kodarkatten.casual.api.services.CasualService;
 import se.kodarkatten.casual.internal.thread.ThreadClassLoaderTool;
 import se.kodarkatten.casual.jca.inbound.handler.HandlerException;
+import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
+import se.kodarkatten.casual.jca.inbound.handler.InboundResponse;
 import se.kodarkatten.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.kodarkatten.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.kodarkatten.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
-import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
-import se.kodarkatten.casual.jca.inbound.handler.InboundResponse;
+import se.kodarkatten.casual.network.messages.domain.TransactionType;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 
 import javax.ejb.Local;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttributeType;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -87,6 +91,21 @@ public class CasualServiceHandler implements ServiceHandler
 
         return InboundResponse.of( success, payload );
 
+    }
+
+    @Override
+    public ServiceInfo getServiceInfo(String serviceName)
+    {
+        CasualServiceEntry entry = CasualServiceRegistry.getInstance().getEntry( serviceName );
+
+        if( entry == null )
+        {
+            throw new HandlerException("Service could not be found, should control with canHandle() first." );
+        }
+        CasualService c = entry.getCasualService();
+        TransactionAttributeType attributeType = TransactionAttributeTypeFinder.find( entry );
+        TransactionType transactionType = TransactionTypeMapper.map( attributeType );
+        return ServiceInfo.of( c.name(), c.category(), transactionType );
     }
 
     private Object loadService( String jndiName ) throws NamingException

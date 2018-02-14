@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.jca.inbound.handler.service;
 
+import se.kodarkatten.casual.api.service.ServiceInfo;
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse;
 
@@ -33,4 +34,13 @@ public interface ServiceHandler
      * @return response to return to client.
      */
     InboundResponse invokeService(InboundRequest request );
+
+    /**
+     * Returns the service object representation of the service
+     * with this name.
+     *
+     * @param serviceName of the service to retrieve.
+     * @return service object.
+     */
+    ServiceInfo getServiceInfo(String serviceName );
 }

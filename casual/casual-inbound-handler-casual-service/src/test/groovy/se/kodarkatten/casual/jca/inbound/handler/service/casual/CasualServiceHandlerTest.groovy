@@ -1,9 +1,12 @@
 package se.kodarkatten.casual.jca.inbound.handler.service.casual
 
 import se.kodarkatten.casual.api.buffer.type.fielded.FieldedTypeBuffer
+import se.kodarkatten.casual.api.service.ServiceInfo
 import se.kodarkatten.casual.api.services.CasualService
+import se.kodarkatten.casual.jca.inbound.handler.HandlerException
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse
+import se.kodarkatten.casual.network.messages.domain.TransactionType
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -58,6 +61,26 @@ class CasualServiceHandlerTest extends Specification
         )
 
         instance.setContext( context )
+    }
+
+    def "Get Service returns a service object."()
+    {
+        when:
+        ServiceInfo actual = instance.getServiceInfo(casualServiceName)
+
+        then:
+        actual.getServiceName() == casualServiceName
+        actual.getTransactionType() == TransactionType.AUTOMATIC
+        actual.getCategory() == "mycategory"
+    }
+
+    def "Get Service not in the cache throws Handler Exception."()
+    {
+        when:
+        instance.getServiceInfo("unknown")
+
+        then:
+        thrown HandlerException
     }
 
     def "Call Service with buffer and return result."()
@@ -223,20 +246,28 @@ class CasualServiceHandlerTest extends Specification
     }
 
     class TestCasualService implements CasualService{
-    @Override
-    public String name()
-    {
-        return casualService
+        @Override
+        public String name()
+        {
+            return casualService
+        }
+
+
+        @Override
+        String category()
+        {
+            return null
+        }
+
+        @Override
+        public String jndiName()
+        {
+            return jndiServiceName
+        }
+        @Override
+        public Class<? extends Annotation> annotationType()
+        {
+            return CasualService.class
+        }
     }
-    @Override
-    public String jndiName()
-    {
-        return jndiServiceName
-    }
-    @Override
-    public Class<? extends Annotation> annotationType()
-    {
-        return CasualService.class
-    }
-}
 }

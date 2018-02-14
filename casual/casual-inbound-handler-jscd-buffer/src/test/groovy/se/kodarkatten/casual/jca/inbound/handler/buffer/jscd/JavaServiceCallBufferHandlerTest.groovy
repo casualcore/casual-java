@@ -5,8 +5,8 @@ import se.kodarkatten.casual.api.buffer.CasualBufferType
 import se.kodarkatten.casual.api.buffer.type.JavaServiceCallDefinition
 import se.kodarkatten.casual.api.external.json.JsonProvider
 import se.kodarkatten.casual.api.external.json.JsonProviderFactory
-import se.kodarkatten.casual.jca.inbound.handler.buffer.ServiceCallInfo
 import se.kodarkatten.casual.jca.inbound.handler.HandlerException
+import se.kodarkatten.casual.jca.inbound.handler.buffer.ServiceCallInfo
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification

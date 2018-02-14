@@ -1,9 +1,13 @@
 package se.kodarkatten.casual.jca.inflow;
 
 import se.kodarkatten.casual.api.flags.XAFlags;
+import se.kodarkatten.casual.api.service.ServiceInfo;
 import se.kodarkatten.casual.api.xa.XAReturnCode;
 import se.kodarkatten.casual.api.xa.XID;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
+import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
+import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerFactory;
+import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 import se.kodarkatten.casual.jca.inflow.work.CasualServiceCallWork;
 import se.kodarkatten.casual.network.io.CasualNetworkWriter;
 import se.kodarkatten.casual.network.io.LockableSocketChannel;
@@ -13,7 +17,6 @@ import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestM
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.kodarkatten.casual.network.messages.domain.Service;
-import se.kodarkatten.casual.network.messages.domain.TransactionType;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
 import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitReplyMessage;
 import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitRequestMessage;
@@ -72,10 +75,20 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), message.getMessage().getDomainId(), message.getMessage().getDomainName() );
 
         List<Service> services = new ArrayList<>();
-        //TODO: lookup service for reply, now just say yes to everything.
+
         for( String service: message.getMessage().getServiceNames() )
         {
-            services.add( Service.of( service, "", TransactionType.NONE ) );
+            try
+            {
+                ServiceHandler handler = ServiceHandlerFactory.getHandler( service );
+                ServiceInfo info = handler.getServiceInfo( service );
+
+                services.add( Service.of( info.getServiceName(), info.getCategory(), info.getTransactionType()) );
+            }
+            catch( ServiceHandlerNotFoundException e )
+            {
+                //Service does not exist. Continue with the next one in the list.
+            }
         }
         reply.setServices( services );
 

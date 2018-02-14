@@ -1,8 +1,5 @@
 package se.kodarkatten.casual.jca.inbound.handler.buffer
 
-import se.kodarkatten.casual.jca.inbound.handler.buffer.BufferHandler
-import se.kodarkatten.casual.jca.inbound.handler.buffer.BufferHandlerFactory
-import se.kodarkatten.casual.jca.inbound.handler.buffer.PassThroughBufferHandler
 import se.kodarkatten.casual.jca.inbound.handler.test.TestBufferHandler
 import se.kodarkatten.casual.jca.inbound.handler.test.TestBufferHandler2
 import spock.lang.Specification

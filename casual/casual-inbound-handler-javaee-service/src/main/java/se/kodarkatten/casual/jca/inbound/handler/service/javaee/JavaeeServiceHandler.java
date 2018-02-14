@@ -1,14 +1,15 @@
 package se.kodarkatten.casual.jca.inbound.handler.service.javaee;
 
 import se.kodarkatten.casual.api.buffer.CasualBuffer;
+import se.kodarkatten.casual.api.service.ServiceInfo;
 import se.kodarkatten.casual.internal.thread.ThreadClassLoaderTool;
+import se.kodarkatten.casual.jca.inbound.handler.HandlerException;
+import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
+import se.kodarkatten.casual.jca.inbound.handler.InboundResponse;
 import se.kodarkatten.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.kodarkatten.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.kodarkatten.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
-import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
-import se.kodarkatten.casual.jca.inbound.handler.InboundResponse;
-import se.kodarkatten.casual.jca.inbound.handler.HandlerException;
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
 
 import javax.ejb.Local;
@@ -76,6 +77,17 @@ public class JavaeeServiceHandler implements ServiceHandler
         }
 
         return InboundResponse.of( success, payload );
+    }
+
+    @Override
+    public ServiceInfo getServiceInfo(String serviceName)
+    {
+        if( !canHandleService( serviceName ) )
+        {
+            throw new HandlerException( "Service could not be found, should control with canHandle() first." );
+        }
+
+        return ServiceInfo.of( serviceName );
     }
 
     private Object loadService( String jndiName ) throws NamingException

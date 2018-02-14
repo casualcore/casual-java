@@ -1,8 +1,5 @@
 package se.kodarkatten.casual.jca.inbound.handler.service
 
-import se.kodarkatten.casual.jca.inbound.handler.HandlerException
-import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler
-import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerFactory
 import se.kodarkatten.casual.jca.inbound.handler.test.TestHandler
 import se.kodarkatten.casual.jca.inbound.handler.test.TestHandler2
 import spock.lang.Specification

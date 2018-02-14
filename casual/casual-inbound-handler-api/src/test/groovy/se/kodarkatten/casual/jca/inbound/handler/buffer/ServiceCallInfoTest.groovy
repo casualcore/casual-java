@@ -1,6 +1,5 @@
 package se.kodarkatten.casual.jca.inbound.handler.buffer
 
-import se.kodarkatten.casual.jca.inbound.handler.buffer.ServiceCallInfo
 import spock.lang.Shared
 import spock.lang.Specification
 

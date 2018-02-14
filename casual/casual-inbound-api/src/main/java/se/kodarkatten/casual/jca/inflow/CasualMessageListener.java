@@ -23,7 +23,6 @@ package se.kodarkatten.casual.jca.inflow;
 
 import se.kodarkatten.casual.network.io.LockableSocketChannel;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;

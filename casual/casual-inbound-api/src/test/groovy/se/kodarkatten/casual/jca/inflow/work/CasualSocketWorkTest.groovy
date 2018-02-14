@@ -10,7 +10,6 @@ import se.kodarkatten.casual.jca.inflow.CasualMessageListener
 import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.io.LockableSocketChannel
 import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.CasualNWMessageHeader
 import se.kodarkatten.casual.network.messages.CasualNWMessageType
 import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable
 import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestMessage

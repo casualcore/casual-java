@@ -4,8 +4,11 @@ import se.kodarkatten.casual.api.buffer.CasualBufferType
 import se.kodarkatten.casual.api.buffer.type.JavaServiceCallDefinition
 import se.kodarkatten.casual.api.external.json.JsonProvider
 import se.kodarkatten.casual.api.external.json.JsonProviderFactory
+import se.kodarkatten.casual.api.service.ServiceInfo
+import se.kodarkatten.casual.jca.inbound.handler.HandlerException
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse
+import se.kodarkatten.casual.network.messages.domain.TransactionType
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
@@ -60,6 +63,31 @@ class JavaeeServiceHandlerTest extends Specification
         )
 
         instance.setContext( context )
+    }
+
+    def "Get Service returns a service object."()
+    {
+        when:
+        ServiceInfo actual = instance.getServiceInfo(jndiServiceName)
+
+        then:
+        actual.getServiceName() == jndiServiceName
+        actual.getTransactionType() == TransactionType.AUTOMATIC
+        actual.getCategory() == ""
+    }
+
+    def "Get Service valid name throws Handler Exception."()
+    {
+        given:
+        1 * context.lookup( "unknown" ) >> {
+            throw new NamingException( "name doesnt exist." )
+        }
+
+        when:
+        instance.getServiceInfo("unknown")
+
+        then:
+        thrown HandlerException
     }
 
     def "Call Service with buffer and return result."()

@@ -1,12 +1,10 @@
 package se.kodarkatten.casual.jca.inflow.work;
 
-import se.kodarkatten.casual.network.io.LockableSocketChannel;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
 import se.kodarkatten.casual.jca.inflow.CasualMessageListener;
 import se.kodarkatten.casual.network.io.CasualNetworkReader;
+import se.kodarkatten.casual.network.io.LockableSocketChannel;
 import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.CasualNWMessageHeader;
-import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestMessage;
 import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;

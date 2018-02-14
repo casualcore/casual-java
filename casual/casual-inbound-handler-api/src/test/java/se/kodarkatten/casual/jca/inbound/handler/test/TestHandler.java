@@ -1,8 +1,9 @@
 package se.kodarkatten.casual.jca.inbound.handler.test;
 
-import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
+import se.kodarkatten.casual.api.service.ServiceInfo;
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse;
+import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
 
 public class TestHandler implements ServiceHandler
 {
@@ -26,6 +27,12 @@ public class TestHandler implements ServiceHandler
 
     @Override
     public InboundResponse invokeService(InboundRequest request)
+    {
+        return null;
+    }
+
+    @Override
+    public ServiceInfo getServiceInfo(String serviceName)
     {
         return null;
     }

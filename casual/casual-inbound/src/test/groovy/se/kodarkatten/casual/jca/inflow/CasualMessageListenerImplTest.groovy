@@ -3,15 +3,15 @@ package se.kodarkatten.casual.jca.inflow
 import se.kodarkatten.casual.api.buffer.type.JsonBuffer
 import se.kodarkatten.casual.api.flags.Flag
 import se.kodarkatten.casual.api.flags.XAFlags
+import se.kodarkatten.casual.api.services.CasualService
 import se.kodarkatten.casual.api.xa.XAReturnCode
 import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.jca.CasualResourceAdapterException
+import se.kodarkatten.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.kodarkatten.casual.jca.inflow.work.CasualServiceCallWork
 import se.kodarkatten.casual.network.io.CasualNetworkReader
-import se.kodarkatten.casual.network.io.CasualNetworkWriter
 import se.kodarkatten.casual.network.io.LockableSocketChannel
 import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.CasualNWMessageHeader
 import se.kodarkatten.casual.network.messages.CasualNWMessageType
 import se.kodarkatten.casual.network.messages.domain.*
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
@@ -28,6 +28,7 @@ import javax.resource.spi.work.WorkListener
 import javax.resource.spi.work.WorkManager
 import javax.transaction.xa.XAException
 import javax.transaction.xa.Xid
+import java.lang.annotation.Annotation
 import java.nio.channels.SocketChannel
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ThreadLocalRandom
@@ -45,6 +46,7 @@ class CasualMessageListenerImplTest extends Specification
     @Shared String domainName = "java"
     @Shared UUID execution = UUID.randomUUID()
     @Shared Xid xid
+    @Shared String serviceName = "echo"
 
 
     def setup()
@@ -64,7 +66,6 @@ class CasualMessageListenerImplTest extends Specification
         String b = Integer.toString( ThreadLocalRandom.current().nextInt() );
         return XID.of(gid.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8), 0);
     }
-
 
     def "DomainConnectRequest"()
     {
@@ -96,8 +97,10 @@ class CasualMessageListenerImplTest extends Specification
     def "DomainDiscoveryRequest"()
     {
         given:
-        List<String> serviceNames = Arrays.asList( "echo" )
-        List<Service> expectedServices = Arrays.asList( Service.of( "echo", "", TransactionType.NONE ) )
+        CasualServiceRegistry.getInstance().register( new TestCasualService(), CasualMessageListenerImpl.getMethod("toString" ), CasualMessageListenerImpl.class )
+
+        List<String> serviceNames = Arrays.asList( serviceName )
+        List<Service> expectedServices = Arrays.asList( Service.of( serviceName, "mycategory", TransactionType.AUTOMATIC ) )
         CasualNWMessage<CasualDomainDiscoveryRequestMessage> message = CasualNWMessage.of( correlationId,
                 CasualDomainDiscoveryRequestMessage.createBuilder()
                         .setDomainId( domainId )
@@ -454,5 +457,30 @@ class CasualMessageListenerImplTest extends Specification
         reply.getCorrelationId() == correlationId
         reply.getMessage().getExecution() == execution
         reply.getMessage().getTransactionReturnCode() == XAReturnCode.XAER_RMERR
+    }
+
+    class TestCasualService implements CasualService{
+        @Override
+        public String name()
+        {
+            return serviceName
+        }
+
+        @Override
+        String category()
+        {
+            return "mycategory"
+        }
+
+        @Override
+        public String jndiName()
+        {
+            return jndiServiceName
+        }
+        @Override
+        public Class<? extends Annotation> annotationType()
+        {
+            return CasualService.class
+        }
     }
 }

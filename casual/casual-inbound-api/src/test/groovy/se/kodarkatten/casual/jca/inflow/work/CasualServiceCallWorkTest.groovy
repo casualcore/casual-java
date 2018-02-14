@@ -8,16 +8,13 @@ import se.kodarkatten.casual.api.external.json.JsonProviderFactory
 import se.kodarkatten.casual.api.flags.ErrorState
 import se.kodarkatten.casual.api.flags.Flag
 import se.kodarkatten.casual.api.xa.XID
-import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse
+import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler
 import se.kodarkatten.casual.jca.inflow.handler.test.TestHandler
 import se.kodarkatten.casual.network.io.CasualNetworkReader
 import se.kodarkatten.casual.network.io.LockableSocketChannel
 import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.CasualNWMessageHeader
-import se.kodarkatten.casual.network.messages.CasualNWMessageType
-import se.kodarkatten.casual.network.messages.parseinfo.CommonSizes
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage
 import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
 import se.kodarkatten.casual.network.messages.service.ServiceBuffer

@@ -21,5 +21,7 @@ public @interface CasualService
      * @return The name of the casual service
      */
     String name();
+
+    String category() default "";
     String jndiName();
 }

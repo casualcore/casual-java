@@ -66,8 +66,6 @@ public class InboundTest
     String host = "192.168.99.100";
     int port = 7772;
 
-    ExecutorService threadService = Executors.newSingleThreadExecutor();
-
     @Before
     public void setup() throws ResourceException, XAException {
 
@@ -231,6 +229,14 @@ public class InboundTest
         CasualOrder actual = FieldedTypeBufferProcessor.unmarshall(FieldedTypeBuffer.create(reply.getReplyBuffer().getBytes()), CasualOrder.class);
 
         assertThat( actual, is( equalTo( message ) ) );
+    }
+
+    @Test
+    public void serviceExists() throws Exception
+    {
+        assertThat( connection.serviceExists("TestCreateOrder"), is( true )  );
+        assertThat( connection.serviceExists("TestCasualEcho"), is( true )  );
+        assertThat( connection.serviceExists("TestCasualEcho2"), is( false )  );
     }
 
     private void twoPhaseCommit() throws ResourceException, XAException
