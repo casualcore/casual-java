@@ -8,8 +8,10 @@ import se.kodarkatten.casual.api.service.ServiceInfo
 import se.kodarkatten.casual.jca.inbound.handler.HandlerException
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse
+
 import se.kodarkatten.casual.network.messages.domain.TransactionType
-import se.kodarkatten.casual.network.messages.service.ServiceBuffer
+import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer
+
 import spock.lang.Shared
 import spock.lang.Specification
 

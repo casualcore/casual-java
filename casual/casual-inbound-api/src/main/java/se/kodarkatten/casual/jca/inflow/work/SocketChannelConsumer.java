@@ -1,7 +1,7 @@
 package se.kodarkatten.casual.jca.inflow.work;
 
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
-import se.kodarkatten.casual.network.io.LockableSocketChannel;
+import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel;
 
 import javax.resource.spi.work.WorkException;
 import java.util.function.Consumer;

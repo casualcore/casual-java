@@ -24,11 +24,9 @@ import se.kodarkatten.casual.jca.CasualConnection;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
 import se.kodarkatten.casual.jca.CasualManagedConnectionFactory;
 import se.kodarkatten.casual.jca.CasualResourceAdapter;
-import se.kodarkatten.casual.jca.inflow.CasualActivationSpec;
-import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
-import se.kodarkatten.casual.network.utils.DummyWorkManager;
+import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer;
+import se.kodarkatten.casual.network.protocol.utils.DummyWorkManager;
 
-import javax.lang.model.type.ErrorType;
 import javax.resource.ResourceException;
 import javax.resource.spi.BootstrapContext;
 import javax.resource.spi.ResourceAdapter;

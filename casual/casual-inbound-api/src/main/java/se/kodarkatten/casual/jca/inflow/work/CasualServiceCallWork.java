@@ -3,17 +3,18 @@ package se.kodarkatten.casual.jca.inflow.work;
 import se.kodarkatten.casual.api.buffer.CasualBuffer;
 import se.kodarkatten.casual.api.flags.ErrorState;
 import se.kodarkatten.casual.api.flags.TransactionState;
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
-import se.kodarkatten.casual.network.io.CasualNetworkWriter;
-import se.kodarkatten.casual.network.io.LockableSocketChannel;
-import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage;
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
-import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
+import se.kodarkatten.casual.network.protocol.io.CasualNetworkWriter;
+import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel;
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer;
 
 import javax.resource.spi.work.Work;
 import java.util.ArrayList;
@@ -105,7 +106,7 @@ public final class CasualServiceCallWork implements Work
             CasualServiceCallReplyMessage reply = replyBuilder
                     .setServiceBuffer( ServiceBuffer.of( serviceResult ) )
                     .build();
-            CasualNWMessage<CasualServiceCallReplyMessage> replyMessage = CasualNWMessage.of( correlationId,reply );
+            CasualNWMessage<CasualServiceCallReplyMessage> replyMessage = CasualNWMessageImpl.of( correlationId,reply );
             CasualNetworkWriter.write( this.channel, replyMessage );
         }
     }

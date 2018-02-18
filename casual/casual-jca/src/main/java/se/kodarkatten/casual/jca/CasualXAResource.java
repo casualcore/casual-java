@@ -2,16 +2,17 @@ package se.kodarkatten.casual.jca;
 
 import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.XAFlags;
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.api.xa.XAReturnCode;
 import se.kodarkatten.casual.api.xa.XID;
-import se.kodarkatten.casual.network.connection.CasualConnectionException;
-import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitReplyMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitRequestMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareReplyMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackReplyMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
+import se.kodarkatten.casual.network.protocol.connection.CasualConnectionException;
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
@@ -51,7 +52,7 @@ public class CasualXAResource implements XAResource
         }
         CasualTransactionResourceCommitRequestMessage commitRequest =
             CasualTransactionResourceCommitRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
-        CasualNWMessage<CasualTransactionResourceCommitRequestMessage> requestEnvelope = CasualNWMessage.of(UUID.randomUUID(), commitRequest);
+        CasualNWMessage<CasualTransactionResourceCommitRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), commitRequest);
         CompletableFuture<CasualNWMessage<CasualTransactionResourceCommitReplyMessage>> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
         try
         {
@@ -120,7 +121,7 @@ public class CasualXAResource implements XAResource
     {
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
         CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
-        CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> requestEnvelope = CasualNWMessage.of(UUID.randomUUID(), prepareRequest);
+        CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), prepareRequest);
         CompletableFuture<CasualNWMessage<CasualTransactionResourcePrepareReplyMessage>> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
         try
         {
@@ -147,7 +148,7 @@ public class CasualXAResource implements XAResource
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
         CasualTransactionResourceRollbackRequestMessage request =
                 CasualTransactionResourceRollbackRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
-        CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> requestEnvelope = CasualNWMessage.of(UUID.randomUUID(), request);
+        CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), request);
         CompletableFuture<CasualNWMessage<CasualTransactionResourceRollbackReplyMessage>> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
         try
         {

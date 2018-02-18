@@ -2,15 +2,16 @@ package casual.test.network.client;
 
 import se.kodarkatten.casual.api.flags.AtmiFlags;
 import se.kodarkatten.casual.api.flags.Flag;
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.api.xa.XID;
-import se.kodarkatten.casual.network.io.CasualNetworkReader;
-import se.kodarkatten.casual.network.io.CasualNetworkWriter;
-import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage;
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
-import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
+import se.kodarkatten.casual.network.protocol.io.CasualNetworkReader;
+import se.kodarkatten.casual.network.protocol.io.CasualNetworkWriter;
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -82,7 +83,7 @@ public final class CasualTestClient
                                                                                     .setXatmiFlags(flags)
                                                                                     .setServiceBuffer(buffer)
                                                                                     .build();
-        CasualNWMessage<CasualServiceCallRequestMessage> msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg);
+        CasualNWMessage<CasualServiceCallRequestMessage> msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg);
         System.out.println("About to send msg: " + msg);
         CasualNetworkWriter.write(clientChannel, msg);
     }
@@ -96,7 +97,7 @@ public final class CasualTestClient
                                                                                             .setQueueNames(Arrays.asList("queueA1"))
                                                                                             .setServiceNames(Arrays.asList("casual.example.echo"))
                                                                                             .build();
-        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg);
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg);
         System.out.println("About to send msg: " + msg);
         CasualNetworkWriter.write(channel, msg);
     }
@@ -118,7 +119,7 @@ public final class CasualTestClient
                                                                                             .setQueueNames(Arrays.asList("queueA1"))
                                                                                             .setServiceNames(Arrays.asList(sEchoService))
                                                                                             .build();
-        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessage.of(UUID.randomUUID(), requestMsg);
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg);
         System.out.println("About to send msg: " + msg);
         CasualNetworkWriter.write(channel, msg);
     }

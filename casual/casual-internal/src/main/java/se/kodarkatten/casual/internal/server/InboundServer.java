@@ -1,6 +1,6 @@
 package se.kodarkatten.casual.internal.server;
 
-import se.kodarkatten.casual.network.io.LockableSocketChannel;
+import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

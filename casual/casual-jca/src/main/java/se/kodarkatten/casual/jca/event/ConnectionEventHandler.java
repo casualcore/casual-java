@@ -1,11 +1,12 @@
 package se.kodarkatten.casual.jca.event;
 
-import se.kodarkatten.casual.network.connection.CasualConnectionException;
+import se.kodarkatten.casual.network.protocol.connection.CasualConnectionException;
 
 import javax.resource.spi.ConnectionEvent;
 import javax.resource.spi.ConnectionEventListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -57,32 +58,34 @@ public class ConnectionEventHandler
 
     public void sendEvent(ConnectionEvent event)
     {
+        List<javax.resource.spi.ConnectionEventListener> copy = new ArrayList<>();
         synchronized (listeners)
         {
-            for (ConnectionEventListener l : listeners)
+            copy.addAll(listeners);
+        }
+        for (ConnectionEventListener l : copy)
+        {
+            switch (event.getId())
             {
-                switch (event.getId())
-                {
-                    case ConnectionEvent.CONNECTION_CLOSED:
-                        l.connectionClosed(event);
-                        break;
-                    case ConnectionEvent.CONNECTION_ERROR_OCCURRED:
-                        l.connectionErrorOccurred(event);
-                        break;
-                    case ConnectionEvent.LOCAL_TRANSACTION_COMMITTED:
-                        l.localTransactionCommitted(event);
-                        break;
-                    case ConnectionEvent.LOCAL_TRANSACTION_ROLLEDBACK:
-                        l.localTransactionRolledback(event);
-                        break;
-                    case ConnectionEvent.LOCAL_TRANSACTION_STARTED:
-                        l.localTransactionStarted(event);
-                        break;
-                    default:
-                        // TODO:
-                        // maybe not throw, just ignore?
-                        throw new CasualConnectionException("unkown event:" + event);
-                }
+                case ConnectionEvent.CONNECTION_CLOSED:
+                    l.connectionClosed(event);
+                    break;
+                case ConnectionEvent.CONNECTION_ERROR_OCCURRED:
+                    l.connectionErrorOccurred(event);
+                    break;
+                case ConnectionEvent.LOCAL_TRANSACTION_COMMITTED:
+                    l.localTransactionCommitted(event);
+                    break;
+                case ConnectionEvent.LOCAL_TRANSACTION_ROLLEDBACK:
+                    l.localTransactionRolledback(event);
+                    break;
+                case ConnectionEvent.LOCAL_TRANSACTION_STARTED:
+                    l.localTransactionStarted(event);
+                    break;
+                default:
+                    // TODO:
+                    // maybe not throw, just ignore?
+                    throw new CasualConnectionException("unkown event:" + event);
             }
         }
     }

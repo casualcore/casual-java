@@ -10,7 +10,7 @@ import se.kodarkatten.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.kodarkatten.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.kodarkatten.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
-import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
+import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer;
 
 import javax.ejb.Local;
 import javax.ejb.Stateless;

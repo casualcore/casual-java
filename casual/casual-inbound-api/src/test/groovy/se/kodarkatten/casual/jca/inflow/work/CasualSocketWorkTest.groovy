@@ -2,25 +2,26 @@ package se.kodarkatten.casual.jca.inflow.work
 
 import se.kodarkatten.casual.api.buffer.type.JsonBuffer
 import se.kodarkatten.casual.api.flags.Flag
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable
 import se.kodarkatten.casual.api.xa.XAReturnCode
 import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.jca.CasualResourceAdapterException
 import se.kodarkatten.casual.jca.inflow.CasualActivationSpec
 import se.kodarkatten.casual.jca.inflow.CasualMessageListener
-import se.kodarkatten.casual.network.io.CasualNetworkWriter
-import se.kodarkatten.casual.network.io.LockableSocketChannel
-import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.CasualNWMessageType
-import se.kodarkatten.casual.network.messages.CasualNetworkTransmittable
-import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestMessage
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
-import se.kodarkatten.casual.network.messages.service.ServiceBuffer
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitReplyMessage
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitRequestMessage
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareRequestMessage
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackRequestMessage
-import se.kodarkatten.casual.network.utils.LocalEchoSocketChannel
+import se.kodarkatten.casual.network.protocol.io.CasualNetworkWriter
+import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
+import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage
+import se.kodarkatten.casual.network.protocol.utils.LocalEchoSocketChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -76,7 +77,7 @@ class CasualSocketWorkTest extends Specification
     def "Domain Connect Request forwarded."()
     {
         given:
-        CasualNWMessage<CasualDomainConnectRequestMessage> message = CasualNWMessage.of(UUID.randomUUID(),
+        CasualNWMessageImpl<CasualDomainConnectRequestMessage> message = CasualNWMessageImpl.of(UUID.randomUUID(),
                 CasualDomainConnectRequestMessage.createBuilder()
                         .withDomainId(UUID.randomUUID())
                         .withDomainName("java")
@@ -103,7 +104,7 @@ class CasualSocketWorkTest extends Specification
     def "Domain Discovery Request forwarded."()
     {
         given:
-        CasualNWMessage<CasualDomainDiscoveryRequestMessage> message = CasualNWMessage.of(UUID.randomUUID(),
+        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> message = CasualNWMessageImpl.of(UUID.randomUUID(),
                 CasualDomainDiscoveryRequestMessage.createBuilder()
                         .setDomainId(UUID.randomUUID())
                         .setDomainName("java")
@@ -130,7 +131,7 @@ class CasualSocketWorkTest extends Specification
     def "Service Call Request forwarded."()
     {
         given:
-        CasualNWMessage<CasualServiceCallRequestMessage> message = CasualNWMessage.of(UUID.randomUUID(),
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of(UUID.randomUUID(),
                 CasualServiceCallRequestMessage.createBuilder()
                         .setXid( XID.NULL_XID)
                         .setExecution(UUID.randomUUID())
@@ -160,7 +161,7 @@ class CasualSocketWorkTest extends Specification
     def "Prepare Request forwarded."()
     {
         given:
-        CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessage.of(UUID.randomUUID(),
+        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessageImpl.of(UUID.randomUUID(),
                 CasualTransactionResourcePrepareRequestMessage.of(
                         UUID.randomUUID(),
                         XID.NULL_XID,
@@ -189,7 +190,7 @@ class CasualSocketWorkTest extends Specification
     def "Rollback Request forwarded."()
     {
         given:
-        CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message = CasualNWMessage.of(UUID.randomUUID(),
+        CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> message = CasualNWMessageImpl.of(UUID.randomUUID(),
                 CasualTransactionResourceRollbackRequestMessage.of(
                         UUID.randomUUID(),
                         XID.NULL_XID,
@@ -218,7 +219,7 @@ class CasualSocketWorkTest extends Specification
     def "Commit Request forwarded."()
     {
         given:
-        CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessage.of(UUID.randomUUID(),
+        CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessageImpl.of(UUID.randomUUID(),
                 CasualTransactionResourceCommitRequestMessage.of(
                         UUID.randomUUID(),
                         XID.NULL_XID,
@@ -247,7 +248,7 @@ class CasualSocketWorkTest extends Specification
     def "Unknown request not forwarded."()
     {
         given:
-        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> message = CasualNWMessage.of(UUID.randomUUID(),
+        CasualNWMessageImpl<CasualTransactionResourceCommitReplyMessage> message = CasualNWMessageImpl.of(UUID.randomUUID(),
                 CasualTransactionResourceCommitReplyMessage.of(
                         UUID.randomUUID(),
                         XID.NULL_XID,

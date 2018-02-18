@@ -93,7 +93,7 @@ public class CasualMBeanImpl implements CasualMBean, Serializable
     /**
      * GetConnection
      *
-     * @return CasualConnection
+     * @return DefaultNetworkConnection
      */
     private CasualConnection getConnection() throws Exception
     {

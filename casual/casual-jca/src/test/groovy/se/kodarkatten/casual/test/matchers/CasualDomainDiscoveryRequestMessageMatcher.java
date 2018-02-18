@@ -2,8 +2,8 @@ package se.kodarkatten.casual.test.matchers;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
-import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
 
 public final class CasualDomainDiscoveryRequestMessageMatcher
 {

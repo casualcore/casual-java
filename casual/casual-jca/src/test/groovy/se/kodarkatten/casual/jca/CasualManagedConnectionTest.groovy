@@ -1,6 +1,7 @@
 package se.kodarkatten.casual.jca
 
 import se.kodarkatten.casual.api.xa.XID
+import se.kodarkatten.casual.internal.network.NetworkConnection
 import spock.lang.Shared
 import spock.lang.Specification
 

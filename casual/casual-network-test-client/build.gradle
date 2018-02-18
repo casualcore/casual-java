@@ -8,7 +8,7 @@ plugins {
 defaultTasks 'build'
 
 dependencies {
-  implementation project(':casual:casual-network')
+  implementation project(':casual:casual-network-protocol')
   compile project(':casual:casual-api')
   testCompile 'junit:junit:4.8.2+'
   // for spock

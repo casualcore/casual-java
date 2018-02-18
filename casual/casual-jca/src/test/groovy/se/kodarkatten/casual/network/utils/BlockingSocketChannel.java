@@ -1,5 +1,7 @@
 package se.kodarkatten.casual.network.utils;
 
+import se.kodarkatten.casual.network.protocol.utils.AbstractTestSocketChannel;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;

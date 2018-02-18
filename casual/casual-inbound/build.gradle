@@ -7,7 +7,7 @@ plugins {
 dependencies {
   compile project(':casual:casual-api')
   compile project(':casual:casual-internal')
-  compile project(':casual:casual-network')
+  compile project(':casual:casual-network-protocol')
   compile project(':casual:casual-inbound-api')
   compile project(':casual:casual-inbound-handler-api')
   provided 'javax:javaee-api:7.0'

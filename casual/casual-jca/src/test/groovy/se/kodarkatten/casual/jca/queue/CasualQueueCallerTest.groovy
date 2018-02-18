@@ -8,12 +8,12 @@ import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.jca.CasualManagedConnection
 import se.kodarkatten.casual.jca.CasualManagedConnectionFactory
 import se.kodarkatten.casual.jca.CasualResourceManager
-import se.kodarkatten.casual.jca.NetworkConnection
-import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
-import se.kodarkatten.casual.network.messages.domain.Queue
-import se.kodarkatten.casual.network.messages.queue.*
+import se.kodarkatten.casual.internal.network.NetworkConnection
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
+import se.kodarkatten.casual.network.protocol.messages.domain.Queue
+import se.kodarkatten.casual.network.protocol.messages.queue.*
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -40,12 +40,12 @@ class CasualQueueCallerTest extends Specification
     @Shared CasualEnqueueRequestMessage expectedEnqueueRequest
     @Shared CasualDequeueRequestMessage expectedDequeueRequest
     @Shared CasualDomainDiscoveryRequestMessage expectedDomainDiscoveryRequest
-    @Shared CasualNWMessage<CasualEnqueueReplyMessage> enqueueReply
-    @Shared CasualNWMessage<CasualDequeueReplyMessage> dequeueReply
-    @Shared CasualNWMessage<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyFound
-    @Shared CasualNWMessage<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyNotFound
-    @Shared CasualNWMessage<CasualEnqueueRequestMessage> actualEnqueueRequest
-    @Shared CasualNWMessage<CasualDomainDiscoveryRequestMessage> actualDomainDiscoveryRequest
+    @Shared CasualNWMessageImpl<CasualEnqueueReplyMessage> enqueueReply
+    @Shared CasualNWMessageImpl<CasualDequeueReplyMessage> dequeueReply
+    @Shared CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyFound
+    @Shared CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyNotFound
+    @Shared CasualNWMessageImpl<CasualEnqueueRequestMessage> actualEnqueueRequest
+    @Shared CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> actualDomainDiscoveryRequest
     @Shared def bigBaddaBoom = 'big badda boom'
     @Shared int resourceId = 42
 
@@ -123,25 +123,25 @@ class CasualQueueCallerTest extends Specification
         return l
     }
 
-    CasualNWMessage<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Queue> queues)
+    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Queue> queues)
     {
-        CasualNWMessage.of(executionId,
+        CasualNWMessageImpl.of(executionId,
                            CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
                                                             .setQueues(queues))
     }
 
-    CasualNWMessage<CasualEnqueueReplyMessage> createEnqueueReplyMessage()
+    CasualNWMessageImpl<CasualEnqueueReplyMessage> createEnqueueReplyMessage()
     {
-        CasualNWMessage.of( executionId,
+        CasualNWMessageImpl.of( executionId,
                 CasualEnqueueReplyMessage.createBuilder()
                                          .withExecution(executionId)
                                          .withId(enqueueReplyId)
                                          .build())
     }
 
-    CasualNWMessage<CasualDequeueReplyMessage> createDequeueReplyMessage()
+    CasualNWMessageImpl<CasualDequeueReplyMessage> createDequeueReplyMessage()
     {
-        CasualNWMessage.of(executionId,
+        CasualNWMessageImpl.of(executionId,
                 CasualDequeueReplyMessage.createBuilder()
                                          .withExecution(executionId)
                                          .withMessages(Arrays.asList(DequeueMessage.of(QueueMessage.of(message))))
@@ -157,7 +157,7 @@ class CasualQueueCallerTest extends Specification
         noExceptionThrown()
         msgId == enqueueReplyId
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualEnqueueRequestMessage> input ->
+            CasualNWMessageImpl<CasualEnqueueRequestMessage> input ->
                 actualEnqueueRequest = input
                 return new CompletableFuture<>(enqueueReply)
         }
@@ -173,7 +173,7 @@ class CasualQueueCallerTest extends Specification
         def e = thrown(RuntimeException)
         e.message == bigBaddaBoom
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualEnqueueRequestMessage> input ->
+            CasualNWMessageImpl<CasualEnqueueRequestMessage> input ->
                 throw new RuntimeException(bigBaddaBoom)
         }
     }
@@ -187,7 +187,7 @@ class CasualQueueCallerTest extends Specification
         def e = thrown(RuntimeException)
         e.message == bigBaddaBoom
         1 * networkConnection.request(_) >> {
-            CasualNWMessage<CasualDequeueRequestMessage> input ->
+            CasualNWMessageImpl<CasualDequeueRequestMessage> input ->
                 throw new RuntimeException(bigBaddaBoom)
         }
     }
@@ -199,7 +199,7 @@ class CasualQueueCallerTest extends Specification
         then:
         r == true
         1 * networkConnection.request(_) >> {
-            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
+            CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
                 return new CompletableFuture<>(domainDiscoveryReplyFound)
         }
@@ -213,7 +213,7 @@ class CasualQueueCallerTest extends Specification
         then:
         r == false
         1 * networkConnection.request(_) >> {
-            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
+            CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
                 return new CompletableFuture<>(domainDiscoveryReplyNotFound)
         }

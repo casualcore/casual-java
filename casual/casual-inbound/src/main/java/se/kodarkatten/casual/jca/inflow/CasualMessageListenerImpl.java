@@ -1,7 +1,11 @@
 package se.kodarkatten.casual.jca.inflow;
 
 import se.kodarkatten.casual.api.flags.XAFlags;
+
 import se.kodarkatten.casual.api.service.ServiceInfo;
+
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
+
 import se.kodarkatten.casual.api.xa.XAReturnCode;
 import se.kodarkatten.casual.api.xa.XID;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
@@ -9,21 +13,25 @@ import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 import se.kodarkatten.casual.jca.inflow.work.CasualServiceCallWork;
-import se.kodarkatten.casual.network.io.CasualNetworkWriter;
-import se.kodarkatten.casual.network.io.LockableSocketChannel;
-import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectReplyMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
-import se.kodarkatten.casual.network.messages.domain.Service;
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitReplyMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitRequestMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareReplyMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackReplyMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
+
+import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel;
+
+import se.kodarkatten.casual.network.protocol.io.CasualNetworkWriter;
+
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
+
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.Service;
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
@@ -62,7 +70,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
                 .withExecution( message.getMessage().getExecution() )
                 .withProtocolVersion(CASUAL_PROTOCOL_VERSION)
                 .build();
-        CasualNWMessage<CasualDomainConnectReplyMessage> replyMessage = CasualNWMessage.of( message.getCorrelationId(), reply );
+        CasualNWMessage<CasualDomainConnectReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
 
         CasualNetworkWriter.write( channel, replyMessage );
     }
@@ -92,7 +100,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         }
         reply.setServices( services );
 
-        CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMessage = CasualNWMessage.of( message.getCorrelationId(), reply );
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
 
         CasualNetworkWriter.write( channel, replyMessage );
     }
@@ -170,7 +178,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
                             message.getMessage().getResourceId(),
                             XAReturnCode.unmarshal(status)
                     );
-            CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> replyMessage = CasualNWMessage.of(message.getCorrelationId(), reply);
+            CasualNWMessageImpl<CasualTransactionResourcePrepareReplyMessage> replyMessage = CasualNWMessageImpl.of(message.getCorrelationId(), reply);
             CasualNetworkWriter.write(channel, replyMessage);
         }
     }
@@ -202,7 +210,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
                             message.getMessage().getResourceId(),
                             status == -1 ? XAReturnCode.XA_OK : XAReturnCode.unmarshal( status )
                     );
-            CasualNWMessage<CasualTransactionResourceCommitReplyMessage> replyMessage = CasualNWMessage.of( message.getCorrelationId(), reply );
+            CasualNWMessageImpl<CasualTransactionResourceCommitReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
             CasualNetworkWriter.write( channel, replyMessage );
         }
     }
@@ -233,7 +241,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
                             message.getMessage().getResourceId(),
                             status == -1 ? XAReturnCode.XA_OK : XAReturnCode.unmarshal( status )
                     );
-            CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyMessage = CasualNWMessage.of( message.getCorrelationId(), reply );
+            CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
             CasualNetworkWriter.write( channel, replyMessage );
         }
     }

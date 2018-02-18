@@ -29,7 +29,7 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     private ConnectionManager connectionManager;
 
     /**
-     * Connection Factory instance is created from the {@link javax.resource.spi.ManagedConnectionFactory}
+     * NetworkConnection Factory instance is created from the {@link javax.resource.spi.ManagedConnectionFactory}
      * as part of the Application Server lifecycle.
      * <br/>
      * When created a reference to the resources created by the application server

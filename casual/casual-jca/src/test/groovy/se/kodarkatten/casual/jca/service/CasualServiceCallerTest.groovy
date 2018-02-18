@@ -6,15 +6,20 @@ import se.kodarkatten.casual.api.buffer.type.JsonBuffer
 import se.kodarkatten.casual.api.flags.*
 import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.jca.*
-import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage
-import se.kodarkatten.casual.network.messages.domain.Service
+
+import se.kodarkatten.casual.internal.network.NetworkConnection
 import se.kodarkatten.casual.network.messages.domain.TransactionType
-import se.kodarkatten.casual.network.messages.exceptions.CasualTransportException
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
-import se.kodarkatten.casual.network.messages.service.ServiceBuffer
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
+
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
+import se.kodarkatten.casual.network.protocol.messages.domain.Service
+
+import se.kodarkatten.casual.network.protocol.messages.exceptions.CasualProtocolException
+
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
+import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -35,12 +40,12 @@ class CasualServiceCallerTest extends Specification
     @Shared String serviceName
     @Shared JsonBuffer message
     @Shared CasualServiceCallRequestMessage expectedServiceRequest
-    @Shared CasualNWMessage<CasualServiceCallReplyMessage> serviceReply
-    @Shared CasualNWMessage<CasualServiceCallRequestMessage> actualServiceRequest
-    @Shared CasualNWMessage<CasualDomainDiscoveryRequestMessage> actualDomainDiscoveryRequest
+    @Shared CasualNWMessageImpl<CasualServiceCallReplyMessage> serviceReply
+    @Shared CasualNWMessageImpl<CasualServiceCallRequestMessage> actualServiceRequest
+    @Shared CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> actualDomainDiscoveryRequest
     @Shared CasualDomainDiscoveryRequestMessage expectedDomainDiscoveryRequest
-    @Shared CasualNWMessage<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyFound
-    @Shared CasualNWMessage<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyNotFound
+    @Shared CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyFound
+    @Shared CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyNotFound
     @Shared mcf
     @Shared ra
     @Shared workManager
@@ -105,16 +110,16 @@ class CasualServiceCallerTest extends Specification
         return l
     }
 
-    CasualNWMessage<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Service> services)
+    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Service> services)
     {
-        CasualNWMessage.of(executionId,
+        CasualNWMessageImpl.of(executionId,
                 CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
                                                  .setServices(services))
     }
 
-    CasualNWMessage<CasualServiceCallReplyMessage> createServiceCallReplyMessage( ErrorState errorState, TransactionState transactionState, JsonBuffer message )
+    CasualNWMessageImpl<CasualServiceCallReplyMessage> createServiceCallReplyMessage(ErrorState errorState, TransactionState transactionState, JsonBuffer message )
     {
-        CasualNWMessage.of( executionId,
+        CasualNWMessageImpl.of( executionId,
                 CasualServiceCallReplyMessage.createBuilder()
                         .setExecution( executionId )
                         .setError( errorState)
@@ -135,7 +140,7 @@ class CasualServiceCallerTest extends Specification
         result.getServiceReturnState() == ServiceReturnState.TPSUCCESS
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualServiceCallRequestMessage> input ->
+            CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
                 return new CompletableFuture<>(serviceReply)
         }
@@ -152,7 +157,7 @@ class CasualServiceCallerTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualServiceCallRequestMessage> input ->
+            CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
                 return new CompletableFuture<>(serviceReply)
         }
@@ -173,7 +178,7 @@ class CasualServiceCallerTest extends Specification
         result.getServiceReturnState() == ServiceReturnState.TPFAIL
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualServiceCallRequestMessage> input ->
+            CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
                 return new CompletableFuture<>(serviceReply)
         }
@@ -192,7 +197,7 @@ class CasualServiceCallerTest extends Specification
         result.getServiceReturnState() == ServiceReturnState.TPSUCCESS
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualServiceCallRequestMessage> input ->
+            CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
                 return new CompletableFuture<>(serviceReply)
         }
@@ -209,10 +214,10 @@ class CasualServiceCallerTest extends Specification
         result.isCompletedExceptionally()
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualServiceCallRequestMessage> input ->
+            CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
                 CompletableFuture<ServiceReturn<CasualBuffer>> f = new CompletableFuture<>()
-                f.completeExceptionally(new CasualTransportException('oopsie'))
+                f.completeExceptionally(new CasualProtocolException('oopsie'))
                 return f
         }
     }
@@ -225,7 +230,7 @@ class CasualServiceCallerTest extends Specification
         noExceptionThrown()
         r == true
         1 * networkConnection.request(_) >> {
-            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
+            CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
                 return new CompletableFuture<>(domainDiscoveryReplyFound)
         }
@@ -240,7 +245,7 @@ class CasualServiceCallerTest extends Specification
         noExceptionThrown()
         r == false
         1 * networkConnection.request(_) >> {
-            CasualNWMessage<CasualDomainDiscoveryRequestMessage> input ->
+            CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
                 return new CompletableFuture<>(domainDiscoveryReplyNotFound)
         }

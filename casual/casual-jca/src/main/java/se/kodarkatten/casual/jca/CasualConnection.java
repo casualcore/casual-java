@@ -4,7 +4,7 @@ import se.kodarkatten.casual.api.CasualQueueApi;
 import se.kodarkatten.casual.api.CasualServiceApi;
 
 /**
- * Connection handle used in the application to call Casual Services.
+ * NetworkConnection handle used in the application to call Casual Services.
  *
  * @version $Revision: $
  */

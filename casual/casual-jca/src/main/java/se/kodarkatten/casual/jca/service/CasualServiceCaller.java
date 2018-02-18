@@ -7,15 +7,16 @@ import se.kodarkatten.casual.api.flags.AtmiFlags;
 import se.kodarkatten.casual.api.flags.ErrorState;
 import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.flags.ServiceReturnState;
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
-import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
-import se.kodarkatten.casual.network.messages.domain.Service;
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage;
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
-import se.kodarkatten.casual.network.messages.service.ServiceBuffer;
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.Service;
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -71,7 +72,7 @@ public class CasualServiceCaller implements CasualServiceApi
         return serviceExists(UUID.randomUUID(), serviceName);
     }
 
-    private CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> makeServiceCall( UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    private CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
                 .setExecution(UUID.randomUUID())
@@ -79,7 +80,7 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setServiceName(serviceName)
                 .setXid( connection.getCurrentXid() )
                 .setXatmiFlags(flags).build();
-        CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessage.of(corrid, serviceRequestMessage);
+        CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
         return connection.getNetworkConnection().request(serviceRequestNetworkMessage);
     }
 
@@ -91,7 +92,7 @@ public class CasualServiceCaller implements CasualServiceApi
                                                                                             .setDomainName( connection.getDomainName() )
                                                                                             .setServiceNames(Arrays.asList(serviceName))
                                                                                             .build();
-        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessage.of(corrid, requestMsg);
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessageImpl.of(corrid, requestMsg);
         CompletableFuture<CasualNWMessage<CasualDomainDiscoveryReplyMessage>> replyMsgFuture = connection.getNetworkConnection().request(msg);
         try
         {

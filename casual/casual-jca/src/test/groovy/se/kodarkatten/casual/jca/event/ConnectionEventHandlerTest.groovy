@@ -1,6 +1,6 @@
 package se.kodarkatten.casual.jca.event
 
-import se.kodarkatten.casual.network.connection.CasualConnectionException
+import se.kodarkatten.casual.network.protocol.connection.CasualConnectionException
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll

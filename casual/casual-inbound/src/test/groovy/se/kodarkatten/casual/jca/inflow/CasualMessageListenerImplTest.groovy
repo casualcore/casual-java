@@ -4,20 +4,27 @@ import se.kodarkatten.casual.api.buffer.type.JsonBuffer
 import se.kodarkatten.casual.api.flags.Flag
 import se.kodarkatten.casual.api.flags.XAFlags
 import se.kodarkatten.casual.api.services.CasualService
+
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType
+
 import se.kodarkatten.casual.api.xa.XAReturnCode
 import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.jca.CasualResourceAdapterException
 import se.kodarkatten.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.kodarkatten.casual.jca.inflow.work.CasualServiceCallWork
-import se.kodarkatten.casual.network.io.CasualNetworkReader
-import se.kodarkatten.casual.network.io.LockableSocketChannel
-import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.CasualNWMessageType
-import se.kodarkatten.casual.network.messages.domain.*
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
-import se.kodarkatten.casual.network.messages.service.ServiceBuffer
-import se.kodarkatten.casual.network.messages.transaction.*
-import se.kodarkatten.casual.network.utils.LocalEchoSocketChannel
+
+import se.kodarkatten.casual.network.messages.domain.TransactionType
+
+import se.kodarkatten.casual.network.protocol.io.CasualNetworkReader
+import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
+import se.kodarkatten.casual.network.protocol.messages.domain.*
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
+import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer
+import se.kodarkatten.casual.network.protocol.messages.transaction.*
+import se.kodarkatten.casual.network.protocol.utils.LocalEchoSocketChannel
+
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -71,7 +78,7 @@ class CasualMessageListenerImplTest extends Specification
     {
         given:
         long protocolVersion = 1000L
-        CasualNWMessage<CasualDomainConnectRequestMessage> message = CasualNWMessage.of( correlationId,
+        CasualNWMessageImpl<CasualDomainConnectRequestMessage> message = CasualNWMessageImpl.of( correlationId,
                 CasualDomainConnectRequestMessage.createBuilder()
                         .withDomainId( domainId )
                         .withDomainName(domainName )
@@ -101,7 +108,7 @@ class CasualMessageListenerImplTest extends Specification
 
         List<String> serviceNames = Arrays.asList( serviceName )
         List<Service> expectedServices = Arrays.asList( Service.of( serviceName, "mycategory", TransactionType.AUTOMATIC ) )
-        CasualNWMessage<CasualDomainDiscoveryRequestMessage> message = CasualNWMessage.of( correlationId,
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> message = CasualNWMessageImpl.of( correlationId,
                 CasualDomainDiscoveryRequestMessage.createBuilder()
                         .setDomainId( domainId )
                         .setDomainName(domainName )
@@ -133,7 +140,7 @@ class CasualMessageListenerImplTest extends Specification
         WorkListener actualWorkListener
         long timeout = 12L
         String serviceName = "echo"
-        CasualNWMessage<CasualServiceCallRequestMessage> message = CasualNWMessage.of( correlationId,
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of( correlationId,
                 CasualServiceCallRequestMessage.createBuilder()
                         .setXid( xid )
                         .setExecution(execution)
@@ -175,7 +182,7 @@ class CasualMessageListenerImplTest extends Specification
         CasualServiceCallWork actualWork
 
         String serviceName = "echo"
-        CasualNWMessage<CasualServiceCallRequestMessage> message = CasualNWMessage.of( correlationId,
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of( correlationId,
                 CasualServiceCallRequestMessage.createBuilder()
                         .setXid( xid )
                         .setExecution(execution)
@@ -204,7 +211,7 @@ class CasualMessageListenerImplTest extends Specification
     {
         given:
         String serviceName = "echo"
-        CasualNWMessage<CasualServiceCallRequestMessage> message = CasualNWMessage.of( correlationId,
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of( correlationId,
                 CasualServiceCallRequestMessage.createBuilder()
                         .setXid( xid )
                         .setExecution(execution)
@@ -230,7 +237,7 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessage.of(correlationId,
+        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessageImpl.of(correlationId,
                 CasualTransactionResourcePrepareRequestMessage.of(
                         execution,
                         xid,
@@ -260,7 +267,7 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessage.of(correlationId,
+        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessageImpl.of(correlationId,
                 CasualTransactionResourcePrepareRequestMessage.of(
                         execution,
                         xid,
@@ -290,7 +297,7 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessage.of(correlationId,
+        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessageImpl.of(correlationId,
                 CasualTransactionResourcePrepareRequestMessage.of(
                         execution,
                         xid,
@@ -320,7 +327,7 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessage.of(correlationId,
+        CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessageImpl.of(correlationId,
                 CasualTransactionResourceCommitRequestMessage.of(
                         execution,
                         xid,
@@ -348,7 +355,7 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of( XAFlags.TMONEPHASE )
-        CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessage.of(correlationId,
+        CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessageImpl.of(correlationId,
                 CasualTransactionResourceCommitRequestMessage.of(
                         execution,
                         xid,
@@ -376,7 +383,7 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessage.of(correlationId,
+        CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessageImpl.of(correlationId,
                 CasualTransactionResourceCommitRequestMessage.of(
                         execution,
                         xid,
@@ -406,7 +413,7 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message = CasualNWMessage.of(correlationId,
+        CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> message = CasualNWMessageImpl.of(correlationId,
                 CasualTransactionResourceRollbackRequestMessage.of(
                         execution,
                         xid,
@@ -434,7 +441,7 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message = CasualNWMessage.of(correlationId,
+        CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> message = CasualNWMessageImpl.of(correlationId,
                 CasualTransactionResourceRollbackRequestMessage.of(
                         execution,
                         xid,

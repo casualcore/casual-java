@@ -1,7 +1,7 @@
 package se.kodarkatten.casual.jca.inbound.handler
 
 import se.kodarkatten.casual.api.buffer.CasualBuffer
-import se.kodarkatten.casual.network.messages.service.ServiceBuffer
+import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll

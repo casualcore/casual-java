@@ -7,18 +7,21 @@ import se.kodarkatten.casual.api.external.json.JsonProvider
 import se.kodarkatten.casual.api.external.json.JsonProviderFactory
 import se.kodarkatten.casual.api.flags.ErrorState
 import se.kodarkatten.casual.api.flags.Flag
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage
 import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler
 import se.kodarkatten.casual.jca.inflow.handler.test.TestHandler
-import se.kodarkatten.casual.network.io.CasualNetworkReader
-import se.kodarkatten.casual.network.io.LockableSocketChannel
-import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallReplyMessage
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage
-import se.kodarkatten.casual.network.messages.service.ServiceBuffer
-import se.kodarkatten.casual.network.utils.LocalEchoSocketChannel
+
+import se.kodarkatten.casual.network.protocol.io.CasualNetworkReader
+import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
+import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer
+import se.kodarkatten.casual.network.protocol.utils.LocalEchoSocketChannel
+
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -109,7 +112,7 @@ class CasualServiceCallWorkTest extends Specification
 
         when:
         instance.run()
-        CasualNWMessage<CasualServiceCallReplyMessage> reply = CasualNetworkReader.read( channel )
+        CasualNWMessageImpl<CasualServiceCallReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
         reply.getMessage().getError() == ErrorState.OK
@@ -134,7 +137,7 @@ class CasualServiceCallWorkTest extends Specification
 
         when:
         instance.run()
-        CasualNWMessage<CasualServiceCallReplyMessage> reply = CasualNetworkReader.read( channel )
+        CasualNWMessageImpl<CasualServiceCallReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
         reply.getMessage().getError() == ErrorState.TPESVCERR
@@ -158,7 +161,7 @@ class CasualServiceCallWorkTest extends Specification
         when:
         instance.release()
         instance.run()
-        CasualNWMessage<CasualServiceCallReplyMessage> reply = CasualNetworkReader.read( channel )
+        CasualNWMessageImpl<CasualServiceCallReplyMessage> reply = CasualNetworkReader.read( channel )
 
         then:
         reply.getMessage().getError() == ErrorState.OK

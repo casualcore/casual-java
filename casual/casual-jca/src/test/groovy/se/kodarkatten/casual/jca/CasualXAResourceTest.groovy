@@ -5,8 +5,9 @@ import se.kodarkatten.casual.api.flags.Flag
 import se.kodarkatten.casual.api.flags.XAFlags
 import se.kodarkatten.casual.api.xa.XAReturnCode
 import se.kodarkatten.casual.api.xa.XID
-import se.kodarkatten.casual.network.messages.CasualNWMessage
-import se.kodarkatten.casual.network.messages.transaction.*
+import se.kodarkatten.casual.internal.network.NetworkConnection
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
+import se.kodarkatten.casual.network.protocol.messages.transaction.*
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -23,15 +24,15 @@ class CasualXAResourceTest extends Specification
     @Shared CasualManagedConnection managedConnection
     @Shared NetworkConnection networkConnection
     @Shared Xid xid1, xid2
-    @Shared CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> expectedPrepareRequestMessage
-    @Shared CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> actualPrepareRequestMessage
-    @Shared CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> prepareReplyMessage
-    @Shared CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> expectedRollbackRequestMessage
-    @Shared CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> actualRollbackRequestMessage
-    @Shared CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> rollbackReplyMessage
-    @Shared CasualNWMessage<CasualTransactionResourceCommitRequestMessage> expectedCommitRequestMessage
-    @Shared CasualNWMessage<CasualTransactionResourceCommitRequestMessage> actualCommitRequestMessage
-    @Shared CasualNWMessage<CasualTransactionResourceCommitReplyMessage> commitReplyMessage
+    @Shared CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> expectedPrepareRequestMessage
+    @Shared CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> actualPrepareRequestMessage
+    @Shared CasualNWMessageImpl<CasualTransactionResourcePrepareReplyMessage> prepareReplyMessage
+    @Shared CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> expectedRollbackRequestMessage
+    @Shared CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> actualRollbackRequestMessage
+    @Shared CasualNWMessageImpl<CasualTransactionResourceRollbackReplyMessage> rollbackReplyMessage
+    @Shared CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> expectedCommitRequestMessage
+    @Shared CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> actualCommitRequestMessage
+    @Shared CasualNWMessageImpl<CasualTransactionResourceCommitReplyMessage> commitReplyMessage
     @Shared CasualResourceManager transactionResources
     @Shared int resourceId = 42
 
@@ -68,27 +69,27 @@ class CasualXAResourceTest extends Specification
         expectedCommitRequestMessage = createCommitRequestMessage( xid1, Flag.of( XAFlags.TMNOFLAGS ) )
     }
 
-    CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> createPrepareRequestMessage( Xid xid, Flag<XAFlags> flags )
+    CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> createPrepareRequestMessage(Xid xid, Flag<XAFlags> flags )
     {
-        return CasualNWMessage.of(null,
+        return CasualNWMessageImpl.of(null,
                 CasualTransactionResourcePrepareRequestMessage.of(null,
                         xid,
                         mcf.getResourceId(),
                         flags) )
     }
 
-    CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> createRollbackRequestMessage( Xid xid, Flag<XAFlags> flags )
+    CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> createRollbackRequestMessage(Xid xid, Flag<XAFlags> flags )
     {
-        return CasualNWMessage.of(null,
+        return CasualNWMessageImpl.of(null,
                 CasualTransactionResourceRollbackRequestMessage.of(null,
                         xid,
                         mcf.getResourceId(),
                         flags) )
     }
 
-    CasualNWMessage<CasualTransactionResourceCommitRequestMessage> createCommitRequestMessage( Xid xid, Flag<XAFlags> flags )
+    CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> createCommitRequestMessage(Xid xid, Flag<XAFlags> flags )
     {
-        return CasualNWMessage.of(null,
+        return CasualNWMessageImpl.of(null,
                 CasualTransactionResourceCommitRequestMessage.of(null,
                         xid,
                         mcf.getResourceId(),
@@ -102,9 +103,9 @@ class CasualXAResourceTest extends Specification
         commitReplyMessage = createCommitReplyMessage( xid1, XAReturnCode.XA_OK )
     }
 
-    CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> createPrepareReplyMessage( Xid xid, XAReturnCode returnCode )
+    CasualNWMessageImpl<CasualTransactionResourcePrepareReplyMessage> createPrepareReplyMessage(Xid xid, XAReturnCode returnCode )
     {
-        CasualNWMessage.of( null,
+        CasualNWMessageImpl.of( null,
                 CasualTransactionResourcePrepareReplyMessage.of( null,
                         xid,
                         mcf.getResourceId(),
@@ -113,9 +114,9 @@ class CasualXAResourceTest extends Specification
         )
     }
 
-    CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> createRollbackReplyMessage( Xid xid, XAReturnCode returnCode )
+    CasualNWMessageImpl<CasualTransactionResourceRollbackReplyMessage> createRollbackReplyMessage(Xid xid, XAReturnCode returnCode )
     {
-        CasualNWMessage.of( null,
+        CasualNWMessageImpl.of( null,
                 CasualTransactionResourceRollbackReplyMessage.of( null,
                         xid,
                         mcf.getResourceId(),
@@ -124,9 +125,9 @@ class CasualXAResourceTest extends Specification
         )
     }
 
-    CasualNWMessage<CasualTransactionResourceCommitReplyMessage> createCommitReplyMessage( Xid xid, XAReturnCode returnCode )
+    CasualNWMessageImpl<CasualTransactionResourceCommitReplyMessage> createCommitReplyMessage(Xid xid, XAReturnCode returnCode )
     {
-        CasualNWMessage.of( null,
+        CasualNWMessageImpl.of( null,
                 CasualTransactionResourceCommitReplyMessage.of( null,
                         xid,
                         mcf.getResourceId(),
@@ -239,7 +240,7 @@ class CasualXAResourceTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualTransactionResourceCommitRequestMessage> input ->
+            CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> input ->
                 actualCommitRequestMessage = input
                 return new CompletableFuture<>(commitReplyMessage)
         }
@@ -256,7 +257,7 @@ class CasualXAResourceTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualTransactionResourceCommitRequestMessage> input ->
+            CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> input ->
                 actualCommitRequestMessage = input
                 return new CompletableFuture<>(commitReplyMessage)
         }
@@ -276,7 +277,7 @@ class CasualXAResourceTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualTransactionResourceCommitRequestMessage> input ->
+            CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> input ->
                 actualCommitRequestMessage = input
                 return new CompletableFuture<>(commitReplyMessage)
         }
@@ -295,7 +296,7 @@ class CasualXAResourceTest extends Specification
         then:
         thrown XAException
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualTransactionResourceCommitRequestMessage> input ->
+            CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> input ->
                 actualCommitRequestMessage = input
                 return new CompletableFuture<>(commitReplyMessage)
         }
@@ -328,7 +329,7 @@ class CasualXAResourceTest extends Specification
         reply == XAReturnCode.XA_OK.getId()
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> input ->
+            CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> input ->
                 actualPrepareRequestMessage = input
                 return new CompletableFuture<>(prepareReplyMessage)
         }
@@ -348,7 +349,7 @@ class CasualXAResourceTest extends Specification
         reply == XAReturnCode.XA_RDONLY.getId()
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> input ->
+            CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> input ->
                 actualPrepareRequestMessage = input
                 return new CompletableFuture<>(prepareReplyMessage)
         }
@@ -368,7 +369,7 @@ class CasualXAResourceTest extends Specification
         thrown XAException
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> input ->
+            CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> input ->
                 actualPrepareRequestMessage = input
                 return new CompletableFuture<>(prepareReplyMessage)
         }
@@ -393,7 +394,7 @@ class CasualXAResourceTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> input ->
+            CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> input ->
                 actualRollbackRequestMessage = input
                 return new CompletableFuture<>(rollbackReplyMessage)
         }
@@ -412,7 +413,7 @@ class CasualXAResourceTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> input ->
+            CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> input ->
                 actualRollbackRequestMessage = input
                 return new CompletableFuture<>(rollbackReplyMessage)
         }
@@ -431,7 +432,7 @@ class CasualXAResourceTest extends Specification
         then:
         thrown XAException
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> input ->
+            CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> input ->
                 actualRollbackRequestMessage = input
                 return new CompletableFuture<>(rollbackReplyMessage)
         }

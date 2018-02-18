@@ -2,7 +2,7 @@ package se.kodarkatten.casual.jca.inflow.work
 
 import se.kodarkatten.casual.jca.CasualResourceAdapterException
 import se.kodarkatten.casual.jca.inflow.CasualActivationSpec
-import se.kodarkatten.casual.network.io.LockableSocketChannel
+import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel
 import spock.lang.Shared
 import spock.lang.Specification
 

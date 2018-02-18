@@ -1,21 +1,21 @@
 package se.kodarkatten.casual.jca.queue;
 
 import se.kodarkatten.casual.api.CasualQueueApi;
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.api.queue.MessageSelector;
 import se.kodarkatten.casual.api.queue.QueueInfo;
 import se.kodarkatten.casual.api.queue.QueueMessage;
 import se.kodarkatten.casual.jca.CasualManagedConnection;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
-import se.kodarkatten.casual.jca.service.Transformer;
-import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryReplyMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
-import se.kodarkatten.casual.network.messages.domain.Queue;
-import se.kodarkatten.casual.network.messages.queue.CasualDequeueReplyMessage;
-import se.kodarkatten.casual.network.messages.queue.CasualDequeueRequestMessage;
-import se.kodarkatten.casual.network.messages.queue.CasualEnqueueReplyMessage;
-import se.kodarkatten.casual.network.messages.queue.CasualEnqueueRequestMessage;
-import se.kodarkatten.casual.network.messages.queue.EnqueueMessage;
+import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.Queue;
+import se.kodarkatten.casual.network.protocol.messages.queue.CasualDequeueReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.queue.CasualDequeueRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.queue.CasualEnqueueReplyMessage;
+import se.kodarkatten.casual.network.protocol.messages.queue.CasualEnqueueRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.queue.EnqueueMessage;
 
 import java.util.Arrays;
 import java.util.List;
@@ -65,7 +65,7 @@ public class CasualQueueCaller implements CasualQueueApi
                                                                                 .withQueueName(qinfo.getCompositeName())
                                                                                 .withMessage(EnqueueMessage.of(msg))
                                                                                 .build();
-        CasualNWMessage<CasualEnqueueRequestMessage> networkRequestMessage = CasualNWMessage.of(corrid, requestMessage);
+        CasualNWMessage<CasualEnqueueRequestMessage> networkRequestMessage = CasualNWMessageImpl.of(corrid, requestMessage);
         CompletableFuture<CasualNWMessage<CasualEnqueueReplyMessage>> networkReplyMessageFuture = connection.getNetworkConnection().request(networkRequestMessage);
         try
         {
@@ -89,7 +89,7 @@ public class CasualQueueCaller implements CasualQueueApi
                                                                                 .withSelectorUUID(selector.getSelectorId())
                                                                                 .withBlock(false)
                                                                                 .build();
-        CasualNWMessage<CasualDequeueRequestMessage> networkRequestMessage = CasualNWMessage.of(corrid, requestMessage);
+        CasualNWMessage<CasualDequeueRequestMessage> networkRequestMessage = CasualNWMessageImpl.of(corrid, requestMessage);
         CompletableFuture<CasualNWMessage<CasualDequeueReplyMessage>> networkReplyMessageFuture = connection.getNetworkConnection().request(networkRequestMessage);
         try
         {
@@ -111,7 +111,7 @@ public class CasualQueueCaller implements CasualQueueApi
                                                                                             .setDomainName( connection.getDomainName() )
                                                                                             .setQueueNames(Arrays.asList(queueName))
                                                                                             .build();
-        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessage.of(corrid, requestMsg);
+        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessageImpl.of(corrid, requestMsg);
         CompletableFuture<CasualNWMessage<CasualDomainDiscoveryReplyMessage>> replyMsgFuture = connection.getNetworkConnection().request(msg);
         try
         {

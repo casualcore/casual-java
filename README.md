@@ -14,6 +14,10 @@ to the javax:javaee-api
 
 ## Casual Network
 
+This is the network implementation
+
+## Casual network protocol
+
 This is the network protocol implementation
 
 ## Casual JCA

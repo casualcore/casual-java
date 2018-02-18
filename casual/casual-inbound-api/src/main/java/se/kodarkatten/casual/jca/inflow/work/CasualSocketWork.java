@@ -2,15 +2,16 @@ package se.kodarkatten.casual.jca.inflow.work;
 
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
 import se.kodarkatten.casual.jca.inflow.CasualMessageListener;
-import se.kodarkatten.casual.network.io.CasualNetworkReader;
-import se.kodarkatten.casual.network.io.LockableSocketChannel;
-import se.kodarkatten.casual.network.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainConnectRequestMessage;
-import se.kodarkatten.casual.network.messages.domain.CasualDomainDiscoveryRequestMessage;
-import se.kodarkatten.casual.network.messages.service.CasualServiceCallRequestMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceCommitRequestMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
-import se.kodarkatten.casual.network.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
+
+import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel;
+import se.kodarkatten.casual.network.protocol.io.CasualNetworkReader;
+import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
+import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
 import javax.resource.spi.UnavailableException;
 import javax.resource.spi.endpoint.MessageEndpoint;
