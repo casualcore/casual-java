@@ -78,7 +78,7 @@ class CasualServiceCallWorkTest extends Specification
 
         correlationId = UUID.randomUUID()
 
-        instance = new CasualServiceCallWork( correlationId, message, channel )
+        instance = new CasualServiceCallWork( correlationId, message )
         instance.setHandler( handler )
     }
 
@@ -94,10 +94,10 @@ class CasualServiceCallWorkTest extends Specification
         instance.getMessage() == message
     }
 
-    def "Get socket channel."()
+    def "Get Response."()
     {
         expect:
-        instance.getSocketChannel() == channel
+        instance.getResponse() == null
     }
 
     def "Call Service with buffer and return result."()
@@ -112,7 +112,7 @@ class CasualServiceCallWorkTest extends Specification
 
         when:
         instance.run()
-        CasualNWMessageImpl<CasualServiceCallReplyMessage> reply = CasualNetworkReader.read( channel )
+        CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
 
         then:
         reply.getMessage().getError() == ErrorState.OK
@@ -137,7 +137,7 @@ class CasualServiceCallWorkTest extends Specification
 
         when:
         instance.run()
-        CasualNWMessageImpl<CasualServiceCallReplyMessage> reply = CasualNetworkReader.read( channel )
+        CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
 
         then:
         reply.getMessage().getError() == ErrorState.TPESVCERR
@@ -161,7 +161,7 @@ class CasualServiceCallWorkTest extends Specification
         when:
         instance.release()
         instance.run()
-        CasualNWMessageImpl<CasualServiceCallReplyMessage> reply = CasualNetworkReader.read( channel )
+        CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
 
         then:
         reply.getMessage().getError() == ErrorState.OK
@@ -183,11 +183,11 @@ class CasualServiceCallWorkTest extends Specification
     def "Call Service which does not exist or is not available, returns result with TPNOENT status."()
     {
         given:
-        instance = new CasualServiceCallWork( correlationId, message, channel )
+        instance = new CasualServiceCallWork( correlationId, message )
 
         when:
         instance.run()
-        CasualNWMessage<CasualServiceCallReplyMessage> reply = CasualNetworkReader.read( channel )
+        CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
 
         then:
         reply.getMessage().getError() == ErrorState.TPENOENT

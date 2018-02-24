@@ -166,13 +166,13 @@ class CasualMessageListenerImplTest extends Specification
 
         actualWork != null
         actualWork.getCorrelationId() == correlationId
-        actualWork.getSocketChannel() == channel
         actualStartTimeout != null
         actualStartTimeout == WorkManager.INDEFINITE
         actualExecutionContext != null
         actualExecutionContext.getXid() == xid
         actualExecutionContext.getTransactionTimeout() == timeout
-        actualWorkListener == null
+        actualWorkListener != null
+        actualWorkListener.getSocketChannel() == channel
     }
 
     def "ServiceCallRequest with null xid calls service work without transaction context."()
@@ -204,7 +204,6 @@ class CasualMessageListenerImplTest extends Specification
 
         actualWork != null
         actualWork.getCorrelationId() == correlationId
-        actualWork.getSocketChannel() == channel
     }
 
     def "ServiceCallRequest startWork throws exception, wrapped and thrown."()

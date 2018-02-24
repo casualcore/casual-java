@@ -1,11 +1,8 @@
 package se.kodarkatten.casual.jca.inflow;
 
 import se.kodarkatten.casual.api.flags.XAFlags;
-
-import se.kodarkatten.casual.api.service.ServiceInfo;
-
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
-
+import se.kodarkatten.casual.api.service.ServiceInfo;
 import se.kodarkatten.casual.api.xa.XAReturnCode;
 import se.kodarkatten.casual.api.xa.XID;
 import se.kodarkatten.casual.jca.CasualResourceAdapterException;
@@ -13,13 +10,9 @@ import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 import se.kodarkatten.casual.jca.inflow.work.CasualServiceCallWork;
-
-import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel;
-
 import se.kodarkatten.casual.network.protocol.io.CasualNetworkWriter;
-
+import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel;
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
-
 import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
@@ -110,14 +103,14 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     {
         log.finest( "serviceCallRequest()." );
 
-        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage(), channel );
+        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() );
 
         Xid xid = message.getMessage().getXid();
 
         try
         {
             long startup = isServiceCallTransactional( xid ) ?
-                    workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), null ) :
+                    workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
                     workManager.startWork( work );
             log.finest( ()->"Service call startup: "+ startup + "ms.");
         }
