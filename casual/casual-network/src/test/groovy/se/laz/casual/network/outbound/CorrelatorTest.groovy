@@ -1,5 +1,6 @@
-package se.laz.casual.network
+package se.laz.casual.network.outbound
 
+import se.laz.casual.network.outbound.CorrelatorImpl
 import spock.lang.Shared
 import spock.lang.Specification
 

@@ -1,4 +1,4 @@
-package se.laz.casual.network
+package se.laz.casual.network.outbound
 
 import se.kodarkatten.casual.api.buffer.CasualBuffer
 import se.kodarkatten.casual.api.buffer.type.JsonBuffer
@@ -9,6 +9,8 @@ import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
 import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer
+import se.laz.casual.network.outbound.CasualMessageHandler
+import se.laz.casual.network.outbound.CorrelatorImpl
 import spock.lang.Shared
 import spock.lang.Specification
 

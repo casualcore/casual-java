@@ -65,8 +65,6 @@ public final class CasualServiceCallWork implements Work
     @Override
     public void run()
     {
-        log.info( "run()." );
-
         CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
                 .setXid( message.getXid() )
                 .setExecution( message.getExecution() );
@@ -106,6 +104,7 @@ public final class CasualServiceCallWork implements Work
                     .setServiceBuffer( ServiceBuffer.of( serviceResult ) )
                     .build();
             CasualNWMessage<CasualServiceCallReplyMessage> replyMessage = CasualNWMessageImpl.of( correlationId,reply );
+
             response = replyMessage;
         }
     }

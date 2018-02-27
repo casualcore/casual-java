@@ -30,6 +30,7 @@ public class CasualNWMessageImpl<T extends CasualNetworkTransmittable> implement
         return new CasualNWMessageImpl<>(correlationId, message);
     }
 
+    @Override
     public CasualNWMessageType getType()
     {
         return message.getType();
@@ -41,6 +42,7 @@ public class CasualNWMessageImpl<T extends CasualNetworkTransmittable> implement
      * Then the actual message is in the rest of the byte[] ( one or more depending on if the whole message fits into one byte[] or not)
      * @return
      */
+    @Override
     public List<byte[]> toNetworkBytes()
     {
         final List<byte[]> payload =  message.toNetworkBytes();
@@ -55,12 +57,13 @@ public class CasualNWMessageImpl<T extends CasualNetworkTransmittable> implement
         completeMessage.addAll(payload);
         return completeMessage;
     }
-
+    @Override
     public UUID getCorrelationId()
     {
         return correlationId;
     }
 
+    @Override
     public T getMessage()
     {
         return message;

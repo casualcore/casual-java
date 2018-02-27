@@ -1,4 +1,4 @@
-package se.laz.casual.network;
+package se.laz.casual.network.outbound;
 
 import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;

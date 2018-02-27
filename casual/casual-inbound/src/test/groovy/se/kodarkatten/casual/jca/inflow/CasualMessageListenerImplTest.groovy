@@ -1,30 +1,26 @@
 package se.kodarkatten.casual.jca.inflow
 
+import io.netty.channel.embedded.EmbeddedChannel
 import se.kodarkatten.casual.api.buffer.type.JsonBuffer
 import se.kodarkatten.casual.api.flags.Flag
 import se.kodarkatten.casual.api.flags.XAFlags
-import se.kodarkatten.casual.api.services.CasualService
-
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType
-
+import se.kodarkatten.casual.api.services.CasualService
 import se.kodarkatten.casual.api.xa.XAReturnCode
 import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.jca.CasualResourceAdapterException
 import se.kodarkatten.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.kodarkatten.casual.jca.inflow.work.CasualServiceCallWork
-
 import se.kodarkatten.casual.network.messages.domain.TransactionType
-
-import se.kodarkatten.casual.network.protocol.io.CasualNetworkReader
-import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
 import se.kodarkatten.casual.network.protocol.messages.domain.*
+import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
 import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer
 import se.kodarkatten.casual.network.protocol.messages.transaction.*
-import se.kodarkatten.casual.network.protocol.utils.LocalEchoSocketChannel
-
+import se.laz.casual.network.CasualNWMessageDecoder
+import se.laz.casual.network.CasualNWMessageEncoder
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -36,15 +32,13 @@ import javax.resource.spi.work.WorkManager
 import javax.transaction.xa.XAException
 import javax.transaction.xa.Xid
 import java.lang.annotation.Annotation
-import java.nio.channels.SocketChannel
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ThreadLocalRandom
 
 class CasualMessageListenerImplTest extends Specification
 {
     @Shared CasualMessageListener instance
-    @Shared LockableSocketChannel channel
-    @Shared SocketChannel socketChannel
+    @Shared EmbeddedChannel channel
     @Shared WorkManager workManager
     @Shared XATerminator xaTerminator
 
@@ -54,13 +48,13 @@ class CasualMessageListenerImplTest extends Specification
     @Shared UUID execution = UUID.randomUUID()
     @Shared Xid xid
     @Shared String serviceName = "echo"
-
+    @Shared TestInboundHandler inboundHandler
 
     def setup()
     {
         instance = new CasualMessageListenerImpl()
-        socketChannel = new LocalEchoSocketChannel()
-        channel = LockableSocketChannel.of( socketChannel )
+        inboundHandler = TestInboundHandler.of()
+        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), inboundHandler)
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )
 
@@ -69,9 +63,9 @@ class CasualMessageListenerImplTest extends Specification
 
     Xid createXid()
     {
-        String gid = Integer.toString( ThreadLocalRandom.current().nextInt() );
-        String b = Integer.toString( ThreadLocalRandom.current().nextInt() );
-        return XID.of(gid.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8), 0);
+        String gid = Integer.toString( ThreadLocalRandom.current().nextInt() )
+        String b = Integer.toString( ThreadLocalRandom.current().nextInt() )
+        return XID.of(gid.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8), 0)
     }
 
     def "DomainConnectRequest"()
@@ -89,7 +83,8 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.domainConnectRequest( message, channel )
-        CasualNWMessage<CasualDomainConnectReplyMessage> reply = CasualNetworkReader.read( channel )
+        channel.writeInbound(channel.outboundMessages().element())
+        CasualNWMessage<CasualDomainConnectReplyMessage> reply = inboundHandler.getMsg()
 
         then:
         reply != null
@@ -119,7 +114,8 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.domainDiscoveryRequest( message, channel )
-        CasualNWMessage<CasualDomainDiscoveryReplyMessage> reply = CasualNetworkReader.read( channel )
+        channel.writeInbound(channel.outboundMessages().element())
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> reply = inboundHandler.getMsg()
 
         then:
         reply != null
@@ -172,7 +168,6 @@ class CasualMessageListenerImplTest extends Specification
         actualExecutionContext.getXid() == xid
         actualExecutionContext.getTransactionTimeout() == timeout
         actualWorkListener != null
-        actualWorkListener.getSocketChannel() == channel
     }
 
     def "ServiceCallRequest with null xid calls service work without transaction context."()
@@ -196,8 +191,10 @@ class CasualMessageListenerImplTest extends Specification
         instance.serviceCallRequest( message, channel, workManager )
 
         then:
-        1 * workManager.startWork( _) >> {
-            CasualServiceCallWork work ->
+        1 * workManager.startWork(_, _, _, _) >> {
+            CasualServiceCallWork work, long startTimeout, ExecutionContext executionContext, WorkListener workListener ->
+                assert null == executionContext
+                assert null != workListener
                 actualWork = work
                 return 1L
         }
@@ -247,7 +244,8 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.prepareRequest( message, channel, xaTerminator )
-        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = CasualNetworkReader.read( channel )
+        channel.writeInbound(channel.outboundMessages().element())
+        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
 
         then:
         1 * xaTerminator.prepare( xid ) >> {
@@ -277,7 +275,8 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.prepareRequest( message, channel, xaTerminator )
-        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = CasualNetworkReader.read( channel )
+        channel.writeInbound(channel.outboundMessages().element())
+        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
 
         then:
         1 * xaTerminator.prepare( xid ) >> {
@@ -307,7 +306,8 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.prepareRequest( message, channel, xaTerminator )
-        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = CasualNetworkReader.read( channel )
+        channel.writeInbound(channel.outboundMessages().element())
+        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
 
         then:
         1 * xaTerminator.prepare( xid ) >> {
@@ -337,7 +337,8 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.commitRequest( message, channel, xaTerminator )
-        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = CasualNetworkReader.read( channel )
+        channel.writeInbound(channel.outboundMessages().element())
+        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
 
         then:
         1 * xaTerminator.commit( xid, false )
@@ -365,7 +366,8 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.commitRequest( message, channel, xaTerminator )
-        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = CasualNetworkReader.read( channel )
+        channel.writeInbound(channel.outboundMessages().element())
+        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
 
         then:
         1 * xaTerminator.commit( xid, true )
@@ -393,7 +395,8 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.commitRequest( message, channel, xaTerminator )
-        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = CasualNetworkReader.read( channel )
+        channel.writeInbound(channel.outboundMessages().element())
+        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
 
         then:
         1 * xaTerminator.commit( xid, false ) >> {
@@ -423,7 +426,8 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.requestRollback( message, channel, xaTerminator )
-        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = CasualNetworkReader.read( channel )
+        channel.writeInbound(channel.outboundMessages().element())
+        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = inboundHandler.getMsg()
 
         then:
         1 * xaTerminator.rollback( xid )
@@ -451,7 +455,8 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.requestRollback( message, channel, xaTerminator )
-        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = CasualNetworkReader.read( channel )
+        channel.writeInbound(channel.outboundMessages().element())
+        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = inboundHandler.getMsg()
 
         then:
         1 * xaTerminator.rollback( xid ) >> {

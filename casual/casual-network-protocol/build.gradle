@@ -9,6 +9,7 @@ defaultTasks 'build'
 
 dependencies {
   provided 'javax:javaee-api:7.0'
+  provided 'io.netty:netty-all:4.1.21.Final'
   implementation project(':casual:casual-api')
   testCompile 'junit:junit:4.8.2+'
   // for spock

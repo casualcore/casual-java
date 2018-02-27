@@ -10,6 +10,7 @@ dependencies {
   compile project(":casual:casual-network-protocol")
 
   provided 'javax:javaee-api:7.0'
+  provided 'io.netty:netty-all:4.1.21.Final'
 
   // for spock
   testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'

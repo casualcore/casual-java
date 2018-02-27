@@ -1,4 +1,4 @@
-package se.laz.casual.network
+package se.laz.casual.network.outbound
 
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.embedded.EmbeddedChannel
@@ -7,6 +7,14 @@ import se.kodarkatten.casual.internal.jca.ManagedConnectionInvalidator
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
 import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
+import se.laz.casual.network.CasualNWMessageDecoder
+import se.laz.casual.network.CasualNWMessageEncoder
+import se.laz.casual.network.outbound.CasualMessageHandler
+import se.laz.casual.network.outbound.Correlator
+import se.laz.casual.network.outbound.CorrelatorImpl
+import se.laz.casual.network.outbound.ExceptionHandler
+import se.laz.casual.network.outbound.NettyConnectionInformation
+import se.laz.casual.network.outbound.NettyNetworkConnection
 import spock.lang.Shared
 import spock.lang.Specification
 

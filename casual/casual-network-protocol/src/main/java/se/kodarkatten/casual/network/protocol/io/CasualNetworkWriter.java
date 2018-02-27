@@ -1,6 +1,7 @@
 package se.kodarkatten.casual.network.protocol.io;
 
 
+import io.netty.buffer.ByteBuf;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 
@@ -67,4 +68,11 @@ public final class CasualNetworkWriter
         }
     }
 
+    public static <T extends CasualNetworkTransmittable> void write(final ByteBuf out, final CasualNWMessage<T> msg)
+    {
+        for(byte[] b : msg.toNetworkBytes())
+        {
+            out.writeBytes(b);
+        }
+    }
 }

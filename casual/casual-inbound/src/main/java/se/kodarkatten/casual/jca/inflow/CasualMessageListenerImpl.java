@@ -1,5 +1,6 @@
 package se.kodarkatten.casual.jca.inflow;
 
+import io.netty.channel.Channel;
 import se.kodarkatten.casual.api.flags.XAFlags;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.api.service.ServiceInfo;
@@ -10,8 +11,6 @@ import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 import se.kodarkatten.casual.jca.inflow.work.CasualServiceCallWork;
-import se.kodarkatten.casual.network.protocol.io.CasualNetworkWriter;
-import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel;
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
@@ -53,7 +52,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     private static final Long CASUAL_PROTOCOL_VERSION = 1000L;
 
     @Override
-    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, LockableSocketChannel channel)
+    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel)
     {
         log.finest( "domainConnectRequest()." );
 
@@ -64,12 +63,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
                 .withProtocolVersion(CASUAL_PROTOCOL_VERSION)
                 .build();
         CasualNWMessage<CasualDomainConnectReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
-
-        CasualNetworkWriter.write( channel, replyMessage );
+        channel.writeAndFlush(replyMessage);
     }
 
     @Override
-    public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, LockableSocketChannel channel)
+    public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel)
     {
         log.finest( "domainDiscoveryRequest()." );
 
@@ -94,12 +92,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         reply.setServices( services );
 
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
-
-        CasualNetworkWriter.write( channel, replyMessage );
+        channel.writeAndFlush(replyMessage);
     }
 
     @Override
-    public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, LockableSocketChannel channel, WorkManager workManager )
+    public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager )
     {
         log.finest( "serviceCallRequest()." );
 
@@ -111,7 +108,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         {
             long startup = isServiceCallTransactional( xid ) ?
                     workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
-                    workManager.startWork( work );
+                    workManager.startWork( work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener( channel ));
             log.finest( ()->"Service call startup: "+ startup + "ms.");
         }
         catch (WorkException e)
@@ -145,7 +142,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator)
+    public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
         log.finest( "prepareRequest()." );
 
@@ -172,12 +169,12 @@ public class CasualMessageListenerImpl implements CasualMessageListener
                             XAReturnCode.unmarshal(status)
                     );
             CasualNWMessageImpl<CasualTransactionResourcePrepareReplyMessage> replyMessage = CasualNWMessageImpl.of(message.getCorrelationId(), reply);
-            CasualNetworkWriter.write(channel, replyMessage);
+            channel.writeAndFlush(replyMessage);
         }
     }
 
     @Override
-    public void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator)
+    public void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
         log.finest( "commitRequest()." );
 
@@ -204,12 +201,12 @@ public class CasualMessageListenerImpl implements CasualMessageListener
                             status == -1 ? XAReturnCode.XA_OK : XAReturnCode.unmarshal( status )
                     );
             CasualNWMessageImpl<CasualTransactionResourceCommitReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
-            CasualNetworkWriter.write( channel, replyMessage );
+            channel.writeAndFlush(replyMessage);
         }
     }
 
     @Override
-    public void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator)
+    public void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
         log.finest( "requestRollback()." );
 
@@ -223,7 +220,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         } catch (XAException e)
         {
             status = e.errorCode;
-            log.log( Level.WARNING, e, ()-> "XAExcception rollback()" + e.getMessage() );
+            log.log( Level.WARNING, e, ()-> "XAException rollback()" + e.getMessage() );
         }
         finally
         {
@@ -235,7 +232,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
                             status == -1 ? XAReturnCode.XA_OK : XAReturnCode.unmarshal( status )
                     );
             CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
-            CasualNetworkWriter.write( channel, replyMessage );
+            channel.writeAndFlush(replyMessage);
         }
     }
 }

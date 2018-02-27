@@ -22,6 +22,7 @@
 package se.kodarkatten.casual.jca.inflow;
 
 
+import io.netty.channel.Channel;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel;
 
@@ -42,15 +43,15 @@ import javax.resource.spi.work.WorkManager;
  */
 public interface CasualMessageListener
 {
-   void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, LockableSocketChannel channel );
+   void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel );
 
-   void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, LockableSocketChannel channel );
+   void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel );
 
-   void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, LockableSocketChannel channel, WorkManager workManager );
+   void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager );
 
-   void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator);
+   void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator);
 
-   void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator);
+   void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator);
 
-   void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, LockableSocketChannel channel, XATerminator xaTerminator);
+   void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator);
 }

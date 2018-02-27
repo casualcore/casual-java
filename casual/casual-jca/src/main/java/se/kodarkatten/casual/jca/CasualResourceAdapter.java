@@ -22,7 +22,8 @@
 package se.kodarkatten.casual.jca;
 
 import se.kodarkatten.casual.jca.inflow.CasualActivationSpec;
-import se.kodarkatten.casual.jca.inflow.work.CasualInboundWork;
+import se.laz.casual.network.inbound.CasualServer;
+import se.laz.casual.network.inbound.ConnectionInformation;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ActivationSpec;
@@ -59,7 +60,7 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
     private WorkManager workManager;
     private XATerminator xaTerminator;
 
-    private CasualInboundWork worker;
+    private CasualServer server;
 
     public CasualResourceAdapter()
     {
@@ -70,25 +71,28 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
     public void endpointActivation(MessageEndpointFactory endpointFactory,
                                    ActivationSpec spec) throws ResourceException
     {
+        log.info("start endpointActivation() ");
         CasualActivationSpec as = (CasualActivationSpec) spec;
-        worker = new CasualInboundWork( as, endpointFactory, workManager, xaTerminator );
-        long startup = workManager.startWork( worker );
-        log.info( ()->"Worker startup time: " + startup + "ms" );
+        ConnectionInformation ci = ConnectionInformation.createBuilder()
+                                                        .withFactory(endpointFactory)
+                                                        .withPort(as.getPort())
+                                                        .withWorkManager(workManager)
+                                                        .withXaTerminator(xaTerminator)
+                                                        .build();
+        log.info("about to create server endpointActivation()");
+        server = CasualServer.of(ci);
+        log.info("server created endpointActivation()");
         activations.put( as.getPort(), as );
-
         log.finest("endpointActivation()");
-
     }
 
     @Override
     public void endpointDeactivation(MessageEndpointFactory endpointFactory,
                                      ActivationSpec spec)
     {
-        worker.release();
+        server.close();
         activations.remove(((CasualActivationSpec)spec).getPort() );
-
         log.finest("endpointDeactivation()");
-
     }
 
     @Override
@@ -104,7 +108,6 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
     public void stop()
     {
         log.finest("stop()");
-
     }
 
     @Override
@@ -123,11 +126,6 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
     public XATerminator getXATerminator()
     {
         return this.xaTerminator;
-    }
-
-    public CasualInboundWork getInboundWork()
-    {
-        return this.worker;
     }
 
     @Override

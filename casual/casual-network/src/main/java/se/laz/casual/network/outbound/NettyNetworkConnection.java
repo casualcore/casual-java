@@ -1,4 +1,4 @@
-package se.laz.casual.network;
+package se.laz.casual.network.outbound;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -19,6 +19,8 @@ import se.kodarkatten.casual.network.protocol.connection.CasualConnectionExcepti
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
+import se.laz.casual.network.CasualNWMessageDecoder;
+import se.laz.casual.network.CasualNWMessageEncoder;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -29,12 +31,10 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
 
 public final class NettyNetworkConnection implements NetworkConnection
 {
-    private static final Logger log = Logger.getLogger(NettyNetworkConnection.class.getName());
-    private static final String useLogHandlerPropertyName = "casual.network.enableLoghandler";
+    private static final String USE_LOG_HANDLER_PROPERTY_NAME = "casual.network.outbound.enableLoghandler";
     private final BaseConnectionInformation ci;
     private final ManagedConnectionInvalidator invalidator;
     private final Correlator correlator;
@@ -65,7 +65,7 @@ public final class NettyNetworkConnection implements NetworkConnection
 
     private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler)
     {
-        boolean enableLogHandler = Boolean.parseBoolean(System.getProperty(useLogHandlerPropertyName, null));
+        boolean enableLogHandler = Boolean.parseBoolean(System.getProperty(USE_LOG_HANDLER_PROPERTY_NAME, null));
         Bootstrap b = new Bootstrap()
             .group(workerGroup)
             .channel(channelClass)

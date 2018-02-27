@@ -1,8 +1,11 @@
-package se.laz.casual.network
+package se.laz.casual.network.outbound
 
 import io.netty.channel.Channel
 import io.netty.channel.socket.nio.NioSocketChannel
 import se.kodarkatten.casual.internal.jca.ManagedConnectionInvalidator
+import se.laz.casual.network.outbound.Correlator
+import se.laz.casual.network.outbound.CorrelatorImpl
+import se.laz.casual.network.outbound.NettyConnectionInformation
 import spock.lang.Shared
 import spock.lang.Specification
 

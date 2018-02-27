@@ -7,7 +7,6 @@ import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.network.protocol.io.CasualNetworkReader;
 import se.kodarkatten.casual.network.protocol.io.readers.CasualNWMessageHeaderReader;
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageHeader;
-import se.kodarkatten.casual.network.protocol.messages.exceptions.CasualProtocolException;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
 
 import java.util.List;
@@ -25,6 +24,8 @@ public final class CasualNWMessageDecoder extends ByteToMessageDecoder
     {
         return new CasualNWMessageDecoder();
     }
+    // brain overload... plz upgrade
+    @SuppressWarnings("squid:S1151")
     @Override
     protected void decode(final ChannelHandlerContext ctx, final ByteBuf in, final List<Object> out)
     {
@@ -53,7 +54,7 @@ public final class CasualNWMessageDecoder extends ByteToMessageDecoder
                     out.add(msg);
                     state = State.READ_HEADER;
                 }
-                catch(Throwable e)
+                catch(Exception e)
                 {
                     throw new CasualDecoderException(e, header.getCorrelationId());
                 }

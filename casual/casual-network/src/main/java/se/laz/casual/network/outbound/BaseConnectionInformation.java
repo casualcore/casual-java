@@ -1,4 +1,4 @@
-package se.laz.casual.network;
+package se.laz.casual.network.outbound;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;

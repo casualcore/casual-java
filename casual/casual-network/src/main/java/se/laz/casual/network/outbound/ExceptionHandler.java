@@ -1,10 +1,11 @@
-package se.laz.casual.network;
+package se.laz.casual.network.outbound;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import se.kodarkatten.casual.internal.jca.ManagedConnectionInvalidator;
 import se.kodarkatten.casual.network.protocol.connection.CasualConnectionException;
 import se.kodarkatten.casual.network.protocol.messages.exceptions.CasualProtocolException;
+import se.laz.casual.network.CasualDecoderException;
 
 import java.util.ArrayList;
 import java.util.List;

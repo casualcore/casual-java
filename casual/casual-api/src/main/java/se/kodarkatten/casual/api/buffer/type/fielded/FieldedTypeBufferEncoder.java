@@ -4,12 +4,11 @@ import se.kodarkatten.casual.api.buffer.type.fielded.json.CasualField;
 import se.kodarkatten.casual.api.buffer.type.fielded.json.CasualFieldedLookup;
 import se.kodarkatten.casual.api.buffer.type.fielded.json.CasualFieldedLookupException;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.nio.ByteBuffer;
 
 public final class FieldedTypeBufferEncoder
 {

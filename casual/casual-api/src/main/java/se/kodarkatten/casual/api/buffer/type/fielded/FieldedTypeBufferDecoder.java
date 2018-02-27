@@ -6,9 +6,11 @@ import se.kodarkatten.casual.api.buffer.type.fielded.json.CasualFieldedLookup;
 import se.kodarkatten.casual.api.buffer.type.fielded.json.CasualFieldedLookupException;
 import se.kodarkatten.casual.api.util.Pair;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class FieldedTypeBufferDecoder
 {

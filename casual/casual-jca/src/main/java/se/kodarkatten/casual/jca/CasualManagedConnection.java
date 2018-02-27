@@ -2,9 +2,9 @@ package se.kodarkatten.casual.jca;
 
 import se.kodarkatten.casual.api.xa.XID;
 import se.kodarkatten.casual.jca.event.ConnectionEventHandler;
-import se.laz.casual.network.NettyNetworkConnection;
+import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.kodarkatten.casual.internal.network.NetworkConnection;
-import se.laz.casual.network.NettyConnectionInformation;
+import se.laz.casual.network.outbound.NettyConnectionInformation;
 
 import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;

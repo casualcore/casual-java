@@ -1,7 +1,10 @@
 package se.kodarkatten.casual.jca
 
+import io.netty.channel.Channel
+import io.netty.channel.ChannelFuture
+import io.netty.channel.EventLoop
 import se.kodarkatten.casual.jca.inflow.CasualActivationSpec
-import se.kodarkatten.casual.jca.inflow.work.CasualInboundWork
+import se.laz.casual.network.inbound.CasualServer
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -66,14 +69,34 @@ class CasualResourceAdapterTest extends Specification
         instance.endpointActivation(factory, spec)
 
         then:
-        1 * manager.startWork(_)
+        instance.server.channel.isActive()
     }
 
     def "Deactivate endpoint"()
     {
         setup:
-        CasualInboundWork work = GroovyMock()
-        instance.worker = work
+        def channel = Mock(Channel)
+        channel.close () >> {
+            def f = Mock(ChannelFuture)
+            f.syncUninterruptibly() >> {
+                return f
+            }
+            return f
+        }
+        channel.eventLoop() >> {
+            def l = Mock(EventLoop)
+            l.shutdownGracefully() >> {
+                def f = Mock(ChannelFuture)
+                f.syncUninterruptibly() >> {
+                    return f
+                }
+                return f
+            }
+            return l
+        }
+        def server = new CasualServer(channel)
+        instance.server = server
+
         MessageEndpointFactory factory = Mock(MessageEndpointFactory)
         CasualActivationSpec spec = new CasualActivationSpec()
         spec.setPort(okAddress.getPort())
@@ -82,6 +105,6 @@ class CasualResourceAdapterTest extends Specification
         instance.endpointDeactivation( factory, spec )
 
         then:
-        1 * work.release()
+        !channel.isOpen()
     }
 }

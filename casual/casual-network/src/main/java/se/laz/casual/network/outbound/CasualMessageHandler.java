@@ -1,4 +1,4 @@
-package se.laz.casual.network;
+package se.laz.casual.network.outbound;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

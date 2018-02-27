@@ -1,4 +1,4 @@
-package se.laz.casual.network;
+package se.laz.casual.network.outbound;
 
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
