@@ -49,6 +49,10 @@ allprojects{
   }
 }
 
+subprojects{
+  apply from: "$rootProject.projectDir/versions.gradle"
+}
+
 
 task dist(type: Copy, dependsOn: getTasksByName("build", false)) {
     subprojects.each { subproject ->

@@ -10,11 +10,12 @@ dependencies {
   provided project(":casual:casual-lookup-api")
   provided project(":casual:casual-api")
   provided project(":casual:casual-jca")
-  provided 'javax:javaee-api:7.0'
-  compile 'com.google.code.gson:gson:2.8.1'
+  provided libs.javaee_api
+  provided libs.gson
 
   // for spock
-  testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'
-  testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-  testCompile 'cglib:cglib-nodep:3.2.4'
+  testCompile libs.groovy_all
+  testCompile libs.spock_core
+  testCompile libs.cglib_nodep
+  testCompile libs.objenesis
 }

@@ -7,8 +7,8 @@ plugins {
 dependencies {
 
   // for spock
-  testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'
-  testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-  testCompile 'cglib:cglib-nodep:3.2.4'
-  testCompile 'org.objenesis:objenesis:1.2'
+  testCompile libs.groovy_all
+  testCompile libs.spock_core
+  testCompile libs.cglib_nodep
+  testCompile libs.objenesis
 }

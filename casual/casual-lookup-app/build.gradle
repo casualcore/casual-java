@@ -9,7 +9,6 @@ dependencies {
   deploy project( path: ':casual:casual-lookup')
   earlib project( path: ':casual:casual-api')
   earlib project( path: ':casual:casual-lookup-api')
-  earlib 'com.google.code.gson:gson:2.8.1'
 }
 
 ear{

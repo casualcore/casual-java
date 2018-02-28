@@ -8,12 +8,12 @@ plugins {
 defaultTasks 'build'
 
 dependencies {
-  provided 'javax:javaee-api:7.0'
-  provided 'io.netty:netty-all:4.1.21.Final'
-  implementation project(':casual:casual-api')
-  testCompile 'junit:junit:4.8.2+'
+  provided libs.javaee_api
+  provided libs.netty
+  provided project(':casual:casual-api')
   // for spock
-  testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'
-  testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-  testCompile 'cglib:cglib-nodep:3.2.4'
+  testCompile libs.groovy_all
+  testCompile libs.spock_core
+  testCompile libs.cglib_nodep
+  testCompile libs.objenesis
 }

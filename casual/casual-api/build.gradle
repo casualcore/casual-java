@@ -8,12 +8,11 @@ defaultTasks 'build'
 
 dependencies {
   provided project(":casual:casual-fielded-annotations")
-  compile 'com.google.code.gson:gson:2.8.1'
-  compile 'org.objenesis:objenesis:2.6'
+  provided libs.gson
+  provided libs.objenesis
 
-  testCompile 'junit:junit:4.8.2+'
   // for spock
-  testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'
-  testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-  testCompile 'cglib:cglib-nodep:3.2.4'
+  testCompile libs.groovy_all
+  testCompile libs.spock_core
+  testCompile libs.cglib_nodep
 }

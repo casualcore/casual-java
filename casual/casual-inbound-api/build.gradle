@@ -5,16 +5,18 @@ plugins {
 }
 
 dependencies {
+  provided project(':casual:casual-api')
   provided project(':casual:casual-inbound-handler-api')
-  compile project(":casual:casual-internal")
-  compile project(":casual:casual-network-protocol")
+  implementation project(":casual:casual-internal")
+  implementation project(":casual:casual-network-protocol")
 
-  provided 'javax:javaee-api:7.0'
-  provided 'io.netty:netty-all:4.1.21.Final'
+  provided libs.javaee_api
+  provided libs.netty
 
+  testCompile libs.gson
   // for spock
-  testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'
-  testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-  testCompile 'cglib:cglib-nodep:3.2.4'
-  testCompile 'org.objenesis:objenesis:1.2'
+  testCompile libs.groovy_all
+  testCompile libs.spock_core
+  testCompile libs.cglib_nodep
+  testCompile libs.objenesis
 }
