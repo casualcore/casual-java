@@ -1,6 +1,6 @@
 package se.kodarkatten.casual.network.protocol.messages.domain;
 
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.DiscoveryRequestSizes;
@@ -251,17 +251,17 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
     {
         List<byte[]> l = new ArrayList<>();
         ByteBuffer executionBuffer = ByteBuffer.allocate(DiscoveryRequestSizes.EXECUTION.getNetworkSize());
-        CasualNetworkWriterUtils.writeUUID(execution, executionBuffer);
+        CasualEncoderUtils.writeUUID(execution, executionBuffer);
         l.add(executionBuffer.array());
         ByteBuffer domainIdBuffer = ByteBuffer.allocate(DiscoveryRequestSizes.DOMAIN_ID.getNetworkSize());
-        CasualNetworkWriterUtils.writeUUID(domainId, domainIdBuffer);
+        CasualEncoderUtils.writeUUID(domainId, domainIdBuffer);
         l.add(domainIdBuffer.array());
         ByteBuffer domainNameSizeBuffer = ByteBuffer.allocate(DiscoveryRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize());
         domainNameSizeBuffer.putLong(domainNameBytes.length);
         l.add(domainNameSizeBuffer.array());
         l.add(domainNameBytes);
-        CasualNetworkWriterUtils.writeDynamicArray(l, serviceNameBytes, DiscoveryRequestSizes.SERVICES_SIZE.getNetworkSize(), DiscoveryRequestSizes.SERVICES_ELEMENT_SIZE.getNetworkSize());
-        CasualNetworkWriterUtils.writeDynamicArray(l, queueNameBytes, DiscoveryRequestSizes.QUEUES_SIZE.getNetworkSize(), DiscoveryRequestSizes.QUEUES_ELEMENT_SIZE.getNetworkSize());
+        CasualEncoderUtils.writeDynamicArray(l, serviceNameBytes, DiscoveryRequestSizes.SERVICES_SIZE.getNetworkSize(), DiscoveryRequestSizes.SERVICES_ELEMENT_SIZE.getNetworkSize());
+        CasualEncoderUtils.writeDynamicArray(l, queueNameBytes, DiscoveryRequestSizes.QUEUES_SIZE.getNetworkSize(), DiscoveryRequestSizes.QUEUES_ELEMENT_SIZE.getNetworkSize());
         return l;
     }
 
@@ -269,12 +269,12 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
     {
         List<byte[]> l = new ArrayList<>();
         ByteBuffer b = ByteBuffer.allocate(messageSize);
-        CasualNetworkWriterUtils.writeUUID(execution, b);
-        CasualNetworkWriterUtils.writeUUID(domainId, b);
+        CasualEncoderUtils.writeUUID(execution, b);
+        CasualEncoderUtils.writeUUID(domainId, b);
         b.putLong(domainNameBytes.length)
          .put(domainNameBytes);
-        CasualNetworkWriterUtils.writeDynamicArray(b, serviceNameBytes);
-        CasualNetworkWriterUtils.writeDynamicArray(b, queueNameBytes);
+        CasualEncoderUtils.writeDynamicArray(b, serviceNameBytes);
+        CasualEncoderUtils.writeDynamicArray(b, queueNameBytes);
         l.add(b.array());
         return l;
     }

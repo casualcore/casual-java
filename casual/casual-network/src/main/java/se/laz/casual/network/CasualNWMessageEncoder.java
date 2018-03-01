@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.protocol.io.CasualNetworkWriter;
+import se.kodarkatten.casual.network.protocol.encoding.CasualMessageEncoder;
 
 public final class CasualNWMessageEncoder extends MessageToByteEncoder<CasualNWMessage<?>>
 {
@@ -17,7 +17,7 @@ public final class CasualNWMessageEncoder extends MessageToByteEncoder<CasualNWM
     @Override
     protected void encode(ChannelHandlerContext ctx, CasualNWMessage<?> msg, ByteBuf out) throws Exception
     {
-        CasualNetworkWriter.write(out, msg);
+        CasualMessageEncoder.write(out, msg);
     }
 
     @Override

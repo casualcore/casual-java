@@ -15,7 +15,7 @@ import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.internal.jca.ManagedConnectionInvalidator;
 import se.kodarkatten.casual.internal.network.NetworkConnection;
-import se.kodarkatten.casual.network.protocol.connection.CasualConnectionException;
+import se.kodarkatten.casual.network.connection.CasualConnectionException;
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;

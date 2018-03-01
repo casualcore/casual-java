@@ -1,6 +1,6 @@
 package se.kodarkatten.casual.network.protocol.messages.queue;
 
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.CommonSizes;
@@ -205,13 +205,13 @@ public final class CasualDequeueRequestMessage implements CasualNetworkTransmitt
     private List<byte[]> toNetworkBytesFitsInOneBuffer(int messageSize, final byte[] queueNameBytes, final byte[] selectorPropertiesBytes)
     {
         ByteBuffer b = ByteBuffer.allocate(messageSize);
-        CasualNetworkWriterUtils.writeUUID(execution, b);
+        CasualEncoderUtils.writeUUID(execution, b);
         b.putLong(queueNameBytes.length)
          .put(queueNameBytes);
-        CasualNetworkWriterUtils.writeXID(xid, b);
+        CasualEncoderUtils.writeXID(xid, b);
         b.putLong(selectorPropertiesBytes.length)
          .put(selectorPropertiesBytes);
-        CasualNetworkWriterUtils.writeUUID(selectorUUID, b);
+        CasualEncoderUtils.writeUUID(selectorUUID, b);
         b.put((byte) (block ? 1 : 0));
         List<byte[]> l = new ArrayList<>();
         l.add(b.array());

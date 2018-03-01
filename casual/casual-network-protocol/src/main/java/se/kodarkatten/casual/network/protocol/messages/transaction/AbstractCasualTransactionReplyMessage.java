@@ -1,7 +1,7 @@
 package se.kodarkatten.casual.network.protocol.messages.transaction;
 
 import se.kodarkatten.casual.api.xa.XAReturnCode;
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.CommonSizes;
 
@@ -77,6 +77,6 @@ public abstract class AbstractCasualTransactionReplyMessage extends AbstractCasu
     @Override
     protected void createNetworkBytesMultipleBuffers(List<byte[]> l)
     {
-        l.add(CasualNetworkWriterUtils.writeInt(xaReturnCode.getId()));
+        l.add(CasualEncoderUtils.writeInt(xaReturnCode.getId()));
     }
 }

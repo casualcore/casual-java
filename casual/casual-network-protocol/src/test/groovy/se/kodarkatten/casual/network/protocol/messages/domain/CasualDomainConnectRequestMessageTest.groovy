@@ -2,7 +2,6 @@ package se.kodarkatten.casual.network.protocol.messages.domain
 
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
 import se.kodarkatten.casual.network.protocol.messages.exceptions.CasualProtocolException
-import se.kodarkatten.casual.network.protocol.utils.LocalAsyncByteChannel
 import se.kodarkatten.casual.network.protocol.utils.LocalByteChannel
 import se.kodarkatten.casual.network.protocol.utils.TestUtils
 import spock.lang.Shared
@@ -11,13 +10,10 @@ import spock.lang.Specification
 class CasualDomainConnectRequestMessageTest extends Specification
 {
     @Shared
-    def asyncSink
-    @Shared
     def syncSink
 
     def setup()
     {
-        asyncSink = new LocalAsyncByteChannel()
         syncSink = new LocalByteChannel()
     }
 
@@ -57,16 +53,14 @@ class CasualDomainConnectRequestMessageTest extends Specification
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualDomainConnectRequestMessage> asyncResurrectedMsg = TestUtils.roundtripMessage(msg, asyncSink)
         CasualNWMessageImpl<CasualDomainConnectRequestMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink)
 
         then:
         networkBytes != null
         networkBytes.size() == 2 // header + msg
-        msg == asyncResurrectedMsg
         msg == syncResurrectedMsg
-        domainName == asyncResurrectedMsg.message.domainName
-        protocols == asyncResurrectedMsg.message.protocols
+        domainName == syncResurrectedMsg.message.domainName
+        protocols == syncResurrectedMsg.message.protocols
     }
 
 }

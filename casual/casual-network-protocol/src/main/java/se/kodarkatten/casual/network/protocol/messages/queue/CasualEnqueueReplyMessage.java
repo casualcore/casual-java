@@ -1,6 +1,6 @@
 package se.kodarkatten.casual.network.protocol.messages.queue;
 
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.CommonSizes;
@@ -30,8 +30,8 @@ public final class CasualEnqueueReplyMessage implements CasualNetworkTransmittab
     public List<byte[]> toNetworkBytes()
     {
         ByteBuffer b = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize() +  CommonSizes.UUID_ID.getNetworkSize());
-        CasualNetworkWriterUtils.writeUUID(execution, b);
-        CasualNetworkWriterUtils.writeUUID(id, b);
+        CasualEncoderUtils.writeUUID(execution, b);
+        CasualEncoderUtils.writeUUID(id, b);
         List<byte[]> l = new ArrayList<>();
         l.add(b.array());
         return l;

@@ -1,7 +1,7 @@
 package se.kodarkatten.casual.network.protocol.messages.queue;
 
 import se.kodarkatten.casual.api.queue.QueueMessage;
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.EnqueueRequestSizes;
 import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer;
 
@@ -98,7 +98,7 @@ public final class EnqueueMessage
         ByteBuffer partialContent = ByteBuffer.allocate(EnqueueRequestSizes.MESSAGE_ID.getNetworkSize() + EnqueueRequestSizes.MESSAGE_PROPERTIES_SIZE.getNetworkSize() +
                                                   EnqueueRequestSizes.MESSAGE_REPLY_SIZE.getNetworkSize() + propertiesBytes.length + replyDataBytes.length +
                                                   EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize());
-        CasualNetworkWriterUtils.writeUUID(getId(), partialContent);
+        CasualEncoderUtils.writeUUID(getId(), partialContent);
         partialContent.putLong(propertiesBytes.length);
         partialContent.put(propertiesBytes);
         partialContent.putLong(replyDataBytes.length);
@@ -108,7 +108,7 @@ public final class EnqueueMessage
 
         List<byte[]> l = new ArrayList<>();
         l.add(partialContent.array());
-        l.addAll(CasualNetworkWriterUtils.writeServiceBuffer(payload));
+        l.addAll(CasualEncoderUtils.writeServiceBuffer(payload));
         return l;
     }
 

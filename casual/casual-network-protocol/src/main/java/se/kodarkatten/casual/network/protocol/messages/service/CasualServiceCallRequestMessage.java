@@ -3,7 +3,7 @@ package se.kodarkatten.casual.network.protocol.messages.service;
 import se.kodarkatten.casual.api.flags.AtmiFlags;
 import se.kodarkatten.casual.api.flags.Flag;
 import se.kodarkatten.casual.api.xa.XID;
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.protocol.utils.XIDUtils;
@@ -245,13 +245,13 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
     {
         List<byte[]> l = new ArrayList<>();
         ByteBuffer b = ByteBuffer.allocate(messageSize);
-        CasualNetworkWriterUtils.writeUUID(execution, b);
+        CasualEncoderUtils.writeUUID(execution, b);
         b.putLong(serviceNameBytes.length)
          .put(serviceNameBytes)
          .putLong(timeout)
          .putLong(parentNameBytes.length)
          .put(parentNameBytes);
-        CasualNetworkWriterUtils.writeXID(xid, b);
+        CasualEncoderUtils.writeXID(xid, b);
         b.putLong(xatmiFlags.getFlagValue())
          .putLong(serviceBytes.get(0).length)
          .put(serviceBytes.get(0));
@@ -268,18 +268,18 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
     {
         final List<byte[]> l = new ArrayList<>();
         final ByteBuffer executionBuffer = ByteBuffer.allocate(ServiceCallRequestSizes.EXECUTION.getNetworkSize());
-        CasualNetworkWriterUtils.writeUUID(execution, executionBuffer);
+        CasualEncoderUtils.writeUUID(execution, executionBuffer);
         l.add(executionBuffer.array());
-        l.add(CasualNetworkWriterUtils.writeLong(serviceNameBytes.length));
+        l.add(CasualEncoderUtils.writeLong(serviceNameBytes.length));
         l.add(serviceNameBytes);
-        l.add(CasualNetworkWriterUtils.writeLong(timeout));
-        l.add(CasualNetworkWriterUtils.writeLong(parentNameBytes.length));
+        l.add(CasualEncoderUtils.writeLong(timeout));
+        l.add(CasualEncoderUtils.writeLong(parentNameBytes.length));
         l.add(parentNameBytes);
         final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid));
-        CasualNetworkWriterUtils.writeXID(xid, xidByteBuffer);
+        CasualEncoderUtils.writeXID(xid, xidByteBuffer);
         l.add(xidByteBuffer.array());
-        l.add(CasualNetworkWriterUtils.writeLong(xatmiFlags.getFlagValue()));
-        l.addAll(CasualNetworkWriterUtils.writeServiceBuffer(serviceBuffer));
+        l.add(CasualEncoderUtils.writeLong(xatmiFlags.getFlagValue()));
+        l.addAll(CasualEncoderUtils.writeServiceBuffer(serviceBuffer));
         return l;
     }
 

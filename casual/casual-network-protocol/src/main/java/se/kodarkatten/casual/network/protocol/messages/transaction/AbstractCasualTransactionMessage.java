@@ -1,7 +1,7 @@
 package se.kodarkatten.casual.network.protocol.messages.transaction;
 
 import se.kodarkatten.casual.api.xa.XID;
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.CommonSizes;
@@ -118,8 +118,8 @@ public abstract class AbstractCasualTransactionMessage implements CasualNetworkT
     {
         List<byte[]> l = new ArrayList<>();
         ByteBuffer b = ByteBuffer.allocate(messageSize);
-        CasualNetworkWriterUtils.writeUUID(execution, b);
-        CasualNetworkWriterUtils.writeXID(xid, b);
+        CasualEncoderUtils.writeUUID(execution, b);
+        CasualEncoderUtils.writeXID(xid, b);
         b.putInt(resourceId);
         createNetworkBytesFitsInOneBuffer(b);
         l.add(b.array());
@@ -130,12 +130,12 @@ public abstract class AbstractCasualTransactionMessage implements CasualNetworkT
     {
         final List<byte[]> l = new ArrayList<>();
         final ByteBuffer executionBuffer = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize());
-        CasualNetworkWriterUtils.writeUUID(execution, executionBuffer);
+        CasualEncoderUtils.writeUUID(execution, executionBuffer);
         l.add(executionBuffer.array());
         final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid));
-        CasualNetworkWriterUtils.writeXID(xid, xidByteBuffer);
+        CasualEncoderUtils.writeXID(xid, xidByteBuffer);
         l.add(xidByteBuffer.array());
-        l.add(CasualNetworkWriterUtils.writeInt(resourceId));
+        l.add(CasualEncoderUtils.writeInt(resourceId));
         createNetworkBytesMultipleBuffers(l);
         return l;
     }

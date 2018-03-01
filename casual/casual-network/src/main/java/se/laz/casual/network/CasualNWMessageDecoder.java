@@ -4,8 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.protocol.io.CasualNetworkReader;
-import se.kodarkatten.casual.network.protocol.io.readers.CasualNWMessageHeaderReader;
+import se.kodarkatten.casual.network.protocol.decoding.CasualMessageDecoder;
+import se.kodarkatten.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageHeader;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
 
@@ -38,7 +38,7 @@ public final class CasualNWMessageDecoder extends ByteToMessageDecoder
                 }
                 byte[] headerBytes = new byte[MessageHeaderSizes.getHeaderNetworkSize()];
                 in.readBytes(headerBytes);
-                header = CasualNWMessageHeaderReader.fromNetworkBytes(headerBytes);
+                header = CasualNWMessageHeaderDecoder.fromNetworkBytes(headerBytes);
                 state = State.READ_PAYLOAD;
                 break;
             case READ_PAYLOAD:
@@ -50,7 +50,7 @@ public final class CasualNWMessageDecoder extends ByteToMessageDecoder
                 try
                 {
                     in.readBytes(messageBytes);
-                    CasualNWMessage<?> msg = CasualNetworkReader.read(messageBytes, header);
+                    CasualNWMessage<?> msg = CasualMessageDecoder.read(messageBytes, header);
                     out.add(msg);
                     state = State.READ_HEADER;
                 }

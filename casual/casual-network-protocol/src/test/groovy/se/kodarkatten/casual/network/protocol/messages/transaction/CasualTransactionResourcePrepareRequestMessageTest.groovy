@@ -3,10 +3,9 @@ package se.kodarkatten.casual.network.protocol.messages.transaction
 import se.kodarkatten.casual.api.flags.Flag
 import se.kodarkatten.casual.api.flags.XAFlags
 import se.kodarkatten.casual.api.xa.XID
-import se.kodarkatten.casual.network.protocol.io.CasualNetworkReader
-import se.kodarkatten.casual.network.protocol.io.CasualNetworkWriter
+import se.kodarkatten.casual.network.protocol.decoding.CasualNetworkTestReader
+import se.kodarkatten.casual.network.protocol.encoding.CasualMessageEncoder
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
-import se.kodarkatten.casual.network.protocol.utils.LocalAsyncByteChannel
 import se.kodarkatten.casual.network.protocol.utils.LocalByteChannel
 import spock.lang.Shared
 import spock.lang.Specification
@@ -42,46 +41,6 @@ class CasualTransactionResourcePrepareRequestMessageTest extends Specification
        msg.flags.flagValue == flags.flagValue
     }
 
-    def "Roundtrip with message payload less than Integer.MAX_VALUE"()
-    {
-        setup:
-        def requestMsg = CasualTransactionResourcePrepareRequestMessage.of(execution, xid, resourceId, flags)
-        CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
-        def sink = new LocalAsyncByteChannel()
-
-        when:
-        def networkBytes = msg.toNetworkBytes()
-        CasualNetworkWriter.write(sink, msg)
-        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
-
-        then:
-        networkBytes != null
-        networkBytes.size() == 2
-        requestMsg == resurrectedMsg.getMessage()
-        msg == resurrectedMsg
-    }
-
-    def "Roundtrip message - force chunking"()
-    {
-        setup:
-        def requestMsg = CasualTransactionResourcePrepareRequestMessage.of(execution, xid, resourceId, flags)
-        requestMsg.setMaxMessageSize(1)
-        CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
-        def sink = new LocalAsyncByteChannel()
-
-        when:
-        def networkBytes = msg.toNetworkBytes()
-        CasualNetworkWriter.write(sink, msg)
-        CasualNetworkReader.setMaxSingleBufferByteSize(1)
-        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
-        CasualNetworkReader.setMaxSingleBufferByteSize(Integer.MAX_VALUE)
-        then:
-        networkBytes != null
-        networkBytes.size() > 2
-        requestMsg == resurrectedMsg.getMessage()
-        msg == resurrectedMsg
-    }
-
     def "Roundtrip with message payload less than Integer.MAX_VALUE, sync"()
     {
         setup:
@@ -91,8 +50,8 @@ class CasualTransactionResourcePrepareRequestMessageTest extends Specification
 
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNetworkWriter.write(sink, msg)
-        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
+        CasualMessageEncoder.write(sink, msg)
+        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
 
         then:
         networkBytes != null
@@ -100,27 +59,5 @@ class CasualTransactionResourcePrepareRequestMessageTest extends Specification
         requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
     }
-
-    def "Roundtrip message - force chunking, sync"()
-    {
-        setup:
-        def requestMsg = CasualTransactionResourcePrepareRequestMessage.of(execution, xid, resourceId, flags)
-        requestMsg.setMaxMessageSize(1)
-        CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
-        def sink = new LocalByteChannel()
-
-        when:
-        def networkBytes = msg.toNetworkBytes()
-        CasualNetworkWriter.write(sink, msg)
-        CasualNetworkReader.setMaxSingleBufferByteSize(1)
-        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> resurrectedMsg = CasualNetworkReader.read(sink)
-        CasualNetworkReader.setMaxSingleBufferByteSize(Integer.MAX_VALUE)
-        then:
-        networkBytes != null
-        networkBytes.size() > 2
-        requestMsg == resurrectedMsg.getMessage()
-        msg == resurrectedMsg
-    }
-
 
 }

@@ -9,7 +9,7 @@ import se.kodarkatten.casual.api.queue.QueueInfo;
 import se.kodarkatten.casual.api.queue.QueueMessage;
 import se.kodarkatten.casual.jca.queue.CasualQueueCaller;
 import se.kodarkatten.casual.jca.service.CasualServiceCaller;
-import se.kodarkatten.casual.network.protocol.connection.CasualConnectionException;
+import se.kodarkatten.casual.network.connection.CasualConnectionException;
 
 import java.util.List;
 import java.util.UUID;

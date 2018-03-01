@@ -5,7 +5,7 @@ import se.kodarkatten.casual.api.flags.XAFlags;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
 import se.kodarkatten.casual.api.xa.XAReturnCode;
 import se.kodarkatten.casual.api.xa.XID;
-import se.kodarkatten.casual.network.protocol.connection.CasualConnectionException;
+import se.kodarkatten.casual.network.connection.CasualConnectionException;
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage;
 import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage;

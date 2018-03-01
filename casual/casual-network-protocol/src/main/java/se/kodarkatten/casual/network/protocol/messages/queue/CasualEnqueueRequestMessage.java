@@ -1,6 +1,6 @@
 package se.kodarkatten.casual.network.protocol.messages.queue;
 
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.EnqueueRequestSizes;
@@ -41,10 +41,10 @@ public final class CasualEnqueueRequestMessage implements CasualNetworkTransmitt
         final int partialSize = EnqueueRequestSizes.EXECUTION.getNetworkSize() + EnqueueRequestSizes.NAME_SIZE.getNetworkSize() +
                                 queueNameBytes.length + XIDUtils.getXIDNetworkSize(xid);
         ByteBuffer partialContent = ByteBuffer.allocate(partialSize);
-        CasualNetworkWriterUtils.writeUUID(execution, partialContent);
+        CasualEncoderUtils.writeUUID(execution, partialContent);
         partialContent.putLong(queueNameBytes.length);
         partialContent.put(queueNameBytes);
-        CasualNetworkWriterUtils.writeXID(xid, partialContent);
+        CasualEncoderUtils.writeXID(xid, partialContent);
         List<byte[]> l = new ArrayList<>();
         l.add(partialContent.array());
         l.addAll(message.toNetworkBytes());

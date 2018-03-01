@@ -13,28 +13,17 @@ import se.kodarkatten.casual.jca.inbound.handler.InboundRequest
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse
 import se.kodarkatten.casual.jca.inbound.handler.service.ServiceHandler
 import se.kodarkatten.casual.jca.inflow.handler.test.TestHandler
-
-import se.kodarkatten.casual.network.protocol.io.CasualNetworkReader
-import se.kodarkatten.casual.network.protocol.io.LockableSocketChannel
-import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
 import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
 import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer
-import se.kodarkatten.casual.network.protocol.utils.LocalEchoSocketChannel
-
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.nio.channels.SocketChannel
 import java.nio.charset.StandardCharsets
 
 class CasualServiceCallWorkTest extends Specification
 {
-
     @Shared CasualServiceCallWork instance
-    @Shared LockableSocketChannel channel
-    @Shared SocketChannel socketChannel
-
     @Shared UUID correlationId
     @Shared CasualServiceCallRequestMessage message
 
@@ -57,9 +46,6 @@ class CasualServiceCallWorkTest extends Specification
         byte[] p = jp.toJson( methodParam ).getBytes( StandardCharsets.UTF_8 )
         payload.add( p )
         buffer = JsonBuffer.of( payload )
-
-        socketChannel = new LocalEchoSocketChannel()
-        channel = LockableSocketChannel.of( socketChannel )
 
         serialisedCall = JavaServiceCallDefinition.of( methodName, methodParam )
 

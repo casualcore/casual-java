@@ -1,13 +1,13 @@
 package se.kodarkatten.casual.network.protocol.utils
 
-import se.kodarkatten.casual.network.protocol.io.CasualNetworkReader
-import se.kodarkatten.casual.network.protocol.io.CasualNetworkWriter
+import se.kodarkatten.casual.network.protocol.decoding.CasualNetworkTestReader
+import se.kodarkatten.casual.network.protocol.encoding.CasualMessageEncoder
 
 class TestUtils
 {
     static roundtripMessage(msg, sink)
     {
-        CasualNetworkWriter.write(sink, msg)
-        CasualNetworkReader.read(sink)
+        CasualMessageEncoder.write(sink, msg)
+        CasualNetworkTestReader.read(sink)
     }
 }

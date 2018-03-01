@@ -1,6 +1,6 @@
 package se.kodarkatten.casual.network.protocol.messages.domain;
 
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.DiscoveryReplySizes;
@@ -132,8 +132,8 @@ public final class CasualDomainDiscoveryReplyMessage implements CasualNetworkTra
     {
         final List<byte[]> l = new ArrayList<>();
         final ByteBuffer b = ByteBuffer.allocate(messageSize);
-        CasualNetworkWriterUtils.writeUUID(execution, b);
-        CasualNetworkWriterUtils.writeUUID(domainId, b);
+        CasualEncoderUtils.writeUUID(execution, b);
+        CasualEncoderUtils.writeUUID(domainId, b);
         b.putLong(domainNameBytes.length);
         b.put(domainNameBytes);
         b.putLong(services.size());
@@ -150,10 +150,10 @@ public final class CasualDomainDiscoveryReplyMessage implements CasualNetworkTra
     {
         final List<byte[]> l = new ArrayList<>();
         ByteBuffer executionBuffer = ByteBuffer.allocate(DiscoveryReplySizes.EXECUTION.getNetworkSize());
-        CasualNetworkWriterUtils.writeUUID(execution, executionBuffer);
+        CasualEncoderUtils.writeUUID(execution, executionBuffer);
         l.add(executionBuffer.array());
         ByteBuffer domainIdBuffer = ByteBuffer.allocate(DiscoveryReplySizes.DOMAIN_ID.getNetworkSize());
-        CasualNetworkWriterUtils.writeUUID(domainId, domainIdBuffer);
+        CasualEncoderUtils.writeUUID(domainId, domainIdBuffer);
         l.add(domainIdBuffer.array());
         ByteBuffer domainNameSizeBuffer = ByteBuffer.allocate(DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize());
         domainNameSizeBuffer.putLong(domainNameBytes.length);

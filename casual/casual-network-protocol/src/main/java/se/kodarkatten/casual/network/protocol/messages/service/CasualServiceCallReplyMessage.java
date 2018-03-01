@@ -3,7 +3,7 @@ package se.kodarkatten.casual.network.protocol.messages.service;
 import se.kodarkatten.casual.api.flags.ErrorState;
 import se.kodarkatten.casual.api.flags.TransactionState;
 import se.kodarkatten.casual.api.xa.XID;
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.ServiceCallReplySizes;
@@ -211,10 +211,10 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     {
         List<byte[]> l = new ArrayList<>();
         ByteBuffer b = ByteBuffer.allocate(messageSize);
-        CasualNetworkWriterUtils.writeUUID(execution, b);
+        CasualEncoderUtils.writeUUID(execution, b);
         b.putInt(error.getValue())
          .putLong(userDefinedCode);
-        CasualNetworkWriterUtils.writeXID(xid, b);
+        CasualEncoderUtils.writeXID(xid, b);
         b.put((byte)(transactionState.getId() & 0xff))
          .putLong(serviceBytes.get(0).length)
          .put(serviceBytes.get(0));
@@ -231,16 +231,16 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     {
         final List<byte[]> l = new ArrayList<>();
         final ByteBuffer executionBuffer = ByteBuffer.allocate(ServiceCallReplySizes.EXECUTION.getNetworkSize());
-        CasualNetworkWriterUtils.writeUUID(execution, executionBuffer);
+        CasualEncoderUtils.writeUUID(execution, executionBuffer);
         l.add(executionBuffer.array());
-        l.add(CasualNetworkWriterUtils.writeInt(error.getValue()));
-        l.add(CasualNetworkWriterUtils.writeLong(userDefinedCode));
+        l.add(CasualEncoderUtils.writeInt(error.getValue()));
+        l.add(CasualEncoderUtils.writeLong(userDefinedCode));
         // note we put the transaction state as well here
         final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid) + ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize());
-        CasualNetworkWriterUtils.writeXID(xid, xidByteBuffer);
+        CasualEncoderUtils.writeXID(xid, xidByteBuffer);
         xidByteBuffer.put((byte)(transactionState.getId() & 0xff ));
         l.add(xidByteBuffer.array());
-        l.addAll(CasualNetworkWriterUtils.writeServiceBuffer(serviceBuffer));
+        l.addAll(CasualEncoderUtils.writeServiceBuffer(serviceBuffer));
         return l;
     }
 

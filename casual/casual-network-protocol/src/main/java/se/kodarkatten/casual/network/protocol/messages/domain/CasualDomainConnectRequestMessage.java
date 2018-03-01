@@ -1,6 +1,6 @@
 package se.kodarkatten.casual.network.protocol.messages.domain;
 
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.kodarkatten.casual.network.protocol.messages.exceptions.CasualProtocolException;
@@ -43,8 +43,8 @@ public final class CasualDomainConnectRequestMessage implements CasualNetworkTra
                           ConnectRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize() + domainNameBytes.length +
                           ConnectRequestSizes.PROTOCOL_VERSION_SIZE.getNetworkSize() + ConnectRequestSizes.PROTOCOL_ELEMENT_SIZE.getNetworkSize() * protocols.size();
         ByteBuffer b = ByteBuffer.allocate(messageSize);
-        CasualNetworkWriterUtils.writeUUID(execution, b);
-        CasualNetworkWriterUtils.writeUUID(domainId, b);
+        CasualEncoderUtils.writeUUID(execution, b);
+        CasualEncoderUtils.writeUUID(domainId, b);
         b.putLong(domainNameBytes.length)
          .put(domainNameBytes);
         b.putLong(protocols.size());

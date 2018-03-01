@@ -3,7 +3,7 @@ package se.laz.casual.network.inbound
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.EventLoop
-import se.kodarkatten.casual.network.protocol.io.CasualNetworkWriter
+import se.kodarkatten.casual.network.protocol.encoding.CasualMessageEncoder
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
 import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
 import se.laz.casual.network.utils.FakeListener
@@ -95,6 +95,6 @@ class CasualServerTest extends Specification
     def sendMsg(InetSocketAddress address, CasualNWMessageImpl<CasualDomainConnectRequestMessage> msg)
     {
         SocketChannel socketChannel = SocketChannel.open(address)
-        CasualNetworkWriter.write(socketChannel, msg)
+        CasualMessageEncoder.write(socketChannel, msg)
     }
 }

@@ -1,7 +1,7 @@
 package se.kodarkatten.casual.network.protocol.messages.queue;
 
 import se.kodarkatten.casual.api.queue.QueueMessage;
-import se.kodarkatten.casual.network.protocol.io.writers.utils.CasualNetworkWriterUtils;
+import se.kodarkatten.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.kodarkatten.casual.network.protocol.messages.parseinfo.DequeueReplySizes;
 import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer;
 
@@ -103,7 +103,7 @@ public final class DequeueMessage
         ByteBuffer partialBuffer = ByteBuffer.allocate(DequeueReplySizes.MESSAGE_ID.getNetworkSize() + DequeueReplySizes.MESSAGE_PROPERTIES_SIZE.getNetworkSize() +
                                                        DequeueReplySizes.MESSAGE_REPLY_SIZE.getNetworkSize() + DequeueReplySizes.MESSAGE_AVAILABLE_SINCE_EPOC.getNetworkSize() +
                                                        propertiesBytes.length + replyDataBytes.length);
-        CasualNetworkWriterUtils.writeUUID(getId(), partialBuffer);
+        CasualEncoderUtils.writeUUID(getId(), partialBuffer);
         partialBuffer.putLong(propertiesBytes.length);
         partialBuffer.put(propertiesBytes);
         partialBuffer.putLong(replyDataBytes.length);
@@ -112,7 +112,7 @@ public final class DequeueMessage
 
         List<byte[]> l = new ArrayList<>();
         l.add(partialBuffer.array());
-        l.addAll(CasualNetworkWriterUtils.writeServiceBuffer(payload));
+        l.addAll(CasualEncoderUtils.writeServiceBuffer(payload));
 
         ByteBuffer redeliveredAndTimestampBuffer = ByteBuffer.allocate(DequeueReplySizes.MESSAGE_REDELIVERED_COUNT.getNetworkSize() + DequeueReplySizes.MESSAGE_TIMESTAMP_SINCE_EPOC.getNetworkSize());
         redeliveredAndTimestampBuffer.putLong(getNumberOfRedelivered());
