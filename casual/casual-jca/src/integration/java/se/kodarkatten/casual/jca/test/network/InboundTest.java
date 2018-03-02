@@ -234,7 +234,7 @@ public class InboundTest
     {
         assertThat( connection.serviceExists("TestCreateOrder"), is( true )  );
         assertThat( connection.serviceExists("TestCasualEcho"), is( true )  );
-        assertThat( connection.serviceExists("TestCasualEcho2"), is( false )  );
+        assertThat( connection.serviceExists("unknown"), is( false )  );
     }
 
     private void twoPhaseCommit() throws ResourceException, XAException

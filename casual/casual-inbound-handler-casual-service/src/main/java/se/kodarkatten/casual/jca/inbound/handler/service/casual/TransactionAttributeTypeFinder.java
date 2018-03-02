@@ -14,17 +14,17 @@ public final class TransactionAttributeTypeFinder
     }
 
     /**
-     * Check the {@link CasualServiceEntry} method and service class
+     * Check the {@link CasualServiceMetaData} method and service class
      * annotations to determine which is applicable based on information
      * provided in {@link TransactionAttribute}
      * @param entry for which to find the appropriate Transaction information for.
      * @return the determined transaction type.
      */
-    public static TransactionAttributeType find( final CasualServiceEntry entry )
+    public static TransactionAttributeType find( final CasualServiceMetaData entry )
     {
-        Objects.requireNonNull( entry, "CasualServiceEntry can not be null." );
+        Objects.requireNonNull( entry, "CasualServiceMetaData can not be null." );
         return valueFromMethod( entry.getServiceMethod() )
-                    .orElseGet( ()-> valueFromClass( entry.getServiceClass() )
+                    .orElseGet( ()-> valueFromClass( entry.getImplementationClass() )
                         .orElse( TransactionAttributeType.REQUIRED )
                     );
     }

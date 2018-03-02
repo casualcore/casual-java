@@ -2,7 +2,6 @@ package se.kodarkatten.casual.jca.inbound.handler.service.casual;
 
 import se.kodarkatten.casual.api.buffer.CasualBuffer;
 import se.kodarkatten.casual.api.service.ServiceInfo;
-import se.kodarkatten.casual.api.services.CasualService;
 import se.kodarkatten.casual.internal.thread.ThreadClassLoaderTool;
 import se.kodarkatten.casual.jca.inbound.handler.HandlerException;
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest;
@@ -29,7 +28,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static se.kodarkatten.casual.jca.inbound.handler.service.casual.MethodMatcher.matches;
+import static se.kodarkatten.casual.jca.inbound.handler.service.casual.discovery.MethodMatcher.matches;
 
 @Stateless
 @Local( ServiceHandler.class )
@@ -42,18 +41,18 @@ public class CasualServiceHandler implements ServiceHandler
     @Override
     public boolean canHandleService(String serviceName)
     {
-        return CasualServiceRegistry.getInstance().hasEntry( serviceName );
+        return CasualServiceRegistry.getInstance().hasServiceMetaData( serviceName );
     }
 
     @Override
     public boolean isServiceAvailable(String serviceName)
     {
-        CasualServiceEntry entry = CasualServiceRegistry.getInstance().getEntry( serviceName );
+        CasualServiceEntry entry = CasualServiceRegistry.getInstance().getServiceEntry( serviceName );
         if( entry == null )
         {
             return false;
         }
-        String jndiName = entry.getCasualService().jndiName();
+        String jndiName = entry.getJndiName();
         try
         {
             loadService( jndiName );
@@ -69,13 +68,13 @@ public class CasualServiceHandler implements ServiceHandler
     public InboundResponse invokeService(InboundRequest request)
     {
         LOG.finest( ()->"Request received: " + request );
-        CasualServiceEntry entry = CasualServiceRegistry.getInstance().getEntry( request.getServiceName() );
+        CasualServiceEntry entry = CasualServiceRegistry.getInstance().getServiceEntry( request.getServiceName() );
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
         boolean success = true;
         CasualBuffer payload = ServiceBuffer.of( request.getBuffer().getType(), new ArrayList<>() );
         try
         {
-            Object r = loadService(entry.getCasualService().jndiName() );
+            Object r = loadService(entry.getJndiName() );
             BufferHandler bufferHandler = BufferHandlerFactory.getHandler( payload.getType() );
             tool.loadClassLoader( r );
             payload = callService( r, entry, request.getBuffer(), bufferHandler );
@@ -97,16 +96,15 @@ public class CasualServiceHandler implements ServiceHandler
     @Override
     public ServiceInfo getServiceInfo(String serviceName)
     {
-        CasualServiceEntry entry = CasualServiceRegistry.getInstance().getEntry( serviceName );
+        CasualServiceMetaData entry = CasualServiceRegistry.getInstance().getServiceMetaData( serviceName );
 
         if( entry == null )
         {
             throw new HandlerException("Service could not be found, should control with canHandle() first." );
         }
-        CasualService c = entry.getCasualService();
         TransactionAttributeType attributeType = TransactionAttributeTypeFinder.find( entry );
         TransactionType transactionType = TransactionTypeMapper.map( attributeType );
-        return ServiceInfo.of( c.name(), c.category(), transactionType );
+        return ServiceInfo.of( entry.getServiceName(), entry.getServiceCategory(), transactionType );
     }
 
     private Object loadService( String jndiName ) throws NamingException
@@ -117,13 +115,13 @@ public class CasualServiceHandler implements ServiceHandler
         return r;
     }
 
-    private CasualBuffer callService( Object r, CasualServiceEntry entry, CasualBuffer payload,BufferHandler bufferHandler ) throws Throwable
+    private CasualBuffer callService(Object r, CasualServiceEntry entry, CasualBuffer payload, BufferHandler bufferHandler ) throws Throwable
     {
         Proxy p = (Proxy)r;
 
-        ServiceCallInfo info = bufferHandler.fromBuffer( p, entry.getServiceMethod(), payload );
+        ServiceCallInfo info = bufferHandler.fromBuffer( p, entry.getProxyMethod(), payload );
 
-        Method method = info.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provided required details about the method end point." ) );
+        Method method = info.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provide required details about the method end point." ) );
         InvocationHandler handler = Proxy.getInvocationHandler( r );
         Object result;
         try
@@ -139,14 +137,14 @@ public class CasualServiceHandler implements ServiceHandler
     }
 
     /**
-     * Issue with weblogic classloaders meaning the method does not match the one we found during fielded discovery.
-     * Once the correct method is found it is saved back into the entry from the fielded registry so that next
-     * time this fielded is called the NoSuchMethodException will not occur again.
+     * Issue with weblogic classloaders meaning the method does not match the one we found during service discovery.
+     * Once the correct method is found it is saved back into the entry from the service registry so that next
+     * time this service is called the NoSuchMethodException will not occur again.
      * NoSuchMethodException never happens in wildfly so this should only be called in weblogic once for first invocation of the method.
      */
     private Object retryCallService(Proxy p, InvocationHandler handler, CasualServiceEntry entry, CasualBuffer buffer, BufferHandler bufferHandler ) throws Throwable
     {
-        Method method = entry.getServiceMethod();
+        Method method = entry.getProxyMethod();
         Method proxyMethod = Arrays.stream(p.getClass().getDeclaredMethods())
                 .filter( m-> matches( m, method ) )
                 .findFirst()

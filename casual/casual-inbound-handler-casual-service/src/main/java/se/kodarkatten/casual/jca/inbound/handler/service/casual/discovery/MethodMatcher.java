@@ -1,4 +1,4 @@
-package se.kodarkatten.casual.jca.inbound.handler.service.casual;
+package se.kodarkatten.casual.jca.inbound.handler.service.casual.discovery;
 
 import java.lang.reflect.Method;
 

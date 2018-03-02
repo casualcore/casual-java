@@ -1,5 +1,10 @@
-package se.kodarkatten.casual.jca.inbound.handler.service.casual
+package se.kodarkatten.casual.jca.inbound.handler.service.casual.discovery
 
+import se.kodarkatten.casual.jca.inbound.handler.service.casual.SimpleObject
+import se.kodarkatten.casual.jca.inbound.handler.service.casual.SimpleService
+import se.kodarkatten.casual.jca.inbound.handler.service.casual.TempTestJarTool
+import se.kodarkatten.casual.jca.inbound.handler.service.casual.TestClassLoaderTool
+import se.kodarkatten.casual.jca.inbound.handler.service.casual.discovery.MethodMatcher
 import spock.lang.Shared
 import spock.lang.Specification
 

@@ -2,7 +2,7 @@ package se.kodarkatten.casual.jca.inbound.handler.service.casual
 
 import se.kodarkatten.casual.api.buffer.type.fielded.FieldedTypeBuffer
 import se.kodarkatten.casual.api.service.ServiceInfo
-import se.kodarkatten.casual.api.services.CasualService
+import se.kodarkatten.casual.api.service.CasualService
 import se.kodarkatten.casual.jca.inbound.handler.HandlerException
 import se.kodarkatten.casual.jca.inbound.handler.InboundRequest
 import se.kodarkatten.casual.jca.inbound.handler.InboundResponse
@@ -41,8 +41,14 @@ class CasualServiceHandlerTest extends Specification
         Method method = SimpleService.getMethod( methodName, SimpleObject.class )
         CasualService service = method.getAnnotation(CasualService.class)
 
-        CasualServiceEntry s = new CasualServiceEntry( service, method, SimpleService.class )
-        CasualServiceRegistry.getInstance().services.put( casualServiceName, s )
+        CasualServiceMetaData s = CasualServiceMetaData.newBuilder()
+                .service( service )
+                .serviceMethod( method)
+                .implementationClass( SimpleService.class )
+                .build()
+        CasualServiceEntry e = CasualServiceEntry.of( casualServiceName, jndiServiceName, method )
+        CasualServiceRegistry.getInstance().register( s )
+        CasualServiceRegistry.getInstance().register( e )
 
         buffer =FieldedTypeBuffer.create().write('FLD_STRING1', methodParam )
         message = InboundRequest.of( casualServiceName, buffer )
@@ -124,7 +130,7 @@ class CasualServiceHandlerTest extends Specification
         reply.getBuffer().getBytes().isEmpty()
     }
 
-    def "Call Service get no such method exception on first invocation, tries and returns result."()
+    /*def "Call Service get no such method exception on first invocation, tries and returns result."()
     {
         given:
         File jarFile = TempTestJarTool.create( SimpleObject.class, SimpleService.class )
@@ -134,13 +140,13 @@ class CasualServiceHandlerTest extends Specification
         Method method = simpleServiceClass.getMethod( methodName, simpleObjectClass )
         CasualService service = new TestCasualService()
 
-        CasualServiceEntry s = new CasualServiceEntry( service, method, SimpleService.class )
-        CasualServiceRegistry.getInstance().services.put( casualServiceName, s )
+        CasualServiceMetaData s = new CasualServiceMetaData( service, method, SimpleService.class )
+        CasualServiceRegistry.getInstance().serviceMetaData.put( casualServiceName, s )
 
         1 * context.lookup( jndiServiceName ) >> {
             return jndiObject
         }
-        CasualServiceRegistry.getInstance().getEntry( casualServiceName ).getProxyMethod() == null
+        CasualServiceRegistry.getInstance().getServiceMetaData( casualServiceName ).getProxyMethod() == null
 
         when:
         InboundResponse reply = instance.invokeService( message )
@@ -154,8 +160,8 @@ class CasualServiceHandlerTest extends Specification
         FieldedTypeBuffer actual = FieldedTypeBuffer.create( reply.getBuffer().getBytes() )
         actual == buffer
 
-        CasualServiceRegistry.getInstance().getEntry( casualServiceName ).getProxyMethod() != null
-    }
+        CasualServiceRegistry.getInstance().getServiceMetaData( casualServiceName ).getProxyMethod() != null
+    }*/
 
     def "Call Service with buffer service throws exception return ErrorState.TPSVCERR."()
     {
@@ -247,9 +253,9 @@ class CasualServiceHandlerTest extends Specification
 
     class TestCasualService implements CasualService{
         @Override
-        public String name()
+        String name()
         {
-            return casualService
+            return casualServiceName
         }
 
 
@@ -260,12 +266,7 @@ class CasualServiceHandlerTest extends Specification
         }
 
         @Override
-        public String jndiName()
-        {
-            return jndiServiceName
-        }
-        @Override
-        public Class<? extends Annotation> annotationType()
+        Class<? extends Annotation> annotationType()
         {
             return CasualService.class
         }

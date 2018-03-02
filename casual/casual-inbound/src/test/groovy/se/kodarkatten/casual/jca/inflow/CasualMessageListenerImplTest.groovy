@@ -6,16 +6,16 @@ import se.kodarkatten.casual.api.flags.Flag
 import se.kodarkatten.casual.api.flags.XAFlags
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage
 import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType
-import se.kodarkatten.casual.api.services.CasualService
+import se.kodarkatten.casual.api.service.CasualService
 import se.kodarkatten.casual.api.xa.XAReturnCode
 import se.kodarkatten.casual.api.xa.XID
 import se.kodarkatten.casual.jca.CasualResourceAdapterException
+import se.kodarkatten.casual.jca.inbound.handler.service.casual.CasualServiceMetaData
 import se.kodarkatten.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.kodarkatten.casual.jca.inflow.work.CasualServiceCallWork
 import se.kodarkatten.casual.network.messages.domain.TransactionType
 import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
 import se.kodarkatten.casual.network.protocol.messages.domain.*
-import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
 import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer
 import se.kodarkatten.casual.network.protocol.messages.transaction.*
@@ -99,7 +99,12 @@ class CasualMessageListenerImplTest extends Specification
     def "DomainDiscoveryRequest"()
     {
         given:
-        CasualServiceRegistry.getInstance().register( new TestCasualService(), CasualMessageListenerImpl.getMethod("toString" ), CasualMessageListenerImpl.class )
+        CasualServiceMetaData metaData = CasualServiceMetaData.newBuilder()
+                .service( new TestCasualService() )
+                .serviceMethod( String.class.getMethod("toString"))
+                .implementationClass( String.class )
+                .build()
+        CasualServiceRegistry.getInstance().register( metaData )
 
         List<String> serviceNames = Arrays.asList( serviceName )
         List<Service> expectedServices = Arrays.asList( Service.of( serviceName, "mycategory", TransactionType.AUTOMATIC ) )
@@ -472,7 +477,7 @@ class CasualMessageListenerImplTest extends Specification
 
     class TestCasualService implements CasualService{
         @Override
-        public String name()
+        String name()
         {
             return serviceName
         }
@@ -484,12 +489,7 @@ class CasualMessageListenerImplTest extends Specification
         }
 
         @Override
-        public String jndiName()
-        {
-            return jndiServiceName
-        }
-        @Override
-        public Class<? extends Annotation> annotationType()
+        Class<? extends Annotation> annotationType()
         {
             return CasualService.class
         }

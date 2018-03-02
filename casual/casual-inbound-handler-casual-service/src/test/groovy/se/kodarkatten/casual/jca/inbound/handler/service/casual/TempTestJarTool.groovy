@@ -1,5 +1,7 @@
 package se.kodarkatten.casual.jca.inbound.handler.service.casual
 
+import se.kodarkatten.casual.jca.inbound.handler.service.casual.discovery.MethodMatcherTest
+
 import java.util.jar.Attributes
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream

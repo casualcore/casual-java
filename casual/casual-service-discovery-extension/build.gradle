@@ -5,8 +5,10 @@ plugins {
 }
 
 dependencies {
-  provided project(":casual:casual-fielded-annotations")
+
+  provided project(":casual:casual-api")
   provided libs.javaee_api
+
   // for spock
   testCompile libs.groovy_all
   testCompile libs.spock_core

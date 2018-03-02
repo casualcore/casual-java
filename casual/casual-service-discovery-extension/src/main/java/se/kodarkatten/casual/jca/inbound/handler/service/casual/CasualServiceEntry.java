@@ -1,51 +1,78 @@
 package se.kodarkatten.casual.jca.inbound.handler.service.casual;
 
-import se.kodarkatten.casual.api.services.CasualService;
-
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 /**
- * Created by jone on 2017-02-27.
+ * A service that has been found to exist at runtime on the application server.
  */
 public final class CasualServiceEntry
 {
-    private final CasualService service;
-
-    private final Method serviceMethod;
-
+    private final String serviceName;
+    private final String jndiName;
     private Method proxyMethod;
 
-    private final Class<?> serviceClass;
-
-    public CasualServiceEntry(CasualService service, Method serviceMethod, Class<?> serviceClass)
+    private CasualServiceEntry( String serviceName, String jndiName, Method proxyMethod )
     {
-        this.service = service;
-        this.serviceMethod = serviceMethod;
-        this.serviceClass = serviceClass;
+        this.serviceName = serviceName;
+        this.jndiName = jndiName;
+        this.proxyMethod = proxyMethod;
     }
 
-    public CasualService getCasualService()
+    public static CasualServiceEntry of( String serviceName, String jndiName, Method proxyMethod )
     {
-        return this.service;
+        return new CasualServiceEntry( serviceName, jndiName, proxyMethod );
     }
 
-    public Method getServiceMethod()
+    public String getServiceName()
     {
-        return (proxyMethod!=null)? this.proxyMethod : this.serviceMethod;
+        return serviceName;
     }
 
-    public Class<?> getServiceClass()
+    public String getJndiName()
     {
-        return this.serviceClass;
+        return jndiName;
     }
 
-    public Method getProxyMethod( )
+    public Method getProxyMethod()
     {
-        return this.proxyMethod;
+        return proxyMethod;
     }
 
-    public void setProxyMethod( Method method )
+    public void setProxyMethod( Method proxyMethod )
     {
-        this.proxyMethod = method;
+        this.proxyMethod = proxyMethod;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        CasualServiceEntry that = (CasualServiceEntry) o;
+        return Objects.equals(serviceName, that.serviceName) &&
+                Objects.equals(jndiName, that.jndiName);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(serviceName, jndiName);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "CasualServiceEntry{" +
+                "serviceName='" + serviceName + '\'' +
+                ", jndiName='" + jndiName + '\'' +
+                ", proxyMethod=" + proxyMethod +
+                '}';
     }
 }

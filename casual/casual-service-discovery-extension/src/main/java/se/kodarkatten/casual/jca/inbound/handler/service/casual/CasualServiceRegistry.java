@@ -1,50 +1,64 @@
 package se.kodarkatten.casual.jca.inbound.handler.service.casual;
 
-import se.kodarkatten.casual.api.services.CasualService;
+import se.kodarkatten.casual.api.service.CasualService;
 
-import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Created by jone on 2017-02-27.
  */
 public final class CasualServiceRegistry
 {
-    private static final Logger LOG = Logger.getLogger(CasualServiceRegistry.class.getName());
-
-    private final Map<String,CasualServiceEntry> services;
+    private final Map<String,CasualServiceMetaData> serviceMetaData;
+    private final Map<String,CasualServiceEntry> serviceEntries;
 
     private static final CasualServiceRegistry instance = new CasualServiceRegistry();
 
     private CasualServiceRegistry()
     {
-        services = new ConcurrentHashMap<>();
+        serviceMetaData = new ConcurrentHashMap<>();
+        serviceEntries = new ConcurrentHashMap<>();
     }
 
-    public static final CasualServiceRegistry getInstance()
+    public static CasualServiceRegistry getInstance()
     {
         return instance;
     }
 
-    public void register(CasualService service, Method serviceMethod, Class<?> serviceClass)
+    public void register( CasualServiceMetaData metaData )
     {
-        CasualServiceEntry registryEntry = new CasualServiceEntry(service, serviceMethod, serviceClass);
+        validateServiceMetaData(metaData);
 
-        validateServiceEntry(registryEntry);
-
-        services.put( service.name(), registryEntry );
+        serviceMetaData.put( metaData.getServiceName(), metaData );
     }
 
-    public boolean hasEntry( String name )
+    public void register( CasualServiceEntry entry )
     {
-        return services.containsKey( name );
+        serviceMetaData.get( entry.getServiceName() ).setResolvedEntry( entry );
+        serviceEntries.put( entry.getServiceName(), entry );
     }
 
-    public CasualServiceEntry getEntry( String name )
+    public boolean hasServiceMetaData(String name )
     {
-        return services.get( name );
+        return serviceMetaData.containsKey( name );
+    }
+
+    public boolean hasServiceEntry( String name )
+    {
+        return serviceEntries.containsKey( name );
+    }
+
+    public CasualServiceMetaData getServiceMetaData(String name )
+    {
+        return serviceMetaData.get( name );
+    }
+
+    public CasualServiceEntry getServiceEntry( String name )
+    {
+        return serviceEntries.get( name );
     }
 
     public void deregister( CasualService service )
@@ -52,16 +66,23 @@ public final class CasualServiceRegistry
         //TODO: listen to application destruction to remove from the map.
     }
 
-    public int size()
+    public int serviceMetaDataSize()
     {
-        return services.size();
+        return serviceMetaData.size();
+    }
+    public int serviceEntrySize()
+    {
+        return serviceEntries.size();
     }
 
-    private void validateServiceEntry(CasualServiceEntry registryEntry)
+    private void validateServiceMetaData(CasualServiceMetaData registryEntry)
     {
         //TODO: what are the validation rules?
     }
 
-
+    public List<CasualServiceMetaData> getUnresolvedServices()
+    {
+        return serviceMetaData.values().stream().filter(CasualServiceMetaData::isUnresolved).collect(Collectors.toList());
+    }
 
 }

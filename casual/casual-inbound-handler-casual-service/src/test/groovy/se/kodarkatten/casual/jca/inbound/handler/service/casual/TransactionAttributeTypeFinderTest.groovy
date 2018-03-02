@@ -1,6 +1,6 @@
 package se.kodarkatten.casual.jca.inbound.handler.service.casual
 
-import se.kodarkatten.casual.api.services.CasualService
+import se.kodarkatten.casual.api.service.CasualService
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -8,10 +8,10 @@ import javax.ejb.TransactionAttributeType
 
 class TransactionAttributeTypeFinderTest extends Specification
 {
-    @Shared CasualServiceEntry methodBasedAnnotation = createCasualEntry( MethodBasedTransactionAnnotation.class )
-    @Shared CasualServiceEntry classBasedAnnotation = createCasualEntry( ClassBasedTransactionAnnotation.class )
-    @Shared CasualServiceEntry classAndMethodBasedAnnotation = createCasualEntry( ClassAndMethodBasedTransactionAnnotation.class )
-    @Shared CasualServiceEntry noAnnotation = createCasualEntry( NoAnnotation.class )
+    @Shared CasualServiceMetaData methodBasedAnnotation = createCasualEntry( MethodBasedTransactionAnnotation.class )
+    @Shared CasualServiceMetaData classBasedAnnotation = createCasualEntry( ClassBasedTransactionAnnotation.class )
+    @Shared CasualServiceMetaData classAndMethodBasedAnnotation = createCasualEntry( ClassAndMethodBasedTransactionAnnotation.class )
+    @Shared CasualServiceMetaData noAnnotation = createCasualEntry( NoAnnotation.class )
 
     def "Casual Entry with a method based annotation returns method based value."()
     {
@@ -46,8 +46,12 @@ class TransactionAttributeTypeFinderTest extends Specification
         thrown NullPointerException.class
     }
 
-    CasualServiceEntry createCasualEntry( Class<?> classInfo )
+    CasualServiceMetaData createCasualEntry(Class<?> classInfo )
     {
-        return new CasualServiceEntry( classInfo.getAnnotation(CasualService.class), classInfo.getMethod( "someMethod" ), classInfo )
+        return CasualServiceMetaData.newBuilder()
+                .service( classInfo.getMethod( "someMethod" ).getAnnotation(CasualService.class) )
+                .serviceMethod( classInfo.getMethod( "someMethod" ) )
+                .implementationClass( classInfo )
+                .build()
     }
 }

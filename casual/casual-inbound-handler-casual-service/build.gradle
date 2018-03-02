@@ -8,6 +8,7 @@ dependencies {
   provided project(':casual:casual-api')
   implementation project(":casual:casual-internal")
   implementation project(':casual:casual-network-protocol')
+
   provided project(":casual:casual-fielded-annotations")
   implementation project(":casual:casual-inbound-handler-api")
   provided project(":casual:casual-service-discovery-extension")
