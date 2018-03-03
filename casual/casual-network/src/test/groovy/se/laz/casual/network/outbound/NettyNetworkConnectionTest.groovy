@@ -1,20 +1,20 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network.outbound
 
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.util.concurrent.Future
-import se.kodarkatten.casual.internal.jca.ManagedConnectionInvalidator
-import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
-import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
-import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
+import se.laz.casual.internal.jca.ManagedConnectionInvalidator
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
-import se.laz.casual.network.outbound.CasualMessageHandler
-import se.laz.casual.network.outbound.Correlator
-import se.laz.casual.network.outbound.CorrelatorImpl
-import se.laz.casual.network.outbound.ExceptionHandler
-import se.laz.casual.network.outbound.NettyConnectionInformation
-import se.laz.casual.network.outbound.NettyNetworkConnection
+import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
+import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
+import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import spock.lang.Shared
 import spock.lang.Specification
 

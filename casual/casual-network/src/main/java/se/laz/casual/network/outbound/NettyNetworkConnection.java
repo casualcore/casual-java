@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network.outbound;
 
 import io.netty.bootstrap.Bootstrap;
@@ -11,16 +17,16 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.Future;
-import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
-import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
-import se.kodarkatten.casual.internal.jca.ManagedConnectionInvalidator;
-import se.kodarkatten.casual.internal.network.NetworkConnection;
-import se.kodarkatten.casual.network.connection.CasualConnectionException;
-import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl;
-import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
-import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
+import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.internal.jca.ManagedConnectionInvalidator;
+import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
+import se.laz.casual.network.connection.CasualConnectionException;
+import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;

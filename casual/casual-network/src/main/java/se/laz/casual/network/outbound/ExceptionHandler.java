@@ -1,11 +1,17 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network.outbound;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import se.kodarkatten.casual.internal.jca.ManagedConnectionInvalidator;
-import se.kodarkatten.casual.network.connection.CasualConnectionException;
-import se.kodarkatten.casual.network.protocol.messages.exceptions.CasualProtocolException;
+import se.laz.casual.internal.jca.ManagedConnectionInvalidator;
 import se.laz.casual.network.CasualDecoderException;
+import se.laz.casual.network.connection.CasualConnectionException;
+import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException;
 
 import java.util.ArrayList;
 import java.util.List;

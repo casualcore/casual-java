@@ -1,7 +1,13 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network.outbound;
 
-import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
-import se.kodarkatten.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 
 import java.util.List;
 import java.util.Map;

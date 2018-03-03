@@ -1,14 +1,20 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network.utils
 
 import io.netty.channel.Channel
-import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage
-import se.kodarkatten.casual.jca.inflow.CasualMessageListener
-import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
-import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
-import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage
-import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage
-import se.kodarkatten.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage
+import se.laz.casual.api.network.protocol.messages.CasualNWMessage
+import se.laz.casual.jca.inflow.CasualMessageListener
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
+import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
+import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage
 
 import javax.resource.spi.XATerminator
 import javax.resource.spi.endpoint.MessageEndpoint

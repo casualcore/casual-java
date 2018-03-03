@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+  ~
+  ~ This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+  -->
+
 <jboss-deployment-structure>
   <deployment>
     <exports>
-      <include path="se/kodarkatten/casual/jca**"/>
+      <include path="se/laz/casual/jca**"/>
     </exports>
   </deployment>
 </jboss-deployment-structure>

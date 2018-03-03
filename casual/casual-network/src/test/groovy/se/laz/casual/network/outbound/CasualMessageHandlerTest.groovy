@@ -1,16 +1,20 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network.outbound
 
-import se.kodarkatten.casual.api.buffer.CasualBuffer
-import se.kodarkatten.casual.api.buffer.type.JsonBuffer
-import se.kodarkatten.casual.api.flags.ErrorState
-import se.kodarkatten.casual.api.flags.TransactionState
-import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage
-import se.kodarkatten.casual.api.xa.XID
-import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
-import se.kodarkatten.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
-import se.kodarkatten.casual.network.protocol.messages.service.ServiceBuffer
-import se.laz.casual.network.outbound.CasualMessageHandler
-import se.laz.casual.network.outbound.CorrelatorImpl
+import se.laz.casual.api.buffer.CasualBuffer
+import se.laz.casual.api.buffer.type.JsonBuffer
+import se.laz.casual.api.flags.ErrorState
+import se.laz.casual.api.flags.TransactionState
+import se.laz.casual.api.network.protocol.messages.CasualNWMessage
+import se.laz.casual.api.xa.XID
+import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
+import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
+import se.laz.casual.network.protocol.messages.service.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 

@@ -1,8 +1,14 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network.inbound
 
 import io.netty.channel.ChannelHandlerContext
-import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage
-import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType
+import se.laz.casual.api.network.protocol.messages.CasualNWMessage
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.network.utils.FakeListener
 import spock.lang.Shared
 import spock.lang.Specification

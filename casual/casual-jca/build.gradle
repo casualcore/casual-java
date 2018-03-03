@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 //-*- coding: utf-8 -*-
 plugins {
     id 'java'
@@ -7,8 +13,7 @@ plugins {
 
 defaultTasks 'build'
 
-group = 'se.kodarkatten.casual'
-version = '0.0.1'
+group = 'se.laz.casual'
 
 configurations {
     resourceAdapter

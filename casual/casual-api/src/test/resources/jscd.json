@@ -17,7 +17,7 @@
   "methodName": "methodnamevalue",
   "methodParamTypes": [
     "java.lang.String",
-    "se.kodarkatten.casual.api.buffer.type.fielded.json.CasualField"
+    "se.laz.casual.api.buffer.type.fielded.json.CasualField"
   ],
   "methodParams": [
     "value1",
@@ -36,7 +36,7 @@
   "methodName": "methodnamevalue",
   "methodParamTypes": [
     "java.lang.String",
-    "se.kodarkatten.casual.api.buffer.type.fielded.json.CasualField"
+    "se.laz.casual.api.buffer.type.fielded.json.CasualField"
   ],
   "methodParams": [
     "value1",

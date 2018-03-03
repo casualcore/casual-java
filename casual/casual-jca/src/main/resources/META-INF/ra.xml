@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+  ~
+  ~ This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+  -->
+
 <connector xmlns="http://xmlns.jcp.org/xml/ns/javaee"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee/connector_1_7.xsd"
            version="1.7">
   <display-name>Casual RA</display-name>
   <vendor-name>Casual</vendor-name>
@@ -10,13 +15,13 @@
   <!-- resourceadapter -->
   <resourceadapter>
     <resourceadapter-class>
-      se.kodarkatten.casual.jca.CasualResourceAdapter
+      se.laz.casual.jca.CasualResourceAdapter
     </resourceadapter-class>
     <!-- outbound configuration -->
     <outbound-resourceadapter>
       <connection-definition>
         <managedconnectionfactory-class>
-          se.kodarkatten.casual.jca.CasualManagedConnectionFactory
+          se.laz.casual.jca.CasualManagedConnectionFactory
         </managedconnectionfactory-class>
         <config-property>
           <description>
@@ -35,16 +40,16 @@
           <config-property-value>7771</config-property-value>
         </config-property>
         <connectionfactory-interface>
-            se.kodarkatten.casual.jca.CasualConnectionFactory
+            se.laz.casual.jca.CasualConnectionFactory
         </connectionfactory-interface>
         <connectionfactory-impl-class>
-          se.kodarkatten.casual.jca.CasualConnectionFactoryImpl
+          se.laz.casual.jca.CasualConnectionFactoryImpl
         </connectionfactory-impl-class>
         <connection-interface>
-            se.kodarkatten.casual.jca.CasualConnection
+            se.laz.casual.jca.CasualConnection
         </connection-interface>
         <connection-impl-class>
-          se.kodarkatten.casual.jca.CasualConnectionImpl
+          se.laz.casual.jca.CasualConnectionImpl
         </connection-impl-class>
       </connection-definition>
       <!-- adapter settings, txn level, authentication, etc -->
@@ -55,9 +60,9 @@
     <inbound-resourceadapter>
       <messageadapter>
         <messagelistener>
-          <messagelistener-type>se.kodarkatten.casual.jca.inflow.CasualMessageListener</messagelistener-type>
+          <messagelistener-type>se.laz.casual.jca.inflow.CasualMessageListener</messagelistener-type>
           <activationspec>
-            <activationspec-class>se.kodarkatten.casual.jca.inflow.CasualActivationSpec</activationspec-class>
+            <activationspec-class>se.laz.casual.jca.inflow.CasualActivationSpec</activationspec-class>
            </activationspec>
         </messagelistener>
       </messageadapter>

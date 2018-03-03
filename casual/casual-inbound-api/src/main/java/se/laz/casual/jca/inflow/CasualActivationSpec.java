@@ -1,0 +1,59 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+package se.laz.casual.jca.inflow;
+
+import javax.resource.spi.Activation;
+import javax.resource.spi.ActivationSpec;
+import javax.resource.spi.InvalidPropertyException;
+import javax.resource.spi.ResourceAdapter;
+import java.util.logging.Logger;
+
+/**
+ * CasualActivationSpec
+ *
+ * @version $Revision: $
+ */
+@Activation(messageListeners = { CasualMessageListener.class })
+public class CasualActivationSpec implements ActivationSpec
+{
+   private static Logger logger = Logger.getLogger(CasualActivationSpec.class.getName());
+   private ResourceAdapter ra;
+
+   private int port = 7772;
+
+   public int getPort()
+   {
+      return port;
+   }
+
+   public void setPort( int port )
+   {
+      this.port = port;
+   }
+
+   @Override
+   public void validate() throws InvalidPropertyException
+   {
+      logger.finest("validate()");
+
+   }
+
+   @Override
+   public ResourceAdapter getResourceAdapter()
+   {
+      logger.finest("getResourceAdapter()");
+      return ra;
+   }
+
+   @Override
+   public void setResourceAdapter(ResourceAdapter ra)
+   {
+      logger.finest("setResourceAdapter()");
+      this.ra = ra;
+   }
+
+
+}

@@ -1,11 +1,17 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network.inbound
 
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.EventLoop
-import se.kodarkatten.casual.network.protocol.encoding.CasualMessageEncoder
-import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageImpl
-import se.kodarkatten.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
+import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
+import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
 import se.laz.casual.network.utils.FakeListener
 import spock.lang.Shared
 import spock.lang.Specification

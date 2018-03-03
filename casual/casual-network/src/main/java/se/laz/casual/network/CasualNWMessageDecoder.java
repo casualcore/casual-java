@@ -1,13 +1,19 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessage;
-import se.kodarkatten.casual.network.protocol.decoding.CasualMessageDecoder;
-import se.kodarkatten.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
-import se.kodarkatten.casual.network.protocol.messages.CasualNWMessageHeader;
-import se.kodarkatten.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
+import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.network.protocol.decoding.CasualMessageDecoder;
+import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
+import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
+import se.laz.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
 
 import java.util.List;
 

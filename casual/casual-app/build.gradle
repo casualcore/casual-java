@@ -1,9 +1,16 @@
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 plugins {
   id 'ear'
   id 'java'
 }
 
-def appVersion = '0.0.1'
+// since version in ear/deploymentDescriptor is the version of application.xml
+def casualJCAVersion = version
 
 dependencies {
   deploy project( path: ':casual:casual-jca', configuration:'resourceAdapter' )
@@ -17,13 +24,11 @@ dependencies {
 
 ear{
   deploymentDescriptor{
-    applicationName = "casual-jca-app"
+    applicationName = "casual-jca-app-${casualJCAVersion}"
     initializeInOrder = true
     displayName = "Casual JCA App"
     description = "Casual implementation of JCA with outbound and inbound implementations."
-    module( "casual-jca-" + appVersion + ".rar", "connector")
+    module( "casual-jca-${casualJCAVersion}.rar", "connector")
   }
-  archiveName = "casual-jca-" + appVersion + ".ear"
+  archiveName = "casual-jca-${version}.ear"
 }
-
-

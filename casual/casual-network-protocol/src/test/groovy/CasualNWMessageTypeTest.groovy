@@ -1,4 +1,10 @@
-import se.kodarkatten.casual.api.network.protocol.messages.CasualNWMessageType
+/*
+ * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import spock.lang.Specification
 
 /**
