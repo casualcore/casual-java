@@ -111,8 +111,8 @@ public class JavaeeServiceHandler implements ServiceHandler
         ServiceCallInfo serviceCallInfo = bufferHandler.fromBuffer( p, null, payload );
 
         Method method = serviceCallInfo.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provided required details about the method end point." ) );
-        InvocationHandler handler = Proxy.getInvocationHandler( p );
-        Object result = handler.invoke( p, method, serviceCallInfo.getParams() );
+        
+        Object result = method.invoke( p, serviceCallInfo.getParams() );
 
         LOG.finest( ()-> "Result: " + result );
         return bufferHandler.toBuffer( result );

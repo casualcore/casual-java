@@ -33,7 +33,7 @@ dependencies {
     resourceAdapter project(':casual:casual-network-protocol')
     resourceAdapter project(':casual:casual-inbound-api')
 
-    testCompileOnly libs.hamcrest_all
+    testCompile libs.hamcrest_all
     // for spock
     testCompile libs.groovy_all
     testCompile libs.spock_core
@@ -43,8 +43,9 @@ dependencies {
     //Integration test.
     integrationCompile project(':casual:casual-fielded-annotations')
     integrationCompile files('../../../casual-java-testapp/test-api/build/libs/test-api.jar')
-
     integrationCompile libs.commons_io
+
+    integrationRuntime libs.gson
 }
 
 task rar(type: Jar) {

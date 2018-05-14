@@ -26,6 +26,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -127,15 +128,15 @@ public class CasualServiceHandler implements ServiceHandler
         ServiceCallInfo info = bufferHandler.fromBuffer( p, entry.getProxyMethod(), payload );
 
         Method method = info.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provide required details about the method end point." ) );
-        InvocationHandler handler = Proxy.getInvocationHandler( r );
+
         Object result;
         try
         {
-            result = handler.invoke( p, method, info.getParams() );
+            result = method.invoke( p, info.getParams() );
         }
-        catch( NoSuchMethodException e )
+        catch( IllegalArgumentException e )
         {
-            result = retryCallService( p, handler, entry, payload, bufferHandler );
+            result = retryCallService( p, entry, payload, bufferHandler );
         }
 
         return bufferHandler.toBuffer( result );
@@ -147,8 +148,9 @@ public class CasualServiceHandler implements ServiceHandler
      * time this service is called the NoSuchMethodException will not occur again.
      * NoSuchMethodException never happens in wildfly so this should only be called in weblogic once for first invocation of the method.
      */
-    private Object retryCallService(Proxy p, InvocationHandler handler, CasualServiceEntry entry, CasualBuffer buffer, BufferHandler bufferHandler ) throws Throwable
+    private Object retryCallService(Proxy p, CasualServiceEntry entry, CasualBuffer buffer, BufferHandler bufferHandler ) throws Throwable
     {
+        InvocationHandler handler = Proxy.getInvocationHandler( p );
         Method method = entry.getProxyMethod();
         Method proxyMethod = Arrays.stream(p.getClass().getDeclaredMethods())
                 .filter( m-> matches( m, method ) )

@@ -25,12 +25,13 @@ import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
 import se.laz.casual.api.xa.XAReturnCode;
 import se.laz.casual.api.xa.XID;
-import se.laz.casual.example.service.SimpleObject;
-import se.laz.casual.example.service.order.CasualOrder;
+import se.kodarkatten.casual.example.service.SimpleObject;
+import se.kodarkatten.casual.example.service.order.CasualOrder;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.jca.CasualManagedConnectionFactory;
 import se.laz.casual.jca.CasualResourceAdapter;
+
 import se.laz.casual.network.protocol.messages.service.ServiceBuffer;
 import se.laz.casual.network.protocol.utils.DummyWorkManager;
 
@@ -121,7 +122,7 @@ public class InboundTest
 
     private void callEcho( )
     {
-        String serviceName = "java:global/casual-java-testapp/SimpleService!se.laz.casual.example.service.ISimpleService";
+        String serviceName = "java:global/casual-java-testapp/SimpleService!se.kodarkatten.casual.example.service.ISimpleService";
         SimpleObject message = new SimpleObject( "Hello from the call definition." );
         JavaServiceCallDefinition callDef = JavaServiceCallDefinition.of( "echo", message );
 

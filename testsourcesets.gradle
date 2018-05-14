@@ -13,13 +13,13 @@ allprojects {
            integration{
               compileClasspath += main.output + test.output
               runtimeClasspath += main.output + test.output
-              compileClasspath += configurations.testCompile
-              runtimeClasspath += configurations.testRuntime                                     
+              compileClasspath += configurations.testCompileClasspath
+              runtimeClasspath += configurations.testRuntimeClasspath
            }
         }      
         
         task intTest( type: Test){
-           testClassesDir = sourceSets.integration.output.classesDir
+           testClassesDirs = sourceSets.integration.output.classesDirs
            classpath += sourceSets.integration.compileClasspath
            classpath += sourceSets.integration.runtimeClasspath           
            reports.html.destination = file("$reports.html.destination/../integration")
