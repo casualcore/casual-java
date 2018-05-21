@@ -12,6 +12,7 @@ import se.laz.casual.network.inbound.ConnectionInformation;
 import javax.resource.ResourceException;
 import javax.resource.spi.ActivationSpec;
 import javax.resource.spi.BootstrapContext;
+import javax.resource.spi.ConfigProperty;
 import javax.resource.spi.Connector;
 import javax.resource.spi.ResourceAdapter;
 import javax.resource.spi.ResourceAdapterInternalException;
@@ -31,8 +32,10 @@ import java.util.logging.Logger;
  * @version $Revision: $
  */
 @Connector(
-        displayName = "Casual Resource Adapter",
-        reauthenticationSupport = true,
+        displayName = "Casual RA",
+        vendorName = "Casual",
+        eisType = "Casual",
+        version = "1.0",
         transactionSupport = TransactionSupport.TransactionSupportLevel.XATransaction
 )
 public class CasualResourceAdapter implements ResourceAdapter, Serializable
@@ -46,6 +49,19 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
 
     private CasualServer server;
 
+    @ConfigProperty( defaultValue = "7772")
+    private Integer inboundServerPort;
+
+    public Integer getInboundServerPort()
+    {
+        return  inboundServerPort;
+    }
+
+    public void setInboundServerPort( Integer port )
+    {
+        this.inboundServerPort = port;
+    }
+
     public CasualResourceAdapter()
     {
         this.activations = new ConcurrentHashMap<>();
@@ -55,19 +71,20 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
     public void endpointActivation(MessageEndpointFactory endpointFactory,
                                    ActivationSpec spec) throws ResourceException
     {
-        log.info("start endpointActivation() ");
+        log.info(()->"start endpointActivation() ");
         CasualActivationSpec as = (CasualActivationSpec) spec;
+        as.setPort( getInboundServerPort() );
         ConnectionInformation ci = ConnectionInformation.createBuilder()
                                                         .withFactory(endpointFactory)
                                                         .withPort(as.getPort())
                                                         .withWorkManager(workManager)
                                                         .withXaTerminator(xaTerminator)
                                                         .build();
-        log.info("about to create server endpointActivation()");
+        log.info(()->"about to create casual inbound server");
         server = CasualServer.of(ci);
-        log.info("server created endpointActivation()");
+        log.info(()->"casual inbound server bound to port: " + ci.getPort() );
         activations.put( as.getPort(), as );
-        log.finest("endpointActivation()");
+        log.finest(()->"end endpointActivation()");
     }
 
     @Override
@@ -76,14 +93,14 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
     {
         server.close();
         activations.remove(((CasualActivationSpec)spec).getPort() );
-        log.finest("endpointDeactivation()");
+        log.finest(()->"endpointDeactivation()");
     }
 
     @Override
     public void start(BootstrapContext ctx)
             throws ResourceAdapterInternalException
     {
-        log.finest("start()");
+        log.finest(()->"start()");
         workManager = ctx.getWorkManager();
         xaTerminator = ctx.getXATerminator();
     }
@@ -91,14 +108,14 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
     @Override
     public void stop()
     {
-        log.finest("stop()");
+        log.finest(()->"stop()");
     }
 
     @Override
     public XAResource[] getXAResources(ActivationSpec[] specs)
             throws ResourceException
     {
-        log.finest("getXAResources()");
+        log.finest(()->"getXAResources()");
         return null;
     }
 

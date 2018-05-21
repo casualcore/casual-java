@@ -41,6 +41,25 @@ class CasualResourceAdapterTest extends Specification
         instance.toString().contains( "CasualResourceAdapter" )
     }
 
+    def "Get InboundServerPort property"()
+    {
+        expect:
+        instance.getInboundServerPort() == null
+    }
+
+    def "Set InboundServerPort property"()
+    {
+        given:
+        Integer port = 7774
+
+        when:
+        instance.setInboundServerPort( port )
+
+        then:
+        instance.getInboundServerPort() == port
+
+    }
+
     def "start initialises WorkManager and XATerminator from context."()
     {
         setup:
@@ -69,12 +88,14 @@ class CasualResourceAdapterTest extends Specification
         instance.start(context)
         MessageEndpointFactory factory = Mock(MessageEndpointFactory)
         CasualActivationSpec spec = new CasualActivationSpec()
-        spec.setPort(okAddress.getPort())
+        Integer port = okAddress.getPort()
+        instance.setInboundServerPort( port )
 
         when:
         instance.endpointActivation(factory, spec)
 
         then:
+        spec.getPort() == port
         instance.server.channel.isActive()
     }
 

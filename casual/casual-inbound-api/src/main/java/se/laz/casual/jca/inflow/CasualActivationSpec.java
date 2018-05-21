@@ -22,14 +22,14 @@ public class CasualActivationSpec implements ActivationSpec
    private static Logger logger = Logger.getLogger(CasualActivationSpec.class.getName());
    private ResourceAdapter ra;
 
-   private int port = 7772;
+   private Integer port;
 
-   public int getPort()
+   public Integer getPort()
    {
       return port;
    }
 
-   public void setPort( int port )
+   public void setPort( Integer port )
    {
       this.port = port;
    }
