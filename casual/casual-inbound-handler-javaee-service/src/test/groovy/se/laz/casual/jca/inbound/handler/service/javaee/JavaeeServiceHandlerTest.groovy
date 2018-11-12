@@ -10,6 +10,8 @@ import se.laz.casual.api.buffer.CasualBufferType
 import se.laz.casual.api.buffer.type.JavaServiceCallDefinition
 import se.laz.casual.api.external.json.JsonProvider
 import se.laz.casual.api.external.json.JsonProviderFactory
+import se.laz.casual.api.flags.ErrorState
+import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.service.ServiceInfo
 import se.laz.casual.jca.inbound.handler.HandlerException
 import se.laz.casual.jca.inbound.handler.InboundRequest
@@ -111,7 +113,8 @@ class JavaeeServiceHandlerTest extends Specification
             return methodParam
         }
 
-        reply.isSuccessful()
+        reply.getErrorState() == ErrorState.OK
+        reply.getTransactionState() == TransactionState.TX_ACTIVE
         String json = new String( reply.getBuffer().getBytes().get( 0 ), StandardCharsets.UTF_8 )
         jp.fromJson( json, String.class ) == methodParam
     }
@@ -131,7 +134,8 @@ class JavaeeServiceHandlerTest extends Specification
             return null
         }
 
-        reply.isSuccessful()
+        reply.getErrorState() == ErrorState.OK
+        reply.getTransactionState() == TransactionState.TX_ACTIVE
         reply.getBuffer().getBytes().isEmpty()
     }
 
@@ -151,7 +155,8 @@ class JavaeeServiceHandlerTest extends Specification
             throw new RuntimeException( exceptionMessage )
         }
 
-        !reply.isSuccessful()
+        reply.getErrorState() == ErrorState.TPESVCERR
+        reply.getTransactionState() == TransactionState.ROLLBACK_ONLY
         reply.getBuffer().getBytes().isEmpty()
     }
 
@@ -173,7 +178,8 @@ class JavaeeServiceHandlerTest extends Specification
         then:
         0 * proxyService.echo( _ )
 
-        !reply.isSuccessful()
+        reply.getErrorState() == ErrorState.TPESVCERR
+        reply.getTransactionState() == TransactionState.ROLLBACK_ONLY
         reply.getBuffer().getBytes().isEmpty()
     }
 

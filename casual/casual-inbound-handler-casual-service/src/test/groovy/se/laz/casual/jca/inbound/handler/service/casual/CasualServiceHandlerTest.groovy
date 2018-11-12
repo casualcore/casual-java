@@ -7,6 +7,8 @@
 package se.laz.casual.jca.inbound.handler.service.casual
 
 import se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer
+import se.laz.casual.api.flags.ErrorState
+import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.service.CasualService
 import se.laz.casual.api.service.ServiceInfo
 import se.laz.casual.jca.inbound.handler.HandlerException
@@ -110,7 +112,8 @@ class CasualServiceHandlerTest extends Specification
             return methodObject
         }
 
-        reply.isSuccessful()
+        reply.getErrorState() == ErrorState.OK
+        reply.getTransactionState() == TransactionState.TX_ACTIVE
 
         FieldedTypeBuffer actual = FieldedTypeBuffer.create( reply.getBuffer().getBytes() )
         actual == buffer
@@ -131,7 +134,8 @@ class CasualServiceHandlerTest extends Specification
             return null
         }
 
-        reply.isSuccessful()
+        reply.getErrorState() == ErrorState.OK
+        reply.getTransactionState() == TransactionState.TX_ACTIVE
 
         reply.getBuffer().getBytes().isEmpty()
     }
@@ -185,7 +189,8 @@ class CasualServiceHandlerTest extends Specification
             return new RuntimeException( exceptionMessage )
         }
 
-        !reply.isSuccessful()
+        reply.getErrorState() == ErrorState.TPESVCERR
+        reply.getTransactionState() == TransactionState.ROLLBACK_ONLY
     }
 
     def "CanHandleService returns true when service exists in registry without jndi lookup."()

@@ -7,6 +7,8 @@
 package se.laz.casual.jca.inbound.handler.service.javaee;
 
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.api.flags.ErrorState;
+import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.internal.thread.ThreadClassLoaderTool;
 import se.laz.casual.jca.inbound.handler.HandlerException;
@@ -63,8 +65,8 @@ public class JavaeeServiceHandler implements ServiceHandler
     {
         LOG.finest( ()->"Request received: " + request );
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
-        boolean success = true;
         CasualBuffer payload = ServiceBuffer.of( request.getBuffer().getType(), new ArrayList<>() );
+        InboundResponse.Builder responseBuilder = InboundResponse.createBuilder();
         try
         {
             Object r = loadService(request.getServiceName());
@@ -75,14 +77,16 @@ public class JavaeeServiceHandler implements ServiceHandler
         catch( Throwable e )
         {
             LOG.log( Level.WARNING, e, ()-> "Error invoking fielded: " + e.getMessage() );
-            success = false;
+            responseBuilder
+                    .errorState( ErrorState.TPESVCERR )
+                    .transactionState( TransactionState.ROLLBACK_ONLY );
         }
         finally
         {
             tool.revertClassLoader();
         }
 
-        return InboundResponse.of( success, payload );
+        return responseBuilder.buffer(payload).build();
     }
 
     @Override

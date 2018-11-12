@@ -84,19 +84,10 @@ public final class CasualServiceCallWork implements Work
             InboundResponse reply = h.invokeService( request );
             serviceResult = reply.getBuffer();
 
-            if( reply.isSuccessful() )
-            {
-                replyBuilder
-                        .setError(ErrorState.OK)
-                        .setTransactionState(TransactionState.TX_ACTIVE);
-            }
-            else
-            {
-                replyBuilder
-                        .setError( ErrorState.TPESVCERR )
-                        .setTransactionState( TransactionState.ROLLBACK_ONLY );
-                log.warning( ()->"Error occured whilst calling the service." );
-            }
+            replyBuilder
+                    .setError(reply.getErrorState())
+                    .setTransactionState(reply.getTransactionState())
+                    .setUserSuppliedError( reply.getUserSuppliedErrorCode() );
         }
         catch( ServiceHandlerNotFoundException e )
         {
