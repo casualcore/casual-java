@@ -49,4 +49,18 @@ class BufferHandlerFactoryTest extends Specification
         then:
         h.getClass() == PassThroughBufferHandler.class
     }
+
+    def "GetHandler service in the right order when multiple can handle."()
+    {
+        when:
+        BufferHandler h = BufferHandlerFactory.getHandler( bufferName )
+
+        then:
+        h.getClass() == handlerType
+
+        where:
+        bufferName            | handlerType
+        TestBufferHandler.BUFFER_COMMON  | TestBufferHandler2.class
+        TestBufferHandler2.BUFFER_COMMON | TestBufferHandler2.class
+    }
 }

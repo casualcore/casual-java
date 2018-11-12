@@ -6,6 +6,8 @@
 
 package se.laz.casual.jca.inbound.handler.service;
 
+import se.laz.casual.jca.inbound.handler.Prioritise;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +42,10 @@ public final class ServiceHandlerFactory
             return serviceHandlerCache.get( serviceName );
         }
 
-        for( ServiceHandler h: getHandlers() )
+        List<ServiceHandler> handlers = getHandlers();
+        Prioritise.highestToLowest( handlers );
+
+        for( ServiceHandler h: handlers )
         {
             if( h.canHandleService( serviceName ) )
             {

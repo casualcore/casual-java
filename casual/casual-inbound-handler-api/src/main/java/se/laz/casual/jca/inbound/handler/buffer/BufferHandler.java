@@ -7,11 +7,12 @@
 package se.laz.casual.jca.inbound.handler.buffer;
 
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.jca.inbound.handler.Prioritisable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-public interface BufferHandler
+public interface BufferHandler extends Prioritisable
 {
     boolean canHandleBuffer( String bufferType );
 

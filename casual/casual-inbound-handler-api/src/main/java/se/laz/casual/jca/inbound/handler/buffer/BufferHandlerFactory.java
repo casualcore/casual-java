@@ -6,6 +6,8 @@
 
 package se.laz.casual.jca.inbound.handler.buffer;
 
+import se.laz.casual.jca.inbound.handler.Prioritise;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +43,10 @@ public final class BufferHandlerFactory
             return bufferHandlerCache.get( bufferType );
         }
 
-        for( BufferHandler h: getHandlers() )
+        List<BufferHandler> handlers = getHandlers();
+        Prioritise.highestToLowest( handlers );
+
+        for( BufferHandler h: handlers )
         {
             if( h.canHandleBuffer( bufferType ) )
             {

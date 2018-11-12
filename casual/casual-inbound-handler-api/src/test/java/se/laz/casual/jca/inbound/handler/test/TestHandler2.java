@@ -9,16 +9,22 @@ package se.laz.casual.jca.inbound.handler.test;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
+import se.laz.casual.jca.inbound.handler.Priority;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 
 public class TestHandler2 implements ServiceHandler
 {
     public static final String SERVICE_2 = "testService2";
+    public static final String SERVICE_COMMON = "testCommonService";
 
     @Override
     public boolean canHandleService(String serviceName)
     {
         if( serviceName.equals( SERVICE_2 ) )
+        {
+            return true;
+        }
+        if( serviceName.equals( SERVICE_COMMON ) )
         {
             return true;
         }
@@ -44,4 +50,9 @@ public class TestHandler2 implements ServiceHandler
     }
 
 
+    @Override
+    public Priority getPriority()
+    {
+        return Priority.LEVEL_0;
+    }
 }

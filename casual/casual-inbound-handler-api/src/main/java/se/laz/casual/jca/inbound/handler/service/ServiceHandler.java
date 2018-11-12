@@ -9,8 +9,9 @@ package se.laz.casual.jca.inbound.handler.service;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
+import se.laz.casual.jca.inbound.handler.Prioritisable;
 
-public interface ServiceHandler
+public interface ServiceHandler extends Prioritisable
 {
     /**
      * Determine if the handler know to handle a

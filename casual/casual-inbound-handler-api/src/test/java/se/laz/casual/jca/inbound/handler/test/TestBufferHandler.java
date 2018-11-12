@@ -7,6 +7,7 @@
 package se.laz.casual.jca.inbound.handler.test;
 
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.jca.inbound.handler.Priority;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 
@@ -16,11 +17,12 @@ import java.lang.reflect.Proxy;
 public class TestBufferHandler implements BufferHandler
 {
     public static final String BUFFER_TYPE_1 = "test123";
+    public static final String BUFFER_COMMON  = "commonBuffer";
 
     @Override
     public boolean canHandleBuffer(String bufferType)
     {
-        return BUFFER_TYPE_1.equals( bufferType );
+        return BUFFER_TYPE_1.equals( bufferType ) || BUFFER_COMMON.equals( bufferType );
     }
 
     @Override
@@ -33,5 +35,11 @@ public class TestBufferHandler implements BufferHandler
     public CasualBuffer toBuffer(Object result)
     {
         return null;
+    }
+
+    @Override
+    public Priority getPriority()
+    {
+        return Priority.LEVEL_3;
     }
 }

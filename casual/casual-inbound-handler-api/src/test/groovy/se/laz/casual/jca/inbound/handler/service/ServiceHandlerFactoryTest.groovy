@@ -49,4 +49,18 @@ class ServiceHandlerFactoryTest extends Specification
         then:
         thrown ServiceHandlerNotFoundException.class
     }
+
+    def "GetHandler service in the right order when multiple can handle."()
+    {
+        when:
+        ServiceHandler h = ServiceHandlerFactory.getHandler( serviceName )
+
+        then:
+        h.getClass() == handlerType
+
+        where:
+        serviceName            | handlerType
+        TestHandler.SERVICE_COMMON  | TestHandler2.class
+        TestHandler2.SERVICE_COMMON | TestHandler2.class
+    }
 }
