@@ -69,8 +69,38 @@ class FieldedBufferHandlerTest extends Specification
         then:
         info.getMethod().get() == method
         info.getParams().length == 1
-        info.getParams()[0].getClass() == SimpleObject.class
+        info.getParams()[0] instanceof SimpleObject
         ((SimpleObject)info.getParams()[0]) == methodObject
+    }
+
+    def "fromBuffer returns service call info for CasualBuffer param."()
+    {
+        given:
+        Method m = SimpleService.getMethod( "echoBuffer", CasualBuffer.class )
+
+        when:
+        ServiceCallInfo info = instance.fromBuffer( jndiObject, m, buffer )
+
+        then:
+        info.getMethod().get() == m
+        info.getParams().length == 1
+        info.getParams()[0]  instanceof CasualBuffer
+        ((CasualBuffer)info.getParams()[0]) == buffer
+    }
+
+    def "fromBuffer returns service call info for FieldBufferType param."()
+    {
+        given:
+        Method m = SimpleService.getMethod( "echoFieldedBuffer", FieldedTypeBuffer.class )
+
+        when:
+        ServiceCallInfo info = instance.fromBuffer( jndiObject, m, buffer )
+
+        then:
+        info.getMethod().get() == m
+        info.getParams().length == 1
+        info.getParams()[0] instanceof FieldedTypeBuffer
+        ((FieldedTypeBuffer)info.getParams()[0]) == buffer
     }
 
     def "toBuffer result returns in buffer"()
@@ -95,5 +125,14 @@ class FieldedBufferHandlerTest extends Specification
         then:
         buffer.getType() == CasualBufferType.FIELDED.getName()
         buffer.getBytes().isEmpty()
+    }
+
+    def "toBuffer result is a buffer returns unaltered buffer"()
+    {
+        when:
+        CasualBuffer actual = instance.toBuffer( buffer )
+
+        then:
+        actual == buffer
     }
 }

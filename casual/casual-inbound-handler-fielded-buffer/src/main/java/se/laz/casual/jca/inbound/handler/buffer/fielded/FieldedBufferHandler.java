@@ -32,10 +32,22 @@ public class FieldedBufferHandler implements BufferHandler
     public ServiceCallInfo fromBuffer(Proxy p, Method method, CasualBuffer buffer)
     {
         FieldedTypeBuffer fieldedBuffer = FieldedTypeBuffer.create( buffer.getBytes() );
-
-        Object[] params = FieldedTypeBufferProcessor.unmarshall( fieldedBuffer, method );
+        Object[] params;
+        if( methodAcceptsBuffer( method, buffer ) )
+        {
+            params = new Object[]{ method.getParameterTypes()[0].cast( buffer ) };
+        }
+        else
+        {
+            params = FieldedTypeBufferProcessor.unmarshall(fieldedBuffer, method);
+        }
 
         return ServiceCallInfo.of( method, params );
+    }
+
+    private boolean methodAcceptsBuffer(Method method, CasualBuffer buffer )
+    {
+        return method.getParameterCount() == 1 && method.getParameterTypes()[0].isAssignableFrom( buffer.getClass() );
     }
 
     @Override
@@ -44,6 +56,11 @@ public class FieldedBufferHandler implements BufferHandler
         FieldedTypeBuffer buffer = FieldedTypeBuffer.create();
         if( result != null )
         {
+            if( result instanceof CasualBuffer )
+            {
+                return (CasualBuffer)result;
+            }
+
             buffer = FieldedTypeBufferProcessor.marshall(result);
         }
         return buffer;
