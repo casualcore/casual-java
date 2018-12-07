@@ -13,7 +13,8 @@ public enum CasualBufferType
 {
     JSON(".json/"),
     JSON_JSCD(".json/jscd"),
-    FIELDED("CFIELD/");
+    FIELDED("CFIELD/"),
+    CSTRING("CSTRING/");
     private final String name;
     CasualBufferType(final String name)
     {
