@@ -6,13 +6,18 @@
 
 package se.laz.casual.api.buffer.type.fielded
 
+import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
+import org.junit.contrib.java.lang.system.EnvironmentVariables
 
 class EncodingInfoProviderTest extends Specification
 {
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables()
+
     @Shared
     def defaultEncoding = StandardCharsets.UTF_8
     @Shared
@@ -25,7 +30,7 @@ class EncodingInfoProviderTest extends Specification
         instance = EncodingInfoProvider.of()
     }
 
-    def 'no property set, default encoding'()
+    def 'no env set, default encoding'()
     {
         when:
         def c = instance.getCharset()
@@ -33,10 +38,10 @@ class EncodingInfoProviderTest extends Specification
         c == defaultEncoding
     }
 
-    def 'property set to latin 1'()
+    def 'env set to latin 1'()
     {
         setup:
-        System.setProperty(EncodingInfoProvider.FIELDED_ENCODING_PROPERTY_NAME, latinOneEncoding.name())
+        environmentVariables.set(EncodingInfoProvider.FIELDED_ENCODING_PROPERTY_NAME, latinOneEncoding.name())
         when:
         def c = instance.getCharset()
         then:
@@ -46,7 +51,7 @@ class EncodingInfoProviderTest extends Specification
     def 'unknown charset name, should default to default encoding'()
     {
         setup:
-        System.setProperty(EncodingInfoProvider.FIELDED_ENCODING_PROPERTY_NAME, 'this is not an encoding')
+        environmentVariables.set(EncodingInfoProvider.FIELDED_ENCODING_PROPERTY_NAME, 'this is not an encoding')
         when:
         def c = instance.getCharset()
         then:

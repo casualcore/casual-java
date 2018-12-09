@@ -18,6 +18,8 @@ dependencies {
   provided libs.gson
   provided libs.objenesis
 
+  testCompile libs.system_rules
+
   // for spock
   testCompile libs.groovy_all
   testCompile libs.spock_core
