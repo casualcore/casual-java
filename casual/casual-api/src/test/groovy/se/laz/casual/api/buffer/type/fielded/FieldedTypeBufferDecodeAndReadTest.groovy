@@ -183,4 +183,24 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         r.isEmpty()
     }
 
+    def 'create with no payload'()
+    {
+        when:
+        def b = FieldedTypeBuffer.create([])
+        then:
+        noExceptionThrown()
+        b.isEmpty() == true
+    }
+
+    def 'create with 0 len byte[]'()
+    {
+        when:
+        def data = new byte[0]
+        def b = FieldedTypeBuffer.create([data])
+        then:
+        noExceptionThrown()
+        data.length == 0
+        b.isEmpty() == true
+    }
+
 }

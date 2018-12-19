@@ -46,7 +46,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
         Objects.requireNonNull(l, "buffer is not allowed to be null");
         if(l.isEmpty())
         {
-            throw new CasualFieldedLookupException("list is empty, no way to handle this");
+            return FieldedTypeBuffer.create();
         }
         return new FieldedTypeBuffer(FieldedTypeBufferDecoder.decode(l));
     }

@@ -31,10 +31,6 @@ public final class FieldedTypeBufferDecoder
         {
             parseData(m, b);
         }
-        if(m.isEmpty())
-        {
-            throw new CasualFieldedLookupException("could not parse any data, this is clearly wrong");
-        }
         return m;
     }
 
