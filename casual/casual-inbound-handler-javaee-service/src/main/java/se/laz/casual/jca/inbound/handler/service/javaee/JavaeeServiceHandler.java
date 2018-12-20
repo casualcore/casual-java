@@ -25,7 +25,6 @@ import javax.ejb.Stateless;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -72,7 +71,7 @@ public class JavaeeServiceHandler implements ServiceHandler
             Object r = loadService(request.getServiceName());
             BufferHandler bufferHandler = BufferHandlerFactory.getHandler( payload.getType() );
             tool.loadClassLoader( r );
-            payload = callService( r, request.getBuffer(), bufferHandler );
+            return callService( r, request, bufferHandler );
         }
         catch( Throwable e )
         {
@@ -108,18 +107,18 @@ public class JavaeeServiceHandler implements ServiceHandler
         return r;
     }
 
-    private CasualBuffer callService( Object r, CasualBuffer payload, BufferHandler bufferHandler ) throws Throwable
+    private InboundResponse callService( Object r, InboundRequest payload, BufferHandler bufferHandler ) throws Throwable
     {
         Proxy p = (Proxy) r;
 
-        ServiceCallInfo serviceCallInfo = bufferHandler.fromBuffer( p, null, payload );
+        ServiceCallInfo serviceCallInfo = bufferHandler.fromRequest( p, null, payload );
 
         Method method = serviceCallInfo.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provided required details about the method end point." ) );
         
         Object result = method.invoke( p, serviceCallInfo.getParams() );
 
         LOG.finest( ()-> "Result: " + result );
-        return bufferHandler.toBuffer( result );
+        return bufferHandler.toResponse( result );
     }
 
     Context getContext() throws NamingException

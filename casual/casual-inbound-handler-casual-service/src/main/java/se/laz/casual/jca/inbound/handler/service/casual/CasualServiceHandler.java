@@ -28,7 +28,6 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -85,7 +84,7 @@ public class CasualServiceHandler implements ServiceHandler
             Object r = loadService(entry.getJndiName() );
             BufferHandler bufferHandler = BufferHandlerFactory.getHandler( payload.getType() );
             tool.loadClassLoader( r );
-            payload = callService( r, entry, request.getBuffer(), bufferHandler );
+            return callService( r, entry, request, bufferHandler );
         }
         catch( Throwable e )
         {
@@ -125,11 +124,11 @@ public class CasualServiceHandler implements ServiceHandler
         return r;
     }
 
-    private CasualBuffer callService(Object r, CasualServiceEntry entry, CasualBuffer payload, BufferHandler bufferHandler ) throws Throwable
+    private InboundResponse callService(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler ) throws Throwable
     {
         Proxy p = (Proxy)r;
 
-        ServiceCallInfo info = bufferHandler.fromBuffer( p, entry.getProxyMethod(), payload );
+        ServiceCallInfo info = bufferHandler.fromRequest( p, entry.getProxyMethod(), request );
 
         Method method = info.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provide required details about the method end point." ) );
 
@@ -140,10 +139,10 @@ public class CasualServiceHandler implements ServiceHandler
         }
         catch( IllegalArgumentException e )
         {
-            result = retryCallService( p, entry, payload, bufferHandler );
+            result = retryCallService( p, entry, request, bufferHandler );
         }
 
-        return bufferHandler.toBuffer( result );
+        return bufferHandler.toResponse( result );
     }
 
     /**
@@ -152,7 +151,7 @@ public class CasualServiceHandler implements ServiceHandler
      * time this service is called the NoSuchMethodException will not occur again.
      * NoSuchMethodException never happens in wildfly so this should only be called in weblogic once for first invocation of the method.
      */
-    private Object retryCallService(Proxy p, CasualServiceEntry entry, CasualBuffer buffer, BufferHandler bufferHandler ) throws Throwable
+    private Object retryCallService(Proxy p, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler ) throws Throwable
     {
         InvocationHandler handler = Proxy.getInvocationHandler( p );
         Method method = entry.getProxyMethod();
@@ -161,7 +160,7 @@ public class CasualServiceHandler implements ServiceHandler
                 .findFirst()
                 .orElseThrow( () -> new NoSuchMethodException( "Unable to find method in proxy matching: " + method ));
         entry.setProxyMethod( proxyMethod );
-        ServiceCallInfo serviceCallInfo = bufferHandler.fromBuffer( p, proxyMethod, buffer );
+        ServiceCallInfo serviceCallInfo = bufferHandler.fromRequest( p, proxyMethod, request );
 
         Method m = serviceCallInfo.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provided required details about the method end point." ) );
 

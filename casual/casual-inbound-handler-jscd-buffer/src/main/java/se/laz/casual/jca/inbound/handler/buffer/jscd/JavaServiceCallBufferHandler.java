@@ -6,13 +6,14 @@
 
 package se.laz.casual.jca.inbound.handler.buffer.jscd;
 
-import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.CasualBufferType;
 import se.laz.casual.api.buffer.type.JavaServiceCallDefinition;
 import se.laz.casual.api.external.json.JsonProvider;
 import se.laz.casual.api.external.json.JsonProviderFactory;
 import se.laz.casual.api.external.json.impl.GsonJscdTypeAdapter;
 import se.laz.casual.jca.inbound.handler.HandlerException;
+import se.laz.casual.jca.inbound.handler.InboundRequest;
+import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.laz.casual.network.protocol.messages.service.ServiceBuffer;
@@ -38,16 +39,16 @@ public class JavaServiceCallBufferHandler implements BufferHandler
     }
 
     @Override
-    public ServiceCallInfo fromBuffer(Proxy p, Method m, CasualBuffer buffer)
+    public ServiceCallInfo fromRequest(Proxy p, Method m, InboundRequest request)
     {
-        if( buffer.getBytes().size() != 1 )
+        if( request.getBuffer().getBytes().size() != 1 )
         {
-            throw new IllegalArgumentException( "Payload size must be 1 but was " + buffer.getBytes().size() );
+            throw new IllegalArgumentException( "Payload size must be 1 but was " + request.getBuffer().getBytes().size() );
         }
 
         try
         {
-            String s = new String(buffer.getBytes().get(0), StandardCharsets.UTF_8);
+            String s = new String(request.getBuffer().getBytes().get(0), StandardCharsets.UTF_8);
             JavaServiceCallDefinition callDef = jp.fromJson(s, JavaServiceCallDefinition.class, new GsonJscdTypeAdapter());
 
             String[] methodParamTypes = callDef.getMethodParamTypes();
@@ -67,7 +68,7 @@ public class JavaServiceCallBufferHandler implements BufferHandler
     }
 
     @Override
-    public CasualBuffer toBuffer(Object result)
+    public InboundResponse toResponse(Object result)
     {
         List<byte[]> payload = new ArrayList<>();
         if( result != null )
@@ -75,6 +76,6 @@ public class JavaServiceCallBufferHandler implements BufferHandler
             payload.add(jp.toJson(result).getBytes(StandardCharsets.UTF_8));
         }
 
-        return ServiceBuffer.of( CasualBufferType.JSON_JSCD.getName(), payload );
+        return InboundResponse.createBuilder().buffer( ServiceBuffer.of( CasualBufferType.JSON_JSCD.getName(), payload ) ).build();
     }
 }

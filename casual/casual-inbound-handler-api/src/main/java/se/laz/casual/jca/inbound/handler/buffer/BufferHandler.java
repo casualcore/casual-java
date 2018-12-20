@@ -6,7 +6,8 @@
 
 package se.laz.casual.jca.inbound.handler.buffer;
 
-import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.jca.inbound.handler.InboundRequest;
+import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.Prioritisable;
 
 import java.lang.reflect.Method;
@@ -16,7 +17,7 @@ public interface BufferHandler extends Prioritisable
 {
     boolean canHandleBuffer( String bufferType );
 
-    ServiceCallInfo fromBuffer(Proxy p, Method method, CasualBuffer buffer );
+    ServiceCallInfo fromRequest(Proxy p, Method method, InboundRequest request );
 
-    CasualBuffer toBuffer( Object result );
+    InboundResponse toResponse(Object result );
 }

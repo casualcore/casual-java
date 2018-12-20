@@ -6,10 +6,11 @@
 
 package se.laz.casual.jca.inbound.handler.buffer.fielded;
 
-import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer;
 import se.laz.casual.api.service.CasualService;
 import se.laz.casual.api.service.CasualServiceJndiName;
+import se.laz.casual.jca.inbound.handler.InboundRequest;
+import se.laz.casual.jca.inbound.handler.InboundResponse;
 
 @CasualServiceJndiName("se.laz.casual.test.Service")
 public interface SimpleService
@@ -18,7 +19,7 @@ public interface SimpleService
     SimpleObject echo( SimpleObject message);
 
     @CasualService(name="TestBuffer" )
-    CasualBuffer echoBuffer( CasualBuffer message );
+    InboundResponse echoBuffer(InboundRequest message );
 
     @CasualService(name="TestFieldedBuffer" )
     FieldedTypeBuffer echoFieldedBuffer( FieldedTypeBuffer message );

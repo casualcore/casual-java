@@ -6,10 +6,11 @@
 
 package se.laz.casual.jca.inbound.handler.buffer.fielded;
 
-import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.CasualBufferType;
 import se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer;
 import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessor;
+import se.laz.casual.jca.inbound.handler.InboundRequest;
+import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 
@@ -17,6 +18,9 @@ import javax.ejb.Local;
 import javax.ejb.Stateless;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+
+import static se.laz.casual.jca.inbound.handler.buffer.DispatchMethodUtil.methodAccepts;
+import static se.laz.casual.jca.inbound.handler.buffer.DispatchMethodUtil.toMethodParams;
 
 @Stateless
 @Local(BufferHandler.class)
@@ -29,40 +33,39 @@ public class FieldedBufferHandler implements BufferHandler
     }
 
     @Override
-    public ServiceCallInfo fromBuffer(Proxy p, Method method, CasualBuffer buffer)
+    public ServiceCallInfo fromRequest(Proxy p, Method method, InboundRequest request)
     {
-        FieldedTypeBuffer fieldedBuffer = FieldedTypeBuffer.create( buffer.getBytes() );
         Object[] params;
-        if( methodAcceptsBuffer( method, buffer ) )
+        if( methodAccepts( method, request ) )
         {
-            params = new Object[]{ method.getParameterTypes()[0].cast( buffer ) };
+            params = toMethodParams( method, request );
+        }
+        else if( methodAccepts( method, request.getBuffer() ) )
+        {
+            params = toMethodParams( method, request.getBuffer() );
         }
         else
         {
+            FieldedTypeBuffer fieldedBuffer = FieldedTypeBuffer.create( request.getBuffer().getBytes() );
             params = FieldedTypeBufferProcessor.unmarshall(fieldedBuffer, method);
         }
 
         return ServiceCallInfo.of( method, params );
     }
 
-    private boolean methodAcceptsBuffer(Method method, CasualBuffer buffer )
-    {
-        return method.getParameterCount() == 1 && method.getParameterTypes()[0].isAssignableFrom( buffer.getClass() );
-    }
-
     @Override
-    public CasualBuffer toBuffer(Object result)
+    public InboundResponse toResponse(Object result)
     {
         FieldedTypeBuffer buffer = FieldedTypeBuffer.create();
         if( result != null )
         {
-            if( result instanceof CasualBuffer )
+            if( result instanceof InboundResponse )
             {
-                return (CasualBuffer)result;
+                return (InboundResponse) result;
             }
 
             buffer = FieldedTypeBufferProcessor.marshall(result);
         }
-        return buffer;
+        return InboundResponse.createBuilder().buffer(buffer).build();
     }
 }

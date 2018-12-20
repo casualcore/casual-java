@@ -9,11 +9,14 @@ package se.laz.casual.jca.inbound.handler.buffer.fielded
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.CasualBufferType
 import se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer
+import se.laz.casual.jca.inbound.handler.InboundRequest
+import se.laz.casual.jca.inbound.handler.InboundResponse
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 
@@ -61,10 +64,12 @@ class FieldedBufferHandlerTest extends Specification
         CasualBufferType.JSON_JSCD | false
     }
 
-    def "fromBuffer returns service call info"()
+    def "fromRequest returns service call info"()
     {
+        given:
+        InboundRequest request = InboundRequest.of( methodName, buffer )
         when:
-        ServiceCallInfo info = instance.fromBuffer( jndiObject, method, buffer )
+        ServiceCallInfo info = instance.fromRequest( jndiObject, method, request )
 
         then:
         info.getMethod().get() == method
@@ -73,28 +78,30 @@ class FieldedBufferHandlerTest extends Specification
         ((SimpleObject)info.getParams()[0]) == methodObject
     }
 
-    def "fromBuffer returns service call info for CasualBuffer param."()
+    def "fromRequest returns service call info for InboundRequest param."()
     {
         given:
-        Method m = SimpleService.getMethod( "echoBuffer", CasualBuffer.class )
+        InboundRequest request = InboundRequest.of( "echoBuffer", buffer )
+        Method m = SimpleService.getMethod( "echoBuffer", InboundRequest.class )
 
         when:
-        ServiceCallInfo info = instance.fromBuffer( jndiObject, m, buffer )
+        ServiceCallInfo info = instance.fromRequest( jndiObject, m, request )
 
         then:
         info.getMethod().get() == m
         info.getParams().length == 1
-        info.getParams()[0]  instanceof CasualBuffer
-        ((CasualBuffer)info.getParams()[0]) == buffer
+        info.getParams()[0]  instanceof InboundRequest
+        ((InboundRequest)info.getParams()[0]) == request
     }
 
-    def "fromBuffer returns service call info for FieldBufferType param."()
+    def "fromRequest returns service call info for FieldBufferType param."()
     {
         given:
+        InboundRequest request = InboundRequest.of( "echoFieldedBuffer", buffer )
         Method m = SimpleService.getMethod( "echoFieldedBuffer", FieldedTypeBuffer.class )
 
         when:
-        ServiceCallInfo info = instance.fromBuffer( jndiObject, m, buffer )
+        ServiceCallInfo info = instance.fromRequest( jndiObject, m, request )
 
         then:
         info.getMethod().get() == m
@@ -103,13 +110,13 @@ class FieldedBufferHandlerTest extends Specification
         ((FieldedTypeBuffer)info.getParams()[0]) == buffer
     }
 
-    def "toBuffer result returns in buffer"()
+    def "toResponse result returns in response buffer"()
     {
         setup:
         SimpleObject result = SimpleObject.of( "hello" )
 
         when:
-        CasualBuffer buffer = instance.toBuffer( result )
+        CasualBuffer buffer = instance.toResponse( result ).getBuffer()
 
         then:
         buffer.getType() == CasualBufferType.FIELDED.getName()
@@ -117,22 +124,25 @@ class FieldedBufferHandlerTest extends Specification
         ((FieldedTypeBuffer)buffer).peek( "FLD_STRING1" ).get().getData(String.class) == "hello"
     }
 
-    def "toBuffer result is null returns empty buffer"()
+    def "toResponse result is null returns response with empty buffer"()
     {
         when:
-        CasualBuffer buffer = instance.toBuffer( null )
+        CasualBuffer buffer = instance.toResponse( null ).getBuffer()
 
         then:
         buffer.getType() == CasualBufferType.FIELDED.getName()
         buffer.getBytes().isEmpty()
     }
 
-    def "toBuffer result is a buffer returns unaltered buffer"()
+    def "toResponse result is a response returns unaltered response"()
     {
+        given:
+        InboundResponse response = InboundResponse.createBuilder().buffer( buffer ).build()
+
         when:
-        CasualBuffer actual = instance.toBuffer( buffer )
+        InboundResponse actual = instance.toResponse( response )
 
         then:
-        actual == buffer
+        actual == response
     }
 }

@@ -6,10 +6,16 @@
 
 package se.laz.casual.jca.inbound.handler.buffer;
 
+import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.jca.inbound.handler.InboundRequest;
+import se.laz.casual.jca.inbound.handler.InboundResponse;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+
+import static se.laz.casual.jca.inbound.handler.buffer.DispatchMethodUtil.methodAccepts;
+import static se.laz.casual.jca.inbound.handler.buffer.DispatchMethodUtil.toMethodParams;
 
 /**
  * Pass Through Buffer Handler to facilitate dispatch
@@ -24,14 +30,32 @@ public class PassThroughBufferHandler implements BufferHandler
     }
 
     @Override
-    public ServiceCallInfo fromBuffer(Proxy p, Method method, CasualBuffer buffer)
+    public ServiceCallInfo fromRequest(Proxy p, Method method, InboundRequest request)
     {
-        return ServiceCallInfo.of( method, new Object[]{buffer} );
+        Object[] params;
+
+        if( methodAccepts( method, request ) )
+        {
+            params = toMethodParams( method, request );
+        }
+        else if( methodAccepts( method, request.getBuffer() ) )
+        {
+            params = toMethodParams( method, request.getBuffer() );
+        }
+        else
+        {
+            throw new CasualRuntimeException("Unable to perform passthrough as dispatch method does not accept required parameter.");
+        }
+        return ServiceCallInfo.of( method, params );
     }
 
     @Override
-    public CasualBuffer toBuffer(Object result)
+    public InboundResponse toResponse(Object result)
     {
-        return (CasualBuffer)result;
+        if( result instanceof InboundResponse )
+        {
+            return (InboundResponse) result;
+        }
+        return InboundResponse.createBuilder().buffer( (CasualBuffer)result).build();
     }
 }

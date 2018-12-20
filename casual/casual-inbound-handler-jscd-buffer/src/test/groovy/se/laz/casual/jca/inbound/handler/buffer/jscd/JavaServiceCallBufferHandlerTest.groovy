@@ -12,6 +12,8 @@ import se.laz.casual.api.buffer.type.JavaServiceCallDefinition
 import se.laz.casual.api.external.json.JsonProvider
 import se.laz.casual.api.external.json.JsonProviderFactory
 import se.laz.casual.jca.inbound.handler.HandlerException
+import se.laz.casual.jca.inbound.handler.InboundRequest
+import se.laz.casual.jca.inbound.handler.InboundResponse
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo
 import se.laz.casual.network.protocol.messages.service.ServiceBuffer
 import spock.lang.Shared
@@ -75,10 +77,13 @@ class JavaServiceCallBufferHandlerTest extends Specification
         CasualBufferType.FIELDED | false
     }
 
-    def "fromBuffer returns serviceinfo."()
+    def "fromRequest returns serviceinfo."()
     {
+        given:
+        InboundRequest request = InboundRequest.of( methodName, buffer )
+
         when:
-        ServiceCallInfo info = instance.fromBuffer( jndiObject, null, buffer )
+        ServiceCallInfo info = instance.fromRequest( jndiObject, null, request )
 
         then:
         info.getMethod().get() == jndiObject.getClass().getMethod( methodName, String.class )
@@ -86,21 +91,23 @@ class JavaServiceCallBufferHandlerTest extends Specification
         info.getParams()[0] == methodParam
     }
 
-    def "fromBuffer multi payload throws exception"()
+    def "fromRequest multi payload throws exception"()
     {
         setup:
         payload.add( json.getBytes( StandardCharsets.UTF_8 ) )
 
         buffer = ServiceBuffer.of(CasualBufferType.JSON_JSCD.getName(), payload )
 
+        InboundRequest request = InboundRequest.of( methodName, buffer )
+
         when:
-        instance.fromBuffer( jndiObject, null, buffer )
+        instance.fromRequest( jndiObject, null, request )
 
         then:
         thrown IllegalArgumentException
     }
 
-    def "fromBuffer method not found throws ServiceHandlerException"()
+    def "fromRequest method not found throws ServiceHandlerException"()
     {
         setup:
         serialisedCall = JavaServiceCallDefinition.of( "unknown", methodParam )
@@ -110,36 +117,38 @@ class JavaServiceCallBufferHandlerTest extends Specification
 
         buffer = ServiceBuffer.of(CasualBufferType.JSON_JSCD.getName(), payload )
 
+        InboundRequest request = InboundRequest.of( methodName, buffer )
+
         when:
-        instance.fromBuffer( jndiObject, null, buffer )
+        instance.fromRequest( jndiObject, null, request )
 
         then:
         thrown HandlerException
     }
 
-    def "toBuffer returns result as CasualBuffer"()
+    def "toResponse returns result response with buffer as CasualBuffer"()
     {
         setup:
         String result = "hello"
         String expected = '"hello"'
 
         when:
-        CasualBuffer actual = instance.toBuffer( result )
-        String payload = new String( actual.getBytes().get( 0 ), StandardCharsets.UTF_8 )
+        InboundResponse actual = instance.toResponse( result )
+        String payload = new String( actual.getBuffer().getBytes().get( 0 ), StandardCharsets.UTF_8 )
 
         then:
-        actual.getType() == CasualBufferType.JSON_JSCD.getName()
+        actual.getBuffer().getType() == CasualBufferType.JSON_JSCD.getName()
         payload == expected
     }
 
-    def "toBuffer null result returns empty buffer"()
+    def "toResponse null result returns response with empty buffer"()
     {
         when:
-        CasualBuffer actual = instance.toBuffer( null )
+        InboundResponse actual = instance.toResponse( null )
 
         then:
-        actual.getType() == CasualBufferType.JSON_JSCD.getName()
-        actual.getBytes().isEmpty()
+        actual.getBuffer().getType() == CasualBufferType.JSON_JSCD.getName()
+        actual.getBuffer().getBytes().isEmpty()
     }
 
 }
