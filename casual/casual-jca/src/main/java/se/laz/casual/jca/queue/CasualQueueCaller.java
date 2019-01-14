@@ -93,7 +93,7 @@ public class CasualQueueCaller implements CasualQueueApi
                                                                                 .withQueueName(qinfo.getCompositeName())
                                                                                 .withSelectorProperties(selector.getSelector())
                                                                                 .withSelectorUUID(selector.getSelectorId())
-                                                                                .withBlock(false)
+                                                                                .withBlock(qinfo.getOptions().isBlocking())
                                                                                 .build();
         CasualNWMessage<CasualDequeueRequestMessage> networkRequestMessage = CasualNWMessageImpl.of(corrid, requestMessage);
         CompletableFuture<CasualNWMessage<CasualDequeueReplyMessage>> networkReplyMessageFuture = connection.getNetworkConnection().request(networkRequestMessage);
