@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  */
 @ConnectionFactoryDefinition(name = "java:/eis/CasualConnectionFactory",
         interfaceName = "se.laz.casual.jca.CasualConnectionFactory",
-        resourceAdapter = "se.laz.casual.jca.CasualResourceAdapter",
+        resourceAdapter = "#casual-jca",
         description = "Casual Middleware Resource Adaptter with XA",
         transactionSupport = TransactionSupport.TransactionSupportLevel.XATransaction)
 public class CasualConnectionFactoryImpl implements CasualConnectionFactory

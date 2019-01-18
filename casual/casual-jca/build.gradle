@@ -49,6 +49,7 @@ dependencies {
 }
 
 task rar(type: Jar) {
+    archiveName = "casual-jca.rar"
     manifest {
         attributes 'Implementation-Title': 'Casual Resource Adapter with XA', 'Implementation-Version': '1.0', 'Specification-Version': '1.0'
     }
@@ -62,6 +63,7 @@ task rar(type: Jar) {
     into('') {
         from sourceSets.main.resources
     }
+
 }
 
 artifacts.add( "resourceAdapter", rar )

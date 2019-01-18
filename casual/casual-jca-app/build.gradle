@@ -28,7 +28,7 @@ ear{
     initializeInOrder = true
     displayName = "Casual JCA App"
     description = "Casual implementation of JCA with outbound and inbound implementations."
-    module( "casual-jca-${casualJCAVersion}.rar", "connector")
+    module( "casual-jca.rar", "connector")
   }
-  archiveName = "casual-jca-${version}.ear"
+  archiveName = "casual-jca-app-${casualJCAVersion}.ear"
 }
