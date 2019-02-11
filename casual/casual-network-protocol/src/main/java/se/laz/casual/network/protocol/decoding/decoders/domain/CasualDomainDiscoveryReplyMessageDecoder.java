@@ -13,7 +13,7 @@ import se.laz.casual.network.protocol.decoding.decoders.utils.DynamicArrayIndexP
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.Queue;
 import se.laz.casual.network.protocol.messages.domain.Service;
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryReplySizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 

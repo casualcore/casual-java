@@ -22,7 +22,7 @@ import se.laz.casual.jca.inbound.handler.service.ServiceHandler
 import se.laz.casual.jca.inflow.handler.test.TestHandler
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 

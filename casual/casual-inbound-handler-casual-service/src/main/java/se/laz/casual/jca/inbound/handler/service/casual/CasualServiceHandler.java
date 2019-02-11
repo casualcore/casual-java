@@ -19,7 +19,7 @@ import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.network.messages.domain.TransactionType;
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 
 import javax.ejb.Local;
 import javax.ejb.Stateless;

@@ -9,7 +9,7 @@ package se.laz.casual.jca.inbound.handler
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll

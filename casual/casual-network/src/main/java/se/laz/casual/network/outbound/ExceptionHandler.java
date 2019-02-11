@@ -11,7 +11,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import se.laz.casual.internal.jca.ManagedConnectionInvalidator;
 import se.laz.casual.network.CasualDecoderException;
 import se.laz.casual.network.connection.CasualConnectionException;
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 
 import java.util.ArrayList;
 import java.util.List;

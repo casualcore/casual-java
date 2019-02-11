@@ -9,7 +9,7 @@ package se.laz.casual.network.protocol.decoding.decoders;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
 
 import java.nio.ByteBuffer;

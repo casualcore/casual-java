@@ -9,7 +9,7 @@ package se.laz.casual.network.protocol.messages.queue;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.EnqueueRequestSizes;
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

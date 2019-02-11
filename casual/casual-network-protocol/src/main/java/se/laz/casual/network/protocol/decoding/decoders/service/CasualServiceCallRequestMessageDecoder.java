@@ -13,7 +13,7 @@ import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallRequestSizes;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 import se.laz.casual.network.protocol.utils.XIDUtils;
 

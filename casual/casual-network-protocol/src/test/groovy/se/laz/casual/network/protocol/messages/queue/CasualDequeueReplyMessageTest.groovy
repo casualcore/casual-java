@@ -8,7 +8,7 @@ package se.laz.casual.network.protocol.messages.queue
 
 import se.laz.casual.api.queue.QueueMessage
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
 import spock.lang.Shared

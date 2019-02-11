@@ -4,14 +4,14 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.network.protocol.messages.service;
+package se.laz.casual.api.buffer.type;
 
 /**
  * Created by aleph on 2017-03-15.
  */
 
 import se.laz.casual.api.buffer.CasualBuffer;
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;

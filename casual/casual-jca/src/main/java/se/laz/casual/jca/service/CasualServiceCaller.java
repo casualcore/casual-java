@@ -22,7 +22,7 @@ import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReque
 import se.laz.casual.network.protocol.messages.domain.Service;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 
 import java.util.Arrays;
 import java.util.UUID;

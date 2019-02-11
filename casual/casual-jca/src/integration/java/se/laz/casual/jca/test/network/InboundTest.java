@@ -32,7 +32,7 @@ import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.jca.CasualManagedConnectionFactory;
 import se.laz.casual.jca.CasualResourceAdapter;
 
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.network.protocol.utils.DummyWorkManager;
 
 import javax.resource.ResourceException;
@@ -270,6 +270,29 @@ public class InboundTest
         String gid = Integer.toString( ThreadLocalRandom.current().nextInt() );
         String b = Integer.toString( ThreadLocalRandom.current().nextInt() );
         return XID.of(gid.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8), 0);
+    }
+
+    @Test
+    public void callRemoteTestEcho(  )
+    {
+        String serviceName = "RemoteTestEcho";
+        CasualOrder message = new CasualOrder( );
+        message.setId( 123 );
+        message.setVersion( 1 );
+        message.setProduct( "New fielded product." );
+        FieldedTypeBuffer buffer = FieldedTypeBufferProcessor.marshall( message );
+
+        CasualBuffer msg = buffer;
+
+        ServiceReturn<CasualBuffer> reply = connection.tpcall(serviceName, msg, Flag.of(AtmiFlags.NOFLAG));
+
+        assertThat(reply.getServiceReturnState(), is(equalTo(ServiceReturnState.TPSUCCESS)));
+
+        CasualOrder actual = FieldedTypeBufferProcessor.unmarshall(FieldedTypeBuffer.create(reply.getReplyBuffer().getBytes()), CasualOrder.class);
+
+        assertThat(actual.getId(), is( equalTo( 123 ) ) );
+        assertThat(actual.getVersion(), is( equalTo( 1 ) ) );
+        assertThat(actual.getProduct(), is(equalTo(message.getProduct())));
     }
 
     public class TestBootstrapContext implements BootstrapContext

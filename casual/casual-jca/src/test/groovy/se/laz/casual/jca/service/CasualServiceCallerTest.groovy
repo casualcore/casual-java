@@ -21,10 +21,10 @@ import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.laz.casual.network.protocol.messages.domain.Service
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 

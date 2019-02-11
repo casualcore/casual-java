@@ -17,7 +17,7 @@ import se.laz.casual.jca.inbound.handler.HandlerException
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
 import se.laz.casual.network.messages.domain.TransactionType
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 

@@ -7,7 +7,7 @@
 package se.laz.casual.network.protocol.messages.domain
 
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
 import spock.lang.Shared

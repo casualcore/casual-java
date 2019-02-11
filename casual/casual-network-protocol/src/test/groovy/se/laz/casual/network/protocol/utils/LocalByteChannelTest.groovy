@@ -10,7 +10,7 @@ import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import spock.lang.Shared
 import spock.lang.Specification
 

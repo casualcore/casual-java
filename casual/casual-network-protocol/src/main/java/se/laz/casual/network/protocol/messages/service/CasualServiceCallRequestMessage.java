@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.service;
 
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;

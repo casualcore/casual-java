@@ -8,7 +8,7 @@ package se.laz.casual.network.protocol.encoding.utils;
 
 import se.laz.casual.api.xa.XIDFormatType;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 import se.laz.casual.network.protocol.utils.XIDUtils;
 

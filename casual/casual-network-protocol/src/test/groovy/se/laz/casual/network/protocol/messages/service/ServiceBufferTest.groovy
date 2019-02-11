@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.service
 
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll

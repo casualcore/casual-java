@@ -6,7 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.domain;
 
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryReplySizes;
 
 import java.nio.ByteBuffer;

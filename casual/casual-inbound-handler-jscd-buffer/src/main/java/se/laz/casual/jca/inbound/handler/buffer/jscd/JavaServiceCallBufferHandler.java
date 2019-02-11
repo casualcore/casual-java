@@ -16,7 +16,7 @@ import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 
 import javax.ejb.Local;
 import javax.ejb.Stateless;

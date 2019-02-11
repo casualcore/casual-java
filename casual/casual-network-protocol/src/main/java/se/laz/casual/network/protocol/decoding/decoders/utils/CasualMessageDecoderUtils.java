@@ -9,9 +9,9 @@ package se.laz.casual.network.protocol.decoding.decoders.utils;
 import se.laz.casual.api.util.Pair;
 import se.laz.casual.api.xa.XID;
 import se.laz.casual.api.xa.XIDFormatType;
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
-import se.laz.casual.network.protocol.messages.service.ServiceBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import javax.transaction.xa.Xid;

@@ -6,7 +6,7 @@
 
 package se.laz.casual.network.protocol.utils
 
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousByteChannel

@@ -8,7 +8,7 @@ package se.laz.casual.network.protocol.utils;
 
 import se.laz.casual.api.xa.XID;
 import se.laz.casual.api.xa.XIDFormatType;
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;

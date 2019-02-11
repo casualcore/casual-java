@@ -9,7 +9,7 @@ package se.laz.casual.network.protocol.decoding.decoders.domain;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.protocol.messages.parseinfo.ConnectRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 

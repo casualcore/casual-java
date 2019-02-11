@@ -7,7 +7,7 @@
 package se.laz.casual.network.protocol.messages;
 
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
-import se.laz.casual.network.protocol.messages.exceptions.CasualProtocolException;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
 
 import java.nio.ByteBuffer;
