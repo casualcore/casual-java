@@ -6,7 +6,9 @@
 
 package se.laz.casual.api.buffer.type.fielded;
 
-public interface FieldedData<T>
+import java.io.Serializable;
+
+public interface FieldedData<T> extends Serializable
 {
     T getData();
 

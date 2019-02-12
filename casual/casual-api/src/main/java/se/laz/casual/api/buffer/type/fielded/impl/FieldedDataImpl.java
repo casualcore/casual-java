@@ -14,6 +14,8 @@ import java.util.Objects;
 
 public final class FieldedDataImpl<T> implements FieldedData<T>
 {
+    private static final long serialVersionUID = 1L;
+
     private final T v;
     private final FieldType type;
     private FieldedDataImpl(final T v, FieldType t)
