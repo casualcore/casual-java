@@ -23,3 +23,6 @@ This is the network protocol implementation
 ## Casual JCA
 
 This is the JCA ResourceAdapter
+
+## Further information
+[Deployment](deployment.md)
