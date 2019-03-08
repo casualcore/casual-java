@@ -10,6 +10,9 @@ import se.laz.casual.api.buffer.type.fielded.FieldType;
 
 import java.util.Objects;
 
+/**
+ * A casual field
+ */
 public final class CasualField
 {
     private final String name;
@@ -25,22 +28,38 @@ public final class CasualField
         this.fieldtype = fieldtype;
     }
 
+    /**
+     * Create a casual field
+     * @param realId the real id
+     * @param name the name
+     * @param t the field type
+     * @return a CasualField
+     */
     public static CasualField of(long realId, final String name, FieldType t)
     {
         Objects.requireNonNull(name, "name is not allowed to be null");
         return new CasualField(realId, name, t);
     }
 
+    /**
+     * @return the name
+     */
     public String getName()
     {
         return name;
     }
 
+    /**
+     * @return the type
+     */
     public FieldType getType()
     {
         return fieldtype;
     }
 
+    /**
+     * @return the real id
+     */
     public long getRealId()
     {
         return realId;

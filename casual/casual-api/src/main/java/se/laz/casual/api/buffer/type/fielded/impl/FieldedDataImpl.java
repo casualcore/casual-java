@@ -12,6 +12,10 @@ import se.laz.casual.api.buffer.type.fielded.FieldedData;
 import java.util.Arrays;
 import java.util.Objects;
 
+/**
+ * Implementation of {@link FieldedData}
+ * @param <T> the type
+ */
 public final class FieldedDataImpl<T> implements FieldedData<T>
 {
     private static final long serialVersionUID = 1L;
@@ -23,6 +27,14 @@ public final class FieldedDataImpl<T> implements FieldedData<T>
         this.v = v;
         this.type = t;
     }
+
+    /**
+     * Creates an instance
+     * @param v the value
+     * @param t the field type
+     * @param <T> the type
+     * @return a new instance
+     */
     public static <T> FieldedDataImpl<T> of(final T v, FieldType t)
     {
         Objects.requireNonNull(v, "value is not allowed to be null");

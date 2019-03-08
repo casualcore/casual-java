@@ -9,6 +9,9 @@ package se.laz.casual.api.queue;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Message selector for selecting message from a queue
+ */
 public final class MessageSelector
 {
     private final String selector;
@@ -19,6 +22,12 @@ public final class MessageSelector
         this.selectorId = selectorId;
     }
 
+    /**
+     * Create an MessageSelector instance
+     * @param selector the selector
+     * @param selectorId the id
+     * @return a MessageSelector
+     */
     public static MessageSelector of(final String selector, final UUID selectorId)
     {
         Objects.requireNonNull(selector, "selector is not allowed to be null");
@@ -28,28 +37,46 @@ public final class MessageSelector
 
     /**
      * Creates a null selector
-     * @return
+     * @return a MessageSelector
      */
     public static MessageSelector of()
     {
         return of("", new UUID(0,0));
     }
 
+    /**
+     * Creates a selector only using a {@link String} selector
+     * @param selector the selector string
+     * @return a MessageSelector
+     */
     public static MessageSelector of(final String selector)
     {
         return of(selector, new UUID(0,0));
     }
 
+    /**
+     * Creates a selector only using a {@link UUID} selector
+     * @param selectorId the selector id
+     * @return a MessageSelector
+     */
     public static MessageSelector of(final UUID selectorId)
     {
         return of("", selectorId);
     }
 
+    /**
+     * Get the selector
+     * @return the selector
+     */
     public String getSelector()
     {
         return selector;
     }
 
+    /**
+     * Get the selector id
+     * @return the selector id
+     */
     public UUID getSelectorId()
     {
         return selectorId;

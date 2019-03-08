@@ -6,6 +6,9 @@
 
 package se.laz.casual.api;
 
+/**
+ * The base exception for all known exceptions thrown by casual-java
+ */
 public class CasualRuntimeException extends RuntimeException
 {
     private static final long serialVersionUID = 1L;

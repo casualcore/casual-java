@@ -8,13 +8,26 @@ package se.laz.casual.api.buffer.type.fielded.json;
 
 import java.util.List;
 
+/**
+ * Representation of a fielded JSON object
+ */
 public final class CasualFielded
 {
     private final List<CasualFieldGroup> groups;
+
+    /**
+     * Create the instance
+     * @param groups the groups
+     */
     public CasualFielded(final List<CasualFieldGroup> groups)
     {
         this.groups = groups;
     }
+
+    /**
+     * Get the groups
+     * @return a list with the groups
+     */
     public List<CasualFieldGroup> getGroups()
     {
         return groups;

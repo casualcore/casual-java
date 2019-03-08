@@ -7,6 +7,7 @@
 package se.laz.casual.api.flags;
 
 /**
+ * The state of a service call
  * @author jone
  */
 public enum ServiceReturnState

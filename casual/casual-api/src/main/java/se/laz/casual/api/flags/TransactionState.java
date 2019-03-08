@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * The transaction state
  * Created by aleph on 2017-03-21.
  */
 public enum TransactionState

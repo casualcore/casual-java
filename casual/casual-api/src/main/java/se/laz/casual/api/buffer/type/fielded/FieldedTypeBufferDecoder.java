@@ -18,11 +18,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The{@link FieldedTypeBuffer} decoder
+ */
 public final class FieldedTypeBufferDecoder
 {
     private FieldedTypeBufferDecoder()
     {}
 
+    /**
+     * Decodes the data
+     * @param l - the encoded data
+     * @return the decoded data
+     */
     @SuppressWarnings("squid:S1452")
     public static Map<String, List<FieldedData<?>>> decode(final List<byte[]> l)
     {

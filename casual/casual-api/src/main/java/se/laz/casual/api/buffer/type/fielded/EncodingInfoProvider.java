@@ -12,6 +12,10 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Provides the encoding information for encoding/decoding strings
+ * Defaults to UTF-8 but can be set via the environment variable {@code casual.api.fielded.encoding}
+ */
 public class EncodingInfoProvider
 {
     private static final Logger log = Logger.getLogger(EncodingInfoProvider.class.getName());
@@ -19,11 +23,17 @@ public class EncodingInfoProvider
     private EncodingInfoProvider()
     {}
 
+    /**
+     * @return creates a new EncodingInfoProvider
+     */
     public static EncodingInfoProvider of()
     {
         return new EncodingInfoProvider();
     }
 
+    /**
+     * @return the charset to use for string encoding/decoding
+     */
     public Charset getCharset()
     {
         final String name = getEncoding().orElse(StandardCharsets.UTF_8.name());
@@ -40,6 +50,9 @@ public class EncodingInfoProvider
         return c;
     }
 
+    /**
+     * @return the name of the encoding to use if set via the environment variable
+     */
     public static Optional<String> getEncoding()
     {
         return Optional.ofNullable(System.getenv(FIELDED_ENCODING_PROPERTY_NAME));

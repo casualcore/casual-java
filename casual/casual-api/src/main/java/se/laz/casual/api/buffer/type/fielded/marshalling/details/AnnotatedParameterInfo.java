@@ -25,29 +25,20 @@ public final class AnnotatedParameterInfo extends ParameterInfo
 {
     private final CasualFieldElement annotation;
     private final Optional<ParameterizedType> parameterizedType;
-    public AnnotatedParameterInfo(final CasualFieldElement annotation, final Class<?> type, final Optional<ParameterizedType> parameterizedType)
+    private AnnotatedParameterInfo(final CasualFieldElement annotation, final Class<?> type, final Optional<ParameterizedType> parameterizedType)
     {
         super(type);
         this.annotation = annotation;
         this.parameterizedType = parameterizedType;
     }
-    public static AnnotatedParameterInfo of(final CasualFieldElement annotation, final Class<?> type, final Optional<ParameterizedType> parameterizedType)
-    {
-        Objects.requireNonNull(annotation, "annotation can not be null");
-        Objects.requireNonNull(type, "type is not allowed to be null");
-        return new AnnotatedParameterInfo(annotation, type, parameterizedType);
-    }
 
-    public static AnnotatedParameterInfo of(final List<Annotation> annotations, final Class<?> type, final Optional<ParameterizedType> parameterizedType)
-    {
-        CasualFieldElement cfe = annotations.stream()
-                                            .filter(v -> v instanceof CasualFieldElement)
-                                            .map(a -> CasualFieldElement.class.cast(a))
-                                            .findFirst()
-                                            .orElseThrow(() -> new FieldedUnmarshallingException("missing @CasualFieldElement"));
-        return AnnotatedParameterInfo.of(cfe, type, parameterizedType);
-    }
-
+    /**
+     * Creates a new instance of ParameterInfo
+     * @param annotation the annotation
+     * @param type the type
+     * @param parameterizedType the parameterized type - if any
+     * @return a new instance
+     */
     public static ParameterInfo of(final Annotation annotation, final Class<?> type, final Optional<ParameterizedType> parameterizedType)
     {
         Objects.requireNonNull(annotation, "annotation can not be null");
@@ -59,11 +50,20 @@ public final class AnnotatedParameterInfo extends ParameterInfo
         return new AnnotatedParameterInfo((CasualFieldElement) annotation, type, parameterizedType);
     }
 
+    /**
+     * Get the annotation
+     * @return the annotation
+     */
     public CasualFieldElement getAnnotation()
     {
         return annotation;
     }
 
+    /**
+     * Get the parameterized type
+     * @throws FieldedUnmarshallingException if there is no parameterized type
+     * @return the parameterized type
+     */
     public ParameterizedType getParameterizedType()
     {
         return parameterizedType.orElseThrow(() -> new FieldedUnmarshallingException("missing parameterized type!"));

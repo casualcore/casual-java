@@ -9,6 +9,7 @@ package se.laz.casual.api.network.protocol.messages.exception;
 import se.laz.casual.api.CasualRuntimeException;
 
 /**
+ * Exception that is used if anything outside of the protocol is seen
  * Created by aleph on 2017-02-23.
  */
 public final class CasualProtocolException extends CasualRuntimeException

@@ -87,7 +87,7 @@ public final class XID implements Xid
 
     /**
      * globalTransactionId + branchQualifier
-     * @return
+     * @return the data, copied into a a new array
      */
     public byte[] getData()
     {

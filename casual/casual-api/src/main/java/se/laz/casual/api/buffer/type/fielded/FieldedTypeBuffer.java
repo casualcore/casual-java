@@ -22,7 +22,9 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-
+/**
+ * A CasualBuffer of type {@link CasualBufferType#FIELDED}
+ */
 // "Generic wildcard types should not be used in return parameters"
 // This is for framework use only, no user will ever use this code
 // So no risk of confusion
@@ -37,9 +39,9 @@ public final class FieldedTypeBuffer implements CasualBuffer
     }
 
     /**
-     *
-     * @param l - fielded data
-     * @return A buffer from which values can be read by name
+     * Creates a new buffer
+     * @param l fielded encoded data
+     * @return a new buffer
      */
     public static FieldedTypeBuffer create(final List<byte[]> l)
     {
@@ -52,14 +54,20 @@ public final class FieldedTypeBuffer implements CasualBuffer
     }
 
     /**
-     * Use this to create an empty buffer that you want to write to
-     * @return
+     * Creates a new empty buffer
+     * @return a new empty buffer
      */
     public static FieldedTypeBuffer create()
     {
         return new FieldedTypeBuffer(new HashMap<>());
     }
 
+    /**
+     * Creates a copy of a buffer
+     * Note that there is no deep copying going on as the keys and values are immutable
+     * @param b the buffer to copy
+     * @return a new buffer
+     */
     public static FieldedTypeBuffer of(FieldedTypeBuffer b)
     {
         Objects.requireNonNull(b, "buffer can not be null");
@@ -69,14 +77,18 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return r;
     }
 
+    /**
+     * Encode this buffer
+     * @return the fielded encoded representation
+     */
     public List<byte[]> encode()
     {
         return FieldedTypeBufferEncoder.encode(m);
     }
 
     /**
-     * Extract the internal representation setting the state of this buffer to empty
-     * @return
+     * Extracts the internal representation setting the state of this buffer to empty
+     * @return the extracted data
      */
     public Map<String, List<FieldedData<?>>> extract()
     {
@@ -85,6 +97,10 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return r;
     }
 
+    /**
+     * Checks if the buffer is empty
+     * @return true if empty, false if not
+     */
     public boolean isEmpty()
     {
         return m.isEmpty();
@@ -95,8 +111,8 @@ public final class FieldedTypeBuffer implements CasualBuffer
      * Uses the {@link #writeAll(String, List) writeAll} method
      * This is to verify that the data is correct in case it was created/manipulated outside of a FieldedTypeBuffer
      * It also ensures that we do not keep any references to anything mutable
-     * @param d
-     * @return
+     * @param d the data
+     * @return the same buffer but containing the new data
      */
     // squid:S1612 - sonar hates lambdas
     @SuppressWarnings("squid:S1612")
@@ -110,42 +126,106 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return this;
     }
 
+    /**
+     * Reads the first element based on a {@code realId}
+     * Non destructive
+     * @throws CasualFieldedLookupException if the id does not exist or if index is out of bounds
+     * @param realId the real id
+     * @return the fielded data
+     */
     public FieldedData<?> read(long realId)
     {
         return read(realId, 0);
     }
 
+    /**
+     * Reads the first element based on a {@code realId}
+     * May be a destructive read depending on if {@code remove} is set to true
+     * @throws CasualFieldedLookupException if the id does not exist or if index is out of bounds
+     * @param realId the real id
+     * @param remove true if the item should be removed ( destructive read )
+     * @return the fielded data
+     */
     public FieldedData<?> read(long realId, boolean remove)
     {
         return read(realId, 0, remove);
     }
 
+    /**
+     * Reads the element at {@code index} based on a {@code realId}
+     * Non destructive
+     * @throws CasualFieldedLookupException if the id does not exist or if index is out of bounds
+     * @param realId the real id
+     * @param index the index
+     * @return the fielded data
+     */
     public FieldedData<?> read(long realId, int index)
     {
         return read(realId, index, false);
     }
 
+    /**
+     * Reads the element at {@code index} based on a {@code realId}
+     * May be a destructive read depending on if {@code remove} is set to true
+     * @throws CasualFieldedLookupException if the id does not exist or if index is out of bounds
+     * @param realId the real id
+     * @param index the index
+     * @param remove true if the item should be removed ( destructive read )
+     * @return the fielded data
+     */
     public FieldedData<?> read(long realId, int index, boolean remove)
     {
         CasualField f = CasualFieldedLookup.forRealId(realId).orElseThrow(() -> new CasualFieldedLookupException("realId: " + realId + " does not exist"));
         return read(f.getName(), index, remove);
     }
 
+    /**
+     * Reads the first element by {@code name}
+     * Non destructive
+     * @throws CasualFieldedLookupException if the name does not exist or if index is out of bounds
+     * @param name the name
+     * @return the fielded data
+     */
     public FieldedData<?> read(final String name)
     {
         return read(name, 0);
     }
 
+    /**
+     * Reads the first element by {@code name}
+     * May be a destructive read depending on if {@code remove} is set to true
+     * @throws CasualFieldedLookupException if the name does not exist or if index is out of bounds
+     * @param name the name
+     * @param remove true if the item should be removed ( destructive read )
+     * @return the fielded data
+     */
     public FieldedData<?> read(final String name, boolean remove)
     {
         return read(name, 0, remove);
     }
 
+    /**
+     * Reads the element at {@code index } by {@code name}
+     * Non destructive
+     * @throws CasualFieldedLookupException if the name does not exist or if index is out of bounds
+     * @param name the name
+     * @param index the index
+     * @return the fielded data
+     */
     public FieldedData<?> read(String name, int index)
     {
         return read(name, index, false);
     }
 
+    /**
+     * Reads the element at {@code index } by {@code name}
+     * May be a destructive read depending on if {@code remove} is set to true
+     * @throws CasualFieldedLookupException if the name does not exist or if index is out of bounds
+     * @param name the name
+     * @param index the index
+     * @param remove true if the item should be removed ( destructive read )
+     * @return the fielded data
+     */
     public FieldedData<?> read(String name, int index, boolean remove)
     {
         Optional<FieldedData<?>> d = peek(name, index);
@@ -156,7 +236,13 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return d.orElseThrow(createNameMissingException(name, Optional.of(index)));
     }
 
-
+    /**
+     * Removes the item with {@code name} at {@code index}
+     * @throws CasualFieldedLookupException if the name does not exist or if index is out of bounds
+     * @param name the name
+     * @param index the index
+     * @return the item that was removed
+     */
     public FieldedData<?> remove(String name, int index)
     {
         List<FieldedData<?>> l = m.get(name);
@@ -176,16 +262,37 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return r;
     }
 
+    /**
+     * Peeks at index 0 with {@code name} - works the same as read except that it does not throw
+     * Non destructive
+     * @param name the name
+     * @return {@code Optional.empty()} if non existent, otherwise contains the item
+     */
     public Optional<FieldedData<?>> peek(String name)
     {
         return peek(name, 0, false);
     }
 
+    /**
+     * Peeks at {@code index} with {@code name} - works the same as read except that it does not throw
+     * Non destructive
+     * @param name the name
+     * @param index the index
+     * @return {@code Optional.empty()} if non existent, otherwise contains the item
+     */
     public Optional<FieldedData<?>> peek(String name, int index)
     {
         return peek(name, index, false);
     }
 
+    /**
+     * Peeks at {@code index} with {@code name} - works the same as read except that it does not throw
+     * May be a destructive read depending on if {@code remove} is set to true
+     * @param name the name
+     * @param index the index
+     * @param remove true if the item should be removed ( destructive peek )
+     * @return {@code Optional.empty()} if non existent, otherwise contains the item
+     */
     public Optional<FieldedData<?>> peek(String name, int index, boolean remove)
     {
         List<FieldedData<?>> l = m.get(name);
@@ -207,9 +314,11 @@ public final class FieldedTypeBuffer implements CasualBuffer
     }
 
     /**
+     * Read all items by {@code name}
      * Note, in case name is not found - returns an empty list
-     * @param name
-     * @return List with data or if name is not found, and empty list
+     * @param name the name
+     * @param remove true if the item should be removed ( destructive {@code readAll} )
+     * @return the data or if name is not found, and empty list
      */
     public List<FieldedData<?>> readAll(final String name, boolean remove)
     {
@@ -234,6 +343,15 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return this;
     }
 
+    /**
+     * Write {@code value} by {@code name} to buffer
+     * Note that int is widened to long as int is not a {@link FieldType}
+     * @throws CasualFieldedLookupException in case the {@code name} is unknown
+     * @param name the name
+     * @param value the value
+     * @param <T> the type of the value
+     * @return this buffer
+     */
     public <T> FieldedTypeBuffer write(final String name, final T value)
     {
         final CasualField f = CasualFieldedLookup.forName(name).orElseThrow(createNameMissingException(name, Optional.empty()));
@@ -323,6 +441,14 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return encode();
     }
 
+    /**
+     * Creates a {@code Supplier<CasualFieldedLookupException>}
+     * with the message that the {@code name} is missing at {@code Optional<Integer>} index
+     * Index is 0 if not supplied
+     * @param name the name
+     * @param index the index
+     * @return a supplier of CasualFieldedLookupException
+     */
     public static Supplier<CasualFieldedLookupException> createNameMissingException(String name, Optional<Integer> index)
     {
         StringBuilder b = new StringBuilder();
@@ -333,6 +459,13 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return () -> new CasualFieldedLookupException(b.toString());
     }
 
+    /**
+     * Creates a {@code Supplier<CasualFieldedLookupException>}
+     * with the message that {@code Optional<Integer>} index is out of bounds for  {@code name}
+     * @param name the name
+     * @param index the index
+     * @return a supplier of CasualFieldedLookupException
+     */
     public static Supplier<CasualFieldedLookupException> createIndexOutOfBoundException(String name, Integer index)
     {
         return () -> new CasualFieldedLookupException("index out of bounds index: " + index + " for name: " + name);

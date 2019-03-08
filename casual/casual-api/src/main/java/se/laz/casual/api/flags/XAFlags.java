@@ -11,6 +11,7 @@ import se.laz.casual.api.flags.internal.CasualFlag;
 import javax.transaction.xa.XAResource;
 
 /**
+ * The XAFlags
  * Created by aleph on 2017-03-30.
  */
 public enum XAFlags implements CasualFlag

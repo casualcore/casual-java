@@ -12,6 +12,12 @@ public final class JsonProviderFactory
 {
     private JsonProviderFactory()
     {}
+
+    /**
+     * Get the default JSON provider
+     * @see JsonProvider
+     * @return the JSON provider
+     */
     public static JsonProvider getJsonProvider()
     {
         return new GsonProvider();

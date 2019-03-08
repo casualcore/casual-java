@@ -6,6 +6,11 @@
 
 package se.laz.casual.api.buffer.type.fielded;
 
+/**
+ * The serialized size for:
+ * {@code FieldSize.FIELD_ID}
+ * {@code FieldSize.FIELD_SIZE}
+ */
 public enum FieldSize
 {
     FIELD_ID(8),

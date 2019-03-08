@@ -10,6 +10,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * The possible message types when talking to casual
+ */
 public enum CasualNWMessageType
 {
     DOMAIN_CONNECT_REQUEST(7200),

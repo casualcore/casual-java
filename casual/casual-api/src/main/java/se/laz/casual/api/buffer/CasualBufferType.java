@@ -9,6 +9,11 @@ package se.laz.casual.api.buffer;
 import java.util.Arrays;
 import java.util.Optional;
 
+/**
+ * The known buffer types for which there is support in casual-api
+ * Note that it is fine with any buffer type but if it is not supported
+ * then user code has to handle it
+ */
 public enum CasualBufferType
 {
     JSON(".json/"),

@@ -7,11 +7,11 @@
 package se.laz.casual.api.buffer.type.fielded.marshalling;
 
 /**
- * STRICT mode:
+ * {@code STRICT} mode:
  * marshalling - if a value is null, FieldedMarshallingException will be thrown
  * unmarshalling - if a value is missing in the buffer, FieldedUnmarshallingException will be thrown
  *
- * RELAXED mode:
+ * {@code RELAXED} mode:
  * marshalling - if a value is null nothing happens except there will be no marshalled value
  * unmarshalling - if a value is missing in the buffer - no initialization will take place for that value
  */

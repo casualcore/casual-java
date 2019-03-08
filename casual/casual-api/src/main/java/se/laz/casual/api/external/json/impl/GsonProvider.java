@@ -13,6 +13,9 @@ import se.laz.casual.api.external.json.JsonProvider;
 
 import java.io.Reader;
 
+/**
+ * JsonProvider using gson
+ */
 public final class GsonProvider implements JsonProvider
 {
     @Override

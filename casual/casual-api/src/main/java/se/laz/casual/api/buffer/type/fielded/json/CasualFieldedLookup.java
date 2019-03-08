@@ -26,6 +26,13 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/**
+ * Data structure containing the canonical representation
+ * of what kind of fielded data is available for use
+ * Uses static initialization
+ * Set the environment variable {@link Constants#CASUAL_FIELD_TABLE} to point to a json file with your definitions
+ * @see Constants
+ */
 public final class CasualFieldedLookup
 {
     private static Map<String, CasualField> stringToField;
@@ -44,21 +51,39 @@ public final class CasualFieldedLookup
         realIdToField = Collections.unmodifiableMap(realIdToField);
     }
 
+    /**
+     * Lookup by name
+     * @param name the name
+     * @return A casual field if found
+     */
     public static Optional<CasualField> forName(final String name)
     {
         return Optional.ofNullable(stringToField.get(name));
     }
 
+    /**
+     * Lookup by real id
+     * @param id the real id
+     * @return A casual field if found
+     */
     public static Optional<CasualField> forRealId(long id)
     {
         return Optional.ofNullable(realIdToField.get(id));
     }
 
+    /**
+     * The URL to the JSON that is used
+     * @return the url
+     */
     public static URL getURL()
     {
         return jsonURL;
     }
 
+    /**
+     * Get all the available names
+     * @return a list of names
+     */
     public static List<String> getNames()
     {
         return stringToField.keySet().stream().collect(Collectors.toList());

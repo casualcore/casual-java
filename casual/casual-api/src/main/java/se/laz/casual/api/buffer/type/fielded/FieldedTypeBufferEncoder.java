@@ -16,15 +16,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+/**
+ * The{@code FieldedTypeBuffer} encoder
+ */
 public final class FieldedTypeBufferEncoder
 {
     private FieldedTypeBufferEncoder()
     {}
 
+    /**
+     * Encodes the data
+     * @param data - the data to be encoded
+     * @return the encoded data
+     */
     public static List<byte[]> encode(final Map<String, List<FieldedData<?>>> data)
     {
         final List<byte[]> l = new ArrayList<>();
-        for(final Entry<String, List<FieldedData<?>>> item : data.entrySet())
+        for(final Map.Entry<String, List<FieldedData<?>>> item : data.entrySet())
         {
             l.addAll(encodeItem(item));
         }

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Used in service call request and reply
+ * The actual buffer type used in service call request and reply
  */
 public final class ServiceBuffer implements CasualBuffer, Serializable
 {
@@ -34,11 +34,12 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
     }
 
     /**
+     * Creates a new {@link ServiceBuffer}
      * Note, since payload can be large we do not copy it - ie ownership is implicitly transferred
      * Be aware
-     * @param type
-     * @param bytes
-     * @return
+     * @param type the type of the buffer
+     * @param bytes the payload
+     * @return a new Buffer
      */
     public static ServiceBuffer of(final String type, final List<byte[]> bytes)
     {
@@ -51,6 +52,11 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
         return new ServiceBuffer(type, bytes);
     }
 
+    /**
+     * Creates a new {@link ServiceBuffer} based on any other CasualBuffer
+     * @param b the buffer
+     * @return a new ServiceBuffer
+     */
     public static ServiceBuffer of(final CasualBuffer b)
     {
         Objects.requireNonNull(b, "buffer can not be null");
@@ -72,7 +78,7 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
     /**
      * Note, since payload can be very large we return the actual payload and not a copy
      * Be aware
-     * @return
+     * @return the payload
      */
     public List<byte[]> getPayload()
     {
@@ -83,7 +89,7 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
      * Always returns a list of at least two byte[]
      * The first one contains the type name encoded as utf-8
      * The rest of the items are the payload
-     * @return
+     * @return the data to send over the network
      */
     public List<byte[]> toNetworkBytes()
     {

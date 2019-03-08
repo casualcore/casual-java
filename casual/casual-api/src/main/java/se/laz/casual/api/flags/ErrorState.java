@@ -7,6 +7,7 @@
 package se.laz.casual.api.flags;
 
 /**
+ * The possible casual error states
  * @author jone
  */
 public enum ErrorState

@@ -7,6 +7,7 @@
 package se.laz.casual.api;
 
 /**
+ * Not implemented yet
  * @author jone
  */
 public interface CasualConversationAPI

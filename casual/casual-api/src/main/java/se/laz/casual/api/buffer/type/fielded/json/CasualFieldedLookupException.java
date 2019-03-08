@@ -8,6 +8,9 @@ package se.laz.casual.api.buffer.type.fielded.json;
 
 import se.laz.casual.api.CasualRuntimeException;
 
+/**
+ * Exception that is used if anything unexpected occurs during lookup
+ */
 public class CasualFieldedLookupException extends CasualRuntimeException
 {
     private static final long serialVersionUID = 1L;

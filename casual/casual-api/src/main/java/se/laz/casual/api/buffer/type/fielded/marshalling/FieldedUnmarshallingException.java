@@ -8,6 +8,9 @@ package se.laz.casual.api.buffer.type.fielded.marshalling;
 
 import se.laz.casual.api.CasualRuntimeException;
 
+/**
+ * Exception used if anything goes wrong during unmarshalling
+ */
 public class FieldedUnmarshallingException extends CasualRuntimeException
 {
     private static final long serialVersionUID = 1;

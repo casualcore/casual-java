@@ -31,6 +31,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Unmarshalls from a buffer to an Object of type T
+ */
 // sonar hates lambdas
 @SuppressWarnings("squid:S1612")
 public final class Unmarshaller
@@ -38,6 +41,14 @@ public final class Unmarshaller
     private Unmarshaller()
     {}
 
+    /**
+     * Unmarshalls from the buffer to an Object of type T
+     * @param b the buffer
+     * @param clazz the class
+     * @param mode the mode
+     * @param <T> the type
+     * @return an instance of type T
+     */
     public static <T> T createObject(final FieldedTypeBuffer b, final Class<T> clazz, FieldedTypeBufferProcessorMode mode)
     {
         return createObject(b, clazz, 0, mode).orElseThrow(() -> new FieldedUnmarshallingException("could not create instance of "+ clazz + " with buffer: " + b));

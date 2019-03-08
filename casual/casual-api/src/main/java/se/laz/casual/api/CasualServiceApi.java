@@ -25,9 +25,9 @@ public interface CasualServiceApi
     /**
      * Perform a synchonous call Casual Server.
      *
-     * @param serviceName name of the service to call.
-     * @param data to send to the given service.
-     * @param flags to send to the given service.
+     * @param serviceName the name of the service to call.
+     * @param data the data to send to the given service.
+     * @param flags the atmi flags to send to the given service.
      *
      * @return result of the service call, which can be a failure result.
      */
@@ -36,16 +36,16 @@ public interface CasualServiceApi
     /**
      * Async call
      * Wraps up a call to tpcall in a worker thread
-     * @param serviceName
-     * @param data
-     * @param flags
+     * @param serviceName the name of the service to call.
+     * @param data the data to send to the given service.
+     * @param flags the atmi flags to send to the given service.
      * @return The future from which the result can be obtained
      */
     CompletableFuture<ServiceReturn<CasualBuffer>> tpacall( String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
 
     /**
      * Lookup if service exists
-     * @param serviceName
+     * @param serviceName the service name
      * @return true if service exists
      */
     boolean serviceExists( String serviceName);

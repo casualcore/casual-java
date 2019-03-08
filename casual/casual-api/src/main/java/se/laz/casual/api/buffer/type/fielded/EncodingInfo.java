@@ -9,6 +9,10 @@ package se.laz.casual.api.buffer.type.fielded;
 import java.nio.charset.Charset;
 import java.util.logging.Logger;
 
+/**
+ * Encoding information to use for string encoding/decoding
+ * @see EncodingInfoProvider
+ */
 public final class EncodingInfo
 {
     private static final Logger log = Logger.getLogger(EncodingInfo.class.getName());
@@ -21,6 +25,10 @@ public final class EncodingInfo
         charset = p.getCharset();
         log.info(() -> "casual fielded encoding set to charset: " + charset);
     }
+
+    /**
+     * @return the charset to use for string encoding/decoding
+     */
     public static Charset getCharset()
     {
         return charset;

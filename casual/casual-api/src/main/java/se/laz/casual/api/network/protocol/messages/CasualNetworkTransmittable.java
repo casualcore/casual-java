@@ -9,6 +9,7 @@ package se.laz.casual.api.network.protocol.messages;
 import java.util.List;
 
 /**
+ * Interface for message that can be sent on the wire
  * Created by aleph on 2017-03-09.
  */
 public interface CasualNetworkTransmittable

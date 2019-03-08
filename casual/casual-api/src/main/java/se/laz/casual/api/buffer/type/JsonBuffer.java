@@ -16,6 +16,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ *  {@link CasualBuffer} type that contains JSON
+ *   For type {@link CasualBufferType#JSON}
+ */
 public class JsonBuffer implements CasualBuffer
 {
     private static final long serialVersionUID = 1L;
@@ -24,12 +28,23 @@ public class JsonBuffer implements CasualBuffer
     {
         this.payload = payload;
     }
+
+    /**
+     * Creates a {@link JsonBuffer}
+     * @param payload - bytes of a JSON string
+     * @return a new JsonBuffer
+     */
     public static JsonBuffer of(final List<byte[]> payload)
     {
         Objects.requireNonNull(payload, "payload is null, this is nonsense");
         return new JsonBuffer(payload);
     }
 
+    /**
+     * Creates a {@link JsonBuffer}
+     * @param json - a JSON string
+     * @return a new JsonBuffer
+     */
     public static JsonBuffer of(final String json)
     {
         Objects.requireNonNull(json, "json is null, this is nonsense");

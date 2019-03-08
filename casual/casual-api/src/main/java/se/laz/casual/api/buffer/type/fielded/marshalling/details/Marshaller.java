@@ -20,12 +20,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+/**
+ * A marshaller implementation
+ * Marshalls into a {@link FieldedTypeBuffer}
+ */
 public final class Marshaller
 {
     private Marshaller()
-    {
-    }
+    {}
 
+    /**
+     * Marshall object into a buffer
+     * @param o the object
+     * @param b the buffer
+     * @param mode the mode
+     * @return the buffer containing the marshalled values
+     */
     public static FieldedTypeBuffer write(final Object o, FieldedTypeBuffer b, FieldedTypeBufferProcessorMode mode)
     {
         List<Field> fields = CommonDetails.getCasuallyAnnotatedFields(o.getClass());

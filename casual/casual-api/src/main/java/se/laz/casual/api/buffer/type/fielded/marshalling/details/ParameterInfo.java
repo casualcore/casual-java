@@ -15,12 +15,21 @@ public class ParameterInfo
     {
         this.type = type;
     }
+
+    /**
+     * Creates a ParameterInfo instance
+     * @param type the type
+     * @return a new ParameterInfo instance
+     */
     public static ParameterInfo of(final Class<?> type)
     {
         Objects.requireNonNull(type);
         return new ParameterInfo(type);
     }
 
+    /**
+     * @return the type
+     */
     public Class<?> getType()
     {
         return type;
