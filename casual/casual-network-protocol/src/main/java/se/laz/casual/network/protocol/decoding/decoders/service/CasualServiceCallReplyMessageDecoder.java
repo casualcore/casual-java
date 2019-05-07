@@ -119,12 +119,14 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
         currentOffset += serviceBufferTypeSize;
         // this can be huge, ie not fitting into one ByteBuffer
         // but since the whole message fits into Integer.MAX_VALUE that is not true of this message
+        // The payload may also not exist at all in the reply message
+        // This could happen for instance on TPESVCERR
         int serviceBufferPayloadSize = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize()).getLong();
         currentOffset += ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize();
         final byte[] payloadData = Arrays.copyOfRange(data, currentOffset, currentOffset + serviceBufferPayloadSize);
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
         serviceBufferPayload.add(payloadData);
-        final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
+        final ServiceBuffer serviceBuffer = (payloadData.length > 0) ? ServiceBuffer.of(serviceTypeName, serviceBufferPayload) : null;
         return CasualServiceCallReplyMessage.createBuilder()
                                             .setExecution(execution)
                                             .setError(ErrorState.unmarshal(callError))

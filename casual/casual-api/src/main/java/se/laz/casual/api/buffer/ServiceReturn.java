@@ -9,6 +9,8 @@ package se.laz.casual.api.buffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.ServiceReturnState;
 
+import java.util.Optional;
+
 /**
  * The result of a service call
  * Note that you should never yourself instantiate an instance of this class but it
@@ -36,9 +38,9 @@ public final class ServiceReturn<X extends CasualBuffer>
     /**
      * @return a subtype of CasualBuffer
      */
-    public X getReplyBuffer()
+    public Optional<X> getReplyBuffer()
     {
-        return replyBuffer;
+        return Optional.ofNullable(replyBuffer);
     }
 
     /**

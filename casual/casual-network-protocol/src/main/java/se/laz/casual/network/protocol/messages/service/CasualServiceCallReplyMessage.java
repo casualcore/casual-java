@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -61,7 +62,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     @Override
     public List<byte[]> toNetworkBytes()
     {
-        final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
+        final List<byte[]> serviceBytes = (null == serviceBuffer) ? new ArrayList<>() : serviceBuffer.toNetworkBytes();
 
         final long messageSize = ServiceCallReplySizes.EXECUTION.getNetworkSize() +
                                  ServiceCallReplySizes.CALL_ERROR.getNetworkSize() + ServiceCallReplySizes.CALL_CODE.getNetworkSize() +
@@ -99,7 +100,9 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
 
     /**
      * Note, mutable since payload can be huge
-     * @return
+     * It may also be null to handle empty payload.
+     * 
+     * @return service buffer or null if not present.
      */
     public ServiceBuffer getServiceBuffer()
     {
@@ -222,10 +225,18 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         b.putInt(error.getValue())
          .putLong(userDefinedCode);
         CasualEncoderUtils.writeXID(xid, b);
-        b.put((byte)(transactionState.getId() & 0xff))
-         .putLong(serviceBytes.get(0).length)
-         .put(serviceBytes.get(0));
-        serviceBytes.remove(0);
+        if (serviceBytes.isEmpty())
+        {
+            b.put((byte) (transactionState.getId() & 0xff))
+             .putLong(0);
+        }
+        else
+        {
+            b.put((byte) (transactionState.getId() & 0xff))
+             .putLong(serviceBytes.get(0).length)
+             .put(serviceBytes.get(0));
+            serviceBytes.remove(0);
+        }
         final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
         b.putLong(payloadSize);
         serviceBytes.stream()
