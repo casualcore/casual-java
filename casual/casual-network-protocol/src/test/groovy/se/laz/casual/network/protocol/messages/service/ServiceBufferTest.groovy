@@ -7,6 +7,7 @@
 package se.laz.casual.network.protocol.messages.service
 
 import se.laz.casual.api.buffer.type.ServiceBuffer
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -19,6 +20,7 @@ class ServiceBufferTest extends Specification
     @Shared String type = "testtype"
     @Shared String type2 = "testtype2"
     @Shared String type3 = "testtype"
+    @Shared String noType = ''
 
     @Shared byte[] bytes1 = "payload".getBytes( StandardCharsets.UTF_8 )
     @Shared byte[] bytes2 = "payload2".getBytes( StandardCharsets.UTF_8 )
@@ -27,6 +29,7 @@ class ServiceBufferTest extends Specification
     @Shared List<byte[]> payload =  new ArrayList<>()
     @Shared List<byte[]> payload2 =  new ArrayList<>()
     @Shared List<byte[]> payload3 =  new ArrayList<>()
+    @Shared List<byte[]> noPayload = new ArrayList<>()
 
     def setup()
     {
@@ -69,5 +72,46 @@ class ServiceBufferTest extends Specification
         type3 | payload2 | false
     }
 
+    def 'no type and no payload'()
+    {
+        when:
+        def s = ServiceBuffer.empty()
+        then:
+        s.isEmpty()
+    }
+
+    def 'type and no payload'()
+    {
+        when:
+        ServiceBuffer.of(type, noPayload)
+        then:
+        thrown(CasualProtocolException)
+    }
+
+    def 'payload and no type'()
+    {
+        when:
+        ServiceBuffer.of(noType, payload)
+        then:
+        thrown(CasualProtocolException)
+    }
+
+    def 'empty equality'()
+    {
+        when:
+        def b = ServiceBuffer.of(noType, noPayload)
+        then:
+        b.isEmpty()
+        ServiceBuffer.empty() == b
+    }
+
+    def 'empty self equality'()
+    {
+        when:
+        def b = ServiceBuffer.empty()
+        then:
+        b.isEmpty()
+        ServiceBuffer.empty() == b
+    }
 
 }

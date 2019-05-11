@@ -147,8 +147,8 @@ class JavaServiceCallBufferHandlerTest extends Specification
         InboundResponse actual = instance.toResponse( null )
 
         then:
-        actual.getBuffer().getType() == CasualBufferType.JSON_JSCD.getName()
-        actual.getBuffer().getBytes().isEmpty()
+        actual.getBuffer() == ServiceBuffer.empty()
     }
+
 
 }

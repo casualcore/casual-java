@@ -54,6 +54,7 @@ class CasualServiceCallerTest extends Specification
     @Shared mcf
     @Shared ra
     @Shared workManager
+    @Shared json = '{"hello":"world"}'
 
     def setup()
     {
@@ -135,6 +136,19 @@ class CasualServiceCallerTest extends Specification
         )
     }
 
+    CasualNWMessageImpl<CasualServiceCallReplyMessage> createServiceCallReplyMessageError(ErrorState errorState, TransactionState transactionState)
+    {
+        CasualNWMessageImpl.of( executionId,
+                CasualServiceCallReplyMessage.createBuilder()
+                        .setExecution( executionId )
+                        .setError( errorState)
+                        .setTransactionState( transactionState )
+                        .setXid( XID.NULL_XID )
+                        .setServiceBuffer(ServiceBuffer.empty())
+                        .build()
+        )
+    }
+
     def "Tpcall service is available performs service call and returns result of service call."()
     {
         when:
@@ -145,6 +159,7 @@ class CasualServiceCallerTest extends Specification
         result.getServiceReturnState() == ServiceReturnState.TPSUCCESS
 
         1 * networkConnection.request( _ ) >> {
+
             CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
                 return new CompletableFuture<>(serviceReply)
@@ -155,7 +170,7 @@ class CasualServiceCallerTest extends Specification
     def "Tpcall service not available returns TPNOENT"()
     {
         setup:
-        serviceReply = createServiceCallReplyMessage( ErrorState.TPENOENT, TransactionState.ROLLBACK_ONLY, JsonBuffer.of( new ArrayList<byte[]>() ) )
+        serviceReply = createServiceCallReplyMessageError( ErrorState.TPENOENT, TransactionState.ROLLBACK_ONLY)
         when:
         instance.tpcall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
 
@@ -173,7 +188,7 @@ class CasualServiceCallerTest extends Specification
     def "Tpcall service is available performs service call which fails, returns failure result."()
     {
         setup:
-        serviceReply = createServiceCallReplyMessage( ErrorState.TPESVCFAIL, TransactionState.ROLLBACK_ONLY, JsonBuffer.of( new ArrayList<byte[]>() ) )
+        serviceReply = createServiceCallReplyMessageError( ErrorState.TPESVCFAIL, TransactionState.ROLLBACK_ONLY)
 
         when:
         ServiceReturn<CasualBuffer> result = instance.tpcall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))

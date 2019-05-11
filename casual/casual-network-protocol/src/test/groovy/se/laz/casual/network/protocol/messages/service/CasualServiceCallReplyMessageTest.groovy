@@ -41,6 +41,8 @@ class CasualServiceCallReplyMessageTest extends Specification
     def serviceType = 'application/json'
     @Shared
     def serviceBuffer
+    @Shared
+    def emptyServiceBuffer
 
     def setupSpec()
     {
@@ -48,6 +50,7 @@ class CasualServiceCallReplyMessageTest extends Specification
         l.add([2,3,4] as byte[])
         serviceData = l
         serviceBuffer = ServiceBuffer.of(serviceType, serviceData)
+        emptyServiceBuffer = ServiceBuffer.empty()
     }
 
     def "Message creation"()
@@ -99,7 +102,7 @@ class CasualServiceCallReplyMessageTest extends Specification
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().getServiceBuffer().payload
     }
 
-    def "Roundtrip with no payload"()
+    def "Roundtrip with empty service buffer"()
     {
         setup:
         def requestMsg = CasualServiceCallReplyMessage.createBuilder()
@@ -108,7 +111,7 @@ class CasualServiceCallReplyMessageTest extends Specification
                 .setUserSuppliedError(userError)
                 .setXid(nullXID)
                 .setTransactionState(TransactionState.ROLLBACK_ONLY)
-                .setServiceBuffer(null)
+                .setServiceBuffer(emptyServiceBuffer)
                 .build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
@@ -121,8 +124,8 @@ class CasualServiceCallReplyMessageTest extends Specification
         then:
         networkBytes != null
         requestMsg == resurrectedMsg.getMessage()
+        resurrectedMsg.getMessage().getServiceBuffer().isEmpty()
         msg == resurrectedMsg
-        resurrectedMsg.getMessage().getServiceBuffer() == null
     }
 
     def collectServicePayload(List<byte[]> bytes)

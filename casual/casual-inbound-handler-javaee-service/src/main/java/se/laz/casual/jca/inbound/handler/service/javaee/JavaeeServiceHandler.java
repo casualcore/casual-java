@@ -64,12 +64,12 @@ public class JavaeeServiceHandler implements ServiceHandler
     {
         LOG.finest( ()->"Request received: " + request );
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
-        CasualBuffer payload = ServiceBuffer.of( request.getBuffer().getType(), new ArrayList<>() );
+        CasualBuffer payload = ServiceBuffer.empty();
         InboundResponse.Builder responseBuilder = InboundResponse.createBuilder();
         try
         {
             Object r = loadService(request.getServiceName());
-            BufferHandler bufferHandler = BufferHandlerFactory.getHandler( payload.getType() );
+            BufferHandler bufferHandler = BufferHandlerFactory.getHandler( request.getBuffer().getType() );
             tool.loadClassLoader( r );
             return callService( r, request, bufferHandler );
         }

@@ -38,9 +38,9 @@ public final class ServiceReturn<X extends CasualBuffer>
     /**
      * @return a subtype of CasualBuffer
      */
-    public Optional<X> getReplyBuffer()
+    public X getReplyBuffer()
     {
-        return Optional.ofNullable(replyBuffer);
+        return replyBuffer;
     }
 
     /**

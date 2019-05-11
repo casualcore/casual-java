@@ -75,7 +75,7 @@ public class JavaServiceCallBufferHandler implements BufferHandler
         {
             payload.add(jp.toJson(result).getBytes(StandardCharsets.UTF_8));
         }
-
-        return InboundResponse.createBuilder().buffer( ServiceBuffer.of( CasualBufferType.JSON_JSCD.getName(), payload ) ).build();
+        final String typename = payload.isEmpty() ? "" : CasualBufferType.JSON_JSCD.getName();
+        return InboundResponse.createBuilder().buffer( ServiceBuffer.of( typename, payload ) ).build();
     }
 }

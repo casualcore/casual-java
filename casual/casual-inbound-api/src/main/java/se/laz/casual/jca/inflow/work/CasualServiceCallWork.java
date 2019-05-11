@@ -75,7 +75,7 @@ public final class CasualServiceCallWork implements Work
                 .setXid( message.getXid() )
                 .setExecution( message.getExecution() );
 
-        CasualBuffer serviceResult = ServiceBuffer.of( message.getServiceBuffer().getType(), new ArrayList<>());
+        CasualBuffer serviceResult = ServiceBuffer.empty();
         try
         {
             ServiceHandler h = getHandler(message.getServiceName());

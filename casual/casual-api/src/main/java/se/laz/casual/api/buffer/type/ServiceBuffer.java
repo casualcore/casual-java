@@ -16,6 +16,7 @@ import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolExcep
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,6 +26,7 @@ import java.util.Objects;
 public final class ServiceBuffer implements CasualBuffer, Serializable
 {
     private static final long serialVersionUID = 1L;
+    private static final ServiceBuffer EMPTY_INSTANCE = new ServiceBuffer("", new ArrayList<>());
     private String type;
     private List<byte[]> payload;
     private ServiceBuffer(final String type, final List<byte[]> payload)
@@ -38,18 +40,41 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
      * Note, since payload can be large we do not copy it - ie ownership is implicitly transferred
      * Be aware
      * @param type the type of the buffer
-     * @param bytes the payload
+     * @param payload the payload
      * @return a new Buffer
      */
-    public static ServiceBuffer of(final String type, final List<byte[]> bytes)
+    public static ServiceBuffer of(final String type, final List<byte[]> payload)
     {
         Objects.requireNonNull(type, "type can not be null");
-        Objects.requireNonNull(bytes, "bytes can not be null");
-        if(type.isEmpty())
+        Objects.requireNonNull(payload, "bytes can not be null");
+        if(type.isEmpty() && payload.isEmpty())
         {
-            throw new CasualProtocolException("type can not be and empty string");
+            return EMPTY_INSTANCE;
         }
-        return new ServiceBuffer(type, bytes);
+        if(!validBufferData(type, payload))
+        {
+            throw new CasualProtocolException("invalid buffer data, either type or payload are empty but not both. Type empty?" + type.isEmpty() + " payload empty?" + payload.isEmpty());
+        }
+        return new ServiceBuffer(type, payload);
+    }
+
+    public static ServiceBuffer empty()
+    {
+        return EMPTY_INSTANCE;
+    }
+
+    private static boolean validBufferData(String type, List<byte[]> payload)
+    {
+        // a buffer can be empty
+        // it means that the type is empty and so is the payload
+        // that is, a valid buffer is either a buffer where neither type nor payload is empty
+        // or where both type and payload are empty
+        return (!type.isEmpty() && !payload.isEmpty()) || (type.isEmpty() && payload.isEmpty());
+    }
+
+    public boolean isEmpty()
+    {
+        return type.isEmpty() && payload.isEmpty();
     }
 
     /**
@@ -82,7 +107,7 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
      */
     public List<byte[]> getPayload()
     {
-        return payload;
+        return Collections.unmodifiableList(payload);
     }
 
     /**
@@ -99,4 +124,5 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
         r.addAll(getPayload());
         return r;
     }
+
 }

@@ -62,7 +62,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     @Override
     public List<byte[]> toNetworkBytes()
     {
-        final List<byte[]> serviceBytes = (null == serviceBuffer) ? new ArrayList<>() : serviceBuffer.toNetworkBytes();
+        final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
 
         final long messageSize = ServiceCallReplySizes.EXECUTION.getNetworkSize() +
                                  ServiceCallReplySizes.CALL_ERROR.getNetworkSize() + ServiceCallReplySizes.CALL_CODE.getNetworkSize() +

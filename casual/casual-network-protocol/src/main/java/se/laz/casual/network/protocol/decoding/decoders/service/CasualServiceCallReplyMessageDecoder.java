@@ -115,18 +115,23 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
 
         int serviceBufferTypeSize = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize()).getLong();
         currentOffset += ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize();
-        final String serviceTypeName = CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceBufferTypeSize);
+        final String serviceTypeName = ( 0 == serviceBufferTypeSize) ? "" : CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceBufferTypeSize);
         currentOffset += serviceBufferTypeSize;
         // this can be huge, ie not fitting into one ByteBuffer
         // but since the whole message fits into Integer.MAX_VALUE that is not true of this message
         // The payload may also not exist at all in the reply message
+        // If so, then the typename does not exist either
         // This could happen for instance on TPESVCERR
         int serviceBufferPayloadSize = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize()).getLong();
         currentOffset += ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize();
-        final byte[] payloadData = Arrays.copyOfRange(data, currentOffset, currentOffset + serviceBufferPayloadSize);
+
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
-        serviceBufferPayload.add(payloadData);
-        final ServiceBuffer serviceBuffer = (payloadData.length > 0) ? ServiceBuffer.of(serviceTypeName, serviceBufferPayload) : null;
+        if(serviceBufferPayloadSize > 0)
+        {
+            final byte[] payloadData = Arrays.copyOfRange(data, currentOffset, currentOffset + serviceBufferPayloadSize);
+            serviceBufferPayload.add(payloadData);
+        }
+        final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
         return CasualServiceCallReplyMessage.createBuilder()
                                             .setExecution(execution)
                                             .setError(ErrorState.unmarshal(callError))

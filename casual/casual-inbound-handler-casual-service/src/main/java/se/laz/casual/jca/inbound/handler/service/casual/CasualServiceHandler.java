@@ -77,12 +77,12 @@ public class CasualServiceHandler implements ServiceHandler
         LOG.finest( ()->"Request received: " + request );
         CasualServiceEntry entry = CasualServiceRegistry.getInstance().getServiceEntry( request.getServiceName() );
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
-        CasualBuffer payload = ServiceBuffer.of( request.getBuffer().getType(), new ArrayList<>() );
+        CasualBuffer payload = ServiceBuffer.empty();
         InboundResponse.Builder responseBuilder = InboundResponse.createBuilder();
         try
         {
             Object r = loadService(entry.getJndiName() );
-            BufferHandler bufferHandler = BufferHandlerFactory.getHandler( payload.getType() );
+            BufferHandler bufferHandler = BufferHandlerFactory.getHandler( request.getBuffer().getType() );
             tool.loadClassLoader( r );
             return callService( r, entry, request, bufferHandler );
         }
