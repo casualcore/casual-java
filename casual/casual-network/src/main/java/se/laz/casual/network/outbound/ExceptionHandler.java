@@ -8,51 +8,70 @@ package se.laz.casual.network.outbound;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import se.laz.casual.internal.jca.ManagedConnectionInvalidator;
 import se.laz.casual.network.CasualDecoderException;
 import se.laz.casual.network.connection.CasualConnectionException;
-import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public class ExceptionHandler extends ChannelInboundHandlerAdapter
 {
-    private final ManagedConnectionInvalidator invalidator;
     private final Correlator correlator;
 
-    private ExceptionHandler(ManagedConnectionInvalidator invalidator, Correlator correlator)
+    private ExceptionHandler(Correlator correlator)
     {
-        this.invalidator = invalidator;
         this.correlator = correlator;
     }
 
-    public static ExceptionHandler of(final ManagedConnectionInvalidator invalidator, final Correlator correlator)
+    public static ExceptionHandler of(final Correlator correlator)
     {
-        Objects.requireNonNull(invalidator, "invalidator can not be null");
         Objects.requireNonNull(correlator, "correlator can not be null");
-        return new ExceptionHandler(invalidator, correlator);
+        return new ExceptionHandler(correlator);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
     {
-        if(cause instanceof CasualDecoderException)
-        {
-            // we can handle if it was a protocol exception
-            CasualDecoderException e = (CasualDecoderException)cause;
-            if(e.getCause() instanceof CasualProtocolException)
-            {
-                List<UUID> l = new ArrayList<>();
-                l.add(e.getCorrid());
-                correlator.completeExceptionally(l, e);
-                return;
-            }
-        }
-        // anything else and we can not handle it ( ie network connection gone)
-        correlator.completeAllExceptionally(new CasualConnectionException(cause));
-        invalidator.invalidate(new CasualConnectionException(cause));
+        completeReqExceptionally(ctx, cause);
+        // if req could not be completed exceptionally it will be logged by netty
     }
+
+    private void completeReqExceptionally(ChannelHandlerContext ctx, Throwable cause)
+    {
+        Optional<CasualDecoderException> d = findDecoderException(cause);
+        if(d.isPresent())
+        {
+            CasualDecoderException e = d.get();
+            completeReqExceptionally(e, e.getCorrid());
+            return;
+        }
+        // something has gone horribly wrong, complete all requests exceptionally
+        correlator.completeAllExceptionally(new CasualConnectionException(cause));
+    }
+
+    private void completeReqExceptionally(CasualDecoderException e, UUID corrid)
+    {
+        List<UUID> l = new ArrayList<>();
+        l.add(corrid);
+        correlator.completeExceptionally(l, e);
+    }
+
+    private Optional<CasualDecoderException> findDecoderException(Throwable t)
+    {
+        Throwable cause;
+        Throwable result = t;
+        while(null != (cause = result.getCause()) && (result != cause))
+        {
+            if(result instanceof  CasualDecoderException)
+            {
+                return Optional.of((CasualDecoderException)result);
+            }
+            result = cause;
+        }
+        return Optional.empty();
+    }
+
 }

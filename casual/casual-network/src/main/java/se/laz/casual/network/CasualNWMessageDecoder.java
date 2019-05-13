@@ -64,6 +64,10 @@ public final class CasualNWMessageDecoder extends ByteToMessageDecoder
                 {
                     throw new CasualDecoderException(e, header.getCorrelationId());
                 }
+                finally
+                {
+                    state = State.READ_HEADER;
+                }
                 break;
         }
     }

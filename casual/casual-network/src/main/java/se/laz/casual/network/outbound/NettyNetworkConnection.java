@@ -19,7 +19,6 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.Future;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
-import se.laz.casual.internal.jca.ManagedConnectionInvalidator;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
@@ -35,23 +34,20 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class NettyNetworkConnection implements NetworkConnection
 {
     private static final String USE_LOG_HANDLER_PROPERTY_NAME = "casual.network.outbound.enableLoghandler";
     private final BaseConnectionInformation ci;
-    private final ManagedConnectionInvalidator invalidator;
     private final Correlator correlator;
     private final Channel channel;
     private final EventLoopGroup workerGroup;
     private final AtomicBoolean handleClose = new AtomicBoolean(true);
 
-    private NettyNetworkConnection(BaseConnectionInformation ci, ManagedConnectionInvalidator invalidator, Correlator correlator, Channel channel, EventLoopGroup workerGroup)
+    private NettyNetworkConnection(BaseConnectionInformation ci, Correlator correlator, Channel channel, EventLoopGroup workerGroup)
     {
         this.ci = ci;
-        this.invalidator = invalidator;
         this.correlator = correlator;
         this.channel = channel;
         this.workerGroup = workerGroup;
@@ -62,8 +58,8 @@ public final class NettyNetworkConnection implements NetworkConnection
         Objects.requireNonNull(ci, "connection info can not be null");
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         Correlator correlator = ci.getCorrelator();
-        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), ExceptionHandler.of(ci.getInvalidator(), correlator));
-        NettyNetworkConnection c = new NettyNetworkConnection(ci, ci.getInvalidator(), correlator, ch, workerGroup);
+        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator));
+        NettyNetworkConnection c = new NettyNetworkConnection(ci, correlator, ch, workerGroup);
         ch.closeFuture().addListener(f -> handleClose(f, c));
         c.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
         return c;
@@ -96,7 +92,6 @@ public final class NettyNetworkConnection implements NetworkConnection
         if(c.handleClose.get())
         {
             c.correlator.completeAllExceptionally(new CasualConnectionException("network connection is gone"));
-            c.invalidator.invalidate(new CasualConnectionException("connection is gone"));
         }
     }
 
@@ -107,12 +102,11 @@ public final class NettyNetworkConnection implements NetworkConnection
         if(!channel.isActive())
         {
             f.completeExceptionally(new CasualConnectionException("can not write msg: " + message + " connection is gone"));
-            correlator.completeAllExceptionally(new CasualConnectionException("network connection is gone"));
-            invalidator.invalidate(new CasualConnectionException("connection is gone"));
             return f;
         }
         correlator.put(message.getCorrelationId(), f);
         ChannelFuture cf = channel.writeAndFlush(message);
+        //this handles any exceptional behaviour when writing
         cf.addListener(v -> {
             if(!v.isSuccess()){
                 List<UUID> l = new ArrayList<>();
@@ -145,17 +139,10 @@ public final class NettyNetworkConnection implements NetworkConnection
                                                                                             .build();
         CasualNWMessage<CasualDomainConnectRequestMessage> nwMessage = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage);
         CompletableFuture<CasualNWMessage<CasualDomainConnectReplyMessage>> replyEnvelopeFuture = request(nwMessage);
-        try
+        CasualNWMessage<CasualDomainConnectReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
+        if(replyEnvelope.getMessage().getProtocolVersion() != version)
         {
-            CasualNWMessage<CasualDomainConnectReplyMessage> replyEnvelope = replyEnvelopeFuture.get();
-            if(replyEnvelope.getMessage().getProtocolVersion() != version)
-            {
-                throw new CasualConnectionException("wanted protocol version " + version + " is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion());
-            }
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
-            throw new CasualConnectionException(e);
+            throw new CasualConnectionException("wanted protocol version " + version + " is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion());
         }
     }
 
@@ -164,7 +151,6 @@ public final class NettyNetworkConnection implements NetworkConnection
     {
         final StringBuilder sb = new StringBuilder("NettyNetworkConnection{");
         sb.append("ci=").append(ci);
-        sb.append(", invalidator=").append(invalidator);
         sb.append(", correlator=").append(correlator);
         sb.append(", channel=").append(channel);
         sb.append(", workerGroup=").append(workerGroup);

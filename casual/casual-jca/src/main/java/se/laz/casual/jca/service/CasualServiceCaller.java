@@ -46,14 +46,7 @@ public class CasualServiceCaller implements CasualServiceApi
     @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        try
-        {
-            return tpacall(serviceName, data, flags).get();
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
-            throw new CasualResourceAdapterException(e);
-        }
+        return tpacall(serviceName, data, flags).join();
     }
 
     @Override
@@ -100,17 +93,11 @@ public class CasualServiceCaller implements CasualServiceApi
                                                                                             .build();
         CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessageImpl.of(corrid, requestMsg);
         CompletableFuture<CasualNWMessage<CasualDomainDiscoveryReplyMessage>> replyMsgFuture = connection.getNetworkConnection().request(msg);
-        try
-        {
-            CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.get();
-            return replyMsg.getMessage().getServices().stream()
-                           .map(Service::getName)
-                           .anyMatch(v -> v.equals(serviceName));
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
-            throw new CasualResourceAdapterException(e);
-        }
+
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
+        return replyMsg.getMessage().getServices().stream()
+                .map(Service::getName)
+                .anyMatch(v -> v.equals(serviceName));
     }
 
     private ServiceReturn<CasualBuffer> toServiceReturn(CasualNWMessage<CasualServiceCallReplyMessage> v)

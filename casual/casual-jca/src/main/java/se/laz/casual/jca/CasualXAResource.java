@@ -60,16 +60,11 @@ public class CasualXAResource implements XAResource
             CasualTransactionResourceCommitRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourceCommitRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), commitRequest);
         CompletableFuture<CasualNWMessage<CasualTransactionResourceCommitReplyMessage>> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
-        try
-        {
-            CasualNWMessage<CasualTransactionResourceCommitReplyMessage> replyEnvelope = replyEnvelopeFuture.get();
-            CasualTransactionResourceCommitReplyMessage replyMsg = replyEnvelope.getMessage();
-            throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
-            throw new CasualConnectionException(e);
-        }
+
+        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
+        CasualTransactionResourceCommitReplyMessage replyMsg = replyEnvelope.getMessage();
+        throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
+
     }
 
     /**
@@ -129,17 +124,11 @@ public class CasualXAResource implements XAResource
         CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), prepareRequest);
         CompletableFuture<CasualNWMessage<CasualTransactionResourcePrepareReplyMessage>> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
-        try
-        {
-            CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> replyEnvelope = replyEnvelopeFuture.get();
-            CasualTransactionResourcePrepareReplyMessage replyMsg = replyEnvelope.getMessage();
-            throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
-            return replyMsg.getTransactionReturnCode().getId();
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
-            throw new CasualConnectionException(e);
-        }
+
+        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
+        CasualTransactionResourcePrepareReplyMessage replyMsg = replyEnvelope.getMessage();
+        throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
+        return replyMsg.getTransactionReturnCode().getId();
     }
 
     @Override
@@ -156,16 +145,10 @@ public class CasualXAResource implements XAResource
                 CasualTransactionResourceRollbackRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), request);
         CompletableFuture<CasualNWMessage<CasualTransactionResourceRollbackReplyMessage>> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
-        try
-        {
-            CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyEnvelope = replyEnvelopeFuture.get();
-            CasualTransactionResourceRollbackReplyMessage replyMsg = replyEnvelope.getMessage();
-            throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
-            throw new CasualConnectionException(e);
-        }
+
+        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
+        CasualTransactionResourceRollbackReplyMessage replyMsg = replyEnvelope.getMessage();
+        throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
     }
 
     @Override

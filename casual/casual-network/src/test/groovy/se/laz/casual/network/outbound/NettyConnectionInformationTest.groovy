@@ -8,7 +8,6 @@ package se.laz.casual.network.outbound
 
 import io.netty.channel.Channel
 import io.netty.channel.socket.nio.NioSocketChannel
-import se.laz.casual.internal.jca.ManagedConnectionInvalidator
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -18,8 +17,6 @@ class NettyConnectionInformationTest extends Specification
     InetSocketAddress testAddress = new InetSocketAddress(4096)
     @Shared
     UUID testDomainId = UUID.randomUUID()
-    @Shared
-    ManagedConnectionInvalidator testInvalidator = {}
     @Shared
     String testDomainName = 'nifty'
     @Shared
@@ -37,7 +34,6 @@ class NettyConnectionInformationTest extends Specification
                                                  .withCorrelator(correlator)
                                                  .withDomainId(domainId)
                                                  .withDomainName(domainName)
-                                                 .withInvalidator(invalidator)
                                                  .withAddress(address)
                                                  .withProtocolVersion(protocolVersion)
                                                  .build()
@@ -45,11 +41,10 @@ class NettyConnectionInformationTest extends Specification
         null == instance
         thrown(NullPointerException)
         where:
-        address     | domainId       | domainName     | invalidator     | protocolVersion     | channelClass     | correlator
-        null        | testDomainId   | testDomainName | testInvalidator | testProtocolVersion | testChannelClass | testCorrelator
-        testAddress | null           | testDomainName | testInvalidator | testProtocolVersion | testChannelClass | testCorrelator
-        testAddress | testDomainId   | null           | testInvalidator | testProtocolVersion | testChannelClass | testCorrelator
-        testAddress | testDomainId   | testDomainName | null            | testProtocolVersion | testChannelClass | testCorrelator
+        address     | domainId       | domainName     | protocolVersion     | channelClass     | correlator
+        null        | testDomainId   | testDomainName | testProtocolVersion | testChannelClass | testCorrelator
+        testAddress | null           | testDomainName | testProtocolVersion | testChannelClass | testCorrelator
+        testAddress | testDomainId   | null           | testProtocolVersion | testChannelClass | testCorrelator
     }
 
     def 'ok construction'()
@@ -60,7 +55,6 @@ class NettyConnectionInformationTest extends Specification
                 .withCorrelator(correlator)
                 .withDomainId(domainId)
                 .withDomainName(domainName)
-                .withInvalidator(invalidator)
                 .withAddress(address)
                 .withProtocolVersion(protocolVersion)
                 .build()
@@ -68,10 +62,10 @@ class NettyConnectionInformationTest extends Specification
         null != instance
         noExceptionThrown()
         where:
-        address     | domainId       | domainName     | invalidator     | protocolVersion     | channelClass     | correlator
-        testAddress | testDomainId   | testDomainName | testInvalidator | testProtocolVersion | testChannelClass | testCorrelator
-        testAddress | testDomainId   | testDomainName | testInvalidator | testProtocolVersion | null             | testCorrelator
-        testAddress | testDomainId   | testDomainName | testInvalidator | testProtocolVersion | testChannelClass | null
+        address     | domainId       | domainName     |  protocolVersion     | channelClass     | correlator
+        testAddress | testDomainId   | testDomainName |  testProtocolVersion | testChannelClass | testCorrelator
+        testAddress | testDomainId   | testDomainName |  testProtocolVersion | null             | testCorrelator
+        testAddress | testDomainId   | testDomainName |  testProtocolVersion | testChannelClass | null
     }
 
 }

@@ -23,6 +23,7 @@ public final class CasualNWMessageEncoder extends MessageToByteEncoder<CasualNWM
     @Override
     protected void encode(ChannelHandlerContext ctx, CasualNWMessage<?> msg, ByteBuf out) throws Exception
     {
+        // failure is already handled in NettyNetworkConnection::request
         CasualMessageEncoder.write(out, msg);
     }
 

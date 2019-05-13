@@ -101,7 +101,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    {
       log.finest("matchManagedConnections()");
       return (ManagedConnection)connectionSet.stream()
-              .filter( s -> s instanceof CasualManagedConnection )
+              .filter( s -> s instanceof CasualManagedConnection)
               .findFirst( )
               .orElse( null );
    }

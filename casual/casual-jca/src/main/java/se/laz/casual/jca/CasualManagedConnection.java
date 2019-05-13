@@ -64,7 +64,7 @@ public class CasualManagedConnection implements ManagedConnection
         this.mcf = mcf;
         this.logwriter = null;
         this.connectionEventHandler = new ConnectionEventHandler();
-        this.connectionHandles = Collections.synchronizedList(new ArrayList<CasualConnectionImpl>(1));
+        this.connectionHandles = Collections.synchronizedList(new ArrayList<>(1));
     }
 
     /**
@@ -88,11 +88,10 @@ public class CasualManagedConnection implements ManagedConnection
         if( networkConnection == null )
         {
             NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
-                                                                 .withProtocolVersion(mcf.getCasualProtocolVersion())
-                                                                 .withDomainId(UUID.randomUUID())
-                                                                 .withDomainName(DOMAIN_NAME)
-                                                                 .withInvalidator(e -> invalidate(e))
-                                                                 .build();
+                                                                                      .withProtocolVersion(mcf.getCasualProtocolVersion())
+                                                                                      .withDomainId(UUID.randomUUID())
+                                                                                      .withDomainName(DOMAIN_NAME)
+                                                                                      .build();
             networkConnection = NettyNetworkConnection.of(ci);
             log.finest("created new nw connection " + this);
         }
@@ -144,7 +143,7 @@ public class CasualManagedConnection implements ManagedConnection
     public void destroy() throws ResourceException
     {
         log.finest("destroy()" + this);
-        getNetworkConnection().close();
+        closeNetworkConnection();
         connectionHandles.clear();
     }
 
@@ -222,6 +221,15 @@ public class CasualManagedConnection implements ManagedConnection
         connectionEventHandler.sendEvent(event);
     }
 
+    private void closeNetworkConnection()
+    {
+        if(null != networkConnection)
+        {
+            networkConnection.close();
+            networkConnection = null;
+        }
+    }
+
     private void addHandle(CasualConnectionImpl handle)
     {
         connectionHandles.add(handle);
@@ -248,13 +256,6 @@ public class CasualManagedConnection implements ManagedConnection
         return "CasualManagedConnection{" +
                 ", xaResource=" + xaResource +
                 '}';
-    }
-
-    private void invalidate(Exception e)
-    {
-        log.finest("invalidated exception " + e + " ManagedConnection: " + this);
-        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED, e);
-        connectionEventHandler.sendEvent(event);
     }
 
 }

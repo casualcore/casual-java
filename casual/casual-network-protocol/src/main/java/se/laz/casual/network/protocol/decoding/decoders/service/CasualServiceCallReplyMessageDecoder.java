@@ -115,7 +115,7 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
 
         int serviceBufferTypeSize = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize()).getLong();
         currentOffset += ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize();
-        final String serviceTypeName = ( 0 == serviceBufferTypeSize) ? "" : CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceBufferTypeSize);
+        String serviceTypeName = ( 0 == serviceBufferTypeSize) ? "" : CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceBufferTypeSize);
         currentOffset += serviceBufferTypeSize;
         // this can be huge, ie not fitting into one ByteBuffer
         // but since the whole message fits into Integer.MAX_VALUE that is not true of this message
@@ -131,6 +131,8 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
             final byte[] payloadData = Arrays.copyOfRange(data, currentOffset, currentOffset + serviceBufferPayloadSize);
             serviceBufferPayload.add(payloadData);
         }
+        // since serviceTypeName can be NULL in case there is no payload
+        serviceTypeName = (0 == serviceBufferPayloadSize) ? "" : serviceTypeName;
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
         return CasualServiceCallReplyMessage.createBuilder()
                                             .setExecution(execution)

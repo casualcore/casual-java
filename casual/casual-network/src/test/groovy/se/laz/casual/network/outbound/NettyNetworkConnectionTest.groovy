@@ -9,7 +9,6 @@ package se.laz.casual.network.outbound
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.util.concurrent.Future
-import se.laz.casual.internal.jca.ManagedConnectionInvalidator
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -24,7 +23,6 @@ class NettyNetworkConnectionTest extends Specification
 {
     @Shared UUID corrid = UUID.randomUUID()
     @Shared NettyNetworkConnection instance
-    @Shared ManagedConnectionInvalidator invalidator
     @Shared NettyConnectionInformation ci
     @Shared Correlator correlator
     @Shared EmbeddedChannel ch
@@ -32,17 +30,15 @@ class NettyNetworkConnectionTest extends Specification
     def setup()
     {
         correlator = CorrelatorImpl.of()
-        invalidator = Mock(ManagedConnectionInvalidator)
         ci = NettyConnectionInformation.createBuilder()
                                                             .withAddress(new InetSocketAddress(3712))
                                                             .withProtocolVersion(1000l)
                                                             .withDomainId(UUID.randomUUID())
                                                             .withDomainName('testDomain')
-                                                            .withInvalidator(invalidator)
                                                             .withCorrelator(correlator)
                                                             .build()
-        ch = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(ci.getInvalidator(), correlator))
-        instance = new NettyNetworkConnection(ci, ci.getInvalidator(), correlator, ch, null)
+        ch = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator))
+        instance = new NettyNetworkConnection(ci, correlator, ch, null)
     }
 
     def 'Of with a null connection info throws NullPointerException.'()
@@ -78,7 +74,7 @@ class NettyNetworkConnectionTest extends Specification
             }
             return nettyFuture
         }
-        instance = new NettyNetworkConnection(ci, ci.getInvalidator(), correlator, ch, eventloopGroup)
+        instance = new NettyNetworkConnection(ci, correlator, ch, eventloopGroup)
         when:
         instance.close()
         then:
