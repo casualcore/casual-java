@@ -28,6 +28,11 @@ import java.util.logging.Logger;
 
 import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodMatcher.matches;
 
+/**
+ * Periodically check to find any newly deployed {@link CasualService} annotated EJBs.
+ *
+ * https://stackoverflow.com/questions/48867612/determine-jndi-portable-name-within-an-javax-enterprise-inject-spi-extension/50195996#50195996
+ */
 @Singleton
 public class JndiSearchTimerEjbSingleton
 {

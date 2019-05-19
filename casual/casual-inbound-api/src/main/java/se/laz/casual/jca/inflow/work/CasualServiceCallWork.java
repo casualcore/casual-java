@@ -24,6 +24,9 @@ import javax.resource.spi.work.Work;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+/**
+ * Work instance for performing inbound casual service call requests within the work manager.
+ */
 public final class CasualServiceCallWork implements Work
 {
     private static Logger log = Logger.getLogger(CasualServiceCallWork.class.getName());

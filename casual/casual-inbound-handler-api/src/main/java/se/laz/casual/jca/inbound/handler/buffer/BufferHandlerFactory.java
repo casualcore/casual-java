@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * SPI factory for retrieving registered {@link BufferHandler}s.
+ */
 public final class BufferHandlerFactory
 {
     private static final BufferHandler PASSTHROUGH_HANDLER = new PassThroughBufferHandler();
@@ -26,6 +29,11 @@ public final class BufferHandlerFactory
     {
     }
 
+    /**
+     * Get all registered {@link BufferHandler} instances.
+     *
+     * @return available handlers.
+     */
     public static List<BufferHandler> getHandlers()
     {
         List<BufferHandler> handlers = new ArrayList<>();
@@ -36,6 +44,14 @@ public final class BufferHandlerFactory
         return handlers;
     }
 
+    /**
+     * Retrieve the most appropriate {@link BufferHandler} base on it's {@link se.laz.casual.jca.inbound.handler.Priority}.
+     *
+     * If there is no registered handler a PassThoughHandler is returned, which will ensure no transformation takes place.
+     *
+     * @param bufferType to get a handler for.
+     * @return the buffer handler.
+     */
     public static BufferHandler getHandler(String bufferType )
     {
         if( bufferHandlerCache.containsKey( bufferType ) )

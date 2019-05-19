@@ -13,6 +13,10 @@ import se.laz.casual.api.flags.TransactionState;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * Response from the inbound request populated by the service that is called.
+ * Includes the response buffer along with appropriate meta data in the even of errors.
+ */
 public class InboundResponse implements Serializable
 {
     private static final long serialVersionUID = 1L;

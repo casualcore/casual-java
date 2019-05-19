@@ -9,6 +9,13 @@ package se.laz.casual.jca.inbound.handler.service.casual.discovery;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+/**
+ * Facilitate the traversal of JNDI tree to find EJBs matching previously
+ * discovered {@link se.laz.casual.api.service.CasualService} annotated methods.
+ *
+ * https://stackoverflow.com/questions/48867612/determine-jndi-portable-name-within-an-javax-enterprise-inject-spi-extension/50195996#50195996
+ */
 public class JndiMatcher
 {
     private JndiMatcher()

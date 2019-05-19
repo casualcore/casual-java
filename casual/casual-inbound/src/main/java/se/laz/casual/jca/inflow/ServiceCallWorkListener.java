@@ -12,6 +12,10 @@ import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
 import javax.resource.spi.work.WorkEvent;
 import javax.resource.spi.work.WorkListener;
 
+/**
+ * Work Listener to handle completion of {@link javax.resource.spi.work.Work} item by
+ * {@link javax.resource.spi.work.WorkManager} to flush the response to the netty {@link Channel}.
+ */
 public class ServiceCallWorkListener implements WorkListener
 {
     private final Channel channel;
@@ -29,20 +33,19 @@ public class ServiceCallWorkListener implements WorkListener
     @Override
     public void workAccepted(WorkEvent e)
     {
-        //NOP
+        //No Op
     }
 
     @Override
     public void workRejected(WorkEvent e)
     {
-        // what do we do if a piece of work was rejected?
-        // close the channel?
+        // No Op
     }
 
     @Override
     public void workStarted(WorkEvent e)
     {
-        //NOP
+        //No Op
     }
 
     @Override

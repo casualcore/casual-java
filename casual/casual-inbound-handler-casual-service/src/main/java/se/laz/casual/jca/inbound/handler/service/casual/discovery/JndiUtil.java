@@ -25,6 +25,15 @@ public class JndiUtil
     private JndiUtil()
     {}
 
+    /**
+     * Retrieve all the Global JNDI proxies from the provided {@link Context} - depth first search.
+     *
+     * https://stackoverflow.com/questions/48867612/determine-jndi-portable-name-within-an-javax-enterprise-inject-spi-extension/50195996#50195996
+     *
+     * @param ctx to search
+     * @return Map of Jndi name to child jndi entries and their Proxy objects.
+     * @throws NamingException
+     */
     public static Map<String,Map<String,Proxy>> findAllGlobalJndiProxies( Context ctx ) throws NamingException
     {
         Map<String,Map<String,Proxy>> map = new HashMap<>();

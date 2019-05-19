@@ -11,6 +11,10 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Information for the dispatch of the call to the service.
+ * This includes the method parameters and potentially the method if the service maps only to a class.
+ */
 public class ServiceCallInfo
 {
 

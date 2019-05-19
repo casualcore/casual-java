@@ -11,6 +11,10 @@ import se.laz.casual.api.buffer.CasualBuffer;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * Wrapper class for Inbound Request including the name of the service to be called
+ * along with the buffer that should be sent to the service.
+ */
 public class InboundRequest implements Serializable
 {
     private static final long serialVersionUID = 1L;

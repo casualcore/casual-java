@@ -45,6 +45,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Inbound Casual Message Listener, responsible for handling all inbound requests received.
+ */
 @MessageDriven(messageListenerInterface = CasualMessageListener.class,
         activationConfig =
                 {

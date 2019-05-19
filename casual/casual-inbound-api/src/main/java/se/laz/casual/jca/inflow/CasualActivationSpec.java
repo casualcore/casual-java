@@ -12,9 +12,7 @@ import javax.resource.spi.ResourceAdapter;
 import java.util.logging.Logger;
 
 /**
- * CasualActivationSpec
- *
- * @version $Revision: $
+ * Activation Specification for Inbound Message Listener.
  */
 @Activation(messageListeners = { CasualMessageListener.class })
 public class CasualActivationSpec implements ActivationSpec
