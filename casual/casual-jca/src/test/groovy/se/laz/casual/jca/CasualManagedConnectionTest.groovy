@@ -32,6 +32,9 @@ class CasualManagedConnectionTest extends Specification
         connectionRequestInfo = Mock(ConnectionRequestInfo)
 
         instance = new CasualManagedConnection( managedConnectionFactory, connectionRequestInfo )
+        NetworkConnection networkConnection = Mock( )
+        networkConnection.isActive() >> true
+        instance.networkConnection = networkConnection
     }
 
     def "GetDomainName returns a value."()
@@ -42,10 +45,6 @@ class CasualManagedConnectionTest extends Specification
 
     def "GetNetworkConnection returns same instance."()
     {
-        setup:
-        NetworkConnection networkConnection = Mock( )
-        instance.networkConnection = networkConnection
-
         when:
         NetworkConnection first = instance.getNetworkConnection()
         NetworkConnection second = instance.getNetworkConnection()
@@ -66,6 +65,20 @@ class CasualManagedConnectionTest extends Specification
         connection instanceof CasualConnectionImpl
         ((CasualConnectionImpl)connection).getManagedConnection() == instance
     }
+
+    def "GetConnection ping failure"()
+    {
+        setup:
+        NetworkConnection networkConnection = Mock( )
+        networkConnection.isActive() >> false
+        instance.networkConnection = networkConnection
+        when:
+        instance.getConnection( null, null)
+        then:
+        thrown(ResourceException)
+    }
+
+
 
     def "AssociateConnection with null throws NullPointerException"()
     {
@@ -103,7 +116,6 @@ class CasualManagedConnectionTest extends Specification
 
     def "Cleanup test"()
     {
-        setup:
         CasualConnectionImpl connection = instance.getConnection( null, null )
         connection.isInvalid() == false
 

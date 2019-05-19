@@ -51,6 +51,7 @@ public class CasualManagedConnection implements ManagedConnection
     private final ConnectionEventHandler connectionEventHandler;
     private final List<CasualConnectionImpl> connectionHandles;
     private NetworkConnection networkConnection;
+    private final Object networkConnectionLock = new Object();
     private CasualXAResource xaResource;
 
     /**
@@ -83,17 +84,20 @@ public class CasualManagedConnection implements ManagedConnection
      *
      * @return network connection.
      */
-    public synchronized NetworkConnection getNetworkConnection()
+    public NetworkConnection getNetworkConnection()
     {
-        if( networkConnection == null )
+        synchronized (networkConnectionLock)
         {
-            NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
-                                                                                      .withProtocolVersion(mcf.getCasualProtocolVersion())
-                                                                                      .withDomainId(UUID.randomUUID())
-                                                                                      .withDomainName(DOMAIN_NAME)
-                                                                                      .build();
-            networkConnection = NettyNetworkConnection.of(ci);
-            log.finest("created new nw connection " + this);
+            if (networkConnection == null)
+            {
+                NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
+                                                                          .withProtocolVersion(mcf.getCasualProtocolVersion())
+                                                                          .withDomainId(UUID.randomUUID())
+                                                                          .withDomainName(DOMAIN_NAME)
+                                                                          .build();
+                networkConnection = NettyNetworkConnection.of(ci);
+                log.finest("created new nw connection " + this);
+            }
         }
         return networkConnection;
     }
@@ -103,6 +107,11 @@ public class CasualManagedConnection implements ManagedConnection
                                 ConnectionRequestInfo cxRequestInfo) throws ResourceException
     {
         log.finest("getConnection()");
+        if(!getNetworkConnection().isActive())
+        {
+            closeNetworkConnection();
+            throw new ResourceException("can not connect to casual");
+        }
         CasualConnectionImpl c = new CasualConnectionImpl(this );
         connectionHandles.add(c);
         return c;
@@ -223,10 +232,13 @@ public class CasualManagedConnection implements ManagedConnection
 
     private void closeNetworkConnection()
     {
-        if(null != networkConnection)
+        synchronized (networkConnectionLock)
         {
-            networkConnection.close();
-            networkConnection = null;
+            if (null != networkConnection)
+            {
+                networkConnection.close();
+                networkConnection = null;
+            }
         }
     }
 

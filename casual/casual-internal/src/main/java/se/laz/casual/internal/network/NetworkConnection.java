@@ -18,4 +18,5 @@ public interface NetworkConnection
 {
     <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message);
     void close();
+    boolean isActive();
 }

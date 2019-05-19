@@ -129,6 +129,12 @@ public final class NettyNetworkConnection implements NetworkConnection
         workerGroup.shutdownGracefully().syncUninterruptibly();
     }
 
+    @Override
+    public boolean isActive()
+    {
+        return channel.isActive();
+    }
+
     private void throwIfProtocolVersionNotSupportedByEIS(long version, final UUID domainId, final String domainName)
     {
         CasualDomainConnectRequestMessage requestMessage = CasualDomainConnectRequestMessage.createBuilder()
