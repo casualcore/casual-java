@@ -16,7 +16,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.concurrent.Future;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.internal.network.NetworkConnection;
@@ -60,7 +59,7 @@ public final class NettyNetworkConnection implements NetworkConnection
         Correlator correlator = ci.getCorrelator();
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator));
         NettyNetworkConnection c = new NettyNetworkConnection(ci, correlator, ch, workerGroup);
-        ch.closeFuture().addListener(f -> handleClose(f, c));
+        ch.closeFuture().addListener(f -> handleClose(c));
         c.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
         return c;
     }
@@ -87,7 +86,7 @@ public final class NettyNetworkConnection implements NetworkConnection
         return b.connect(address).syncUninterruptibly().channel();
     }
 
-    private static void handleClose(final Future<? super Void> f, final NettyNetworkConnection c)
+    private static void handleClose(final NettyNetworkConnection c)
     {
         if(c.handleClose.get())
         {

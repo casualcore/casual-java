@@ -88,8 +88,6 @@ public class ConnectionEventHandler
                     l.localTransactionStarted(event);
                     break;
                 default:
-                    // TODO:
-                    // maybe not throw, just ignore?
                     throw new CasualConnectionException("unkown event:" + event);
             }
         }

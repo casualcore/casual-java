@@ -90,8 +90,6 @@ public final class QueueMessage
         return new Builder();
     }
 
-    // expressions should not be too complex
-    @SuppressWarnings("squid:S1067")
     @Override
     public boolean equals(Object o)
     {

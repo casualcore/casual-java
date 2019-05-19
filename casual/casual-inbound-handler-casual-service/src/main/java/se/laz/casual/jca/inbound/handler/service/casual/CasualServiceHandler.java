@@ -7,6 +7,7 @@
 package se.laz.casual.jca.inbound.handler.service.casual;
 
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.service.ServiceInfo;
@@ -19,7 +20,6 @@ import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.network.messages.domain.TransactionType;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 
 import javax.ejb.Local;
 import javax.ejb.Stateless;
@@ -30,7 +30,6 @@ import javax.naming.NamingException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;

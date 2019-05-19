@@ -21,8 +21,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.UUID;
 
-// I don't agree here, in these cases it makes it more readable
-@SuppressWarnings("squid:UselessParenthesesCheck")
 public final class CasualDequeueRequestMessageDecoder implements NetworkDecoder<CasualDequeueRequestMessage>
 {
     private CasualDequeueRequestMessageDecoder()

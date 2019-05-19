@@ -21,7 +21,6 @@ import java.util.UUID;
 /**
  * Created by aleph on 2017-03-07.
  */
-@SuppressWarnings("squid:S1612")
 public final class CasualEncoderUtils
 {
     private CasualEncoderUtils()
@@ -126,8 +125,7 @@ public final class CasualEncoderUtils
         final ByteBuffer serviceBufferPayloadSizeBuffer = ByteBuffer.allocate(CommonSizes.SERVICE_BUFFER_PAYLOAD_SIZE.getNetworkSize());
         serviceBufferPayloadSizeBuffer.putLong(payloadSize);
         l.add(serviceBufferPayloadSizeBuffer.array());
-        serviceBytes.stream()
-                    .forEach(bytes -> l.add(bytes));
+        l.addAll(serviceBytes);
         return l;
     }
 

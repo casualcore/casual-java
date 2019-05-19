@@ -6,15 +6,13 @@
 
 package se.laz.casual.jca.inbound.handler.service.casual;
 
-import se.laz.casual.api.service.CasualService;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * Created by jone on 2017-02-27.
+ * Internal Registry for discovered EJB endpoints with CasualService annotation to allow inbound requests to be dispatched.
  */
 public final class CasualServiceRegistry
 {
@@ -36,8 +34,6 @@ public final class CasualServiceRegistry
 
     public void register( CasualServiceMetaData metaData )
     {
-        validateServiceMetaData(metaData);
-
         serviceMetaData.put( metaData.getServiceName(), metaData );
     }
 
@@ -67,11 +63,6 @@ public final class CasualServiceRegistry
         return serviceEntries.get( name );
     }
 
-    public void deregister( CasualService service )
-    {
-        //TODO: listen to application destruction to remove from the map.
-    }
-
     public int serviceMetaDataSize()
     {
         return serviceMetaData.size();
@@ -79,11 +70,6 @@ public final class CasualServiceRegistry
     public int serviceEntrySize()
     {
         return serviceEntries.size();
-    }
-
-    private void validateServiceMetaData(CasualServiceMetaData registryEntry)
-    {
-        //TODO: what are the validation rules?
     }
 
     public List<CasualServiceMetaData> getUnresolvedServices()

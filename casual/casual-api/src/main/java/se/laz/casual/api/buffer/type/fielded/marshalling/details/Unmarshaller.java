@@ -34,8 +34,6 @@ import java.util.function.Supplier;
 /**
  * Unmarshalls from a buffer to an Object of type T
  */
-// sonar hates lambdas
-@SuppressWarnings("squid:S1612")
 public final class Unmarshaller
 {
     private Unmarshaller()
@@ -114,7 +112,7 @@ public final class Unmarshaller
             if(p instanceof AnnotatedParameterInfo)
             {
                 AnnotatedParameterInfo info = (AnnotatedParameterInfo)p;
-                readValue(b, info.getAnnotation(), (Object v) -> l[finalIndex] = v, info.getType(), () -> info.getParameterizedType(), index, mode);
+                readValue(b, info.getAnnotation(), (Object v) -> l[finalIndex] = v, info.getType(), info::getParameterizedType, index, mode);
             }
             else
             {
@@ -137,7 +135,7 @@ public final class Unmarshaller
             }
             try
             {
-                readValue(b, annotation, (Object v) -> setField(instance, f, v, fieldedValueUnmarshalled),f.getType(), () -> f.getGenericType(), index, mode);
+                readValue(b, annotation, (Object v) -> setField(instance, f, v, fieldedValueUnmarshalled),f.getType(), f::getGenericType, index, mode);
             }
             catch (ClassNotFoundException e)
             {

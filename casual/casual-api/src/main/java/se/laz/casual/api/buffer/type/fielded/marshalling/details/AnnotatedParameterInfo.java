@@ -11,7 +11,6 @@ import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedUnmarshallingExc
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -19,8 +18,6 @@ import java.util.Optional;
  * AnnotatedParameterInfo
  * Holds information regarding one @CasualFieldElement annotated parameter
  */
-// sonar hates lambdas
-@SuppressWarnings("squid:S1612")
 public final class AnnotatedParameterInfo extends ParameterInfo
 {
     private final CasualFieldElement annotation;

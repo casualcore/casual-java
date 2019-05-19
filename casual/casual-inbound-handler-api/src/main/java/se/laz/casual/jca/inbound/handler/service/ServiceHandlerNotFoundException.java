@@ -8,6 +8,8 @@ package se.laz.casual.jca.inbound.handler.service;
 
 import se.laz.casual.jca.inbound.handler.HandlerException;
 
+// ok for exceptions
+@SuppressWarnings("squid:MaximumInheritanceDepth")
 public class ServiceHandlerNotFoundException extends HandlerException
 {
     private static final long serialVersionUID = 1L;

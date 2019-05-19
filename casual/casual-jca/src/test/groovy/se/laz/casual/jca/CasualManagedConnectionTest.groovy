@@ -24,14 +24,13 @@ class CasualManagedConnectionTest extends Specification
 
     @Shared CasualManagedConnection instance
     @Shared CasualManagedConnectionFactory managedConnectionFactory
-    @Shared ConnectionRequestInfo connectionRequestInfo
 
     def setup()
     {
         managedConnectionFactory = Mock(CasualManagedConnectionFactory)
-        connectionRequestInfo = Mock(ConnectionRequestInfo)
 
-        instance = new CasualManagedConnection( managedConnectionFactory, connectionRequestInfo )
+        instance = new CasualManagedConnection( managedConnectionFactory )
+
         NetworkConnection networkConnection = Mock( )
         networkConnection.isActive() >> true
         instance.networkConnection = networkConnection
@@ -101,7 +100,7 @@ class CasualManagedConnectionTest extends Specification
     def "AssociateConnection with a managed connection factory instance and the connection now has a reference to it."()
     {
         setup:
-        CasualManagedConnection initial = new CasualManagedConnection( managedConnectionFactory, connectionRequestInfo )
+        CasualManagedConnection initial = new CasualManagedConnection( managedConnectionFactory )
         instance != initial
         CasualConnectionImpl connection = new CasualConnectionImpl( initial )
         connection.getManagedConnection() == initial
@@ -270,7 +269,7 @@ class CasualManagedConnectionTest extends Specification
     def "Equals and HashCode tests confirm only equal through referential equality."()
     {
         setup:
-        CasualManagedConnection instance2 = new CasualManagedConnection( managedConnectionFactory, connectionRequestInfo )
+        CasualManagedConnection instance2 = new CasualManagedConnection( managedConnectionFactory )
 
         expect:
         instance.equals( instance )

@@ -33,6 +33,8 @@ public final class CasualServiceMetaData
     private final String ejbName;
     private CasualServiceEntry resolvedEntry;
 
+    //Too many variables, Sonar doesn't see this this private and has an associated Builder class. Ignoring.
+    @SuppressWarnings("squid:S00107")
     private CasualServiceMetaData(CasualService service, CasualServiceJndiName jndiName, Class<?> implementationClass, Class<?> interfaceClass, Method serviceMethod, String appName, String moduleName, String ejbName )
     {
         Objects.requireNonNull( service, "Casual Service must be provided." );

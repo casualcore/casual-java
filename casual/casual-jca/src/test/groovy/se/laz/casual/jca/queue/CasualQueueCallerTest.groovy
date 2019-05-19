@@ -62,7 +62,7 @@ class CasualQueueCallerTest extends Specification
             resourceId
         }
         networkConnection = Mock(NetworkConnection)
-        connection = new CasualManagedConnection( mcf, null )
+        connection = new CasualManagedConnection( mcf )
         connection.networkConnection =  networkConnection
 
         CasualResourceManager.getInstance().remove(XID.NULL_XID)

@@ -24,6 +24,8 @@ import java.util.logging.Logger;
  *
  * @version $Revision: $
  */
+//Non serialisable or transient for ResourceAdapter and PrintWriter - this is as shown in Iron Jacamar so ignoring.
+@SuppressWarnings("squid:S1948")
 @ConnectionDefinition(connectionFactory = CasualConnectionFactory.class,
    connectionFactoryImpl = CasualConnectionFactoryImpl.class,
    connection = CasualConnection.class,
@@ -91,7 +93,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
          ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
       log.finest("createManagedConnection()");
-      return new CasualManagedConnection(this, cxRequestInfo);
+      return new CasualManagedConnection(this);
    }
 
    @Override

@@ -58,9 +58,8 @@ public class CasualManagedConnection implements ManagedConnection
      * Create a new managed connection with the provided factory and request information.
      *
      * @param mcf managed connection factory which created this objet.
-     * @param cxRequestInfo request information relevant to the creation.
      */
-    public CasualManagedConnection(CasualManagedConnectionFactory mcf, ConnectionRequestInfo cxRequestInfo)
+    public CasualManagedConnection(CasualManagedConnectionFactory mcf)
     {
         this.mcf = mcf;
         this.logwriter = null;
@@ -96,7 +95,7 @@ public class CasualManagedConnection implements ManagedConnection
                                                                           .withDomainName(DOMAIN_NAME)
                                                                           .build();
                 networkConnection = NettyNetworkConnection.of(ci);
-                log.finest("created new nw connection " + this);
+                log.finest(()->"created new nw connection " + this);
             }
         }
         return networkConnection;
@@ -151,7 +150,7 @@ public class CasualManagedConnection implements ManagedConnection
     @Override
     public void destroy() throws ResourceException
     {
-        log.finest("destroy()" + this);
+        log.finest(() -> "destroy()" + this);
         closeNetworkConnection();
         connectionHandles.clear();
     }

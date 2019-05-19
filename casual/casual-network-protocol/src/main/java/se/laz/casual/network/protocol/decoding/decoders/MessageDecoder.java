@@ -18,8 +18,7 @@ public final class MessageDecoder<T extends CasualNetworkTransmittable>
 {
     final NetworkDecoder<T> networkDecoder;
     final int maxSingleBufferByteSize;
-    // It is very much used thank you
-    @SuppressWarnings("squid:UnusedPrivateMethod")
+
     private MessageDecoder(final NetworkDecoder<T> networkDecoder, int maxSingleBufferByteSize)
     {
         this.networkDecoder = networkDecoder;

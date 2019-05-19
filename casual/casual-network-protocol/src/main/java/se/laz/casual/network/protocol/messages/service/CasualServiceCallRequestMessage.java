@@ -28,8 +28,6 @@ import java.util.UUID;
 /**
  * Created by aleph on 2017-03-14.
  */
-// lambdas are fine
-@SuppressWarnings("squid:S1612")
 public final class CasualServiceCallRequestMessage implements CasualNetworkTransmittable
 {
     private UUID execution;
@@ -139,7 +137,6 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         return serviceBuffer;
     }
 
-    @SuppressWarnings("squid:S1067")
     @Override
     public boolean equals(Object o)
     {
@@ -265,8 +262,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
         serviceBytes.remove(0);
         final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
         b.putLong(payloadSize);
-        serviceBytes.stream()
-                    .forEach(bytes -> b.put(bytes));
+        serviceBytes.forEach(b::put);
         l.add(b.array());
         return l;
     }

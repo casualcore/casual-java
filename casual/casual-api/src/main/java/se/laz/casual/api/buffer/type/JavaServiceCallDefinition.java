@@ -6,14 +6,11 @@
 
 package se.laz.casual.api.buffer.type;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
-public final class JavaServiceCallDefinition implements Serializable
+public final class JavaServiceCallDefinition
 {
-    private static final long serialVersionUID = 1L;
-
     //Must reflect the name of the variable used for JSON serialization.
     public static final String METHOD_PARAMS = "methodParams";
 

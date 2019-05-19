@@ -63,7 +63,7 @@ class CasualServiceCallerTest extends Specification
         ra.workManager = workManager
         mcf = Mock(CasualManagedConnectionFactory)
         networkConnection = Mock(NetworkConnection)
-        connection = new CasualManagedConnection( mcf, null )
+        connection = new CasualManagedConnection( mcf )
         connection.networkConnection =  networkConnection
 
         CasualResourceManager.getInstance().remove(XID.NULL_XID)

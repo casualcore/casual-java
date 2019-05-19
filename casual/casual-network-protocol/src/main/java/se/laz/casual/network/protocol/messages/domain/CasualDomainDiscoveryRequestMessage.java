@@ -99,8 +99,7 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
 
     public List<String> getServiceNames()
     {
-        return serviceNames.stream()
-                           .collect(Collectors.toList());
+        return new ArrayList<>(serviceNames);
     }
 
     public long getNumberOfRequestedQueuesToFollow()
@@ -110,8 +109,7 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
 
     public List<String> getQueueNames()
     {
-        return queueNames.stream()
-                         .collect(Collectors.toList());
+        return new ArrayList<>(queueNames);
     }
 
 
@@ -142,15 +140,13 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
 
     private CasualDomainDiscoveryRequestMessage setServiceNames(List<String> serviceNames)
     {
-        this.serviceNames = serviceNames.stream()
-                                        .collect(Collectors.toList());
+        this.serviceNames = new ArrayList<>(serviceNames);
         return this;
     }
 
     private CasualDomainDiscoveryRequestMessage setQueueNames(List<String> queueNames)
     {
-        this.queueNames = queueNames.stream()
-                                    .collect(Collectors.toList());
+        this.queueNames = new ArrayList<>(queueNames);
         return this;
     }
 
@@ -229,15 +225,13 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
 
         public CasualDomainDiscoveryRequestMessageBuilder setServiceNames(List<String> serviceNames)
         {
-            this.serviceNames = serviceNames.stream()
-                                            .collect(Collectors.toList());
+            this.serviceNames = new ArrayList<>(serviceNames);
             return this;
         }
 
         public CasualDomainDiscoveryRequestMessageBuilder setQueueNames(List<String> queueNames)
         {
-            this.queueNames = queueNames.stream()
-                                        .collect(Collectors.toList());
+            this.queueNames = new ArrayList<>(queueNames);
             return this;
         }
 

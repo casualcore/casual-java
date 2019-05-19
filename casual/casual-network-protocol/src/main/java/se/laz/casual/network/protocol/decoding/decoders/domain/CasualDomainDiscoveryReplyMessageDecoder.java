@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.domain;
 
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.messages.domain.TransactionType;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
@@ -13,18 +14,15 @@ import se.laz.casual.network.protocol.decoding.decoders.utils.DynamicArrayIndexP
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.Queue;
 import se.laz.casual.network.protocol.messages.domain.Service;
-import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryReplySizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousByteChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Created by aleph on 2017-03-08.
@@ -76,47 +74,6 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
     public CasualDomainDiscoveryReplyMessage readSingleBuffer(byte[] data)
     {
         return getMessage(data);
-    }
-
-    private static List<byte[]> readService(final AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
-    {
-        // A service is expected to fit into one byte[] - it is never chunked
-        final ByteBuffer serviceNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_ELEMENT_NAME_SIZE.getNetworkSize()).get();
-        final ByteBuffer serviceNameBuffer = ByteUtils.readFully(channel, (int)serviceNameSizeBuffer.getLong()).get();
-        final ByteBuffer categorySizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_ELEMENT_CATEGORY_SIZE.getNetworkSize()).get();
-        final ByteBuffer categoryNameBuffer = ByteUtils.readFully(channel, (int)categorySizeBuffer.getLong()).get();
-        final ByteBuffer transactionTimeoutAndHopsBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_ELEMENT_TRANSACTION.getNetworkSize() +
-                                                                                               DiscoveryReplySizes.SERVICES_ELEMENT_TIMEOUT.getNetworkSize() +
-                                                                                               DiscoveryReplySizes.SERVICES_ELEMENT_HOPS.getNetworkSize()).get();
-
-        final ByteBuffer msg = ByteBuffer.allocate(serviceNameBuffer.capacity() +
-                                                   serviceNameBuffer.capacity() +
-                                                   categorySizeBuffer.capacity() +
-                                                   categoryNameBuffer.capacity() +
-                                                   transactionTimeoutAndHopsBuffer.capacity());
-        msg.put(serviceNameSizeBuffer.array());
-        msg.put(serviceNameBuffer.array());
-        msg.put(categorySizeBuffer.array());
-        msg.put(categoryNameBuffer.array());
-        msg.put(transactionTimeoutAndHopsBuffer.array());
-        final List<byte[]> l = new ArrayList<>();
-        l.add(msg.array());
-        return l;
-    }
-
-    private static List<byte[]> readQueue(final AsynchronousByteChannel channel) throws ExecutionException, InterruptedException
-    {
-        // A queue is expected to fit into one byte[] - it is never chunked
-        final ByteBuffer queueNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_SIZE.getNetworkSize()).get();
-        final ByteBuffer queueNameBuffer = ByteUtils.readFully(channel, (int)queueNameSizeBuffer.getLong()).get();
-        final ByteBuffer queueRetriesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize()).get();
-        final ByteBuffer msg = ByteBuffer.allocate(queueNameSizeBuffer.capacity() + queueNameBuffer.capacity() + queueRetriesBuffer.capacity());
-        msg.put(queueNameSizeBuffer.array());
-        msg.put(queueNameBuffer.array());
-        msg.put(queueRetriesBuffer.array());
-        final List<byte[]> l = new ArrayList<>();
-        l.add(msg.array());
-        return l;
     }
 
     private static List<byte[]> readService(final ReadableByteChannel channel)
@@ -280,6 +237,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
                                                 .setQueues(queues);
     }
 
+    //Too many params.
     @SuppressWarnings("squid:S00107")
     private static List<byte[]> createMsg(byte[] executionBuffer, byte[] domainIdBuffer, byte[] domainNameSizeBuffer, byte[] domainNameBuffer, byte[] numberOfServicesBuffer, List<byte[]> services, byte[] numberOfQueuesBuffer, List<byte[]> queues)
     {

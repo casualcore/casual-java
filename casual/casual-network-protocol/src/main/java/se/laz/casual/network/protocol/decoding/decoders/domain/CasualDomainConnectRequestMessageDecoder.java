@@ -9,18 +9,15 @@ package se.laz.casual.network.protocol.decoding.decoders.domain;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
-import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.protocol.messages.parseinfo.ConnectRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousByteChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 public final class CasualDomainConnectRequestMessageDecoder implements NetworkDecoder<CasualDomainConnectRequestMessage>
 {
@@ -59,25 +56,6 @@ public final class CasualDomainConnectRequestMessageDecoder implements NetworkDe
     public CasualDomainConnectRequestMessage readSingleBuffer(byte[] data)
     {
         return getMessage(data);
-    }
-
-    private List<Long> readProtocols(final AsynchronousByteChannel channel)
-    {
-        try
-        {
-            long numberOfProtocols = ByteUtils.readFully(channel, ConnectRequestSizes.PROTOCOL_VERSION_SIZE.getNetworkSize()).get().getLong();
-            List<Long> l = new ArrayList<>();
-            for(; numberOfProtocols > 0; --numberOfProtocols)
-            {
-                Long version = ByteUtils.readFully(channel, ConnectRequestSizes.PROTOCOL_ELEMENT_SIZE.getNetworkSize()).get().getLong();
-                l.add(version);
-            }
-            return l;
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
-            throw new CasualProtocolException("failed when reading protocols for CasualServiceCallRequestMessage", e);
-        }
     }
 
     private List<Long> readProtocols(final ReadableByteChannel channel)

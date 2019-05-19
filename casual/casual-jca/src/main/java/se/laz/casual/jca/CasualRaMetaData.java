@@ -50,25 +50,25 @@ public class CasualRaMetaData implements ResourceAdapterMetaData
    @Override
    public String[] getInteractionSpecsSupported()
    {
-      return null; //TODO
+      return new String[0];
    }
 
    @Override
    public boolean supportsExecuteWithInputAndOutputRecord()
    {
-      return false; //TODO
+      return false;
    }
 
    @Override
    public boolean supportsExecuteWithInputRecordOnly()
    {
-      return false; //TODO
+      return false;
    }
 
    @Override
    public boolean supportsLocalTransactionDemarcation()
    {
-      return false; //TODO
+      return false;
    }
 
 

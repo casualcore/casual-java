@@ -49,7 +49,7 @@ class CasualXAResourceTest extends Specification
             resourceId
         }
         networkConnection = Mock(NetworkConnection)
-        managedConnection = new CasualManagedConnection( null, null )
+        managedConnection = new CasualManagedConnection( null )
         managedConnection.networkConnection = networkConnection
         instance = new CasualXAResource( managedConnection, mcf.getResourceId() )
 

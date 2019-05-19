@@ -85,21 +85,6 @@ public final class XID implements Xid
         return new XID(gtridLength, bqualLength, formatType, globalTransactionId, branchQualifier);
     }
 
-    /**
-     * globalTransactionId + branchQualifier
-     * @return the data, copied into a a new array
-     */
-    public byte[] getData()
-    {
-        final byte[] data = new byte[gtridLength + bqualLength];
-        ByteBuffer b = ByteBuffer.wrap(data);
-        b.put(globalTransactionId);
-        b.put(branchQualifier);
-        return b.array();
-    }
-
-    // it's fine
-    @SuppressWarnings("squid:S1067")
     @Override
     public boolean equals(Object o)
     {
@@ -113,10 +98,23 @@ public final class XID implements Xid
         }
         XID xid = (XID) o;
         return formatType == xid.formatType &&
-               gtridLength == xid.gtridLength &&
-               bqualLength == xid.bqualLength &&
-               Arrays.equals(globalTransactionId, xid.globalTransactionId) &&
-               Arrays.equals(branchQualifier, xid.branchQualifier);
+                gtridLength == xid.gtridLength &&
+                bqualLength == xid.bqualLength &&
+                Arrays.equals(globalTransactionId, xid.globalTransactionId) &&
+                Arrays.equals(branchQualifier, xid.branchQualifier);
+    }
+
+    /**
+     * globalTransactionId + branchQualifier
+     * @return the data, copied into a a new array
+     */
+    public byte[] getData()
+    {
+        final byte[] data = new byte[gtridLength + bqualLength];
+        ByteBuffer b = ByteBuffer.wrap(data);
+        b.put(globalTransactionId);
+        b.put(branchQualifier);
+        return b.array();
     }
 
     @Override

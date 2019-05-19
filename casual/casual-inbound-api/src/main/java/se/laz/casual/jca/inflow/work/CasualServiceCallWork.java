@@ -7,6 +7,7 @@
 package se.laz.casual.jca.inflow.work;
 
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
@@ -18,10 +19,8 @@ import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 
 import javax.resource.spi.work.Work;
-import java.util.ArrayList;
 import java.util.UUID;
 import java.util.logging.Logger;
 

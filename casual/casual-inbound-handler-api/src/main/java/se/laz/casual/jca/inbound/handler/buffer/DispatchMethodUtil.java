@@ -1,8 +1,5 @@
 package se.laz.casual.jca.inbound.handler.buffer;
 
-import se.laz.casual.api.buffer.CasualBuffer;
-import se.laz.casual.jca.inbound.handler.InboundRequest;
-
 import java.lang.reflect.Method;
 
 /**

@@ -16,6 +16,8 @@ import java.util.Objects;
  * Implementation of {@link FieldedData}
  * @param <T> the type
  */
+//Serializble - T will be serializable by convention.
+@SuppressWarnings("squid:S1948")
 public final class FieldedDataImpl<T> implements FieldedData<T>
 {
     private static final long serialVersionUID = 1L;

@@ -18,16 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Created by aleph on 2017-03-07.
  */
 
-/**
- * Sonarqube should pick up on source/target compatibility as java 8 but it does not, remove this when it does
- */
-@SuppressWarnings("squid:S1612")
 public final class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmittable
 {
     private final UUID execution;
@@ -95,14 +90,12 @@ public final class CasualDomainDiscoveryReplyMessage implements CasualNetworkTra
 
     public List<Service> getServices()
     {
-        return services.stream()
-                       .collect(Collectors.toList());
+        return new ArrayList<>(services);
     }
 
     public List<Queue> getQueues()
     {
-        return queues.stream()
-                     .collect(Collectors.toList());
+        return new ArrayList<>(queues);
     }
 
     public int getMaxMessageSize()
@@ -119,10 +112,10 @@ public final class CasualDomainDiscoveryReplyMessage implements CasualNetworkTra
     {
         final byte[] domainNameBytes = domainName.getBytes(StandardCharsets.UTF_8);
         final List<byte[]> serviceBytes = services.stream()
-                                                  .map(s -> s.toNetworkBytes())
+                                                  .map(Service::toNetworkBytes)
                                                   .reduce(new ArrayList<>(), (s1, s2) -> { s1.addAll(s2); return s1;} );
         final List<byte[]> queueBytes = queues.stream()
-                                              .map(s -> s.toNetworkBytes())
+                                              .map(Queue::toNetworkBytes)
                                               .reduce(new ArrayList<>(), (s1, s2) -> { s1.addAll(s2); return s1;} );
 
         final long messageSize = DiscoveryReplySizes.EXECUTION.getNetworkSize() + DiscoveryReplySizes.DOMAIN_ID.getNetworkSize() +
@@ -143,11 +136,9 @@ public final class CasualDomainDiscoveryReplyMessage implements CasualNetworkTra
         b.putLong(domainNameBytes.length);
         b.put(domainNameBytes);
         b.putLong(services.size());
-        serviceBytes.stream()
-                    .forEach(s -> b.put(s));
+        serviceBytes.forEach(b::put);
         b.putLong(queues.size());
-        queueBytes.stream()
-                  .forEach(s -> b.put(s));
+        queueBytes.forEach(b::put);
         l.add(b.array());
         return l;
     }

@@ -34,8 +34,6 @@ import java.util.stream.Collectors;
 /**
  * A collection of helper methods for marshalling/unmarshalling
  */
-// sonar sucks understanding lambdas
-@SuppressWarnings("squid:S1612")
 public final class CommonDetails
 {
     private static final Map<Class<?>, Class<?>> mapper;
@@ -69,7 +67,7 @@ public final class CommonDetails
     public static List<Field> getCasuallyAnnotatedFields(final Class<?> c)
     {
         return Arrays.stream(c.getDeclaredFields())
-                     .filter(f -> hasCasualFieldAnnotation(f))
+                     .filter(CommonDetails::hasCasualFieldAnnotation)
                      .collect(Collectors.toList());
     }
 
@@ -82,7 +80,7 @@ public final class CommonDetails
     public static List<Method> getCasuallyAnnotatedMethods(final Class<?> c)
     {
         return Arrays.stream(c.getMethods())
-                     .filter(m -> hasCasualFieldAnnotation(m))
+                     .filter(CommonDetails::hasCasualFieldAnnotation)
                      .collect(Collectors.toList());
     }
 
@@ -256,7 +254,7 @@ public final class CommonDetails
         try
         {
             instance = (CasualObjectMapper<Object, ? extends Object>)annotation.mapper().newInstance();
-            return instance.getClass().equals(PassThroughMapper.class) ? Optional.empty() : Optional.of(v -> instance.to(v));
+            return instance.getClass().equals(PassThroughMapper.class) ? Optional.empty() : Optional.of(instance::to);
         }
         catch (InstantiationException | IllegalAccessException e)
         {
@@ -277,7 +275,7 @@ public final class CommonDetails
         try
         {
             instance = (CasualObjectMapper<? extends Object, Object>)annotation.mapper().newInstance();
-            return instance.getClass().equals(PassThroughMapper.class) ? Optional.empty() : Optional.of(Pair.of(v -> instance.from(v), instance.getDstType()));
+            return instance.getClass().equals(PassThroughMapper.class) ? Optional.empty() : Optional.of(Pair.of(instance::from, instance.getDstType()));
         }
         catch (InstantiationException | IllegalAccessException e)
         {

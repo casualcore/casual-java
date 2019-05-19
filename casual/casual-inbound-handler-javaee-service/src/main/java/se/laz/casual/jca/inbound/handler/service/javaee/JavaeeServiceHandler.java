@@ -7,6 +7,7 @@
 package se.laz.casual.jca.inbound.handler.service.javaee;
 
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.service.ServiceInfo;
@@ -18,7 +19,6 @@ import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 
 import javax.ejb.Local;
 import javax.ejb.Stateless;
@@ -27,7 +27,6 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -107,6 +106,8 @@ public class JavaeeServiceHandler implements ServiceHandler
         return r;
     }
 
+    //Use a specific exception. This is a help method for invokeService so any exceptions should bubble back up.
+    @SuppressWarnings("squid:S00112")
     private InboundResponse callService( Object r, InboundRequest payload, BufferHandler bufferHandler ) throws Throwable
     {
         Proxy p = (Proxy) r;

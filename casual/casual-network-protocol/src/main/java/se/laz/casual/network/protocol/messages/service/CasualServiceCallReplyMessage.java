@@ -22,14 +22,11 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Created by aleph on 2017-03-21.
  */
-// lambdas are fine
-@SuppressWarnings("squid:S1612")
 public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
 {
     private UUID execution;
@@ -120,7 +117,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         return this;
     }
 
-    @SuppressWarnings("squid:S1067")
     @Override
     public boolean equals(Object o)
     {
@@ -239,8 +235,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         }
         final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
         b.putLong(payloadSize);
-        serviceBytes.stream()
-                    .forEach(bytes -> b.put(bytes));
+        serviceBytes.forEach(b::put);
         l.add(b.array());
         return l;
     }

@@ -22,6 +22,9 @@ public class JndiUtil
     private static final String PACKAGE_SEPERATOR = ".";
     private static final String CURRENT_CONTEXT = "";
 
+    private JndiUtil()
+    {}
+
     public static Map<String,Map<String,Proxy>> findAllGlobalJndiProxies( Context ctx ) throws NamingException
     {
         Map<String,Map<String,Proxy>> map = new HashMap<>();
@@ -35,13 +38,14 @@ public class JndiUtil
             String name = next.getName();
             String jndiPath = path + name;
 
-            map.put( jndiPath, findAllProxyInstance( (Context)ctx.lookup( jndiPath ), jndiPath, new HashMap<>() ) );
+            map.put( jndiPath, findAllProxyInstance( (Context)ctx.lookup( jndiPath ), jndiPath ) );
         }
         return map;
     }
 
-    private static Map<String,Proxy> findAllProxyInstance( Context ctx, String jndiPath, Map<String,Proxy> results ) throws NamingException
+    private static Map<String,Proxy> findAllProxyInstance( Context ctx, String jndiPath ) throws NamingException
     {
+        Map<String,Proxy> results = new HashMap<>();
         NamingEnumeration<NameClassPair> list = ctx.list(CURRENT_CONTEXT);
         while( list.hasMoreElements() )
         {
@@ -52,7 +56,7 @@ public class JndiUtil
             Object tmp = ctx.lookup(name);
             if (tmp instanceof Context)
             {
-                results = findAllProxyInstance((Context) tmp, childPath, results);
+                results.putAll( findAllProxyInstance((Context) tmp, childPath ) );
             }
             else if( tmp instanceof Proxy )
             {

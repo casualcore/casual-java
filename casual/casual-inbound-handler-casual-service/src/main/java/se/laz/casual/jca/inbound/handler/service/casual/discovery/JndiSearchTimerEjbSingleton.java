@@ -63,9 +63,9 @@ public class JndiSearchTimerEjbSingleton
 
     private void resolve(CasualServiceMetaData entry, Map<String,Map<String,Proxy>> apps )
     {
-        for( String app: apps.keySet() )
+        for( Map<String, Proxy> app: apps.values() )
         {
-            CasualServiceEntry found = searchInApp( entry, apps.get( app ) );
+            CasualServiceEntry found = searchInApp( entry, app );
             if( found != null )
             {
                 CasualServiceRegistry.getInstance().register( found );
@@ -137,7 +137,7 @@ public class JndiSearchTimerEjbSingleton
     {
         String implClass = entry.getImplementationClass().getName();
         String ejbName = entry.getEjbName().orElse( null );
-        String interfaceClass = entry.getInterfaceClass().isPresent() ? entry.getInterfaceClass().get().getName() : null;
+        String interfaceClass = entry.getInterfaceClass().map(Class::getName).orElse( null );
 
         return JndiMatcher.findMatch( implClass, ejbName, interfaceClass, jndiNames );
     }

@@ -24,15 +24,14 @@ public class CStringBuffer implements CasualBuffer
      * @param value - the string value
      * @return a {@link CStringBuffer}
      */
-    public static CStringBuffer of(String value)
+    public static CStringBuffer of(final String value)
     {
         Objects.requireNonNull(value, "value should not be null!");
         if(value.endsWith("\0"))
         {
             throw new IllegalArgumentException("String should not be nullterminated!");
         }
-        value += "\0";
-        return new CStringBuffer(value.getBytes());
+        return new CStringBuffer((value + "\0").getBytes());
     }
     /**
      * Creates a {@link CStringBuffer}

@@ -141,8 +141,6 @@ public final class Service
         return hops;
     }
 
-    // This is absolutely fine here
-    @SuppressWarnings("squid:S1067")
     @Override
     public boolean equals(Object o)
     {

@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 
 public class JndiMatcher
 {
+    private JndiMatcher()
+    {}
     public static String findMatch(String implementationType, String ejbName, String interfaceType, List<String> jndiUrls )
     {
         List<String> found = jndiUrls.stream().filter( jndiUrl -> matches( implementationType, ejbName, interfaceType, jndiUrl ) ).collect(Collectors.toList());

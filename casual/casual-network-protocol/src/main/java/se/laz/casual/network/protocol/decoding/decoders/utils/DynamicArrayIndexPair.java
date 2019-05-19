@@ -15,8 +15,7 @@ public class DynamicArrayIndexPair<T>
 {
     private List<T> items;
     private int index;
-    // Apparently sonar can not see the usage
-    @SuppressWarnings("squid:UnusedPrivateMethod")
+
     private DynamicArrayIndexPair(List<T> items, int index)
     {
         this.items = items;

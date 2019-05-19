@@ -59,8 +59,6 @@ public final class CasualDequeueRequestMessage implements CasualNetworkTransmitt
         return toNetworkBytesFitsInOneBuffer(messageSize, queueNameBytes, selectorPropertiesBytes);
     }
 
-    // Expressions should not be too complex
-    @SuppressWarnings("squid:S1067")
     @Override
     public boolean equals(Object o)
     {

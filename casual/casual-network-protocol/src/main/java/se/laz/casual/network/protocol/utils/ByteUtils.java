@@ -31,11 +31,9 @@ public final class ByteUtils
     {
         return l.stream()
                 .map(b -> (long)b.length)
-                .reduce(0l,(sum, v) -> sum += v);
+                .reduce(0L,(sum, v) -> sum += v);
     }
 
-    // No this warning makes no sense here - this is very much readable code
-    @SuppressWarnings("squid:S1188")
     public static CompletableFuture<ByteBuffer> readFully(AsynchronousByteChannel channel, int length)
     {
         CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
@@ -100,8 +98,6 @@ public final class ByteUtils
         return buffer;
     }
 
-    // No this warning makes no sense here - this is very much readable code
-    @SuppressWarnings("squid:S1188")
     public static CompletableFuture<Void> writeFully(final AsynchronousByteChannel channel, final ByteBuffer buffer)
     {
         CompletableFuture<Void> future = new CompletableFuture<>();

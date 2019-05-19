@@ -67,8 +67,6 @@ public final class EnqueueMessage
         return Objects.hash(msg);
     }
 
-    // Expressions should not be too complex
-    @SuppressWarnings("squid:S1067")
     @Override
     public boolean equals(Object o)
     {

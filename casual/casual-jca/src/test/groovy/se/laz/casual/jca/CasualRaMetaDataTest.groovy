@@ -51,7 +51,7 @@ class CasualRaMetaDataTest extends Specification
     def "GetInteractionSpecsSupported"()
     {
         expect:
-        instance.getInteractionSpecsSupported() == null
+        instance.getInteractionSpecsSupported() == new String[0]
     }
 
     def "SupportsExecuteWithInputAndOutputRecord"()

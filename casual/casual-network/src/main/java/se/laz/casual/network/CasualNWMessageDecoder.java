@@ -16,6 +16,7 @@ import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
 import se.laz.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
 
 import java.util.List;
+import java.util.Optional;
 
 public final class CasualNWMessageDecoder extends ByteToMessageDecoder
 {
@@ -30,45 +31,55 @@ public final class CasualNWMessageDecoder extends ByteToMessageDecoder
     {
         return new CasualNWMessageDecoder();
     }
-    // brain overload... plz upgrade
-    @SuppressWarnings("squid:S1151")
+
     @Override
     protected void decode(final ChannelHandlerContext ctx, final ByteBuf in, final List<Object> out)
     {
-        switch(state)
+        if(state == State.READ_HEADER )
         {
-            case READ_HEADER:
-                if(in.readableBytes() < MessageHeaderSizes.getHeaderNetworkSize())
-                {
-                    return;
-                }
-                byte[] headerBytes = new byte[MessageHeaderSizes.getHeaderNetworkSize()];
-                in.readBytes(headerBytes);
-                header = CasualNWMessageHeaderDecoder.fromNetworkBytes(headerBytes);
-                state = State.READ_PAYLOAD;
-                break;
-            case READ_PAYLOAD:
-                if(in.readableBytes() < header.getPayloadSize())
-                {
-                    return;
-                }
-                byte[] messageBytes = new byte[(int)header.getPayloadSize()];
-                try
-                {
-                    in.readBytes(messageBytes);
-                    CasualNWMessage<?> msg = CasualMessageDecoder.read(messageBytes, header);
-                    out.add(msg);
-                    state = State.READ_HEADER;
-                }
-                catch(Exception e)
-                {
-                    throw new CasualDecoderException(e, header.getCorrelationId());
-                }
-                finally
-                {
-                    state = State.READ_HEADER;
-                }
-                break;
+            readHeader(in);
+            return;
+        }
+        readPayload( in ).ifPresent(out::add);
+    }
+
+    /**
+     * Wait until enough bytes available to read header fully before reading the payload.
+     */
+    private void readHeader( final ByteBuf in )
+    {
+        if(in.readableBytes() < MessageHeaderSizes.getHeaderNetworkSize())
+        {
+            return;
+        }
+        byte[] headerBytes = new byte[MessageHeaderSizes.getHeaderNetworkSize()];
+        in.readBytes(headerBytes);
+        header = CasualNWMessageHeaderDecoder.fromNetworkBytes(headerBytes);
+        state = State.READ_PAYLOAD;
+    }
+
+    /**
+     * Wait until enough bytes available to read payload fully. Then return the message.
+     */
+    private Optional<CasualNWMessage<?>> readPayload(final ByteBuf in )
+    {
+        if(in.readableBytes() < header.getPayloadSize())
+        {
+            return Optional.empty();
+        }
+        try
+        {
+            byte[] messageBytes = new byte[(int)header.getPayloadSize()];
+            in.readBytes(messageBytes);
+            return Optional.of( CasualMessageDecoder.read(messageBytes, header) );
+        }
+        catch(Exception e)
+        {
+            throw new CasualDecoderException(e, header.getCorrelationId());
+        }
+        finally
+        {
+            state = State.READ_HEADER;
         }
     }
 }

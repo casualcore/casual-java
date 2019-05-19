@@ -35,11 +35,10 @@ public class ExceptionHandler extends ChannelInboundHandlerAdapter
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
     {
-        completeReqExceptionally(ctx, cause);
-        // if req could not be completed exceptionally it will be logged by netty
+        completeReqExceptionally(cause);
     }
 
-    private void completeReqExceptionally(ChannelHandlerContext ctx, Throwable cause)
+    private void completeReqExceptionally( Throwable cause)
     {
         Optional<CasualDecoderException> d = findDecoderException(cause);
         if(d.isPresent())

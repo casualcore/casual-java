@@ -21,7 +21,6 @@ import javax.resource.spi.XATerminator;
 import javax.resource.spi.endpoint.MessageEndpointFactory;
 import javax.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAResource;
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -38,9 +37,8 @@ import java.util.logging.Logger;
         version = "1.0",
         transactionSupport = TransactionSupport.TransactionSupportLevel.XATransaction
 )
-public class CasualResourceAdapter implements ResourceAdapter, Serializable
+public class CasualResourceAdapter implements ResourceAdapter
 {
-    private static final long serialVersionUID = 1L;
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
     private ConcurrentHashMap<Integer, CasualActivationSpec> activations;
 
@@ -111,6 +109,8 @@ public class CasualResourceAdapter implements ResourceAdapter, Serializable
         log.finest(()->"stop()");
     }
 
+    //Return empty array not null. But specification says to return null if we don't support this feature, so ignoring.
+    @SuppressWarnings("squid:S1168")
     @Override
     public XAResource[] getXAResources(ActivationSpec[] specs)
             throws ResourceException

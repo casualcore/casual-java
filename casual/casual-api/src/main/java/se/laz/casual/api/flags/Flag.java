@@ -54,8 +54,6 @@ public class Flag<T extends CasualFlag>
         return this;
     }
 
-    // adds readability
-    @SuppressWarnings("squid:UselessParenthesesCheck")
     public boolean isSet(final T v)
     {
         return (0 != (flags & (v.getValue())));

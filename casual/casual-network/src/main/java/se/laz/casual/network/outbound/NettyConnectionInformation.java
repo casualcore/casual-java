@@ -34,6 +34,41 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
         return correlator;
     }
 
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        if (!super.equals(o))
+        {
+            return false;
+        }
+        NettyConnectionInformation that = (NettyConnectionInformation) o;
+        return Objects.equals(channelClass, that.channelClass) &&
+                Objects.equals(correlator, that.correlator);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(super.hashCode(), channelClass, correlator);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "NettyConnectionInformation{" +
+                "channelClass=" + channelClass +
+                ", correlator=" + correlator +
+                '}';
+    }
+
     public static Builder createBuilder()
     {
         return new Builder();

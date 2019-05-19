@@ -6,26 +6,23 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.queue;
 
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
-import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DequeueReplySizes;
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueReplyMessage;
 import se.laz.casual.network.protocol.messages.queue.DequeueMessage;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousByteChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<CasualDequeueReplyMessage>
 {
@@ -64,35 +61,6 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
     public CasualDequeueReplyMessage readSingleBuffer(byte[] data)
     {
         return getMessage(data);
-    }
-
-    private static DequeueMessage readDequeueMessage(final AsynchronousByteChannel channel)
-    {
-        try
-        {
-            UUID msgId = CasualMessageDecoderUtils.readUUID(channel);
-            int propertiesSize = (int) ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_PROPERTIES_SIZE.getNetworkSize()).get().getLong();
-            String properties = CasualMessageDecoderUtils.readString(channel, propertiesSize);
-            int replyDataSize = (int) ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_REPLY_SIZE.getNetworkSize()).get().getLong();
-            String replyData = CasualMessageDecoderUtils.readString(channel, replyDataSize);
-            long availableSinceEpoc = ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_AVAILABLE_SINCE_EPOC.getNetworkSize()).get().getLong();
-            ServiceBuffer serviceBuffer = CasualMessageDecoderUtils.readServiceBuffer(channel, Integer.MAX_VALUE);
-            long redelivered = ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_REDELIVERED_COUNT.getNetworkSize()).get().getLong();
-            long timeStampSinceEpoc = ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_TIMESTAMP_SINCE_EPOC.getNetworkSize()).get().getLong();
-            return DequeueMessage.of(QueueMessage.createBuilder()
-                                                 .withId(msgId)
-                                                 .withCorrelationInformation(properties)
-                                                 .withReplyQueue(replyData)
-                                                 .withAvailableSince(availableSinceEpoc)
-                                                 .withTimestamp(timeStampSinceEpoc)
-                                                 .withRedelivered(redelivered)
-                                                 .withPayload(serviceBuffer)
-                                                 .build());
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
-            throw new CasualProtocolException("failed reading a DequeueMessage for a CasualDequeueReplyMessage", e);
-        }
     }
 
     private static DequeueMessage readDequeueMessage(final ReadableByteChannel channel)
