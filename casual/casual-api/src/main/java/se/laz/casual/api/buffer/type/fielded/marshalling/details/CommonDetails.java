@@ -17,6 +17,7 @@ import se.laz.casual.api.util.Pair;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -253,10 +254,10 @@ public final class CommonDetails
         final CasualObjectMapper<Object, ? extends Object> instance;
         try
         {
-            instance = (CasualObjectMapper<Object, ? extends Object>)annotation.mapper().newInstance();
+            instance = (CasualObjectMapper<Object, ? extends Object>)annotation.mapper().getDeclaredConstructor().newInstance();
             return instance.getClass().equals(PassThroughMapper.class) ? Optional.empty() : Optional.of(instance::to);
         }
-        catch (InstantiationException | IllegalAccessException e)
+        catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e)
         {
             throw new FieldedMarshallingException("can not get object mapper for: " + annotation, e);
         }
@@ -274,10 +275,10 @@ public final class CommonDetails
         final CasualObjectMapper<? extends Object, Object> instance;
         try
         {
-            instance = (CasualObjectMapper<? extends Object, Object>)annotation.mapper().newInstance();
+            instance = (CasualObjectMapper<? extends Object, Object>)annotation.mapper().getDeclaredConstructor().newInstance();
             return instance.getClass().equals(PassThroughMapper.class) ? Optional.empty() : Optional.of(Pair.of(instance::from, instance.getDstType()));
         }
-        catch (InstantiationException | IllegalAccessException e)
+        catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e)
         {
             throw new FieldedUnmarshallingException("can not get object mapper for: " + annotation, e);
         }

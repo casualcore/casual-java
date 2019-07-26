@@ -6,16 +6,17 @@
 
 package se.laz.casual.network.protocol.messages.queue
 
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.queue.QueueMessage
 import se.laz.casual.api.xa.XID
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 class CasualEnqueueRequestMessageTest extends Specification
 {
@@ -53,7 +54,7 @@ class CasualEnqueueRequestMessageTest extends Specification
                                                        .withId(UUID.randomUUID())
                                                        .withReplyQueue("qspace:qname")
                                                        .withCorrelationInformation("correlationInformation")
-                                                       .withAvailableSince(LocalDateTime.now())
+                                                       .withAvailableSince(LocalDateTime.now().toInstant(ZoneOffset.UTC))
                                                        .withPayload(serviceBuffer)
                                                        .build())
         CasualEnqueueRequestMessage requestMsg = CasualEnqueueRequestMessage.createBuilder()

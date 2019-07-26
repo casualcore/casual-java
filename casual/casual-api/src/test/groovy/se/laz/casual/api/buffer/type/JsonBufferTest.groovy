@@ -6,18 +6,20 @@
 
 package se.laz.casual.api.buffer.type
 
-import groovy.json.internal.Charsets
+
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.nio.charset.StandardCharsets
+
 class JsonBufferTest extends Specification
 {
     @Shared JsonBuffer instance1, instance2
-    @Shared byte[] data1 = "{This is the data1 message.}".getBytes(Charsets.UTF_8)
-    @Shared byte[] data1_copy = "{This is the data1 message.}".getBytes(Charsets.UTF_8)
-    @Shared byte[] data2 = "{This is the data2 message.}".getBytes(Charsets.UTF_8)
-    @Shared byte[] data2_copy = "{This is the data2 message.}".getBytes(Charsets.UTF_8)
+    @Shared byte[] data1 = "{This is the data1 message.}".getBytes(StandardCharsets.UTF_8)
+    @Shared byte[] data1_copy = "{This is the data1 message.}".getBytes(StandardCharsets.UTF_8)
+    @Shared byte[] data2 = "{This is the data2 message.}".getBytes(StandardCharsets.UTF_8)
+    @Shared byte[] data2_copy = "{This is the data2 message.}".getBytes(StandardCharsets.UTF_8)
 
     @Unroll
     def "Equals and Hashcode permutations."()

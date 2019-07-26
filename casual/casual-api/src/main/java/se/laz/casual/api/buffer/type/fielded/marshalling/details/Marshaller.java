@@ -44,6 +44,7 @@ public final class Marshaller
         return writeMethodReturnValues(o, methods, b, mode);
     }
 
+    @SuppressWarnings("deprecation")
     private static FieldedTypeBuffer writeMethodReturnValues(Object o, List<Method> methods, FieldedTypeBuffer b, FieldedTypeBufferProcessorMode mode)
     {
         // For methods we get the return value and store it
@@ -76,6 +77,7 @@ public final class Marshaller
         return b;
     }
 
+    @SuppressWarnings("deprecation")
     private static FieldedTypeBuffer writeFields(final Object o, final List<Field> fields, FieldedTypeBuffer b, FieldedTypeBufferProcessorMode mode)
     {
         for(Field f : fields)

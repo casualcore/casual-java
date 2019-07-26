@@ -6,15 +6,15 @@
 
 package se.laz.casual.network.protocol.messages.queue;
 
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.queue.QueueMessage;
+import se.laz.casual.api.util.time.InstantUtil;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.DequeueReplySizes;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -56,7 +56,7 @@ public final class DequeueMessage
         return payload;
     }
 
-    public LocalDateTime getAvailableSince()
+    public Instant getAvailableSince()
     {
         return msg.getAvailableSince();
     }
@@ -66,7 +66,7 @@ public final class DequeueMessage
         return msg.getRedelivered();
     }
 
-    public LocalDateTime getTimestamp()
+    public Instant getTimestamp()
     {
         return msg.getTimestamp();
     }
@@ -114,7 +114,7 @@ public final class DequeueMessage
         partialBuffer.put(propertiesBytes);
         partialBuffer.putLong(replyDataBytes.length);
         partialBuffer.put(replyDataBytes);
-        partialBuffer.putLong(getAvailableSince().toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());
+        partialBuffer.putLong(InstantUtil.toNanos(getAvailableSince()));
 
         List<byte[]> l = new ArrayList<>();
         l.add(partialBuffer.array());
@@ -122,7 +122,7 @@ public final class DequeueMessage
 
         ByteBuffer redeliveredAndTimestampBuffer = ByteBuffer.allocate(DequeueReplySizes.MESSAGE_REDELIVERED_COUNT.getNetworkSize() + DequeueReplySizes.MESSAGE_TIMESTAMP_SINCE_EPOC.getNetworkSize());
         redeliveredAndTimestampBuffer.putLong(getNumberOfRedelivered());
-        redeliveredAndTimestampBuffer.putLong(getTimestamp().toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());
+        redeliveredAndTimestampBuffer.putLong(InstantUtil.toNanos(getTimestamp()));
         l.add(redeliveredAndTimestampBuffer.array());
 
         return l;

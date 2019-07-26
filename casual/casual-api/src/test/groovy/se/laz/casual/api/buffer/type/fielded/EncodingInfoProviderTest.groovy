@@ -7,12 +7,15 @@
 package se.laz.casual.api.buffer.type.fielded
 
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 
+// TODO: Remove this once https://github.com/stefanbirkner/system-rules is fixed for java 11
+@IgnoreIf({ jvm.isJava11()  })
 class EncodingInfoProviderTest extends Specification
 {
     @Rule

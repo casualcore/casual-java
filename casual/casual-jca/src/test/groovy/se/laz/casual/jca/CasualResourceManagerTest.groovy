@@ -6,12 +6,12 @@
 
 package se.laz.casual.jca
 
-import groovy.json.internal.Charsets
 import se.laz.casual.api.xa.XID
 import spock.lang.Shared
 import spock.lang.Specification
 
 import javax.transaction.xa.Xid
+import java.nio.charset.StandardCharsets
 
 class CasualResourceManagerTest extends Specification
 {
@@ -21,8 +21,8 @@ class CasualResourceManagerTest extends Specification
     def setup()
     {
         instance = CasualResourceManager.getInstance()
-        xid1 = XID.of( "123".getBytes(Charsets.UTF_8), "321".getBytes(Charsets.UTF_8), 0 )
-        xid2 = XID.of("456".getBytes(Charsets.UTF_8), "654".getBytes(Charsets.UTF_8), 0 )
+        xid1 = XID.of( "123".getBytes(StandardCharsets.UTF_8), "321".getBytes(StandardCharsets.UTF_8), 0 )
+        xid2 = XID.of("456".getBytes(StandardCharsets.UTF_8), "654".getBytes(StandardCharsets.UTF_8), 0 )
         xid3 = XID.of( xid1 )
     }
 

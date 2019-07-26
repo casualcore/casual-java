@@ -6,7 +6,7 @@
 
 package se.laz.casual.jca
 
-import groovy.json.internal.Charsets
+
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.XAFlags
 import se.laz.casual.api.xa.XAReturnCode
@@ -21,6 +21,7 @@ import spock.lang.Unroll
 import javax.transaction.xa.XAException
 import javax.transaction.xa.XAResource
 import javax.transaction.xa.Xid
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletableFuture
 
 class CasualXAResourceTest extends Specification
@@ -53,8 +54,8 @@ class CasualXAResourceTest extends Specification
         managedConnection.networkConnection = networkConnection
         instance = new CasualXAResource( managedConnection, mcf.getResourceId() )
 
-        xid1 = XID.of( "123".getBytes(Charsets.UTF_8), "321".getBytes(Charsets.UTF_8), 0 )
-        xid2 = XID.of( "456".getBytes(Charsets.UTF_8), "654".getBytes(Charsets.UTF_8), 0 )
+        xid1 = XID.of( "123".getBytes(StandardCharsets.UTF_8), "321".getBytes(StandardCharsets.UTF_8), 0 )
+        xid2 = XID.of( "456".getBytes(StandardCharsets.UTF_8), "654".getBytes(StandardCharsets.UTF_8), 0 )
 
         transactionResources = CasualResourceManager.getInstance()
 

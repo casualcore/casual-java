@@ -122,13 +122,14 @@ public final class Unmarshaller
         return l;
     }
 
+    @SuppressWarnings("deprecation")
     private static <T> boolean readFields(FieldedTypeBuffer b, T instance, List<Field> fields, int index, FieldedTypeBufferProcessorMode mode)
     {
         AtomicBoolean fieldedValueUnmarshalled = new AtomicBoolean(false);
         for(Field f : fields)
         {
             CasualFieldElement annotation = f.getAnnotation(CasualFieldElement.class);
-            boolean fieldAccessible = f.isAccessible();
+            boolean fieldAccessible =  f.isAccessible();
             if(!fieldAccessible)
             {
                 f.setAccessible(true);

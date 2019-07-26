@@ -6,15 +6,15 @@
 
 package se.laz.casual.network.protocol.messages.queue;
 
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.queue.QueueMessage;
+import se.laz.casual.api.util.time.InstantUtil;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.EnqueueRequestSizes;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -51,7 +51,7 @@ public final class EnqueueMessage
         return msg.getId();
     }
 
-    public LocalDateTime getAvailableSince()
+    public Instant getAvailableSince()
     {
         return msg.getAvailableSince();
     }
@@ -107,7 +107,7 @@ public final class EnqueueMessage
         partialContent.put(propertiesBytes);
         partialContent.putLong(replyDataBytes.length);
         partialContent.put(replyDataBytes);
-        final long v = getAvailableSince().toInstant(OffsetDateTime.now().getOffset()).toEpochMilli();
+        final long v = InstantUtil.toNanos(getAvailableSince());
         partialContent.putLong(v);
 
         List<byte[]> l = new ArrayList<>();

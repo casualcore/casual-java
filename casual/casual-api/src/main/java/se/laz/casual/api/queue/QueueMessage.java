@@ -7,11 +7,11 @@
 package se.laz.casual.api.queue;
 
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.api.util.time.InstantUtil;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -22,9 +22,9 @@ public final class QueueMessage
     private final String replyQueue;
     private final CasualBuffer payload;
     private final long redelivered;
-    private final LocalDateTime availableSince;
-    private final LocalDateTime timestamp;
-    private QueueMessage(UUID id, String correlationInformation, String replyQueue, CasualBuffer payload, long redelivered, LocalDateTime availableSince, LocalDateTime timestamp)
+    private final Instant availableSince;
+    private final Instant timestamp;
+    private QueueMessage(UUID id, String correlationInformation, String replyQueue, CasualBuffer payload, long redelivered, Instant availableSince, Instant timestamp)
     {
         this.id = id;
         this.correlationInformation = correlationInformation;
@@ -41,7 +41,7 @@ public final class QueueMessage
                               .build();
     }
 
-    public static QueueMessage of(final CasualBuffer payload, final String correlationInformation, final QueueInfo replyQueue, final LocalDateTime availableSince)
+    public static QueueMessage of(final CasualBuffer payload, final String correlationInformation, final QueueInfo replyQueue, final Instant availableSince)
     {
         return createBuilder().withPayload(payload)
                               .withCorrelationInformation(correlationInformation)
@@ -75,12 +75,12 @@ public final class QueueMessage
         return redelivered;
     }
 
-    public LocalDateTime getAvailableSince()
+    public Instant getAvailableSince()
     {
         return availableSince;
     }
 
-    public LocalDateTime getTimestamp()
+    public Instant getTimestamp()
     {
         return timestamp;
     }
@@ -138,8 +138,8 @@ public final class QueueMessage
         private String replyQueue = "";
         private CasualBuffer payload;
         private long redelivered;
-        private LocalDateTime availableSince;
-        private LocalDateTime timestamp;
+        private Instant availableSince;
+        private Instant timestamp;
 
         public Builder withId(UUID id)
         {
@@ -171,25 +171,25 @@ public final class QueueMessage
             return this;
         }
 
-        public Builder withAvailableSince(long milliSecondsSinceEpoc)
+        public Builder withAvailableSince(long nanoSecondsSinceEpoc)
         {
-            this.availableSince = Instant.ofEpochMilli(milliSecondsSinceEpoc).atZone(ZoneId.systemDefault()).toLocalDateTime();
+            this.availableSince = InstantUtil.fromNanos(nanoSecondsSinceEpoc);
             return this;
         }
 
-        public Builder withAvailableSince(LocalDateTime availableSince)
+        public Builder withAvailableSince(Instant availableSince)
         {
             this.availableSince = availableSince;
             return this;
         }
 
-        public Builder withTimestamp(long milliSecondsSinceEpoc)
+        public Builder withTimestamp(long nanoSecondsSinceEpoc)
         {
-            this.timestamp = Instant.ofEpochMilli(milliSecondsSinceEpoc).atZone(ZoneId.systemDefault()).toLocalDateTime();
+            this.timestamp = InstantUtil.fromNanos(nanoSecondsSinceEpoc);
             return this;
         }
 
-        public Builder withTimestamp(LocalDateTime timestamp)
+        public Builder withTimestamp(Instant timestamp)
         {
             this.timestamp = timestamp;
             return this;
@@ -197,8 +197,8 @@ public final class QueueMessage
 
         public QueueMessage build()
         {
-            availableSince = null == availableSince ? LocalDateTime.now(OffsetDateTime.now().getOffset()) : availableSince;
-            timestamp = null == timestamp ? LocalDateTime.now(OffsetDateTime.now().getOffset()) : timestamp;
+            availableSince = null == availableSince ? LocalDateTime.now().toInstant(OffsetDateTime.now().getOffset()) : availableSince;
+            timestamp = null == timestamp ? LocalDateTime.now().toInstant(OffsetDateTime.now().getOffset()) : timestamp;
             id = null == id ? new UUID(0,0) : id;
             Objects.requireNonNull(payload, "payload can not be null");
             return new QueueMessage(id, correlationInformation, replyQueue, payload, redelivered, availableSince, timestamp);

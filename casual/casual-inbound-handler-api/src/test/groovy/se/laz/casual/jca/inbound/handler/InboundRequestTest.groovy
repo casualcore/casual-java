@@ -55,13 +55,13 @@ class InboundRequestTest extends Specification
     def "of with nulls throws NullPointerException"()
     {
         when:
-        InboundRequest.of( service, buffer )
+        InboundRequest.of( service, thebuffer )
 
         then:
         thrown NullPointerException.class
 
         where:
-        service | buffer
+        service | thebuffer
         null    | buffer
         servicename | null
         null    | null
