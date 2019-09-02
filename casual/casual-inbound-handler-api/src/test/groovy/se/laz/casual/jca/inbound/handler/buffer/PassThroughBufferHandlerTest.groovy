@@ -82,9 +82,10 @@ class PassThroughBufferHandlerTest extends Specification
     {
         given:
         CasualBuffer buffer = FieldedTypeBuffer.create()
+        ServiceCallInfo info = Mock(ServiceCallInfo)
 
         when:
-        InboundResponse response = instance.toResponse( buffer )
+        InboundResponse response = instance.toResponse( info, buffer )
 
         then:
         response.getBuffer() == buffer
@@ -95,9 +96,10 @@ class PassThroughBufferHandlerTest extends Specification
         given:
         CasualBuffer buffer = FieldedTypeBuffer.create()
         InboundResponse response = InboundResponse.createBuilder().buffer( buffer ).build()
+        ServiceCallInfo info = Mock(ServiceCallInfo)
 
         when:
-        InboundResponse actual = instance.toResponse( response )
+        InboundResponse actual = instance.toResponse( info, response )
 
         then:
         actual == response

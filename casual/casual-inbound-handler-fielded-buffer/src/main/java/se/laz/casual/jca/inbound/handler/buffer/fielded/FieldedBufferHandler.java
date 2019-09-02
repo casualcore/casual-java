@@ -54,7 +54,7 @@ public class FieldedBufferHandler implements BufferHandler
     }
 
     @Override
-    public InboundResponse toResponse(Object result)
+    public InboundResponse toResponse(ServiceCallInfo info, Object result)
     {
         FieldedTypeBuffer buffer = FieldedTypeBuffer.create();
         if( result != null )

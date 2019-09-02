@@ -131,9 +131,10 @@ class JavaServiceCallBufferHandlerTest extends Specification
         setup:
         String result = "hello"
         String expected = '"hello"'
+        ServiceCallInfo info = Mock(ServiceCallInfo)
 
         when:
-        InboundResponse actual = instance.toResponse( result )
+        InboundResponse actual = instance.toResponse( info, result )
         String payload = new String( actual.getBuffer().getBytes().get( 0 ), StandardCharsets.UTF_8 )
 
         then:
@@ -144,7 +145,7 @@ class JavaServiceCallBufferHandlerTest extends Specification
     def "toResponse null result returns response with empty buffer"()
     {
         when:
-        InboundResponse actual = instance.toResponse( null )
+        InboundResponse actual = instance.toResponse( null, null )
 
         then:
         actual.getBuffer() == ServiceBuffer.empty()

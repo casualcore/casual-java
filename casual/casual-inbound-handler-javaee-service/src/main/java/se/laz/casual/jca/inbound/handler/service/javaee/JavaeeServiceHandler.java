@@ -119,7 +119,7 @@ public class JavaeeServiceHandler implements ServiceHandler
         Object result = method.invoke( p, serviceCallInfo.getParams() );
 
         LOG.finest( ()-> "Result: " + result );
-        return bufferHandler.toResponse( result );
+        return bufferHandler.toResponse( serviceCallInfo, result );
     }
 
     Context getContext() throws NamingException

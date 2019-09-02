@@ -68,7 +68,7 @@ public class JavaServiceCallBufferHandler implements BufferHandler
     }
 
     @Override
-    public InboundResponse toResponse(Object result)
+    public InboundResponse toResponse(ServiceCallInfo info, Object result)
     {
         List<byte[]> payload = new ArrayList<>();
         if( result != null )

@@ -33,7 +33,7 @@ public class TestBufferHandler implements BufferHandler
     }
 
     @Override
-    public InboundResponse toResponse(Object result)
+    public InboundResponse toResponse(ServiceCallInfo info, Object result)
     {
         return null;
     }

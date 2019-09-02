@@ -40,8 +40,9 @@ public interface BufferHandler extends Prioritisable
     /**
      * Convert the response of the service request back to the appropriate {@link InboundResponse}.
      *
+     * @param info service information
      * @param result of calling the service.
      * @return response containing result buffer and/or error data.
      */
-    InboundResponse toResponse(Object result );
+    InboundResponse toResponse(ServiceCallInfo info, Object result );
 }

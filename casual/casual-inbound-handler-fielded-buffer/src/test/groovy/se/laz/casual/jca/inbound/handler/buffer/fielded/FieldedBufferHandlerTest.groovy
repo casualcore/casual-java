@@ -114,9 +114,10 @@ class FieldedBufferHandlerTest extends Specification
     {
         setup:
         SimpleObject result = SimpleObject.of( "hello" )
+        ServiceCallInfo info = Mock(ServiceCallInfo)
 
         when:
-        CasualBuffer buffer = instance.toResponse( result ).getBuffer()
+        CasualBuffer buffer = instance.toResponse( info, result ).getBuffer()
 
         then:
         buffer.getType() == CasualBufferType.FIELDED.getName()
@@ -127,7 +128,7 @@ class FieldedBufferHandlerTest extends Specification
     def "toResponse result is null returns response with empty buffer"()
     {
         when:
-        CasualBuffer buffer = instance.toResponse( null ).getBuffer()
+        CasualBuffer buffer = instance.toResponse( null, null ).getBuffer()
 
         then:
         buffer.getType() == CasualBufferType.FIELDED.getName()
@@ -138,9 +139,10 @@ class FieldedBufferHandlerTest extends Specification
     {
         given:
         InboundResponse response = InboundResponse.createBuilder().buffer( buffer ).build()
+        ServiceCallInfo info = Mock(ServiceCallInfo)
 
         when:
-        InboundResponse actual = instance.toResponse( response )
+        InboundResponse actual = instance.toResponse( info, response )
 
         then:
         actual == response

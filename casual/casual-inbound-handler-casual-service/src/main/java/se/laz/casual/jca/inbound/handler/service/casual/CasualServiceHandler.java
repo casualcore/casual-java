@@ -141,7 +141,7 @@ public class CasualServiceHandler implements ServiceHandler
             result = retryCallService( p, entry, request, bufferHandler );
         }
 
-        return bufferHandler.toResponse( result );
+        return bufferHandler.toResponse( info, result );
     }
 
     /**
