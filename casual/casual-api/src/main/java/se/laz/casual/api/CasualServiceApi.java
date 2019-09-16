@@ -28,7 +28,7 @@ public interface CasualServiceApi
      * @param serviceName the name of the service to call.
      * @param data the data to send to the given service.
      * @param flags the atmi flags to send to the given service.
-     *
+     * @throws se.laz.casual.network.connection.CasualConnectionException
      * @return result of the service call, which can be a failure result.
      */
     ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
@@ -36,6 +36,9 @@ public interface CasualServiceApi
     /**
      * Async call
      * Wraps up a call to tpcall in a worker thread
+     *
+     * Be aware to handle any exception when using get/join
+     *
      * @param serviceName the name of the service to call.
      * @param data the data to send to the given service.
      * @param flags the atmi flags to send to the given service.
@@ -46,6 +49,7 @@ public interface CasualServiceApi
     /**
      * Lookup if service exists
      * @param serviceName the service name
+     * @throws se.laz.casual.network.connection.CasualConnectionException
      * @return true if service exists
      */
     boolean serviceExists( String serviceName);

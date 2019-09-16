@@ -16,6 +16,7 @@ import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceAdapter
 import se.laz.casual.jca.CasualResourceManager
+import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
@@ -271,6 +272,33 @@ class CasualServiceCallerTest extends Specification
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }
+
+    def 'tpcall fails, exception is wrapped in CasualConnectionException'()
+    {
+        when:
+        instance.tpcall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
+        then:
+        thrown(CasualConnectionException)
+        1 * networkConnection.request( _ ) >> {
+            CompletableFuture<ServiceReturn<CasualBuffer>> f = new CompletableFuture<>()
+            f.completeExceptionally(new CasualProtocolException('oopsie'))
+            return f
+        }
+    }
+
+    def 'service exists fails - exception is wrapped in CasualConnectionException'()
+    {
+        when:
+        instance.serviceExists('foo')
+        then:
+        thrown(CasualConnectionException)
+        1 * networkConnection.request( _ ) >> {
+            CompletableFuture<ServiceReturn<CasualBuffer>> f = new CompletableFuture<>()
+            f.completeExceptionally(new CasualProtocolException('oopsie'))
+            return f
+        }
+    }
+
 
     def "toString test."()
     {

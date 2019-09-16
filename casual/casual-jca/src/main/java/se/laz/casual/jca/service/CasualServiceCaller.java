@@ -16,6 +16,7 @@ import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.jca.CasualManagedConnection;
+import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
@@ -44,7 +45,14 @@ public class CasualServiceCaller implements CasualServiceApi
     @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        return tpacall(serviceName, data, flags).join();
+        try
+        {
+            return tpacall(serviceName, data, flags).join();
+        }
+        catch(Exception e)
+        {
+            throw new CasualConnectionException(e);
+        }
     }
 
     @Override
@@ -66,7 +74,14 @@ public class CasualServiceCaller implements CasualServiceApi
     @Override
     public boolean serviceExists(String serviceName)
     {
-        return serviceExists(UUID.randomUUID(), serviceName);
+        try
+        {
+            return serviceExists(UUID.randomUUID(), serviceName);
+        }
+        catch(Exception e)
+        {
+            throw new CasualConnectionException(e);
+        }
     }
 
     private CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)

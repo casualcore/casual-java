@@ -12,6 +12,7 @@ import se.laz.casual.api.queue.MessageSelector;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.jca.CasualManagedConnection;
+import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
@@ -46,19 +47,40 @@ public class CasualQueueCaller implements CasualQueueApi
     @Override
     public UUID enqueue(QueueInfo qinfo, QueueMessage msg)
     {
-        return makeEnqueueCall(UUID.randomUUID(), qinfo, msg);
+        try
+        {
+            return makeEnqueueCall(UUID.randomUUID(), qinfo, msg);
+        }
+        catch(Exception e)
+        {
+            throw new CasualConnectionException(e);
+        }
     }
 
     @Override
     public List<QueueMessage> dequeue(QueueInfo qinfo, MessageSelector selector)
     {
-        return makeDequeueCall(UUID.randomUUID(), qinfo, selector);
+        try
+        {
+            return makeDequeueCall(UUID.randomUUID(), qinfo, selector);
+        }
+        catch(Exception e)
+        {
+            throw new CasualConnectionException(e);
+        }
     }
 
     @Override
     public boolean queueExists(QueueInfo qinfo)
     {
-        return queueExists( UUID.randomUUID(), qinfo.getCompositeName());
+        try
+        {
+            return queueExists(UUID.randomUUID(), qinfo.getCompositeName());
+        }
+        catch(Exception e)
+        {
+            throw new CasualConnectionException(e);
+        }
     }
 
     private UUID makeEnqueueCall(UUID corrid, QueueInfo qinfo, QueueMessage msg)

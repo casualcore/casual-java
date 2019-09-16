@@ -22,6 +22,7 @@ public interface CasualQueueApi
      * Enqueue msg
      * @param qinfo the queue info
      * @param msg the queue message
+     * @throws se.laz.casual.network.connection.CasualConnectionException
      * @return the id of the enqueued message
      */
     UUID enqueue(QueueInfo qinfo, QueueMessage msg);
@@ -30,6 +31,7 @@ public interface CasualQueueApi
      * Dequeue message(s)
      * @param qinfo the queue info
      * @param selector the queue message
+     * @throws se.laz.casual.network.connection.CasualConnectionException
      * @return a list of matching messages
      */
     List<QueueMessage> dequeue(QueueInfo qinfo, MessageSelector selector);
@@ -37,6 +39,7 @@ public interface CasualQueueApi
     /**
      * Check if queue exists
      * @param qinfo the queue info
+     * @throws se.laz.casual.network.connection.CasualConnectionException
      * @return true if queue exists
      */
     boolean queueExists(QueueInfo qinfo);

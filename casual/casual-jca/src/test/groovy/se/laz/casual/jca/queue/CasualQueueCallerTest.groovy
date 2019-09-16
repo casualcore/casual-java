@@ -15,6 +15,7 @@ import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceManager
+import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
@@ -176,8 +177,7 @@ class CasualQueueCallerTest extends Specification
         UUID msgId = instance.enqueue(queueInfo, QueueMessage.of(message))
         then:
         null == msgId
-        def e = thrown(RuntimeException)
-        e.message == bigBaddaBoom
+        thrown(CasualConnectionException)
         1 * networkConnection.request( _ ) >> {
             CasualNWMessageImpl<CasualEnqueueRequestMessage> input ->
                 throw new RuntimeException(bigBaddaBoom)
@@ -190,8 +190,7 @@ class CasualQueueCallerTest extends Specification
         List<QueueMessage> messages = instance.dequeue(queueInfo, MessageSelector.of())
         then:
         messages == null
-        def e = thrown(RuntimeException)
-        e.message == bigBaddaBoom
+        thrown(CasualConnectionException)
         1 * networkConnection.request(_) >> {
             CasualNWMessageImpl<CasualDequeueRequestMessage> input ->
                 throw new RuntimeException(bigBaddaBoom)
@@ -225,5 +224,19 @@ class CasualQueueCallerTest extends Specification
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }
+
+    def 'queueExists goes big badda boom'()
+    {
+        when:
+        List<QueueMessage> messages = instance.queueExists(queueInfo)
+        then:
+        messages == null
+        thrown(CasualConnectionException)
+        1 * networkConnection.request(_) >> {
+            CasualNWMessageImpl<CasualDequeueRequestMessage> input ->
+                throw new RuntimeException(bigBaddaBoom)
+        }
+    }
+
 
 }
