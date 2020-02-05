@@ -15,13 +15,16 @@ class CStringBufferTest extends Specification
     }
 
 
-    def 'already nullterminated Java string'()
+    def 'already nullterminated Java string, does not modify'()
     {
+        given:
+        String data = "Hello Casual!" + "\0"
+        byte[] bytes = data.getBytes(  )
         when:
-        CStringBuffer.of("Hello Casual!" + "\0")
+        CStringBuffer buffer = CStringBuffer.of( [bytes] )
+
         then:
-        def e = thrown(IllegalArgumentException)
-        !e.message.empty
+        buffer.getBytes(  )[0] == bytes
     }
 
     def 'two byte[]'()
@@ -43,6 +46,8 @@ class CStringBufferTest extends Specification
         noExceptionThrown()
         v.getType() == CasualBufferType.CSTRING.name
         v.toString() == s
+        byte[] data = v.getBytes(  ).get(0)
+        data[data.length-1] == "\0".getBytes(  )[0]
     }
 
     def 'CStringBuffer from byte[]'()
@@ -57,6 +62,17 @@ class CStringBufferTest extends Specification
         noExceptionThrown()
         v.getType() == CasualBufferType.CSTRING.name
         v.toString() == s
+    }
+
+    def 'CStringBuffer from byte[] without null termination, throws IllegalArgumentException.'()
+    {
+        setup:
+        String s = "Hello Casual!"
+        byte[] b = s.getBytes()
+        when:
+        CStringBuffer.of([b])
+        then:
+        thrown IllegalArgumentException
     }
 
 }

@@ -12,6 +12,9 @@ import java.util.Objects;
  */
 public class CStringBuffer implements CasualBuffer
 {
+    private static final String NULL_TERMINATOR = "\0";
+    private static final byte NULL_TERMINATOR_BYTE = NULL_TERMINATOR.getBytes()[0];
+
     private static final long serialVersionUID = 1L;
     private final byte[] payload;
     private CStringBuffer(byte[] payload)
@@ -27,11 +30,12 @@ public class CStringBuffer implements CasualBuffer
     public static CStringBuffer of(final String value)
     {
         Objects.requireNonNull(value, "value should not be null!");
-        if(value.endsWith("\0"))
+        String data = value;
+        if(!data.endsWith( NULL_TERMINATOR ) )
         {
-            throw new IllegalArgumentException("String should not be nullterminated!");
+            data += NULL_TERMINATOR;
         }
-        return new CStringBuffer((value + "\0").getBytes());
+        return new CStringBuffer(data.getBytes());
     }
     /**
      * Creates a {@link CStringBuffer}
@@ -47,7 +51,12 @@ public class CStringBuffer implements CasualBuffer
         {
             throw new IllegalArgumentException("the list has to contain only one byte[]");
         }
-        return new CStringBuffer(payload.get(0));
+        byte[] data = payload.get( 0 );
+        if( data[data.length-1] != NULL_TERMINATOR_BYTE )
+        {
+            throw new IllegalArgumentException("the byte[] must be null terminated.");
+        }
+        return new CStringBuffer(data);
     }
     @Override
     public String getType()
