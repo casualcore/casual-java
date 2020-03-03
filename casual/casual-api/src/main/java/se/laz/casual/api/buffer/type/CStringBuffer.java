@@ -3,6 +3,7 @@ package se.laz.casual.api.buffer.type;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.CasualBufferType;
 
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -16,27 +17,41 @@ public class CStringBuffer implements CasualBuffer
     private static final byte NULL_TERMINATOR_BYTE = NULL_TERMINATOR.getBytes()[0];
 
     private static final long serialVersionUID = 1L;
+    private final Charset charset;
     private final byte[] payload;
-    private CStringBuffer(byte[] payload)
+
+    private CStringBuffer(byte[] payload, Charset charset)
     {
         this.payload = payload;
+        this.charset = charset;
     }
 
     /**
      * Creates a {@link CStringBuffer}
+     * Uses the platform's default charset
+     * ( Charset.defaultCharset() )
      * @param value - the string value
      * @return a {@link CStringBuffer}
      */
     public static CStringBuffer of(final String value)
     {
+        return of(value, Charset.defaultCharset());
+    }
+
+
+    public static CStringBuffer of(final String value, final Charset charset)
+    {
         Objects.requireNonNull(value, "value should not be null!");
+        Objects.requireNonNull(charset, "charset can not be null");
         String data = value;
-        if(!data.endsWith( NULL_TERMINATOR ) )
+        if (!data.endsWith(NULL_TERMINATOR))
         {
             data += NULL_TERMINATOR;
         }
-        return new CStringBuffer(data.getBytes());
+        return new CStringBuffer(data.getBytes(), charset);
     }
+
+
     /**
      * Creates a {@link CStringBuffer}
      * @param payload has to contain one byte[] which has to be a null terminated cstring using the default platform encoding
@@ -44,7 +59,13 @@ public class CStringBuffer implements CasualBuffer
      */
     public static CStringBuffer of(final List<byte[]> payload)
     {
+        return of(payload, Charset.defaultCharset());
+    }
+
+    public static CStringBuffer of(final List<byte[]> payload, final Charset charset)
+    {
         Objects.requireNonNull(payload, "payload can not be null!");
+        Objects.requireNonNull(charset, "charset can not be null");
         // Java string can only be created from one byte[] - ie that is the max size of a javastring
         // The payload is expected to be a null terminated c string
         if(payload.size() != 1)
@@ -56,8 +77,14 @@ public class CStringBuffer implements CasualBuffer
         {
             throw new IllegalArgumentException("the byte[] must be null terminated.");
         }
-        return new CStringBuffer(data);
+        return new CStringBuffer(data, charset);
     }
+
+    public Charset getCharset()
+    {
+        return charset;
+    }
+
     @Override
     public String getType()
     {
@@ -71,6 +98,6 @@ public class CStringBuffer implements CasualBuffer
     @Override
     public String toString()
     {
-        return new String(payload, 0,payload.length - 1);
+        return new String(payload, 0,payload.length - 1, charset);
     }
 }
