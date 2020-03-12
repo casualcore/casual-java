@@ -48,7 +48,7 @@ public class CStringBuffer implements CasualBuffer
         {
             data += NULL_TERMINATOR;
         }
-        return new CStringBuffer(data.getBytes(), charset);
+        return new CStringBuffer(data.getBytes(charset), charset);
     }
 
 

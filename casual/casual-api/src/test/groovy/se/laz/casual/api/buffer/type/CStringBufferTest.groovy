@@ -1,5 +1,6 @@
 package se.laz.casual.api.buffer.type
 
+
 import se.laz.casual.api.buffer.CasualBufferType
 import spock.lang.Shared
 import spock.lang.Specification
@@ -8,6 +9,7 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 class CStringBufferTest extends Specification {
+
     @Shared
     def defaultCharset = Charset.defaultCharset()
     @Shared
@@ -87,8 +89,9 @@ class CStringBufferTest extends Specification {
     {
         setup:
         byte[] b = 'Foo'.getBytes()
+        Charset charset = null
         when:
-        CStringBuffer.of(b, null)
+        CStringBuffer.of([b], charset)
         then:
         def e = thrown(NullPointerException)
         !e.message.empty
@@ -146,4 +149,13 @@ class CStringBufferTest extends Specification {
         buffer.getCharset() == defaultCharset
     }
 
+    def 'verify that the provided charset is actually used'()
+    {
+        setup:
+        String s = "Hello Casual! €"
+        when:
+        def buffer = CStringBuffer.of(s, StandardCharsets.UTF_8)
+        then:
+        s == buffer.toString()
+    }
 }
