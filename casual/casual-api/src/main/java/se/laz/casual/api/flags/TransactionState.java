@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2020, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -17,7 +17,8 @@ public enum TransactionState
 {
     TX_ACTIVE(0),
     TIMEOUT_ROLLBACK_ONLY(1),
-    ROLLBACK_ONLY(2);
+    ROLLBACK_ONLY(2),
+    ERROR(3);
 
     private final int id;
     TransactionState(int id)

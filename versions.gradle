@@ -1,13 +1,13 @@
 
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2020, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '1.0.31-beta'
+version = '1.0.32-beta'
 
 ext.libs = [
   netty : 'io.netty:netty-all:4.1.22.Final',
