@@ -17,6 +17,27 @@ enum TransactionState{
     TX_ROLLBACK_ONLY = 2;
 }
 
+enum State{
+    OK = 0;
+    TPEBADDESC = 2;
+    TPEBLOCK = 3;
+    TPEINVAL = 4;
+    TPELIMIT = 5;
+    TPENOENT= 6;
+    TPEOS = 7;
+    TPEPROTO = 9;
+    TPESVCERR = 10;
+    TPESVCFAIL = 11;
+    TPESYSTEM = 12;
+    TPETIME = 13;
+    TPETRAN = 14;
+    TPGOTSIG = 15;
+    TPEITYPE = 17;
+    TPEOTYPE = 18;
+    TPEEVENT = 22;
+    TPEMATCH = 23;
+}
+
 message Service{
     string name = 1;
     string category = 2;
@@ -29,6 +50,26 @@ message Queue {
     uint64 retries = 2;
 }
 
+message QueueMessage{
+    UUID4 id = 1;
+    string properties = 2;
+    string reply_queue = 3;
+    uint64 available_since = 4;
+    string type = 5;
+    bytes payload = 6;
+}
+
+message DequeueMessage{
+    UUID4 id = 1;
+    string properties = 2;
+    string reply_queue = 3;
+    uint64 available_since = 4;
+    string type = 5;
+    bytes payload = 6;
+    uint64 redelivered_count =7;
+    uint64 timestamp = 8;
+}
+
 message UUID4 {
     uint64 most_significant_bits = 1;
     uint64 least_significant_bits = 2;
@@ -39,6 +80,11 @@ message XID {
     uint64 xid_gtrid_length = 2;
     uint64 xid_bqual_length = 3;
     bytes xid_data = 4;
+}
+
+message Selector{
+    UUID4 id = 1;
+    string properties = 2;
 }
 
 message CasualRequest {
@@ -59,6 +105,11 @@ message CasualRequest {
         CasualDomainConnectRequest domain_connect = 3;
         CasualDomainDiscoveryRequest domain_discovery = 4;
         CasualServiceCallRequest service_call = 5;
+        CasualPrepareRequest prepare = 6;
+        CasualCommitRequest commit = 7;
+        CasualRollbackRequest rollback = 8;
+        CasualEnqueueRequest enqueue = 9;
+        CasualDequeueRequest dequeue = 10;
     }
 }
 
@@ -88,7 +139,43 @@ message CasualServiceCallRequest {
     bytes payload = 8;
 }
 
-message CasualResponse {
+message CasualPrepareRequest {
+    UUID4 execution = 1;
+    XID xid = 2;
+    uint32 resource_manager_id = 3;
+    uint64 xa_flags = 4;
+}
+
+message CasualCommitRequest {
+    UUID4 execution = 1;
+    XID xid = 2;
+    uint32 resource_manager_id = 3;
+    uint64 xa_flags = 4;
+}
+
+message CasualRollbackRequest {
+    UUID4 execution = 1;
+    XID xid = 2;
+    uint32 resource_manager_id = 3;
+    uint64 xa_flags = 4;
+}
+
+message CasualEnqueueRequest {
+    UUID4 execution = 1;
+    string queue_name = 2;
+    XID xid = 3;
+    QueueMessage message = 4;
+}
+
+message CasualDequeueRequest {
+    UUID4 execution = 1;
+    string queue_name = 2;
+    XID xid = 3;
+    Selector selector = 4;
+    bool block = 5;
+}
+
+message CasualReply {
     enum MessageType{
         MESSAGE_TYPE_UNSPECIFIED = 0;
         DOMAIN_CONNECT_REPLY = 7201;
@@ -106,6 +193,11 @@ message CasualResponse {
         CasualDomainConnectReply domain_connect = 3;
         CasualDomainDiscoveryReply domain_discovery = 4;
         CasualServiceCallReply service_call = 5;
+        CasualPrepareReply prepare = 6;
+        CasualCommitReply commit = 7;
+        CasualRollbackRequest rollback = 8;
+        CasualEnqueueReply enqueue = 9;
+        CasualDequeueReply dequeue = 10;
     }
 }
 
@@ -132,4 +224,35 @@ message CasualServiceCallReply {
     TransactionState transaction_state = 5;
     string buffer_type_name = 6;
     bytes payload = 7;
+}
+
+message CasualPrepareReply {
+    UUID4 execution = 1;
+    XID xid = 2;
+    uint32 resource_manager_id = 3;
+    State state = 4;
+}
+
+message CasualCommitReply {
+    UUID4 execution = 1;
+    XID xid = 2;
+    uint32 resource_manager_id = 3;
+    State state = 4;
+}
+
+message CasualRollbackReply {
+    UUID4 execution = 1;
+    XID xid = 2;
+    uint32 resource_manager_id = 3;
+    State state = 4;
+}
+
+message CasualEnqueueReply {
+    UUID4 execution = 1;
+    UUID4 message_id = 2;
+}
+
+message CasualDequeueReply {
+    UUID4 execution = 1;
+    repeated DequeueMessage message = 2;
 }
