@@ -1,31 +1,135 @@
 syntax = "proto3";
 
 option java_package = "se.laz.casual.network.messages";
-option java_outer_classname = "CasualNetworkMessages";
+option java_outer_classname = "CasualProtos";
 option java_multiple_files = true;
 
-message Header {
+enum TransactionType {
+    NONE = 0;
+    AUTOMATIC = 1;
+    JOIN = 2;
+    ATOMIC = 3;
+}
+
+enum TransactionState{
+    TX_ACTIVE = 0;
+    TX_TIMEOUT_ROLLBACK_ONLY = 1;
+    TX_ROLLBACK_ONLY = 2;
+}
+
+message Service{
+    string name = 1;
+    string category = 2;
+    uint64 timeout = 3;
+    uint64 hops = 4;
+}
+
+message Queue {
+    string name = 1;
+    uint64 retries = 2;
+}
+
+message UUID4 {
+    uint64 most_significant_bits = 1;
+    uint64 least_significant_bits = 2;
+}
+
+message XID {
+    uint64 xid_format = 1;
+    uint64 xid_gtrid_length = 2;
+    uint64 xid_bqual_length = 3;
+    bytes xid_data = 4;
+}
+
+message CasualRequest {
     enum MessageType{
         MESSAGE_TYPE_UNSPECIFIED = 0;
         DOMAIN_CONNECT_REQUEST = 7200;
-        DOMAIN_CONNECT_REPLY = 7201;
         DOMAIN_DISCOVERY_REQUEST = 7300;
-        DOMAIN_DISCOVERY_REPLY = 7301;
         SERVICE_CALL_REQUEST = 3100;
-        SERVICE_CALL_REPLY = 3101;
         ENQUEUE_REQUEST = 6100;
-        ENQUEUE_REPLY = 6101;
         DEQUEUE_REQUEST = 6200;
-        DEQUEUE_REPLY = 6201;
         PREPARE_REQUEST = 5201;
-        PREPARE_REQUEST_REPLY = 5202;
         COMMIT_REQUEST = 5203;
-        COMMIT_REQUEST_REPLY = 5204;
-        REQUEST_ROLLBACK = 5205;
-        REQUEST_ROLLBACK_REPLY = 5206;
+        ROLLBACK_REQUEST = 5205;
     }
     MessageType message_type = 1;
-    uint64 corrid_most_significant = 2;
-    uint64 corrid_least_significant = 3;
-    uint64 payload_size = 4;
+    UUID4 correlation_id = 2;
+    oneof Request{
+        CasualDomainConnectRequest domain_connect = 3;
+        CasualDomainDiscoveryRequest domain_discovery = 4;
+        CasualServiceCallRequest service_call = 5;
+    }
+}
+
+message CasualDomainConnectRequest {
+    UUID4 execution = 1;
+    UUID4 domain_id = 2;
+    string domain_name = 3;
+    uint64 protocol_version = 4;
+}
+
+message CasualDomainDiscoveryRequest {
+    UUID4 execution = 1;
+    UUID4 domain_id = 2;
+    string domain_name = 3;
+    repeated string service_names = 4;
+    repeated string queue_names = 5;
+}
+
+message CasualServiceCallRequest {
+    UUID4 execution = 1;
+    string service_name = 2;
+    uint64 timeout = 3;
+    string parent_service_name = 4;
+    XID xid = 5;
+    uint64 flags = 6;
+    string buffer_type = 7;
+    bytes payload = 8;
+}
+
+message CasualResponse {
+    enum MessageType{
+        MESSAGE_TYPE_UNSPECIFIED = 0;
+        DOMAIN_CONNECT_REPLY = 7201;
+        DOMAIN_DISCOVERY_REPLY = 7301;
+        SERVICE_CALL_REPLY = 3101;
+        ENQUEUE_REPLY = 6101;
+        DEQUEUE_REPLY = 6201;
+        PREPARE_REPLY = 5202;
+        COMMIT_REPLY = 5204;
+        ROLLBACK_REPLY = 5206;
+    }
+    MessageType message_type = 1;
+    UUID4 correlation_id = 2;
+    oneof Request{
+        CasualDomainConnectReply domain_connect = 3;
+        CasualDomainDiscoveryReply domain_discovery = 4;
+        CasualServiceCallReply service_call = 5;
+    }
+}
+
+message CasualDomainConnectReply {
+    UUID4 execution = 1;
+    UUID4 domain_id = 2;
+    string domain_name = 3;
+    uint64 protocol_version = 4;
+}
+
+message CasualDomainDiscoveryReply {
+    UUID4 execution = 1;
+    UUID4 domain_id = 2;
+    string domain_name = 3;
+    repeated Service services = 4;
+    repeated Queue queues = 5;
+}
+
+message CasualServiceCallReply {
+    UUID4 execution = 1;
+    uint32 result = 2;
+    uint64 user = 3;
+    XID xid = 4;
+    TransactionState transaction_state = 5;
+    string buffer_type_name = 6;
+    bytes payload = 7;
 }
