@@ -18,8 +18,8 @@ pipeline {
         stage('Compiling') {
             steps {
                 withDockerContainer("openjdk:8") {
-                    sh './gradlew classes'
-                    sh './gradlew testClasses'
+                    sh './gradlew clean'
+                    sh './gradlew assemble'
                 }
             }
         }
