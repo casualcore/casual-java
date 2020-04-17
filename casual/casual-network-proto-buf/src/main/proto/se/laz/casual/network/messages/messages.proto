@@ -4,6 +4,10 @@ option java_package = "se.laz.casual.network.messages";
 option java_outer_classname = "CasualProtos";
 option java_multiple_files = true;
 
+service Casual{
+    rpc MakeRequest(CasualRequest) returns (CasualReply){}
+}
+
 enum TransactionType {
     NONE = 0;
     AUTOMATIC = 1;
