@@ -189,13 +189,13 @@ message CasualReply {
     }
     MessageType message_type = 1;
     UUID4 correlation_id = 2;
-    oneof Request{
+    oneof Reply{
         CasualDomainConnectReply domain_connect = 3;
         CasualDomainDiscoveryReply domain_discovery = 4;
         CasualServiceCallReply service_call = 5;
         CasualPrepareReply prepare = 6;
         CasualCommitReply commit = 7;
-        CasualRollbackRequest rollback = 8;
+        CasualRollbackReply rollback = 8;
         CasualEnqueueReply enqueue = 9;
         CasualDequeueReply dequeue = 10;
     }
