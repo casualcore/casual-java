@@ -156,6 +156,16 @@ public final class XID implements Xid
         return sb.toString();
     }
 
+    public int getGtridLength()
+    {
+        return gtridLength;
+    }
+
+    public int getBqualLength()
+    {
+        return bqualLength;
+    }
+
     private static boolean isNullFormatTypeButAdditionalInformationProvided(byte[] globalTransactionId, byte[] branchQualifier, long formatType)
     {
         if(!XIDFormatType.isNullType(formatType))

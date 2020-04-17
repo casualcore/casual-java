@@ -79,14 +79,14 @@ message UUID4 {
     uint64 least_significant_bits = 2;
 }
 
-message XID {
+message XIDGRPC {
     uint64 xid_format = 1;
     uint64 xid_gtrid_length = 2;
     uint64 xid_bqual_length = 3;
     bytes xid_data = 4;
 }
 
-message Selector{
+message Selector {
     UUID4 id = 1;
     string properties = 2;
 }
@@ -137,29 +137,29 @@ message CasualServiceCallRequest {
     string service_name = 2;
     uint64 timeout = 3;
     string parent_service_name = 4;
-    XID xid = 5;
+    XIDGRPC xid = 5;
     uint64 flags = 6;
-    string buffer_type = 7;
+    string buffer_type_name = 7;
     bytes payload = 8;
 }
 
 message CasualPrepareRequest {
     UUID4 execution = 1;
-    XID xid = 2;
+    XIDGRPC xid = 2;
     uint32 resource_manager_id = 3;
     uint64 xa_flags = 4;
 }
 
 message CasualCommitRequest {
     UUID4 execution = 1;
-    XID xid = 2;
+    XIDGRPC xid = 2;
     uint32 resource_manager_id = 3;
     uint64 xa_flags = 4;
 }
 
 message CasualRollbackRequest {
     UUID4 execution = 1;
-    XID xid = 2;
+    XIDGRPC xid = 2;
     uint32 resource_manager_id = 3;
     uint64 xa_flags = 4;
 }
@@ -167,14 +167,14 @@ message CasualRollbackRequest {
 message CasualEnqueueRequest {
     UUID4 execution = 1;
     string queue_name = 2;
-    XID xid = 3;
+    XIDGRPC xid = 3;
     QueueMessage message = 4;
 }
 
 message CasualDequeueRequest {
     UUID4 execution = 1;
     string queue_name = 2;
-    XID xid = 3;
+    XIDGRPC xid = 3;
     Selector selector = 4;
     bool block = 5;
 }
@@ -224,7 +224,7 @@ message CasualServiceCallReply {
     UUID4 execution = 1;
     uint32 result = 2;
     uint64 user = 3;
-    XID xid = 4;
+    XIDGRPC xid = 4;
     TransactionState transaction_state = 5;
     string buffer_type_name = 6;
     bytes payload = 7;
@@ -232,21 +232,21 @@ message CasualServiceCallReply {
 
 message CasualPrepareReply {
     UUID4 execution = 1;
-    XID xid = 2;
+    XIDGRPC xid = 2;
     uint32 resource_manager_id = 3;
     State state = 4;
 }
 
 message CasualCommitReply {
     UUID4 execution = 1;
-    XID xid = 2;
+    XIDGRPC xid = 2;
     uint32 resource_manager_id = 3;
     State state = 4;
 }
 
 message CasualRollbackReply {
     UUID4 execution = 1;
-    XID xid = 2;
+    XIDGRPC xid = 2;
     uint32 resource_manager_id = 3;
     State state = 4;
 }

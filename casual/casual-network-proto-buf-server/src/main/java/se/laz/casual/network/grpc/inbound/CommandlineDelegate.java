@@ -1,5 +1,6 @@
 package se.laz.casual.network.grpc.inbound;
 
+import se.laz.casual.network.messages.CasualCommitReply;
 import se.laz.casual.network.messages.CasualReply;
 import se.laz.casual.network.messages.CasualRequest;
 
@@ -41,6 +42,7 @@ public final class CommandlineDelegate implements RequestDelegate
     }
     // Basic commandline test methods
     private static CasualReply handleDomainDisoveryRequest(CasualRequest request)
+
     {
         return null;
     }

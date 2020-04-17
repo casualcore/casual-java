@@ -1,6 +1,12 @@
 package se.laz.casual
 
 import com.google.protobuf.ByteString
+import se.laz.casual.api.buffer.CasualBufferType
+import se.laz.casual.api.buffer.type.CStringBuffer
+import se.laz.casual.api.flags.XAFlags
+import se.laz.casual.api.xa.XID
+import se.laz.casual.api.xa.XIDFormatType
+import se.laz.casual.network.grpc.MessageCreator
 import se.laz.casual.network.messages.CasualCommitRequest
 import se.laz.casual.network.messages.CasualDequeueRequest
 import se.laz.casual.network.messages.CasualDomainConnectRequest
@@ -13,8 +19,10 @@ import se.laz.casual.network.messages.CasualServiceCallRequest
 import se.laz.casual.network.messages.QueueMessage
 import se.laz.casual.network.messages.Selector
 import se.laz.casual.network.messages.UUID4
-import se.laz.casual.network.messages.XID
+import se.laz.casual.network.messages.XIDGRPC
 import spock.lang.Specification
+
+import javax.transaction.xa.Xid
 
 class RequestTest extends Specification
 {
@@ -29,27 +37,13 @@ class RequestTest extends Specification
         def protocolVersion = 2000L
         def tmpFile = File.createTempFile('CasualDomainConnectRequest','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def domainConnectRequest = CasualDomainConnectRequest.newBuilder()
-                .setExecution(UUID4.newBuilder()
-                        .setMostSignificantBits(execution.getMostSignificantBits())
-                        .setLeastSignificantBits(execution.getLeastSignificantBits())
-                        .build())
-                .setDomainId(UUID4.newBuilder()
-                        .setMostSignificantBits(domainId.getMostSignificantBits())
-                        .setLeastSignificantBits(domainId.getLeastSignificantBits())
-                        .build())
-                .setDomainName(domainName)
-                .setProtocolVersion(protocolVersion)
-                .build()
-
-        def request = CasualRequest.newBuilder()
-                .setMessageType(messageType)
-                .setCorrelationId(UUID4.newBuilder()
-                        .setMostSignificantBits(corrid.getMostSignificantBits())
-                        .setLeastSignificantBits(corrid.getLeastSignificantBits())
-                        .build())
-                .setDomainConnect(domainConnectRequest)
-                .build()
+        def domainConnectRequest = MessageCreator.createCasualDomainConnectRequest(MessageCreator.toUUID4(execution),
+                                                                                   MessageCreator.toUUID4(domainId),
+                                                                                   domainName,
+                                                                                   protocolVersion)
+        def request = MessageCreator.createRequestBuilder(messageType, MessageCreator.toUUID4(corrid))
+                                    .setDomainConnect(domainConnectRequest)
+                                    .build()
         request.writeTo(os)
         os.close()
         when:
@@ -78,28 +72,15 @@ class RequestTest extends Specification
         def queues = ['A', 'B', 'C']
         def tmpFile = File.createTempFile('CasualDomainDiscoveryRequest','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def domainDiscoveryRequest = CasualDomainDiscoveryRequest.newBuilder()
-                .setExecution(UUID4.newBuilder()
-                        .setMostSignificantBits(execution.getMostSignificantBits())
-                        .setLeastSignificantBits(execution.getLeastSignificantBits())
-                        .build())
-                .setDomainId(UUID4.newBuilder()
-                        .setMostSignificantBits(domainId.getMostSignificantBits())
-                        .setLeastSignificantBits(domainId.getLeastSignificantBits())
-                        .build())
-                .setDomainName(domainName)
-                .addAllServiceNames(services)
-                .addAllQueueNames(queues)
-                .build()
+        def domainDiscoveryRequest = MessageCreator.createCasualDomainDiscoveryRequest(MessageCreator.toUUID4(execution),
+                                                                                       MessageCreator.toUUID4(domainId),
+                                                                                       domainName,
+                                                                                       Optional.of(services),
+                                                                                       Optional.of(queues))
+        def request = MessageCreator.createRequestBuilder(messageType, MessageCreator.toUUID4(corrid))
+                                    .setDomainDiscovery(domainDiscoveryRequest)
+                                    .build()
 
-        def request = CasualRequest.newBuilder()
-                .setMessageType(messageType)
-                .setCorrelationId(UUID4.newBuilder()
-                        .setMostSignificantBits(corrid.getMostSignificantBits())
-                        .setLeastSignificantBits(corrid.getLeastSignificantBits())
-                        .build())
-                .setDomainDiscovery(domainDiscoveryRequest)
-                .build()
         request.writeTo(os)
         os.close()
         when:
@@ -123,33 +104,21 @@ class RequestTest extends Specification
         UUID corrid = UUID.randomUUID()
         UUID execution = UUID.randomUUID()
         def tmpFile = File.createTempFile('CasualServiceCallRequest','.bin')
+        def serviceName = 'Welcome to the Jungle'
+        byte[] globalTransactionId = 'asdf'.getBytes()
+        byte[] branchQualifier = 'qwerty'.getBytes()
+        Xid xid = XID.of(globalTransactionId, branchQualifier, 42)
+        CStringBuffer buffer = CStringBuffer.of('Hello world')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def serviceCallRequest = CasualServiceCallRequest.newBuilder()
-                .setExecution(UUID4.newBuilder()
-                        .setMostSignificantBits(execution.getMostSignificantBits())
-                        .setLeastSignificantBits(execution.getLeastSignificantBits())
-                        .build())
-                .setTimeout(60 * 1000)
-                .setParentServiceName('Bob')
-                .setXid(XID.newBuilder()
-                        .setXidFormat(0)
-                        .setXidGtridLength(32)
-                        .setXidBqualLength(10)
-                        .setXidData(ByteString.copyFrom('a'.getBytes()))
-                        .build())
-                .setBufferType('awesometype')
-                .setPayload(ByteString.copyFrom('Austin Texas'.getBytes()))
-                .setFlags(42)
-                .build()
-
-        def request = CasualRequest.newBuilder()
-                .setMessageType(messageType)
-                .setCorrelationId(UUID4.newBuilder()
-                        .setMostSignificantBits(corrid.getMostSignificantBits())
-                        .setLeastSignificantBits(corrid.getLeastSignificantBits())
-                        .build())
-                .setServiceCall(serviceCallRequest)
-                .build()
+        def serviceCallRequest = MessageCreator.createCasualServiceCallRequest(MessageCreator.toUUID4(execution),
+                                                                               serviceName, 0L, Optional.empty(),
+                                                                               MessageCreator.toXIDGRPC(xid),
+                                                                               XAFlags.TMNOFLAGS.value,
+                                                                               CasualBufferType.CSTRING.name,
+                                                                               buffer.getBytes().get(0))
+        def request = MessageCreator.createRequestBuilder(messageType, MessageCreator.toUUID4(corrid))
+                                    .setServiceCall(serviceCallRequest)
+                                    .build()
         request.writeTo(os)
         os.close()
         when:
@@ -179,7 +148,7 @@ class RequestTest extends Specification
                         .setMostSignificantBits(execution.getMostSignificantBits())
                         .setLeastSignificantBits(execution.getLeastSignificantBits())
                         .build())
-                .setXid(XID.newBuilder()
+                .setXid(XIDGRPC.newBuilder()
                         .setXidFormat(0)
                         .setXidGtridLength(32)
                         .setXidBqualLength(10)
@@ -226,7 +195,7 @@ class RequestTest extends Specification
                         .setMostSignificantBits(execution.getMostSignificantBits())
                         .setLeastSignificantBits(execution.getLeastSignificantBits())
                         .build())
-                .setXid(XID.newBuilder()
+                .setXid(XIDGRPC.newBuilder()
                         .setXidFormat(0)
                         .setXidGtridLength(32)
                         .setXidBqualLength(10)
@@ -273,7 +242,7 @@ class RequestTest extends Specification
                         .setMostSignificantBits(execution.getMostSignificantBits())
                         .setLeastSignificantBits(execution.getLeastSignificantBits())
                         .build())
-                .setXid(XID.newBuilder()
+                .setXid(XIDGRPC.newBuilder()
                         .setXidFormat(0)
                         .setXidGtridLength(32)
                         .setXidBqualLength(10)
@@ -322,7 +291,7 @@ class RequestTest extends Specification
                         .setLeastSignificantBits(execution.getLeastSignificantBits())
                         .build())
                 .setQueueName('Astrakan')
-                .setXid(XID.newBuilder()
+                .setXid(XIDGRPC.newBuilder()
                         .setXidFormat(0)
                         .setXidGtridLength(32)
                         .setXidBqualLength(10)
@@ -381,7 +350,7 @@ class RequestTest extends Specification
                         .setLeastSignificantBits(execution.getLeastSignificantBits())
                         .build())
                 .setQueueName('Astrakan')
-                .setXid(XID.newBuilder()
+                .setXid(XIDGRPC.newBuilder()
                         .setXidFormat(0)
                         .setXidGtridLength(32)
                         .setXidBqualLength(10)
