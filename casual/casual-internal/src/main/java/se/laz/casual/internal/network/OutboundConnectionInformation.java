@@ -4,19 +4,18 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.network.outbound;
+package se.laz.casual.internal.network;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.UUID;
 
-public abstract class BaseConnectionInformation
+public class OutboundConnectionInformation
 {
     private final InetSocketAddress address;
     private final UUID domainId;
     private final String domainName;
     private long protocolVersion;
-    private final boolean logHandlerEnabled;
     protected BaseConnectionInformation(final InetSocketAddress address, long protocolVersion, final UUID domainId, final String domainName, boolean logHandlerEnabled)
     {
         this.address = address;
@@ -62,7 +61,7 @@ public abstract class BaseConnectionInformation
         {
             return false;
         }
-        BaseConnectionInformation that = (BaseConnectionInformation) o;
+        OutboundConnectionInformation that = (OutboundConnectionInformation) o;
         return protocolVersion == that.protocolVersion &&
             Objects.equals(address, that.address) &&
             Objects.equals(domainId, that.domainId) &&

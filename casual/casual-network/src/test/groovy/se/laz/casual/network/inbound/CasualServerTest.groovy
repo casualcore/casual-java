@@ -9,6 +9,7 @@ package se.laz.casual.network.inbound
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.EventLoop
+import se.laz.casual.internal.network.InboundConnectionInformation
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
@@ -82,7 +83,7 @@ class CasualServerTest extends Specification
         }
         def xaTerminator = Mock(XATerminator)
         def workManager = Mock(WorkManager)
-        server = CasualServer.of(ConnectionInformation.createBuilder()
+        server = CasualServer.of(InboundConnectionInformation.createBuilder()
                                                                   .withPort(0)
                                                                   .withXaTerminator(xaTerminator)
                                                                   .withFactory(factory)

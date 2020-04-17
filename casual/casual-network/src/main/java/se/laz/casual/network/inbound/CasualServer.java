@@ -16,6 +16,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import se.laz.casual.internal.network.InboundConnectionInformation;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
 
@@ -36,7 +37,7 @@ public final class CasualServer
         this.channel = channel;
     }
 
-    public static CasualServer of(final ConnectionInformation ci)
+    public static CasualServer of(final InboundConnectionInformation ci)
     {
         CasualMessageHandler mh = CasualMessageHandler.of(ci.getFactory(), ci.getXaTerminator(), ci.getWorkManager());
         Channel c = init(mh, ExceptionHandler.of(), ci.getPort(), ci.isLogHandlerEnabled());

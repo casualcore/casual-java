@@ -10,7 +10,7 @@ import se.laz.casual.jca.inflow.CasualActivationSpec;
 import se.laz.casual.jca.work.StartInboundServerListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
 import se.laz.casual.network.inbound.CasualServer;
-import se.laz.casual.network.inbound.ConnectionInformation;
+import se.laz.casual.internal.network.InboundConnectionInformation;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ActivationSpec;

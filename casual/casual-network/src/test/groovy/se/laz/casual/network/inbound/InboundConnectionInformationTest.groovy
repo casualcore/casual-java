@@ -6,7 +6,6 @@
 
 package se.laz.casual.network.inbound
 
-
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -27,7 +26,7 @@ class ConnectionInformationTest extends Specification
     def 'invalid construction'()
     {
         when:
-        ConnectionInformation.createBuilder()
+        InboundConnectionInformation.createBuilder()
                              .withWorkManager(workManager)
                              .withXaTerminator(xaTerminator)
                              .withFactory(factory)
@@ -44,7 +43,7 @@ class ConnectionInformationTest extends Specification
     def 'ok construction - no network logging'()
     {
         when:
-        def instance = ConnectionInformation.createBuilder()
+        def instance = InboundConnectionInformation.createBuilder()
                                             .withWorkManager(mockWorkManager)
                                             .withXaTerminator(mockXATerminator)
                                             .withFactory(mockFactory)

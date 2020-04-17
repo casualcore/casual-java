@@ -18,6 +18,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.internal.network.OutboundConnectionInformation;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
@@ -46,7 +47,7 @@ public final class NettyNetworkConnection implements NetworkConnection
     private final EventLoopGroup workerGroup;
     private final AtomicBoolean connected = new AtomicBoolean(true);
 
-    private NettyNetworkConnection(BaseConnectionInformation ci, Correlator correlator, Channel channel, EventLoopGroup workerGroup)
+    private NettyNetworkConnection(OutboundConnectionInformation ci, Correlator correlator, Channel channel, EventLoopGroup workerGroup)
     {
         this.ci = ci;
         this.correlator = correlator;
