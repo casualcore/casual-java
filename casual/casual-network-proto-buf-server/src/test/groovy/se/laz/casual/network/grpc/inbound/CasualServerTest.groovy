@@ -1,9 +1,12 @@
 package se.laz.casual.network.grpc.inbound
 
+
+import com.spotify.futures.ListenableFuturesExtra
 import io.grpc.inprocess.InProcessChannelBuilder
 import io.grpc.inprocess.InProcessServerBuilder
 import io.grpc.testing.GrpcCleanupRule
 import org.junit.Rule
+import se.laz.casual.api.CasualRuntimeException
 import se.laz.casual.network.grpc.MessageCreator
 import se.laz.casual.network.messages.CasualGrpc
 import se.laz.casual.network.messages.CasualReply
@@ -13,6 +16,10 @@ import se.laz.casual.network.messages.CasualServiceCallRequest
 import se.laz.casual.network.messages.TransactionState
 import se.laz.casual.network.messages.XID
 import spock.lang.Specification
+
+import java.util.concurrent.CancellationException
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
 
 class CasualServerTest extends Specification
 {
@@ -58,6 +65,51 @@ class CasualServerTest extends Specification
         then:
         new String(serviceCallReply.getPayload().toByteArray()) == msg.reverse()
     }
+
+    def 'service call, exception in request delegate'()
+    {
+        given:
+        // Generate a unique in-process server name.
+        String serverName = InProcessServerBuilder.generateName()
+        def msg = 'Hello World!'
+        CasualRequest request = createServiceCallRequest(msg.getBytes())
+        final RequestDelegate delegate = Mock()
+        with(delegate){
+            1 * handleRequest(request) >> {
+                // notice, request handlers should not do this in general
+                // especially not for a service call - just package the exception in the payload of the response
+                request.getMessageType() == CasualRequest.MessageType.SERVICE_CALL_REQUEST
+                throw new IndexOutOfBoundsException()
+            }
+        }
+        // Create a server, add service, start, and register for automatic graceful shutdown.
+        grpcCleanup.register(InProcessServerBuilder
+                .forName(serverName).directExecutor().addService(CasualServer.CasualServerImpl.of(delegate)).build().start())
+
+        CasualGrpc.CasualFutureStub futureStub = CasualGrpc.newFutureStub(
+                // Create a client channel and register for automatic graceful shutdown.
+                grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build()))
+
+        when:
+        CompletableFuture<CasualReply> completableFuture = ListenableFuturesExtra.toCompletableFuture(futureStub.makeRequest(request))
+        try
+        {
+            completableFuture.join()
+        }
+        catch(CompletionException | CancellationException exception)
+        {
+            throw new CasualRuntimeException(exception)
+        }
+        then:
+        def e = thrown(CasualRuntimeException)
+        completableFuture.completedExceptionally == true
+        when:
+        StringWriter w = new StringWriter()
+        e.printStackTrace(new PrintWriter(w))
+        then:
+        w.toString().contains('IndexOutOfBoundsException') == true
+    }
+
 
     CasualRequest createServiceCallRequest(byte[] payload)
     {

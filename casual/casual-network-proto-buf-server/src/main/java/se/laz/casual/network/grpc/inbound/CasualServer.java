@@ -2,6 +2,8 @@ package se.laz.casual.network.grpc.inbound;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import se.laz.casual.network.messages.CasualGrpc;
 import se.laz.casual.network.messages.CasualReply;
@@ -109,9 +111,22 @@ public final class CasualServer
         @Override
         public void makeRequest(CasualRequest request, StreamObserver<CasualReply> responseObserver)
         {
-            CasualReply reply = delegate.handleRequest(request);
-            responseObserver.onNext(reply);
-            responseObserver.onCompleted();
+            try
+            {
+                CasualReply reply = delegate.handleRequest(request);
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            }
+            catch(Throwable e)
+            {
+                // notice:
+                // The delegate should not leak exceptions here
+                // This is just an extra guard in case that does happen
+                StatusRuntimeException statusRuntimeException =  Status.INTERNAL.withDescription(e.toString())
+                                                                                .asRuntimeException();
+                responseObserver.onError(statusRuntimeException);
+            }
+
         }
     }
 
