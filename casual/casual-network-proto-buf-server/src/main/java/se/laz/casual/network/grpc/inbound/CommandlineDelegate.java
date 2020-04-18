@@ -1,6 +1,5 @@
 package se.laz.casual.network.grpc.inbound;
 
-import se.laz.casual.network.messages.CasualCommitReply;
 import se.laz.casual.network.messages.CasualReply;
 import se.laz.casual.network.messages.CasualRequest;
 
@@ -44,41 +43,41 @@ public final class CommandlineDelegate implements RequestDelegate
     private static CasualReply handleDomainDisoveryRequest(CasualRequest request)
 
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     private static CasualReply handelDomainConnectRequest(CasualRequest request)
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     private static CasualReply handleServiceCallRequest(CasualRequest request)
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     private static CasualReply handleRollbackRequest(CasualRequest request)
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     private static CasualReply handleDequeueRequest(CasualRequest request)
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     private static CasualReply handleEnqueueRequest(CasualRequest request)
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     private static CasualReply handlePrepareRequest(CasualRequest request)
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     private static CasualReply handleCommitRequest(CasualRequest request)
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 }

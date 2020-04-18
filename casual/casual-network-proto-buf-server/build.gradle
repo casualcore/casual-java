@@ -7,9 +7,16 @@ dependencies {
   compileOnly project(':casual:casual-network-proto-buf-server-api')
   compileOnly project(':casual:casual-network-proto-buf')
   compileOnly project(':casual:casual-api')
+
   // for spock
   testCompile libs.groovy_all
   testCompile libs.spock_core
+  testCompile  'io.grpc:grpc-stub:1.28.1'
+  testCompile  'io.grpc:grpc-testing:1.28.1'
+  testCompile project(':casual:casual-network-proto-buf-server-api')
+  testCompile project(':casual:casual-network-proto-buf')
+
+  testRuntime project(':casual:casual-api')
 }
 
 
