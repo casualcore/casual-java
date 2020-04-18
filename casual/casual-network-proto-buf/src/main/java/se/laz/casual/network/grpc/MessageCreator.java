@@ -2,7 +2,6 @@ package se.laz.casual.network.grpc;
 
 import com.google.protobuf.ByteString;
 import se.laz.casual.api.util.time.InstantUtil;
-import se.laz.casual.api.xa.XID;
 import se.laz.casual.network.messages.CasualCommitReply;
 import se.laz.casual.network.messages.CasualCommitRequest;
 import se.laz.casual.network.messages.CasualDequeueReply;
@@ -29,7 +28,7 @@ import se.laz.casual.network.messages.Service;
 import se.laz.casual.network.messages.State;
 import se.laz.casual.network.messages.TransactionState;
 import se.laz.casual.network.messages.UUID4;
-import se.laz.casual.network.messages.XIDGRPC;
+import se.laz.casual.network.messages.XID;
 
 import javax.transaction.xa.Xid;
 import java.time.Instant;
@@ -42,53 +41,53 @@ public final class MessageCreator
     private MessageCreator()
     {}
 
-    public static CasualDomainConnectRequest createCasualDomainConnectRequest(UUID4 execution, UUID4 domainId, String domainName, long protocolVersion)
+    public static CasualDomainConnectRequest createCasualDomainConnectRequest(UUID execution, UUID domainId, String domainName, long protocolVersion)
     {
         return CasualDomainConnectRequest.newBuilder()
-                                         .setExecution(execution)
-                                         .setDomainId(domainId)
+                                         .setExecution(toUUID4(execution))
+                                         .setDomainId(toUUID4(domainId))
                                          .setDomainName(domainName)
                                          .setProtocolVersion(protocolVersion)
                                          .build();
     }
 
-    public static CasualDomainConnectReply createCasualDomainConnectReply(UUID4 execution, UUID4 domainId, String domainName, long protocolVersion)
+    public static CasualDomainConnectReply createCasualDomainConnectReply(UUID execution, UUID domainId, String domainName, long protocolVersion)
     {
         return CasualDomainConnectReply.newBuilder()
-                                       .setExecution(execution)
-                                       .setDomainId(domainId)
+                                       .setExecution(toUUID4(execution))
+                                       .setDomainId(toUUID4(domainId))
                                        .setDomainName(domainName)
                                        .setProtocolVersion(protocolVersion)
                                        .build();
     }
 
 
-    public static CasualDomainDiscoveryRequest createCasualDomainDiscoveryRequest(UUID4 execution, UUID4 domainId, String domainName, Optional<List<String>> serviceNames, Optional<List<String>> queueNames)
+    public static CasualDomainDiscoveryRequest createCasualDomainDiscoveryRequest(UUID execution, UUID domainId, String domainName, Optional<List<String>> serviceNames, Optional<List<String>> queueNames)
     {
         CasualDomainDiscoveryRequest.Builder builder =  CasualDomainDiscoveryRequest.newBuilder()
-                                                                                    .setExecution(execution)
-                                                                                    .setDomainId(domainId)
+                                                                                    .setExecution(toUUID4(execution))
+                                                                                    .setDomainId(toUUID4(domainId))
                                                                                     .setDomainName(domainName);
         serviceNames.ifPresent(s -> builder.addAllServiceNames(s));
         queueNames.ifPresent(q -> builder.addAllQueueNames(q));
         return builder.build();
     }
 
-    public static CasualDomainDiscoveryReply createCasualDomainDiscoveryReply(UUID4 execution, UUID4 domainId, String domainName, Optional<List<Service>> services, Optional<List<Queue>> queues)
+    public static CasualDomainDiscoveryReply createCasualDomainDiscoveryReply(UUID execution, UUID domainId, String domainName, Optional<List<Service>> services, Optional<List<Queue>> queues)
     {
         CasualDomainDiscoveryReply.Builder builder =  CasualDomainDiscoveryReply.newBuilder()
-                                                                                    .setExecution(execution)
-                                                                                    .setDomainId(domainId)
+                                                                                    .setExecution(toUUID4(execution))
+                                                                                    .setDomainId(toUUID4(domainId))
                                                                                     .setDomainName(domainName);
         services.ifPresent(s -> builder.addAllServices(s));
         queues.ifPresent(q -> builder.addAllQueues(q));
         return builder.build();
     }
 
-    public static CasualServiceCallRequest createCasualServiceCallRequest(UUID4 execution, String serviceName, long timeout, Optional<String> parentServiceName, XIDGRPC xid, long flags, String bufferTypeName, byte[] payload)
+    public static CasualServiceCallRequest createCasualServiceCallRequest(UUID execution, String serviceName, long timeout, Optional<String> parentServiceName, XID xid, long flags, String bufferTypeName, byte[] payload)
     {
         CasualServiceCallRequest.Builder builder =  CasualServiceCallRequest.newBuilder()
-                                                                            .setExecution(execution)
+                                                                            .setExecution(toUUID4(execution))
                                                                             .setServiceName(serviceName)
                                                                             .setTimeout(timeout)
                                                                             .setXid(xid)
@@ -99,10 +98,10 @@ public final class MessageCreator
         return builder.build();
     }
 
-    public static CasualServiceCallReply createCasualServiceCallReply(UUID4 execution, int result, long user, XIDGRPC xid, TransactionState transactionState, String bufferTypeName, byte[] payload)
+    public static CasualServiceCallReply createCasualServiceCallReply(UUID execution, int result, long user, XID xid, TransactionState transactionState, String bufferTypeName, byte[] payload)
     {
         return CasualServiceCallReply.newBuilder()
-                                     .setExecution(execution)
+                                     .setExecution(toUUID4(execution))
                                      .setResult(result)
                                      .setUser(user)
                                      .setXid(xid)
@@ -112,88 +111,88 @@ public final class MessageCreator
                                      .build();
     }
 
-    public static CasualPrepareRequest createCasualPrepareRequest(UUID4 execution, XIDGRPC xid, int resourceManagerId, long xaFlags)
+    public static CasualPrepareRequest createCasualPrepareRequest(UUID execution, XID xid, int resourceManagerId, long xaFlags)
     {
         return CasualPrepareRequest.newBuilder()
-                                   .setExecution(execution)
+                                   .setExecution(toUUID4(execution))
                                    .setXid(xid)
                                    .setResourceManagerId(resourceManagerId)
                                    .setXaFlags(xaFlags)
                                    .build();
     }
 
-    public static CasualPrepareReply createCasualPrepareReply(UUID4 execution, XIDGRPC xid, int resourceManagerId, State state)
+    public static CasualPrepareReply createCasualPrepareReply(UUID execution, XID xid, int resourceManagerId, State state)
     {
         return CasualPrepareReply.newBuilder()
-                                 .setExecution(execution)
+                                 .setExecution(toUUID4(execution))
                                  .setXid(xid)
                                  .setResourceManagerId(resourceManagerId)
                                  .setState(state)
                                  .build();
     }
 
-    public static CasualCommitRequest createCasualCommitRequest(UUID4 execution, XIDGRPC xid, int resourceManagerId, long xaFlags)
+    public static CasualCommitRequest createCasualCommitRequest(UUID execution, XID xid, int resourceManagerId, long xaFlags)
     {
         return CasualCommitRequest.newBuilder()
-                                  .setExecution(execution)
+                                  .setExecution(toUUID4(execution))
                                   .setXid(xid)
                                   .setResourceManagerId(resourceManagerId)
                                   .setXaFlags(xaFlags)
                                   .build();
     }
 
-    public static CasualCommitReply createCasualCommitReply(UUID4 execution, XIDGRPC xid, int resourceManagerId, State state)
+    public static CasualCommitReply createCasualCommitReply(UUID execution, XID xid, int resourceManagerId, State state)
     {
         return CasualCommitReply.newBuilder()
-                                .setExecution(execution)
+                                .setExecution(toUUID4(execution))
                                 .setXid(xid)
                                 .setResourceManagerId(resourceManagerId)
                                 .setState(state)
                                 .build();
     }
 
-    public static CasualRollbackRequest createCasualRollbackRequest(UUID4 execution, XIDGRPC xid, int resourceManagerId, long xaFlags)
+    public static CasualRollbackRequest createCasualRollbackRequest(UUID execution, XID xid, int resourceManagerId, long xaFlags)
     {
         return CasualRollbackRequest.newBuilder()
-                                    .setExecution(execution)
+                                    .setExecution(toUUID4(execution))
                                     .setXid(xid)
                                     .setResourceManagerId(resourceManagerId)
                                     .setXaFlags(xaFlags)
                                     .build();
     }
 
-    public static CasualRollbackReply createCasualRollbackReply(UUID4 execution, XIDGRPC xid, int resourceManagerId, State state)
+    public static CasualRollbackReply createCasualRollbackReply(UUID execution, XID xid, int resourceManagerId, State state)
     {
         return CasualRollbackReply.newBuilder()
-                                  .setExecution(execution)
+                                  .setExecution(toUUID4(execution))
                                   .setXid(xid)
                                   .setResourceManagerId(resourceManagerId)
                                   .setState(state)
                                   .build();
     }
 
-    public static CasualEnqueueRequest createCasualEnqueueRequest(UUID4 execution, String queueName, XIDGRPC xid, QueueMessage message)
+    public static CasualEnqueueRequest createCasualEnqueueRequest(UUID execution, String queueName, XID xid, QueueMessage message)
     {
         return CasualEnqueueRequest.newBuilder()
-                                   .setExecution(execution)
+                                   .setExecution(toUUID4(execution))
                                    .setQueueName(queueName)
                                    .setXid(xid)
                                    .setMessage(message)
                                    .build();
     }
 
-    public static CasualEnqueueReply createCasualEnqueueReply(UUID4 execution, UUID4 msgId)
+    public static CasualEnqueueReply createCasualEnqueueReply(UUID execution, UUID msgId)
     {
         return CasualEnqueueReply.newBuilder()
-                                 .setExecution(execution)
-                                 .setMessageId(msgId)
+                                 .setExecution(toUUID4(execution))
+                                 .setMessageId(toUUID4(msgId))
                                  .build();
     }
 
-    public static CasualDequeueRequest createCasualDequeueRequest(UUID4 execution, String queueName, XIDGRPC xid, Selector selector, boolean block)
+    public static CasualDequeueRequest createCasualDequeueRequest(UUID execution, String queueName, XID xid, Selector selector, boolean block)
     {
         return CasualDequeueRequest.newBuilder()
-                                   .setExecution(execution)
+                                   .setExecution(toUUID4(execution))
                                    .setQueueName(queueName)
                                    .setXid(xid)
                                    .setSelector(selector)
@@ -201,10 +200,10 @@ public final class MessageCreator
                                    .build();
     }
 
-    public static CasualDequeueReply CasualDequeueReply(UUID4 execution, List<DequeueMessage> messages)
+    public static CasualDequeueReply CasualDequeueReply(UUID execution, List<DequeueMessage> messages)
     {
         return CasualDequeueReply.newBuilder()
-                                 .setExecution(execution)
+                                 .setExecution(toUUID4(execution))
                                  .addAllMessage(messages)
                                  .build();
     }
@@ -223,28 +222,28 @@ public final class MessageCreator
         return new UUID(id.getMostSignificantBits(), id.getLeastSignificantBits());
     }
 
-    public static XIDGRPC toXIDGRPC(Xid in)
+    public static XID toXID(Xid in)
     {
-        XID xid;
-        if(in instanceof XID)
+        se.laz.casual.api.xa.XID xid;
+        if(in instanceof se.laz.casual.api.xa.XID)
         {
-            xid = (XID)in;
+            xid = (se.laz.casual.api.xa.XID)in;
         }
         else
         {
             throw new MessageCreatorException("Xid not an implementation of XID, bailing");
         }
-        return XIDGRPC.newBuilder()
-                      .setXidGtridLength(xid.getGtridLength())
-                      .setXidBqualLength(xid.getBqualLength())
-                      .setXidFormat(xid.getFormatId())
-                      .setXidData(ByteString.copyFrom(xid.getData()))
-                      .build();
+        return XID.newBuilder()
+                  .setXidGtridLength(xid.getGtridLength())
+                  .setXidBqualLength(xid.getBqualLength())
+                  .setXidFormat(xid.getFormatId())
+                  .setXidData(ByteString.copyFrom(xid.getData()))
+                  .build();
     }
 
-    public static Xid toXID(XIDGRPC xid)
+    public static Xid toXID(XID xid)
     {
-        return XID.of(Math.toIntExact(xid.getXidGtridLength()), Math.toIntExact(xid.getXidBqualLength()), xid.getXidData().toByteArray(), xid.getXidFormat());
+        return se.laz.casual.api.xa.XID.of(Math.toIntExact(xid.getXidGtridLength()), Math.toIntExact(xid.getXidBqualLength()), xid.getXidData().toByteArray(), xid.getXidFormat());
     }
 
     public static QueueMessage createQueueMessage(UUID id, Optional<String> properties, Optional<String> replyQueue, Instant availableSince, String type, byte[] payload)
@@ -281,18 +280,27 @@ public final class MessageCreator
         return builder.build();
     }
 
-    public static CasualRequest.Builder createRequestBuilder(CasualRequest.MessageType messageType, UUID4 correlationId)
+    public static CasualRequest.Builder createRequestBuilder(CasualRequest.MessageType messageType, UUID correlationId)
     {
         return CasualRequest.newBuilder()
                             .setMessageType(messageType)
-                            .setCorrelationId(correlationId);
+                            .setCorrelationId(toUUID4(correlationId));
     }
 
-    public static CasualReply.Builder createReplyBuilder(CasualReply.MessageType messageType, UUID4 correlationId)
+    public static CasualReply.Builder createReplyBuilder(CasualReply.MessageType messageType, UUID correlationId)
     {
         return CasualReply.newBuilder()
                           .setMessageType(messageType)
-                          .setCorrelationId(correlationId);
+                          .setCorrelationId(toUUID4(correlationId));
     }
 
+    public static XID createXID(long gtridLength, long bqualLength,  int format,byte[] data)
+    {
+        return XID.newBuilder()
+                  .setXidGtridLength(gtridLength)
+                  .setXidBqualLength(bqualLength)
+                  .setXidFormat(format)
+                  .setXidData(ByteString.copyFrom(data))
+                  .build();
+    }
 }

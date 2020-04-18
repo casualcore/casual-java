@@ -16,7 +16,7 @@ import se.laz.casual.network.messages.Service
 import se.laz.casual.network.messages.State
 import se.laz.casual.network.messages.TransactionState
 import se.laz.casual.network.messages.UUID4
-import se.laz.casual.network.messages.XIDGRPC
+import se.laz.casual.network.messages.XID
 import spock.lang.Specification
 
 class ReplyTest extends Specification
@@ -132,7 +132,7 @@ class ReplyTest extends Specification
                         .setMostSignificantBits(execution.getMostSignificantBits())
                         .setLeastSignificantBits(execution.getLeastSignificantBits())
                         .build())
-                .setXid(XIDGRPC.newBuilder()
+                .setXid(XID.newBuilder()
                         .setXidFormat(0)
                         .setXidGtridLength(32)
                         .setXidBqualLength(10)
@@ -182,7 +182,7 @@ class ReplyTest extends Specification
                         .setMostSignificantBits(execution.getMostSignificantBits())
                         .setLeastSignificantBits(execution.getLeastSignificantBits())
                         .build())
-                .setXid(XIDGRPC.newBuilder()
+                .setXid(XID.newBuilder()
                         .setXidFormat(0)
                         .setXidGtridLength(32)
                         .setXidBqualLength(10)
@@ -229,7 +229,7 @@ class ReplyTest extends Specification
                         .setMostSignificantBits(execution.getMostSignificantBits())
                         .setLeastSignificantBits(execution.getLeastSignificantBits())
                         .build())
-                .setXid(XIDGRPC.newBuilder()
+                .setXid(XID.newBuilder()
                         .setXidFormat(0)
                         .setXidGtridLength(32)
                         .setXidBqualLength(10)
@@ -276,7 +276,7 @@ class ReplyTest extends Specification
                         .setMostSignificantBits(execution.getMostSignificantBits())
                         .setLeastSignificantBits(execution.getLeastSignificantBits())
                         .build())
-                .setXid(XIDGRPC.newBuilder()
+                .setXid(XID.newBuilder()
                         .setXidFormat(0)
                         .setXidGtridLength(32)
                         .setXidBqualLength(10)
