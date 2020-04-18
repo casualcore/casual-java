@@ -200,7 +200,7 @@ public final class MessageCreator
                                    .build();
     }
 
-    public static CasualDequeueReply CasualDequeueReply(UUID execution, List<DequeueMessage> messages)
+    public static CasualDequeueReply createCasualDequeueReply(UUID execution, List<DequeueMessage> messages)
     {
         return CasualDequeueReply.newBuilder()
                                  .setExecution(toUUID4(execution))

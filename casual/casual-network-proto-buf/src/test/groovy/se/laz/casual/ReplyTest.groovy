@@ -1,23 +1,18 @@
 package se.laz.casual
 
-import com.google.protobuf.ByteString
-import se.laz.casual.network.messages.CasualCommitReply
-import se.laz.casual.network.messages.CasualDequeueReply
-import se.laz.casual.network.messages.CasualDomainConnectReply
-import se.laz.casual.network.messages.CasualDomainDiscoveryReply
-import se.laz.casual.network.messages.CasualEnqueueReply
-import se.laz.casual.network.messages.CasualPrepareReply
+
+import se.laz.casual.network.grpc.MessageCreator
 import se.laz.casual.network.messages.CasualReply
-import se.laz.casual.network.messages.CasualRollbackReply
-import se.laz.casual.network.messages.CasualServiceCallReply
 import se.laz.casual.network.messages.DequeueMessage
 import se.laz.casual.network.messages.Queue
 import se.laz.casual.network.messages.Service
 import se.laz.casual.network.messages.State
 import se.laz.casual.network.messages.TransactionState
-import se.laz.casual.network.messages.UUID4
 import se.laz.casual.network.messages.XID
 import spock.lang.Specification
+
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 class ReplyTest extends Specification
 {
@@ -32,27 +27,10 @@ class ReplyTest extends Specification
         def protocolVersion = 2000L
         def tmpFile = File.createTempFile('CasualDomainConnectReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def domainConnectReply = CasualDomainConnectReply.newBuilder()
-                .setExecution(UUID4.newBuilder()
-                        .setMostSignificantBits(execution.getMostSignificantBits())
-                        .setLeastSignificantBits(execution.getLeastSignificantBits())
-                        .build())
-                .setDomainId(UUID4.newBuilder()
-                        .setMostSignificantBits(domainId.getMostSignificantBits())
-                        .setLeastSignificantBits(domainId.getLeastSignificantBits())
-                        .build())
-                .setDomainName(domainName)
-                .setProtocolVersion(protocolVersion)
-                .build()
-
-        def reply = CasualReply.newBuilder()
-                .setMessageType(messageType)
-                .setCorrelationId(UUID4.newBuilder()
-                        .setMostSignificantBits(corrid.getMostSignificantBits())
-                        .setLeastSignificantBits(corrid.getLeastSignificantBits())
-                        .build())
-                .setDomainConnect(domainConnectReply)
-                .build()
+        def domainConnectReply = MessageCreator.createCasualDomainConnectReply(execution, domainId, domainName, protocolVersion)
+        def reply = MessageCreator.createReplyBuilder(messageType, corrid)
+                                  .setDomainConnect(domainConnectReply)
+                                  .build()
         reply.writeTo(os)
         os.close()
         when:
@@ -81,28 +59,12 @@ class ReplyTest extends Specification
         def queues = ['A', 'B', 'C']
         def tmpFile = File.createTempFile('CasualDomainDiscoveryReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def domainDiscoveryReply = CasualDomainDiscoveryReply.newBuilder()
-                .setExecution(UUID4.newBuilder()
-                        .setMostSignificantBits(execution.getMostSignificantBits())
-                        .setLeastSignificantBits(execution.getLeastSignificantBits())
-                        .build())
-                .setDomainId(UUID4.newBuilder()
-                        .setMostSignificantBits(domainId.getMostSignificantBits())
-                        .setLeastSignificantBits(domainId.getLeastSignificantBits())
-                        .build())
-                .setDomainName(domainName)
-                .addAllServices(createServices(services))
-                .addAllQueues(createQueues(queues))
-                .build()
-
-        def reply = CasualReply.newBuilder()
-                .setMessageType(messageType)
-                .setCorrelationId(UUID4.newBuilder()
-                        .setMostSignificantBits(corrid.getMostSignificantBits())
-                        .setLeastSignificantBits(corrid.getLeastSignificantBits())
-                        .build())
-                .setDomainDiscovery(domainDiscoveryReply)
-                .build()
+        def domainDiscoveryReply = MessageCreator.createCasualDomainDiscoveryReply(execution, domainId, domainName,
+                                                                                   Optional.of(createServices(services)),
+                                                                                   Optional.of(createQueues(queues)))
+        def reply = MessageCreator.createReplyBuilder(messageType, corrid)
+                                  .setDomainDiscovery(domainDiscoveryReply)
+                                  .build()
         reply.writeTo(os)
         os.close()
         when:
@@ -125,34 +87,17 @@ class ReplyTest extends Specification
         def messageType = CasualReply.MessageType.SERVICE_CALL_REPLY
         UUID corrid = UUID.randomUUID()
         UUID execution = UUID.randomUUID()
+        def result = 0
+        def user = 0
+        def gtridLength = 2
+        def bqualLength = 2
+        XID xid = MessageCreator.createXID(gtridLength, bqualLength, 42, 'asdf'.getBytes())
         def tmpFile = File.createTempFile('CasualServiceCallReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def serviceCallReply = CasualServiceCallReply.newBuilder()
-                .setExecution(UUID4.newBuilder()
-                        .setMostSignificantBits(execution.getMostSignificantBits())
-                        .setLeastSignificantBits(execution.getLeastSignificantBits())
-                        .build())
-                .setXid(XID.newBuilder()
-                        .setXidFormat(0)
-                        .setXidGtridLength(32)
-                        .setXidBqualLength(10)
-                        .setXidData(ByteString.copyFrom('a'.getBytes()))
-                        .build())
-                .setResult(0)
-                .setUser(0)
-                .setTransactionState(TransactionState.TX_ACTIVE)
-                .setBufferTypeName('Bob')
-                .setPayload(ByteString.copyFrom('Austin Texas'.getBytes()))
-                .build()
-
-        def reply = CasualReply.newBuilder()
-                .setMessageType(messageType)
-                .setCorrelationId(UUID4.newBuilder()
-                        .setMostSignificantBits(corrid.getMostSignificantBits())
-                        .setLeastSignificantBits(corrid.getLeastSignificantBits())
-                        .build())
-                .setServiceCall(serviceCallReply)
-                .build()
+        def serviceCallReply = MessageCreator.createCasualServiceCallReply(execution, result, user, xid, TransactionState.TX_ACTIVE, 'Fast type', 'asdf'.getBytes())
+        def reply = MessageCreator.createReplyBuilder(messageType, corrid)
+                                  .setServiceCall(serviceCallReply)
+                                  .build()
         reply.writeTo(os)
         os.close()
         when:
@@ -175,31 +120,16 @@ class ReplyTest extends Specification
         def messageType = CasualReply.MessageType.PREPARE_REPLY
         UUID corrid = UUID.randomUUID()
         UUID execution = UUID.randomUUID()
+        def gtridLength = 2
+        def bqualLength = 2
+        XID xid = MessageCreator.createXID(gtridLength, bqualLength, 42, 'asdf'.getBytes())
+        def resourceManagerId = 42
         def tmpFile = File.createTempFile('CasualPrepareReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def prepareReply = CasualPrepareReply.newBuilder()
-                .setExecution(UUID4.newBuilder()
-                        .setMostSignificantBits(execution.getMostSignificantBits())
-                        .setLeastSignificantBits(execution.getLeastSignificantBits())
-                        .build())
-                .setXid(XID.newBuilder()
-                        .setXidFormat(0)
-                        .setXidGtridLength(32)
-                        .setXidBqualLength(10)
-                        .setXidData(ByteString.copyFrom('a'.getBytes()))
-                        .build())
-                .setResourceManagerId(42)
-                .setState(State.TPENOENT)
-                .build()
-
-        def reply = CasualReply.newBuilder()
-                .setMessageType(messageType)
-                .setCorrelationId(UUID4.newBuilder()
-                        .setMostSignificantBits(corrid.getMostSignificantBits())
-                        .setLeastSignificantBits(corrid.getLeastSignificantBits())
-                        .build())
-                .setPrepare(prepareReply)
-                .build()
+        def prepareReply = MessageCreator.createCasualPrepareReply(execution, xid, resourceManagerId, State.TPENOENT)
+        def reply = MessageCreator.createReplyBuilder(messageType, corrid)
+                                  .setPrepare(prepareReply)
+                                  .build()
         reply.writeTo(os)
         os.close()
         when:
@@ -222,31 +152,16 @@ class ReplyTest extends Specification
         def messageType = CasualReply.MessageType.COMMIT_REPLY
         UUID corrid = UUID.randomUUID()
         UUID execution = UUID.randomUUID()
+        def gtridLength = 2
+        def bqualLength = 2
+        XID xid = MessageCreator.createXID(gtridLength, bqualLength, 42, 'asdf'.getBytes())
+        def resourceManagerId = 42
         def tmpFile = File.createTempFile('CasualCommitReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def commitReply = CasualCommitReply.newBuilder()
-                .setExecution(UUID4.newBuilder()
-                        .setMostSignificantBits(execution.getMostSignificantBits())
-                        .setLeastSignificantBits(execution.getLeastSignificantBits())
-                        .build())
-                .setXid(XID.newBuilder()
-                        .setXidFormat(0)
-                        .setXidGtridLength(32)
-                        .setXidBqualLength(10)
-                        .setXidData(ByteString.copyFrom('a'.getBytes()))
-                        .build())
-                .setResourceManagerId(42)
-                .setState(State.OK)
-                .build()
-
-        def reply = CasualReply.newBuilder()
-                .setMessageType(messageType)
-                .setCorrelationId(UUID4.newBuilder()
-                        .setMostSignificantBits(corrid.getMostSignificantBits())
-                        .setLeastSignificantBits(corrid.getLeastSignificantBits())
-                        .build())
-                .setCommit(commitReply)
-                .build()
+        def commitReply = MessageCreator.createCasualCommitReply(execution, xid, resourceManagerId, State.OK)
+        def reply = MessageCreator.createReplyBuilder(messageType, corrid)
+                                  .setCommit(commitReply)
+                                  .build()
         reply.writeTo(os)
         os.close()
         when:
@@ -269,31 +184,16 @@ class ReplyTest extends Specification
         def messageType = CasualReply.MessageType.ROLLBACK_REPLY
         UUID corrid = UUID.randomUUID()
         UUID execution = UUID.randomUUID()
+        def gtridLength = 2
+        def bqualLength = 2
+        XID xid = MessageCreator.createXID(gtridLength, bqualLength, 42, 'asdf'.getBytes())
+        def resourceManagerId = 42
         def tmpFile = File.createTempFile('CasualRollbackReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def rollbackReply = CasualRollbackReply.newBuilder()
-                .setExecution(UUID4.newBuilder()
-                        .setMostSignificantBits(execution.getMostSignificantBits())
-                        .setLeastSignificantBits(execution.getLeastSignificantBits())
-                        .build())
-                .setXid(XID.newBuilder()
-                        .setXidFormat(0)
-                        .setXidGtridLength(32)
-                        .setXidBqualLength(10)
-                        .setXidData(ByteString.copyFrom('a'.getBytes()))
-                        .build())
-                .setResourceManagerId(42)
-                .setState(State.TPESVCERR)
-                .build()
-
-        def reply = CasualReply.newBuilder()
-                .setMessageType(messageType)
-                .setCorrelationId(UUID4.newBuilder()
-                        .setMostSignificantBits(corrid.getMostSignificantBits())
-                        .setLeastSignificantBits(corrid.getLeastSignificantBits())
-                        .build())
-                .setRollback(rollbackReply)
-                .build()
+        def rollbackReply = MessageCreator.createCasualRollbackReply(execution, xid, resourceManagerId, State.TPESVCERR)
+        def reply = MessageCreator.createReplyBuilder(messageType, corrid)
+                                  .setRollback(rollbackReply)
+                                  .build()
         reply.writeTo(os)
         os.close()
         when:
@@ -319,25 +219,10 @@ class ReplyTest extends Specification
         UUID msgId = UUID.randomUUID()
         def tmpFile = File.createTempFile('CasualEnqueueReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def enqueueReply = CasualEnqueueReply.newBuilder()
-                .setExecution(UUID4.newBuilder()
-                        .setMostSignificantBits(execution.getMostSignificantBits())
-                        .setLeastSignificantBits(execution.getLeastSignificantBits())
-                        .build())
-                .setMessageId(UUID4.newBuilder()
-                        .setMostSignificantBits(msgId.getMostSignificantBits())
-                        .setLeastSignificantBits(msgId.getLeastSignificantBits())
-                        .build())
-                .build()
-
-        def reply = CasualReply.newBuilder()
-                .setMessageType(messageType)
-                .setCorrelationId(UUID4.newBuilder()
-                        .setMostSignificantBits(corrid.getMostSignificantBits())
-                        .setLeastSignificantBits(corrid.getLeastSignificantBits())
-                        .build())
-                .setEnqueue(enqueueReply)
-                .build()
+        def enqueueReply = MessageCreator.createCasualEnqueueReply(execution, msgId)
+        def reply = MessageCreator.createReplyBuilder(messageType, corrid)
+                                  .setEnqueue(enqueueReply)
+                                  .build()
         reply.writeTo(os)
         os.close()
         when:
@@ -363,22 +248,10 @@ class ReplyTest extends Specification
         def tmpFile = File.createTempFile('CasualDequeueReply','.bin')
 
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def dequeueReply = CasualDequeueReply.newBuilder()
-                .setExecution(UUID4.newBuilder()
-                        .setMostSignificantBits(execution.getMostSignificantBits())
-                        .setLeastSignificantBits(execution.getLeastSignificantBits())
-                        .build())
-                .addAllMessage(creatDequedMessages(['Hello world', 'Hello Mars', 'Hello Jupiter']))
-                .build()
-
-        def reply = CasualReply.newBuilder()
-                .setMessageType(messageType)
-                .setCorrelationId(UUID4.newBuilder()
-                        .setMostSignificantBits(corrid.getMostSignificantBits())
-                        .setLeastSignificantBits(corrid.getLeastSignificantBits())
-                        .build())
-                .setDequeue(dequeueReply)
-                .build()
+        def dequeueReply = MessageCreator.createCasualDequeueReply(execution, creatDequedMessages(['Hello world', 'Hello Mars', 'Hello Jupiter']))
+        def reply = MessageCreator.createReplyBuilder(messageType, corrid)
+                                  .setDequeue(dequeueReply)
+                                  .build()
         reply.writeTo(os)
         os.close()
         when:
@@ -423,26 +296,17 @@ class ReplyTest extends Specification
         return queues
     }
 
-     List<DequeueMessage> creatDequedMessages(List<String> content)
-     {
-         UUID msgId = UUID.randomUUID()
-         List<DequeueMessage> messages = []
-         content.each{
-             DequeueMessage msg = DequeueMessage.newBuilder()
-                     .setId(UUID4.newBuilder()
-                             .setMostSignificantBits(msgId.getMostSignificantBits())
-                             .setLeastSignificantBits(msgId.getLeastSignificantBits())
-                             .build())
-                     .setProperties('abcd')
-                     .setReplyQueue('redirected_here')
-                     .setAvailableSince(1234)
-                     .setType('custom type')
-                     .setPayload(ByteString.copyFrom(it.getBytes()))
-                     .setRedeliveredCount(1)
-                     .setTimestamp(1234)
-                     .build()
-             messages << msg
-         }
-         return messages
-     }
+    List<DequeueMessage> creatDequedMessages(List<String> content)
+    {
+        UUID msgId = UUID.randomUUID()
+        List<DequeueMessage> messages = []
+        content.each{
+            DequeueMessage msg = MessageCreator.createDequeueMessage(msgId, Optional.empty(), Optional.empty(),
+                    LocalDateTime.now().toInstant(ZoneOffset.UTC), 'custom type',
+                    it.getBytes(), 0,
+                    LocalDateTime.now().minusHours(5).toInstant(ZoneOffset.UTC))
+            messages << msg
+        }
+        return messages
+    }
 }
