@@ -22,7 +22,7 @@ class RequestTest extends Specification
         UUID execution = UUID.randomUUID()
         UUID domainId = UUID.randomUUID()
         def domainName = "Casually"
-        def protocolVersion = 2000L
+        def protocolVersion = [1000L, 2000L]
         def tmpFile = File.createTempFile('CasualDomainConnectRequest','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
         def domainConnectRequest = MessageCreator.createCasualDomainConnectRequest(execution,

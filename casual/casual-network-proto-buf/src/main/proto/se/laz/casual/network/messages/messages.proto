@@ -121,7 +121,7 @@ message CasualDomainConnectRequest {
     UUID4 execution = 1;
     UUID4 domain_id = 2;
     string domain_name = 3;
-    uint64 protocol_version = 4;
+    repeated uint64 protocol_version = 4;
 }
 
 message CasualDomainDiscoveryRequest {

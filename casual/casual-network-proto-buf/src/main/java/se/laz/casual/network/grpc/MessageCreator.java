@@ -41,13 +41,13 @@ public final class MessageCreator
     private MessageCreator()
     {}
 
-    public static CasualDomainConnectRequest createCasualDomainConnectRequest(UUID execution, UUID domainId, String domainName, long protocolVersion)
+    public static CasualDomainConnectRequest createCasualDomainConnectRequest(UUID execution, UUID domainId, String domainName, List<Long> protocolVersion)
     {
         return CasualDomainConnectRequest.newBuilder()
                                          .setExecution(toUUID4(execution))
                                          .setDomainId(toUUID4(domainId))
                                          .setDomainName(domainName)
-                                         .setProtocolVersion(protocolVersion)
+                                         .addAllProtocolVersion(protocolVersion)
                                          .build();
     }
 
@@ -231,7 +231,7 @@ public final class MessageCreator
         }
         else
         {
-            throw new MessageCreatorException("Xid not an implementation of XID, bailing");
+            xid = (se.laz.casual.api.xa.XID)se.laz.casual.api.xa.XID.of(in);
         }
         return XID.newBuilder()
                   .setXidGtridLength(xid.getGtridLength())

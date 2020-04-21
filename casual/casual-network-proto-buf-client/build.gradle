@@ -5,6 +5,10 @@ apply plugin: 'groovy'
 
 dependencies {
   compileOnly project(':casual:casual-network-proto-buf')
+  compileOnly project(':casual:casual-internal')
+  compileOnly project(':casual:casual-api')
+  compileOnly project(':casual:casual-network-protocol')
+  compileOnly 'com.spotify:futures-extra:4.2.2'
 
   // for spock
   testCompile libs.groovy_all
