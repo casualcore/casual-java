@@ -12,13 +12,17 @@ import se.laz.casual.network.messages.CasualRequest;
 
 import java.util.concurrent.CompletableFuture;
 
-public final class Client implements NetworkConnection
+/**
+ * Test client that is easy and non intrusive to hook into current outbound implementation
+ * so that we can start running functional and non functional tests and compare with our old implementation.
+ */
+public final class TranslatingClient implements NetworkConnection
 {
 
     private final ManagedChannel channel;
     private final CasualGrpc.CasualFutureStub futureStub;
 
-    private Client(ManagedChannel channel)
+    private TranslatingClient(ManagedChannel channel)
     {
         this.channel = channel;
         this.futureStub = CasualGrpc.newFutureStub(channel);
@@ -26,9 +30,10 @@ public final class Client implements NetworkConnection
 
     public static NetworkConnection of(String host, int port)
     {
-        return new Client(ManagedChannelBuilder.forAddress(host, port).usePlaintext().build());
+        return new TranslatingClient(ManagedChannelBuilder.forAddress(host, port).usePlaintext().build());
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message)
     {
@@ -40,7 +45,7 @@ public final class Client implements NetworkConnection
                 reply.completeExceptionally(err);
                 return;
             }
-            reply.complete(ReplyConverter.toCasualNWMessage(value));
+            reply.complete((CasualNWMessage<T>) ReplyConverter.toCasualNWMessage(value));
         });
         return reply;
     }
