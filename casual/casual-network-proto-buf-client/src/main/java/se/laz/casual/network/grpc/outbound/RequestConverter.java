@@ -2,6 +2,7 @@ package se.laz.casual.network.grpc.outbound;
 
 import com.google.protobuf.ByteString;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.network.grpc.MessageCreator;
 import se.laz.casual.network.messages.CasualDomainConnectRequest;
@@ -28,19 +29,19 @@ public final class RequestConverter
                                                           .setCorrelationId(MessageCreator.toUUID4(message.getCorrelationId()))
                                                           .setMessageTypeValue(message.getType().getMessageId());
         X casualMessage = message.getMessage();
-        if(casualMessage instanceof CasualDomainConnectRequestMessage)
+        if(casualMessage.getType() == CasualNWMessageType.DOMAIN_CONNECT_REQUEST)
         {
             return requestBuilder.setDomainConnect(convert((CasualDomainConnectRequestMessage)casualMessage)).build();
         }
-        if(casualMessage instanceof CasualDomainDiscoveryRequestMessage)
+        if(casualMessage.getType() == CasualNWMessageType.DOMAIN_DISCOVERY_REQUEST)
         {
             return requestBuilder.setDomainDiscovery(convert((CasualDomainDiscoveryRequestMessage)casualMessage)).build();
         }
-        if(casualMessage instanceof CasualServiceCallRequestMessage)
+        if(casualMessage.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST)
         {
             return requestBuilder.setServiceCall(convert((CasualServiceCallRequestMessage)casualMessage)).build();
         }
-        if(casualMessage instanceof CasualTransactionResourcePrepareRequestMessage)
+        if(casualMessage.getType() == CasualNWMessageType.PREPARE_REQUEST)
         {
             return requestBuilder.setPrepare(convert((CasualTransactionResourcePrepareRequestMessage)casualMessage)).build();
         }
