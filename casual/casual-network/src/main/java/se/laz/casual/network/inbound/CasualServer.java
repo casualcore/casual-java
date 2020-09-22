@@ -26,8 +26,8 @@ import java.util.logging.Logger;
  */
 public final class CasualServer
 {
-    private static Logger log = Logger.getLogger(CasualServer.class.getName());
-    private static final String USE_LOG_HANDLER_PROPERTY_NAME = "casual.network.inbound.enableLoghandler";
+    private static final Logger log = Logger.getLogger(CasualServer.class.getName());
+    private static final String LOG_HANDLER_NAME = "logHandler";
     private final Channel channel;
 
     public CasualServer(Channel channel)
@@ -38,13 +38,12 @@ public final class CasualServer
     public static CasualServer of(final ConnectionInformation ci)
     {
         CasualMessageHandler mh = CasualMessageHandler.of(ci.getFactory(), ci.getXaTerminator(), ci.getWorkManager());
-        Channel c = init(mh, ExceptionHandler.of(), ci.getPort());
+        Channel c = init(mh, ExceptionHandler.of(), ci.getPort(), ci.isLogHandlerEnabled());
         return new CasualServer(c);
     }
 
-    private static Channel init(CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, int port)
+    private static Channel init(CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, int port, boolean enableLogHandler)
     {
-        boolean enableLogHandler = Boolean.parseBoolean(System.getProperty(USE_LOG_HANDLER_PROPERTY_NAME, null));
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         ServerBootstrap b = new ServerBootstrap()
             .group(workerGroup)
@@ -57,7 +56,8 @@ public final class CasualServer
                     ch.pipeline().addLast(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), messageHandler, exceptionHandler);
                     if(enableLogHandler)
                     {
-                        ch.pipeline().addFirst("logHandler", new LoggingHandler(LogLevel.INFO));
+                        ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevel.INFO));
+                        log.info(() -> "inbound network log handler enabled");
                     }
                 }
             });

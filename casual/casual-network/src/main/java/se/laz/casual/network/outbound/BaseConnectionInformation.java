@@ -16,12 +16,14 @@ public abstract class BaseConnectionInformation
     private final UUID domainId;
     private final String domainName;
     private long protocolVersion;
-    protected BaseConnectionInformation(final InetSocketAddress address, long protocolVersion, final UUID domainId, final String domainName)
+    private final boolean logHandlerEnabled;
+    protected BaseConnectionInformation(final InetSocketAddress address, long protocolVersion, final UUID domainId, final String domainName, boolean logHandlerEnabled)
     {
         this.address = address;
         this.protocolVersion = protocolVersion;
         this.domainId = domainId;
         this.domainName = domainName;
+        this.logHandlerEnabled = logHandlerEnabled;
     }
 
     public InetSocketAddress getAddress()
@@ -42,6 +44,11 @@ public abstract class BaseConnectionInformation
     public long getProtocolVersion()
     {
         return protocolVersion;
+    }
+
+    public boolean isLogHandlerEnabled()
+    {
+        return logHandlerEnabled;
     }
 
     @Override

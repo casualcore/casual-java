@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.inbound
 
+import org.junit.Rule
+import org.junit.contrib.java.lang.system.EnvironmentVariables
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -15,6 +17,8 @@ import javax.resource.spi.work.WorkManager
 
 class ConnectionInformationTest extends Specification
 {
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables()
     @Shared
     def mockFactory = Mock(MessageEndpointFactory)
     @Shared
@@ -38,7 +42,7 @@ class ConnectionInformationTest extends Specification
         mockWorkManager  | mockXATerminator  | null
     }
 
-    def 'ok construction'()
+    def 'ok construction - no network logging'()
     {
         when:
         def instance = ConnectionInformation.createBuilder()
@@ -49,6 +53,23 @@ class ConnectionInformationTest extends Specification
         then:
         noExceptionThrown()
         instance != null
+        !instance.isLogHandlerEnabled()
+    }
+
+    def 'ok construction - network logging'()
+    {
+        given:
+        environmentVariables.set(ConnectionInformation.USE_LOG_HANDLER_ENV_NAME,'true')
+        when:
+        def instance = ConnectionInformation.createBuilder()
+                .withWorkManager(mockWorkManager)
+                .withXaTerminator(mockXATerminator)
+                .withFactory(mockFactory)
+                .build()
+        then:
+        noExceptionThrown()
+        instance != null
+        instance.isLogHandlerEnabled()
     }
 
 }

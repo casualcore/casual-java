@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
@@ -20,6 +20,7 @@ dependencies {
   implementation project(':casual:casual-network-protocol')
   provided libs.netty
   provided libs.javaee_api
+  testCompile libs.system_rules
   // for spock
   testCompile libs.groovy_all
   testCompile libs.spock_core

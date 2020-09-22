@@ -48,8 +48,8 @@ We are working on removing dependencies to gson and objenesis in a future releas
 If you are using fielded then you need to set the environment variable CASUAL_FIELD_TABLE to point to a json file containing all your fielded definitions.
 
 ## Dumping all network traffic to the logs
-* outbound - set the java property casual.network.outbound.enableLoghandler=true
-* inbound - set the java property casual.network.inbound.enableLoghandler=true
+* outbound - set the environment variable CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER=true
+* inbound - set the environment variable CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER=true
 
 ## Appserver specific deployment instructions
 [Wildfly](deployment-wildfly.md)

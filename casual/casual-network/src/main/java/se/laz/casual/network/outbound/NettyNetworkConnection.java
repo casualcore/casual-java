@@ -34,10 +34,12 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 public final class NettyNetworkConnection implements NetworkConnection
 {
-    private static final String USE_LOG_HANDLER_PROPERTY_NAME = "casual.network.outbound.enableLoghandler";
+    private static final Logger log = Logger.getLogger(NettyNetworkConnection.class.getName());
+    private static final String LOG_HANDLER_NAME = "logHandler";
     private final BaseConnectionInformation ci;
     private final Correlator correlator;
     private final Channel channel;
@@ -57,16 +59,15 @@ public final class NettyNetworkConnection implements NetworkConnection
         Objects.requireNonNull(ci, "connection info can not be null");
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         Correlator correlator = ci.getCorrelator();
-        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator));
+        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator), ci.isLogHandlerEnabled());
         NettyNetworkConnection c = new NettyNetworkConnection(ci, correlator, ch, workerGroup);
         ch.closeFuture().addListener(f -> handleClose(c));
         c.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
         return c;
     }
 
-    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler)
+    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)
     {
-        boolean enableLogHandler = Boolean.parseBoolean(System.getProperty(USE_LOG_HANDLER_PROPERTY_NAME, null));
         Bootstrap b = new Bootstrap()
             .group(workerGroup)
             .channel(channelClass)
@@ -79,7 +80,8 @@ public final class NettyNetworkConnection implements NetworkConnection
                     ch.pipeline().addLast(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), messageHandler, exceptionHandler);
                     if(enableLogHandler)
                     {
-                        ch.pipeline().addFirst("logHandler", new LoggingHandler(LogLevel.INFO));
+                        ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevel.INFO));
+                        log.info(() -> "outbound network log handler enabled");
                     }
                 }
             });

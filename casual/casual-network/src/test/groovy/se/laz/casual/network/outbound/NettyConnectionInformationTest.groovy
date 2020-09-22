@@ -8,11 +8,15 @@ package se.laz.casual.network.outbound
 
 import io.netty.channel.Channel
 import io.netty.channel.socket.nio.NioSocketChannel
+import org.junit.Rule
+import org.junit.contrib.java.lang.system.EnvironmentVariables
 import spock.lang.Shared
 import spock.lang.Specification
 
 class NettyConnectionInformationTest extends Specification
 {
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables()
     @Shared
     InetSocketAddress testAddress = new InetSocketAddress(4096)
     @Shared
@@ -47,7 +51,7 @@ class NettyConnectionInformationTest extends Specification
         testAddress | testDomainId   | null           | testProtocolVersion | testChannelClass | testCorrelator
     }
 
-    def 'ok construction'()
+    def 'ok construction - no network logging'()
     {
         when:
         def instance = NettyConnectionInformation.createBuilder()
@@ -61,6 +65,31 @@ class NettyConnectionInformationTest extends Specification
         then:
         null != instance
         noExceptionThrown()
+        !instance.isLogHandlerEnabled()
+        where:
+        address     | domainId       | domainName     |  protocolVersion     | channelClass     | correlator
+        testAddress | testDomainId   | testDomainName |  testProtocolVersion | testChannelClass | testCorrelator
+        testAddress | testDomainId   | testDomainName |  testProtocolVersion | null             | testCorrelator
+        testAddress | testDomainId   | testDomainName |  testProtocolVersion | testChannelClass | null
+    }
+
+    def 'ok construction - network logging'()
+    {
+        given:
+        environmentVariables.set(NettyConnectionInformation.USE_LOG_HANDLER_ENV_NAME,'true')
+        when:
+        def instance = NettyConnectionInformation.createBuilder()
+                .withChannelClass(channelClass)
+                .withCorrelator(correlator)
+                .withDomainId(domainId)
+                .withDomainName(domainName)
+                .withAddress(address)
+                .withProtocolVersion(protocolVersion)
+                .build()
+        then:
+        null != instance
+        noExceptionThrown()
+        instance.isLogHandlerEnabled()
         where:
         address     | domainId       | domainName     |  protocolVersion     | channelClass     | correlator
         testAddress | testDomainId   | testDomainName |  testProtocolVersion | testChannelClass | testCorrelator

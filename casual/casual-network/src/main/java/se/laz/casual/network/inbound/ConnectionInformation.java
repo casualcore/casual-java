@@ -13,17 +13,20 @@ import java.util.Objects;
 
 public final class ConnectionInformation
 {
+    private static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER";
     private final int port;
     private final MessageEndpointFactory factory;
     private final XATerminator xaTerminator;
     private final WorkManager workManager;
+    private final boolean logHandlerEnabled;
 
-    private ConnectionInformation(int port, MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager)
+    private ConnectionInformation(int port, MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, boolean logHandlerEnabled)
     {
         this.port = port;
         this.factory = factory;
         this.xaTerminator = xaTerminator;
         this.workManager = workManager;
+        this.logHandlerEnabled = logHandlerEnabled;
     }
 
     public int getPort()
@@ -44,6 +47,11 @@ public final class ConnectionInformation
     public WorkManager getWorkManager()
     {
         return workManager;
+    }
+
+    public boolean isLogHandlerEnabled()
+    {
+        return logHandlerEnabled;
     }
 
     public static Builder createBuilder()
@@ -87,7 +95,7 @@ public final class ConnectionInformation
             Objects.requireNonNull(factory, "factory can not be null");
             Objects.requireNonNull(xaTerminator, "xaTerminator can not be null");
             Objects.requireNonNull(workManager, "workManager can not be null");
-            return new ConnectionInformation(port, factory, xaTerminator, workManager);
+            return new ConnectionInformation(port, factory, xaTerminator, workManager, Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME)));
         }
     }
 }

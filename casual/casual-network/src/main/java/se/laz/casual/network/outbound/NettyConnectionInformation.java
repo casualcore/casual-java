@@ -15,11 +15,14 @@ import java.util.UUID;
 
 public final class NettyConnectionInformation extends BaseConnectionInformation
 {
+    private static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER";
+
     private final Class<? extends Channel> channelClass;
     private final Correlator correlator;
-    private NettyConnectionInformation(InetSocketAddress address, long protocolVersion, UUID domainId, String domainName, Class<? extends Channel> channelClass, Correlator correlator)
+
+    private NettyConnectionInformation(InetSocketAddress address, long protocolVersion, UUID domainId, String domainName, Class<? extends Channel> channelClass, Correlator correlator, boolean logHandlerEnabled)
     {
-        super(address, protocolVersion, domainId, domainName);
+        super(address, protocolVersion, domainId, domainName, logHandlerEnabled);
         this.channelClass = channelClass;
         this.correlator = correlator;
     }
@@ -127,7 +130,7 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
             Objects.requireNonNull(domainName, "domainName can not be null");
             channelClass = (null == channelClass) ? NioSocketChannel.class : channelClass;
             correlator = (null == correlator) ? CorrelatorImpl.of() : correlator;
-            return new NettyConnectionInformation(address, protocolVersion, domainId, domainName, channelClass, correlator);
+            return new NettyConnectionInformation(address, protocolVersion, domainId, domainName, channelClass, correlator, Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME)));
         }
     }
 }
