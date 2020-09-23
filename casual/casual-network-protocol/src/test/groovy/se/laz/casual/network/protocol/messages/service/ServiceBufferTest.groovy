@@ -85,7 +85,7 @@ class ServiceBufferTest extends Specification
         when:
         ServiceBuffer.of(type, noPayload)
         then:
-        thrown(CasualProtocolException)
+        noExceptionThrown()
     }
 
     def 'payload and no type'()

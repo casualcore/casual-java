@@ -51,9 +51,9 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
         {
             return EMPTY_INSTANCE;
         }
-        if(!validBufferData(type, payload))
+        if(notValidBufferData(type, payload))
         {
-            throw new CasualProtocolException("invalid buffer data, either type or payload are empty but not both. Type empty?" + type.isEmpty() + " payload empty?" + payload.isEmpty());
+            throw new CasualProtocolException("invalid buffer data,  type is empty but there is a payload");
         }
         return new ServiceBuffer(type, payload);
     }
@@ -63,13 +63,11 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
         return EMPTY_INSTANCE;
     }
 
-    private static boolean validBufferData(String type, List<byte[]> payload)
+    private static boolean notValidBufferData(String type, List<byte[]> payload)
     {
-        // a buffer can be empty
-        // it means that the type is empty and so is the payload
-        // that is, a valid buffer is either a buffer where neither type nor payload is empty
-        // or where both type and payload are empty
-        return (!type.isEmpty() && !payload.isEmpty()) || (type.isEmpty() && payload.isEmpty());
+        // There is only one case that is not valid:
+        // No type but a payload
+        return (!payload.isEmpty() && type.isEmpty());
     }
 
     public boolean isEmpty()
