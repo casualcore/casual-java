@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<connector xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee/connector_1_7.xsd"
+           version="1.7">
+  <display-name>Casual RA</display-name>
+  <vendor-name>Casual</vendor-name>
+  <eis-type>Casual</eis-type>
+  <resourceadapter-version>1.0</resourceadapter-version>
+  <!-- resourceadapter -->
+  <resourceadapter>
+    <resourceadapter-class>
+      se.laz.casual.jca.CasualResourceAdapter
+    </resourceadapter-class>
+    <!-- outbound configuration -->
+    <!-- Inbound Configuration -->
+    <!-- This inbound configuration is needed for weblogic, wildfly works with or without it -->
+    <inbound-resourceadapter>
+      <messageadapter>
+        <messagelistener>
+          <messagelistener-type>se.laz.casual.jca.inflow.CasualMessageListener</messagelistener-type>
+          <activationspec>
+            <activationspec-class>se.laz.casual.jca.inflow.CasualActivationSpec</activationspec-class>
+           </activationspec>
+        </messagelistener>
+      </messageadapter>
+    </inbound-resourceadapter>
+  </resourceadapter>
+</connector>
