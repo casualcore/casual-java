@@ -14,19 +14,35 @@ class FieldedTypeBufferWriteTest extends Specification
     def "write field once"()
     {
         expect:
-        def fb = FieldedTypeBuffer.create()
-                                  .write(name, v)
+        def fb = FieldedTypeBuffer.create(FieldedTypeBuffer.create()
+                                                           .write(name, v)
+                                                           .encode())
         v == fb.read(name).getData()
         where:
         name         | v
-        'FLD_SHORT1' | (short)42
+        'FLD_SHORT1' | 42 as short
         'FLD_LONG1'  | 42l
         'FLD_LONG2'  | 42
-        'FLD_CHAR2'  | (char)'a'
+        'FLD_CHAR1'  | '0' as char
+        'FLD_CHAR2'  | 'ö' as char
         'FLD_FLOAT3' | 128f
         'FLD_DOUBLE2'| 1024d
         'FLD_STRING2'| 'casually'
         'FLD_BINARY3'| 'There are 10 types of people in the world.'.bytes
+    }
+
+    def 'boolean test'()
+    {
+        expect:
+        def fb = FieldedTypeBuffer.create(FieldedTypeBuffer.create()
+                                                           .write(name, v)
+                                                           .encode())
+        char c = fb.read(name).getData(Character.class)
+        expectation == (0 == Character.getNumericValue(c))
+        where:
+        name         | v           | expectation
+        'FLD_CHAR1'  | '0' as char | true
+        'FLD_CHAR2'  | 'ö' as char | false
     }
 
     def "write field twice"()
@@ -39,10 +55,10 @@ class FieldedTypeBufferWriteTest extends Specification
         v2 == fb.read(name, 1).getData()
         where:
         name         | v1                                                 | v2
-        'FLD_SHORT1' | (short)42                                          | (short)84
+        'FLD_SHORT1' | 42 as short                                        | 84 as short
         'FLD_LONG3'  | 42l                                                | 84l
         'FLD_LONG2'  | 42                                                 | 84
-        'FLD_CHAR2'  | (char)'a'                                          | (char)'b'
+        'FLD_CHAR2'  | 'a' as char                                        | 'b' as char
         'FLD_FLOAT3' | 128f                                               | 256f
         'FLD_DOUBLE2'| 1024d                                              | 2048d
         'FLD_STRING2'| 'casually'                                         | 'casual'
@@ -109,9 +125,9 @@ class FieldedTypeBufferWriteTest extends Specification
     {
         setup:
         def fb = FieldedTypeBuffer.create()
-                                  .write('FLD_SHORT1', (short)42)
+                                  .write('FLD_SHORT1', 42 as short)
                                   .write('FLD_LONG1', 42l)
-                                  .write('FLD_CHAR2' , (char)'a')
+                                  .write('FLD_CHAR2' , 'ö' as char)
                                   .write('FLD_FLOAT3', 128f)
                                   .write('FLD_DOUBLE2', 1024d)
                                   .write('FLD_STRING2', 'casually')
@@ -125,10 +141,10 @@ class FieldedTypeBufferWriteTest extends Specification
         String stringValue = fb.peek('FLD_STRING2').get().getData(String.class)
         then:
         noExceptionThrown()
-        shortValue == (short) 42
+        shortValue == 42 as short
         longValue == 42l
         intValue == 42
-        charValue == (char)'a'
+        charValue == 'ö' as char
         floatValue == 128f
         doubleValue == 1024d
         stringValue == 'casually'

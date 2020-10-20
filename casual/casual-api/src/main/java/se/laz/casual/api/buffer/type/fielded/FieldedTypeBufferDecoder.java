@@ -93,7 +93,7 @@ public final class FieldedTypeBufferDecoder
             case CASUAL_FIELD_LONG:
                 return FieldedDataImpl.of(ByteBuffer.wrap(data).getLong(), FieldType.CASUAL_FIELD_LONG);
             case CASUAL_FIELD_CHAR:
-                return FieldedDataImpl.of(((char)ByteBuffer.wrap(data).get()), FieldType.CASUAL_FIELD_CHAR);
+                return FieldedDataImpl.of((char)Byte.toUnsignedInt(ByteBuffer.wrap(data).get()), FieldType.CASUAL_FIELD_CHAR);
             case CASUAL_FIELD_FLOAT:
                 return FieldedDataImpl.of(ByteBuffer.wrap(data).getFloat(), FieldType.CASUAL_FIELD_FLOAT);
             case CASUAL_FIELD_DOUBLE:
