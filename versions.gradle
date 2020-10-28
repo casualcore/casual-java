@@ -7,10 +7,10 @@
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '1.0.36-beta'
+version = '1.0.37-beta'
 
 ext.libs = [
-  netty : 'io.netty:netty-all:4.1.22.Final',
+  netty : 'io.netty:netty-all:4.1.53.Final',
   javaee_api: 'javax:javaee-api:7.0',
   gson: 'com.google.code.gson:gson:2.8.1',
   objenesis: 'org.objenesis:objenesis:2.6',
