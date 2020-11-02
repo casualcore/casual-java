@@ -17,6 +17,7 @@ group = 'se.laz.casual'
 
 configurations {
     resourceAdapter
+    resourceAdapterLib
 }
 
 dependencies {
@@ -32,6 +33,7 @@ dependencies {
     resourceAdapter project(':casual:casual-network')
     resourceAdapter project(':casual:casual-network-protocol')
     resourceAdapter project(':casual:casual-inbound-api')
+    resourceAdapterLib libs.netty
 
     testCompile libs.hamcrest_all
     // for spock
@@ -47,6 +49,9 @@ task rar(type: Jar) {
         attributes 'Implementation-Title': 'Casual Resource Adapter with XA', 'Implementation-Version': '1.0', 'Specification-Version': '1.0'
     }
     extension = 'rar'
+    from(configurations.resourceAdapterLib){
+	into('lib')
+    }
     into('') {
         from jar
     }

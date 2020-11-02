@@ -19,7 +19,6 @@ dependencies {
   deploy project(':casual:casual-inbound-handler-javaee-service')
   deploy project(':casual:casual-inbound-handler-jscd-buffer')
   deploy project(':casual:casual-inbound-handler-fielded-buffer')
-  earlib libs.netty
 }
 
 ear{
