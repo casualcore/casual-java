@@ -98,9 +98,9 @@ public class JndiSearchTimerEjbSingleton
                 return null;
             }
 
-            Method proxyMethod = findMatchingProxyMethod( app.values(), method );
-
             String jndi = findJndiName( entry, new ArrayList<>(app.keySet()) );
+
+            Method proxyMethod = findMatchingProxyMethod( app.get( jndi ), method );
 
             return jndi != null ? CasualServiceEntry.of( entry.getServiceName(), jndi, proxyMethod ) : null;
         }
@@ -122,20 +122,16 @@ public class JndiSearchTimerEjbSingleton
         return metaData.getServiceName().equals(s.name());
     }
 
-    private Method findMatchingProxyMethod(Collection<Proxy> proxies, Method method )
+    private Method findMatchingProxyMethod(Proxy proxy, Method method )
     {
-        for( Proxy proxy: proxies )
+        if( proxy == null )
         {
-            Method proxyMethod = Arrays.stream(proxy.getClass().getDeclaredMethods())
+            return null;
+        }
+        return Arrays.stream(proxy.getClass().getDeclaredMethods())
                     .filter(m -> matches(m, method))
                     .findFirst()
                     .orElse(null );
-            if( proxyMethod != null )
-            {
-                return proxyMethod;
-            }
-        }
-        return null;
     }
 
     private String findJndiName( CasualServiceMetaData entry, List<String> jndiNames )

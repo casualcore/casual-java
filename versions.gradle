@@ -7,7 +7,7 @@
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '1.0.38-beta'
+version = '1.0.39-beta'
 
 ext.libs = [
   netty : 'io.netty:netty-all:4.1.53.Final',
