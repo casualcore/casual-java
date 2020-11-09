@@ -44,7 +44,7 @@ class EncodingInfoProviderTest extends Specification
     def 'env set to latin 1'()
     {
         setup:
-        environmentVariables.set(EncodingInfoProvider.FIELDED_ENCODING_PROPERTY_NAME, latinOneEncoding.name())
+        environmentVariables.set(EncodingInfoProvider.FIELDED_ENCODING_ENV_NAME, latinOneEncoding.name())
         when:
         def c = instance.getCharset()
         then:
@@ -54,7 +54,7 @@ class EncodingInfoProviderTest extends Specification
     def 'unknown charset name, should default to default encoding'()
     {
         setup:
-        environmentVariables.set(EncodingInfoProvider.FIELDED_ENCODING_PROPERTY_NAME, 'this is not an encoding')
+        environmentVariables.set(EncodingInfoProvider.FIELDED_ENCODING_ENV_NAME, 'this is not an encoding')
         when:
         def c = instance.getCharset()
         then:

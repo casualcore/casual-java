@@ -14,12 +14,12 @@ import java.util.logging.Logger;
 
 /**
  * Provides the encoding information for encoding/decoding strings
- * Defaults to UTF-8 but can be set via the environment variable {@code casual.api.fielded.encoding}
+ * Defaults to UTF-8 but can be set via the environment variable {@code CASUAL_API_FIELDED_ENCODING}
  */
 public class EncodingInfoProvider
 {
     private static final Logger log = Logger.getLogger(EncodingInfoProvider.class.getName());
-    public static final String FIELDED_ENCODING_PROPERTY_NAME = "casual.api.fielded.encoding";
+    public static final String FIELDED_ENCODING_ENV_NAME = "CASUAL_API_FIELDED_ENCODING";
     private EncodingInfoProvider()
     {}
 
@@ -55,7 +55,7 @@ public class EncodingInfoProvider
      */
     public static Optional<String> getEncoding()
     {
-        return Optional.ofNullable(System.getenv(FIELDED_ENCODING_PROPERTY_NAME));
+        return Optional.ofNullable(System.getenv(FIELDED_ENCODING_ENV_NAME));
     }
 
 }
