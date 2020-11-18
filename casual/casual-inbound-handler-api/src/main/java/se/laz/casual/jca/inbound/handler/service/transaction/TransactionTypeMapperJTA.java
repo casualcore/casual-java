@@ -4,7 +4,7 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.jca.inbound.handler.service.casual;
+package se.laz.casual.jca.inbound.handler.service.transaction;
 
 import se.laz.casual.network.messages.domain.TransactionType;
 
@@ -33,7 +33,7 @@ import static se.laz.casual.network.messages.domain.TransactionType.NONE;
  * REQUIRES_NEW	    Atomic
  * SUPPORTS		    Join
  */
-public final class TransactionTypeMapper
+public final class TransactionTypeMapperJTA
 {
     private static EnumMap<TransactionAttributeType, TransactionType> mappings = new EnumMap<>(TransactionAttributeType.class);
 
@@ -58,7 +58,7 @@ public final class TransactionTypeMapper
         return mappings.get( type );
     }
 
-    private TransactionTypeMapper()
+    private TransactionTypeMapperJTA()
     {
 
     }

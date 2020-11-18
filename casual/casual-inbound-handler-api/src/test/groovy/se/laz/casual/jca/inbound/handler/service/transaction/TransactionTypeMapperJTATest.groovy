@@ -4,7 +4,7 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.jca.inbound.handler.service.casual
+package se.laz.casual.jca.inbound.handler.service.transaction
 
 import se.laz.casual.network.messages.domain.TransactionType
 import spock.lang.Specification
@@ -12,7 +12,7 @@ import spock.lang.Unroll
 
 import javax.ejb.TransactionAttributeType
 
-class TransactionTypeMapperTest extends Specification
+class TransactionTypeMapperJTATest extends Specification
 {
 
     /**
@@ -28,7 +28,7 @@ class TransactionTypeMapperTest extends Specification
     def "Test mappings #attribute to #result"()
     {
         when:
-        TransactionType type = TransactionTypeMapper.map( attribute )
+        TransactionType type = TransactionTypeMapperJTA.map( attribute )
 
         then:
         type == result
@@ -46,7 +46,7 @@ class TransactionTypeMapperTest extends Specification
     def "Null attribute type throws NullPointerException."()
     {
         when:
-        TransactionTypeMapper.map( null )
+        TransactionTypeMapperJTA.map( null )
 
         then:
         thrown NullPointerException.class

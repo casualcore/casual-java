@@ -19,6 +19,7 @@ import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
+import se.laz.casual.jca.inbound.handler.service.transaction.TransactionTypeMapperJTA;
 import se.laz.casual.network.messages.domain.TransactionType;
 
 import javax.ejb.Local;
@@ -111,7 +112,7 @@ public class CasualServiceHandler implements ServiceHandler
             throw new HandlerException("Service could not be found, should control with canHandle() first." );
         }
         TransactionAttributeType attributeType = TransactionAttributeTypeFinder.find( entry );
-        TransactionType transactionType = TransactionTypeMapper.map( attributeType );
+        TransactionType transactionType = TransactionTypeMapperJTA.map( attributeType );
         return ServiceInfo.of( entry.getServiceName(), entry.getServiceCategory(), transactionType );
     }
 
