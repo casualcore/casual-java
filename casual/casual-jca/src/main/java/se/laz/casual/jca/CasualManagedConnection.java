@@ -9,11 +9,13 @@ package se.laz.casual.jca;
 import se.laz.casual.api.xa.XID;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
+import se.laz.casual.network.outbound.NetworkListener;
 import se.laz.casual.network.outbound.NettyConnectionInformation;
 import se.laz.casual.network.outbound.NettyNetworkConnection;
 
 import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
+import javax.resource.spi.CommException;
 import javax.resource.spi.ConnectionEvent;
 import javax.resource.spi.ConnectionEventListener;
 import javax.resource.spi.ConnectionRequestInfo;
@@ -41,7 +43,7 @@ import java.util.logging.Logger;
  * These in turn knows their managed connection and can invoke network operations.
  * @version $Revision: $
  */
-public class CasualManagedConnection implements ManagedConnection
+public class CasualManagedConnection implements ManagedConnection, NetworkListener
 {
     private static final String DOMAIN_NAME = "casual-java";
     private static final Logger log = Logger.getLogger(CasualManagedConnection.class.getName());
@@ -94,7 +96,7 @@ public class CasualManagedConnection implements ManagedConnection
                                                                           .withDomainId(UUID.randomUUID())
                                                                           .withDomainName(DOMAIN_NAME)
                                                                           .build();
-                networkConnection = NettyNetworkConnection.of(ci);
+                networkConnection = NettyNetworkConnection.of(ci, this);
                 log.finest(()->"created new nw connection " + this);
             }
         }
@@ -109,7 +111,7 @@ public class CasualManagedConnection implements ManagedConnection
         if(!getNetworkConnection().isActive())
         {
             closeNetworkConnection();
-            throw new ResourceException("can not connect to casual");
+            throw new CommException("connection to casual is gone");
         }
         CasualConnectionImpl c = new CasualConnectionImpl(this );
         connectionHandles.add(c);
@@ -269,4 +271,10 @@ public class CasualManagedConnection implements ManagedConnection
                 '}';
     }
 
+    @Override
+    public void disconnected()
+    {
+        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED);
+        connectionEventHandler.sendEvent(event);
+    }
 }

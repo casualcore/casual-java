@@ -44,7 +44,7 @@ public final class NettyNetworkConnection implements NetworkConnection
     private final Correlator correlator;
     private final Channel channel;
     private final EventLoopGroup workerGroup;
-    private final AtomicBoolean handleClose = new AtomicBoolean(true);
+    private final AtomicBoolean connected = new AtomicBoolean(true);
 
     private NettyNetworkConnection(BaseConnectionInformation ci, Correlator correlator, Channel channel, EventLoopGroup workerGroup)
     {
@@ -54,14 +54,15 @@ public final class NettyNetworkConnection implements NetworkConnection
         this.workerGroup = workerGroup;
     }
 
-    public static NetworkConnection of(final NettyConnectionInformation ci)
+    public static NetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
     {
         Objects.requireNonNull(ci, "connection info can not be null");
+        Objects.requireNonNull(ci, "network listener can not be null");
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         Correlator correlator = ci.getCorrelator();
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator), ci.isLogHandlerEnabled());
         NettyNetworkConnection c = new NettyNetworkConnection(ci, correlator, ch, workerGroup);
-        ch.closeFuture().addListener(f -> handleClose(c));
+        ch.closeFuture().addListener(f -> handleClose(c, networkListener));
         c.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
         return c;
     }
@@ -88,11 +89,16 @@ public final class NettyNetworkConnection implements NetworkConnection
         return b.connect(address).syncUninterruptibly().channel();
     }
 
-    private static void handleClose(final NettyNetworkConnection c)
+    private static void handleClose(final NettyNetworkConnection c, NetworkListener networkListener)
     {
-        if(c.handleClose.get())
+        // always complete any outstanding requests exceptionally
+        // both when the casual domain goes away or when the owner of the network connection
+        // closes us, the client, directly
+        c.correlator.completeAllExceptionally(new CasualConnectionException("network connection is gone"));
+        if(c.connected.get())
         {
-            c.correlator.completeAllExceptionally(new CasualConnectionException("network connection is gone"));
+            // only inform on casual disconnect
+            networkListener.disconnected();
         }
     }
 
@@ -121,13 +127,9 @@ public final class NettyNetworkConnection implements NetworkConnection
     @Override
     public void close()
     {
-        handleClose.set(false);
-        if(channel.isOpen())
-        {
-            channel.close();
-        }
-        channel.closeFuture().syncUninterruptibly();
-        workerGroup.shutdownGracefully().syncUninterruptibly();
+        connected.set(false);
+        // all channels are closed when the event loop group shuts down
+        workerGroup.shutdownGracefully().addListener(futureListener -> log.info("network connection " + this + " gracefully closed"));
     }
 
     @Override

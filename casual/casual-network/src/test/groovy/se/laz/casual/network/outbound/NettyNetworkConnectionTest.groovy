@@ -19,13 +19,14 @@ import spock.lang.Specification
 
 import java.util.concurrent.CompletableFuture
 
-class NettyNetworkConnectionTest extends Specification
+class NettyNetworkConnectionTest extends Specification implements NetworkListener
 {
     @Shared UUID corrid = UUID.randomUUID()
     @Shared NettyNetworkConnection instance
     @Shared NettyConnectionInformation ci
     @Shared Correlator correlator
     @Shared EmbeddedChannel ch
+    private boolean casualDisconnected = false;
 
     def setup()
     {
@@ -44,9 +45,13 @@ class NettyNetworkConnectionTest extends Specification
     def 'Of with a null connection info throws NullPointerException.'()
     {
         when:
-        NettyNetworkConnection.of(null)
+        NettyNetworkConnection.of(connectionInformation, networkListener)
         then:
         thrown NullPointerException
+        where:
+        connectionInformation            | networkListener
+        null                             | Mock(NetworkListener)
+        ci                               | null
     }
 
     def 'ping ponging a domain discovery request message'()
@@ -69,7 +74,7 @@ class NettyNetworkConnectionTest extends Specification
         def eventloopGroup = Mock(EventLoopGroup)
         1 * eventloopGroup.shutdownGracefully() >> {
             def nettyFuture = Mock(Future)
-            1 * nettyFuture.syncUninterruptibly() >> {
+            1 * nettyFuture.addListener(_) >> {
                 return nettyFuture
             }
             return nettyFuture
@@ -79,6 +84,19 @@ class NettyNetworkConnectionTest extends Specification
         instance.close()
         then:
         noExceptionThrown()
+        casualDisconnected == false
+    }
+
+    def 'casual disconnected'()
+    {
+        given:
+        def channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator))
+        def newInstance = new NettyNetworkConnection(ci, correlator, channel, null)
+        def future = channel.closeFuture().addListener({ f -> se.laz.casual.network.outbound.NettyNetworkConnection.handleClose(newInstance, this) })
+        when:
+        future.channel().disconnect()
+        then:
+        casualDisconnected == true
     }
 
     def createRequestMessage()
@@ -98,4 +116,9 @@ class NettyNetworkConnectionTest extends Specification
         instance.toString().contains 'NettyNetworkConnection'
     }
 
+    @Override
+    void disconnected()
+    {
+        casualDisconnected = true;
+    }
 }
