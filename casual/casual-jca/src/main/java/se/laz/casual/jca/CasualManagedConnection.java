@@ -55,6 +55,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     private NetworkConnection networkConnection;
     private final Object networkConnectionLock = new Object();
     private CasualXAResource xaResource;
+    private int timeout;
 
     /**
      * Create a new managed connection with the provided factory and request information.
@@ -276,5 +277,15 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     {
         ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED);
         connectionEventHandler.sendEvent(event);
+    }
+
+    public void setTransactionTimeout(int timeout)
+    {
+        this.timeout = timeout;
+    }
+
+    public int getTransactionTimeout()
+    {
+        return timeout;
     }
 }

@@ -24,6 +24,8 @@ import se.laz.casual.network.protocol.messages.domain.Service;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -86,11 +88,13 @@ public class CasualServiceCaller implements CasualServiceApi
 
     private CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
+        Duration timeout = Duration.of(connection.getTransactionTimeout(), ChronoUnit.SECONDS);
         CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
                 .setExecution(UUID.randomUUID())
                 .setServiceBuffer(ServiceBuffer.of(data))
                 .setServiceName(serviceName)
                 .setXid( connection.getCurrentXid() )
+                .setTimeout(timeout.toNanos())
                 .setXatmiFlags(flags).build();
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
         return connection.getNetworkConnection().request(serviceRequestNetworkMessage);

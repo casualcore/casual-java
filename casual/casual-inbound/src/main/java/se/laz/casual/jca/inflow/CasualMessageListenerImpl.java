@@ -40,6 +40,8 @@ import javax.resource.spi.work.WorkException;
 import javax.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.Xid;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -57,7 +59,6 @@ import java.util.logging.Logger;
 public class CasualMessageListenerImpl implements CasualMessageListener
 {
     private static Logger log = Logger.getLogger(CasualMessageListenerImpl.class.getName());
-
     private static final Long CASUAL_PROTOCOL_VERSION = 1000L;
 
     @Override
@@ -135,12 +136,12 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     {
         TransactionContext context = new TransactionContext();
         context.setXid(xid);
-
-        if (timeout > 0)
+        Duration timeoutDuration = Duration.of(timeout, ChronoUnit.NANOS);
+        if (timeoutDuration.getSeconds() > 0)
         {
             try
             {
-                context.setTransactionTimeout(timeout);
+                context.setTransactionTimeout(timeoutDuration.getSeconds());
             }
             catch (NotSupportedException e)
             {

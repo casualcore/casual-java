@@ -39,6 +39,8 @@ import javax.transaction.xa.XAException
 import javax.transaction.xa.Xid
 import java.lang.annotation.Annotation
 import java.nio.charset.StandardCharsets
+import java.time.Duration
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.ThreadLocalRandom
 
 class CasualMessageListenerImplTest extends Specification
@@ -146,6 +148,7 @@ class CasualMessageListenerImplTest extends Specification
         ExecutionContext actualExecutionContext
         WorkListener actualWorkListener
         long timeout = 12L
+        Duration timeoutDuration = Duration.of(timeout, ChronoUnit.SECONDS)
         String serviceName = "echo"
         CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of( correlationId,
                 CasualServiceCallRequestMessage.createBuilder()
@@ -154,7 +157,7 @@ class CasualMessageListenerImplTest extends Specification
                         .setServiceName( serviceName )
                         .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
                         .setXatmiFlags( Flag.of())
-                        .setTimeout( timeout )
+                        .setTimeout( timeoutDuration.toNanos() )
                         .build()
         )
 

@@ -106,7 +106,7 @@ public class CasualXAResource implements XAResource
     @Override
     public int getTransactionTimeout() throws XAException
     {
-        return 0;
+        return casualManagedConnection.getTransactionTimeout();
     }
 
     @Override
@@ -152,7 +152,8 @@ public class CasualXAResource implements XAResource
     @Override
     public boolean setTransactionTimeout(int i) throws XAException
     {
-        return false;
+        casualManagedConnection.setTransactionTimeout(i);
+        return true;
     }
 
     @Override

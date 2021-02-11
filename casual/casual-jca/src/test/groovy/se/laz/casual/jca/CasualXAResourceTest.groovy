@@ -447,24 +447,24 @@ class CasualXAResourceTest extends Specification
         actualRollbackRequestMessage.getMessage().getXid() == xid1
     }
 
-    def "GetTransactionTimeout when not set returns default value."()
+    def "getTransactionTimeout when not set returns default value."()
     {
         expect:
         instance.getTransactionTimeout() == 0
     }
 
-    def "SetTransactionTimeout is not allowed, returns false and does not change value returned by GetTransactionTimeout."()
+    def "SetTransactionTimeout is allowed, returns true and does change value returned by getTransactionTimeout."()
     {
         setup:
-        int currentTimeout = instance.getTransactionTimeout()
+        int defaultTimeout = instance.getTransactionTimeout()
         int timeout = 10
 
         when:
         boolean res = instance.setTransactionTimeout( timeout )
 
         then:
-        ! res
-        instance.getTransactionTimeout() != timeout
-        instance.getTransactionTimeout() == currentTimeout
+        res == true
+        instance.getTransactionTimeout() == timeout
+        instance.getTransactionTimeout() != defaultTimeout
     }
 }
