@@ -6,12 +6,11 @@
 
 package se.laz.casual.jca;
 
-import se.laz.casual.api.xa.XID;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
-import se.laz.casual.network.outbound.NetworkListener;
 import se.laz.casual.network.outbound.NettyConnectionInformation;
 import se.laz.casual.network.outbound.NettyNetworkConnection;
+import se.laz.casual.network.outbound.NetworkListener;
 
 import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
@@ -68,6 +67,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         this.logwriter = null;
         this.connectionEventHandler = new ConnectionEventHandler();
         this.connectionHandles = Collections.synchronizedList(new ArrayList<>(1));
+        xaResource = new CasualXAResource(this, mcf.getResourceId());
     }
 
     /**
@@ -144,10 +144,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
             c.invalidate();
         }
         connectionHandles.clear();
-        if(null != xaResource)
-        {
-            xaResource.reset();
-        }
     }
 
     @Override
@@ -196,10 +192,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public synchronized XAResource getXAResource() throws ResourceException
     {
         log.finest("getXAResource()");
-        if( this.xaResource == null )
-        {
-            this.xaResource = new CasualXAResource(this, mcf.getResourceId());
-        }
         return this.xaResource;
     }
 
@@ -210,7 +202,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
      */
     public Xid getCurrentXid()
     {
-        return (xaResource) == null ? XID.NULL_XID : xaResource.getCurrentXid();
+        return xaResource.getCurrentXid();
     }
 
     @Override

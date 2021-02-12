@@ -50,7 +50,7 @@ class CasualXAResourceTest extends Specification
             resourceId
         }
         networkConnection = Mock(NetworkConnection)
-        managedConnection = new CasualManagedConnection( null )
+        managedConnection = new CasualManagedConnection( Mock(CasualManagedConnectionFactory) )
         managedConnection.networkConnection = networkConnection
         instance = new CasualXAResource( managedConnection, mcf.getResourceId() )
 
@@ -160,13 +160,12 @@ class CasualXAResourceTest extends Specification
         instance.getCurrentXid() == xid1
     }
 
-    def 'getCurrentXid returns null xid after reset'()
+    def "GetCurrentXid returns null xid after end has been called."()
     {
-        setup:
-        transactionResources.remove( xid1 )
-        instance.start(xid1, 0)
         when:
-        instance.reset()
+        transactionResources.remove( xid1 )
+        instance.start( xid1, 0 )
+        instance.end(xid1, XAFlags.TMSUCCESS.getValue())
         then:
         instance.getCurrentXid() == XID.NULL_XID
     }

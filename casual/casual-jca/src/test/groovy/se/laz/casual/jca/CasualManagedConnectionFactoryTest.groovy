@@ -103,7 +103,7 @@ class CasualManagedConnectionFactoryTest extends Specification
         setup:
         Subject subject = new Subject()
         ConnectionRequestInfo cri = Mock(ConnectionRequestInfo)
-        ManagedConnection connection = new CasualManagedConnection( null )
+        ManagedConnection connection = new CasualManagedConnection( Mock(CasualManagedConnectionFactory) )
         Set<Object> set = new HashSet<>()
         set.add( connection )
 

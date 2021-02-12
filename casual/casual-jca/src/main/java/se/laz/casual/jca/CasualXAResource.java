@@ -76,7 +76,7 @@ public class CasualXAResource implements XAResource
     public void end(Xid xid, int flag) throws XAException
     {
         CasualResourceManager.getInstance().remove(xid);
-        reset();
+        disassociate();
         XAFlags f = XAFlags.unmarshall(flag);
         switch(f)
         {
@@ -164,7 +164,7 @@ public class CasualXAResource implements XAResource
         {
             throw new XAException(XAException.XAER_DUPID);
         }
-        currentXid = xid;
+        associate(xid);
         if(!CasualResourceManager.getInstance().isPending(currentXid))
         {
             CasualResourceManager.getInstance().put(currentXid);
@@ -179,7 +179,12 @@ public class CasualXAResource implements XAResource
             '}';
     }
 
-    public void reset()
+    private void associate(Xid xid)
+    {
+        currentXid = xid;
+    }
+
+    public void disassociate()
     {
         currentXid = XID.NULL_XID;
     }
