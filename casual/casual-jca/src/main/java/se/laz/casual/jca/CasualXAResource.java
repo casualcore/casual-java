@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class CasualXAResource implements XAResource
 {
-
+    private static final Xid[] NO_XIDS = {};
     private final CasualManagedConnection casualManagedConnection;
     private final int resourceManagerId;
     private Xid currentXid = XID.NULL_XID;
@@ -132,7 +132,7 @@ public class CasualXAResource implements XAResource
     @Override
     public Xid[] recover(int i) throws XAException
     {
-        throw new UnsupportedOperationException("Not implemented");
+        return NO_XIDS;
     }
 
     @Override

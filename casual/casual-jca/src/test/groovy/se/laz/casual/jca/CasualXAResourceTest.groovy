@@ -383,13 +383,13 @@ class CasualXAResourceTest extends Specification
         actualPrepareRequestMessage.getMessage().getXid() == xid1
     }
 
-    def "Recover is not supported."()
+    def "recover is returns empty array."()
     {
         when:
-        instance.recover( 0 )
+        def result = instance.recover( 0 )
 
         then:
-        thrown UnsupportedOperationException
+        result.size() == 0
     }
 
     def "Rollback returns ok."()
