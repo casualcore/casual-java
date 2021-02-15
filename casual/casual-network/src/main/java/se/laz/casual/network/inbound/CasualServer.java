@@ -9,6 +9,7 @@ package se.laz.casual.network.inbound;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -48,6 +49,7 @@ public final class CasualServer
         ServerBootstrap b = new ServerBootstrap()
             .group(workerGroup)
             .channel(NioServerSocketChannel.class)
+            .option(ChannelOption.SO_KEEPALIVE, true)
             .childHandler(new ChannelInitializer<SocketChannel>()
             {
                 @Override
