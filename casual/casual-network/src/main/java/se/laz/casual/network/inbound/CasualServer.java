@@ -49,7 +49,6 @@ public final class CasualServer
         ServerBootstrap b = new ServerBootstrap()
             .group(workerGroup)
             .channel(NioServerSocketChannel.class)
-            .option(ChannelOption.SO_KEEPALIVE, true)
             .childHandler(new ChannelInitializer<SocketChannel>()
             {
                 @Override
@@ -62,7 +61,7 @@ public final class CasualServer
                         log.info(() -> "inbound network log handler enabled");
                     }
                 }
-            });
+            }).childOption(ChannelOption.SO_KEEPALIVE, true);
         return b.bind(new InetSocketAddress(port)).syncUninterruptibly().channel();
     }
 
