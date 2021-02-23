@@ -13,6 +13,26 @@
       se.laz.casual.jca.CasualResourceAdapter
     </resourceadapter-class>
     <!-- outbound configuration -->
+      <outbound-resourceadapter>
+          <connection-definition>
+              <managedconnectionfactory-class>
+                  se.laz.casual.jca.CasualManagedConnectionFactory
+              </managedconnectionfactory-class>
+              <connectionfactory-interface>
+                  se.laz.casual.jca.CasualConnectionFactory
+              </connectionfactory-interface>
+              <connectionfactory-impl-class>
+                  se.laz.casual.jca.CasualConnectionFactoryImpl
+              </connectionfactory-impl-class>
+              <connection-interface>
+                  se.laz.casual.jca.CasualConnection
+              </connection-interface>
+              <connection-impl-class>
+                  se.laz.casual.jca.CasualConnectionImpl
+              </connection-impl-class>
+          </connection-definition>
+          <transaction-support>XATransaction</transaction-support>
+      </outbound-resourceadapter>
     <!-- Inbound Configuration -->
     <!-- This inbound configuration is needed for weblogic, wildfly works with or without it -->
     <inbound-resourceadapter>

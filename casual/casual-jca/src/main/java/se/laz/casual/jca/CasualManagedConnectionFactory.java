@@ -6,7 +6,6 @@
 package se.laz.casual.jca;
 
 import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionDefinition;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
@@ -26,10 +25,6 @@ import java.util.logging.Logger;
  */
 //Non serialisable or transient for ResourceAdapter and PrintWriter - this is as shown in Iron Jacamar so ignoring.
 @SuppressWarnings("squid:S1948")
-@ConnectionDefinition(connectionFactory = CasualConnectionFactory.class,
-   connectionFactoryImpl = CasualConnectionFactoryImpl.class,
-   connection = CasualConnection.class,
-   connectionImpl = CasualConnectionImpl.class)
 public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation
 {
 

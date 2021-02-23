@@ -8,10 +8,8 @@ package se.laz.casual.jca;
 
 import javax.naming.NamingException;
 import javax.naming.Reference;
-import javax.resource.ConnectionFactoryDefinition;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.TransactionSupport;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -20,11 +18,6 @@ import java.util.logging.Logger;
  *
  * @version $Revision: $
  */
-@ConnectionFactoryDefinition(name = "java:/eis/CasualConnectionFactory",
-        interfaceName = "se.laz.casual.jca.CasualConnectionFactory",
-        resourceAdapter = "#casual-jca",
-        description = "Casual Middleware Resource Adaptter with XA",
-        transactionSupport = TransactionSupport.TransactionSupportLevel.XATransaction)
 public class CasualConnectionFactoryImpl implements CasualConnectionFactory
 {
 
