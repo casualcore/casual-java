@@ -1,0 +1,23 @@
+/*
+ * Copyright (c) 2021, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+//-*- coding: utf-8 -*-
+plugins {
+  id 'ear'
+}
+
+dependencies {
+  deploy project( path: ':casual:casual-caller')
+  earlib project( path: ':casual:casual-caller-api')
+}
+
+ear{
+  deploymentDescriptor{
+    applicationName = "casual-caller-app"
+    displayName = "Casual Caller App"
+    description = "Casual application that provides an abstraction layer on top of n # of CasualConnectionFactories"
+  }
+  archiveName("casual-caller-app-${casual_caller_app_version}.ear")
+}

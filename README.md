@@ -24,5 +24,11 @@ This is the network protocol implementation
 
 This is the JCA ResourceAdapter
 
+## Casual Caller
+
+Abstraction layer on top of 1-n outbound connection pools
+
+See [casual caller documentation](casual/casual-caller-api/README.md) for more in depth information.
+
 ## Further information
 [Deployment](deployment.md)
