@@ -22,6 +22,7 @@ configurations {
 
 dependencies {
     provided project(':casual:casual-api')
+    provided project(':casual:casual-service-discovery-extension')
     implementation project(':casual:casual-inbound-api')
     implementation project(':casual:casual-internal')
     implementation project(':casual:casual-network')

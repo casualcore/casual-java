@@ -33,22 +33,20 @@ public final class CasualServiceMetaData
     private final String ejbName;
     private CasualServiceEntry resolvedEntry;
 
-    //Too many variables, Sonar doesn't see this this private and has an associated Builder class. Ignoring.
-    @SuppressWarnings("squid:S00107")
-    private CasualServiceMetaData(CasualService service, CasualServiceJndiName jndiName, Class<?> implementationClass, Class<?> interfaceClass, Method serviceMethod, String appName, String moduleName, String ejbName )
+    private CasualServiceMetaData( CasualServiceMetaDataBuilder builder )
     {
-        Objects.requireNonNull( service, "Casual Service must be provided." );
-        Objects.requireNonNull( implementationClass, "Implementation class must be provided." );
-        Objects.requireNonNull( serviceMethod, "Service method must be provided." );
+        Objects.requireNonNull( builder.service, "Casual Service must be provided." );
+        Objects.requireNonNull( builder.implementationClass, "Implementation class must be provided." );
+        Objects.requireNonNull( builder.serviceMethod, "Service method must be provided." );
 
-        this.service = service;
-        this.jndiName = jndiName;
-        this.implementationClass = implementationClass;
-        this.interfaceClass = interfaceClass;
-        this.serviceMethod = serviceMethod;
-        this.appName = appName;
-        this.moduleName = moduleName;
-        this.ejbName = ejbName;
+        this.service = builder.service;
+        this.jndiName = builder.jndiName;
+        this.implementationClass = builder.implementationClass;
+        this.interfaceClass = builder.interfaceClass;
+        this.serviceMethod = builder.serviceMethod;
+        this.appName = builder.appName;
+        this.moduleName = builder.moduleName;
+        this.ejbName = builder.ejbName;
     }
 
     public static CasualServiceMetaDataBuilder newBuilder()
@@ -239,7 +237,7 @@ public final class CasualServiceMetaData
          */
         public CasualServiceMetaData build()
         {
-            return new CasualServiceMetaData( this.service, this.jndiName, this.implementationClass, this.interfaceClass, this.serviceMethod, this.appName, this.moduleName, this.ejbName );
+            return new CasualServiceMetaData( this );
         }
     }
 }

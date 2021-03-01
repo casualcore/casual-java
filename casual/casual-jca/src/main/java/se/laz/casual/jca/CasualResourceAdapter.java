@@ -5,7 +5,10 @@
  */
 package se.laz.casual.jca;
 
+import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
+import se.laz.casual.jca.work.StartInboundServerListener;
+import se.laz.casual.jca.work.StartInboundServerWork;
 import se.laz.casual.network.inbound.CasualServer;
 import se.laz.casual.network.inbound.ConnectionInformation;
 
@@ -19,10 +22,14 @@ import javax.resource.spi.ResourceAdapterInternalException;
 import javax.resource.spi.TransactionSupport;
 import javax.resource.spi.XATerminator;
 import javax.resource.spi.endpoint.MessageEndpointFactory;
+import javax.resource.spi.work.Work;
+import javax.resource.spi.work.WorkException;
 import javax.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAResource;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 /**
@@ -40,7 +47,7 @@ import java.util.logging.Logger;
 public class CasualResourceAdapter implements ResourceAdapter
 {
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
-    private ConcurrentHashMap<Integer, CasualActivationSpec> activations;
+    private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
 
     private WorkManager workManager;
     private XATerminator xaTerminator;
@@ -50,19 +57,13 @@ public class CasualResourceAdapter implements ResourceAdapter
     @ConfigProperty( defaultValue = "7772")
     private Integer inboundServerPort;
 
-    public Integer getInboundServerPort()
-    {
-        return  inboundServerPort;
-    }
-
-    public void setInboundServerPort( Integer port )
-    {
-        this.inboundServerPort = port;
-    }
+    private ConfigurationService configurationService;
 
     public CasualResourceAdapter()
     {
-        this.activations = new ConcurrentHashMap<>();
+        //JCA requires ResourceAdapter has a no arg constructor.
+        //It is also not possible to inject with CDI on wildfly only ConfigProperty annotations.
+        configurationService = ConfigurationService.getInstance();
     }
 
     @Override
@@ -73,23 +74,50 @@ public class CasualResourceAdapter implements ResourceAdapter
         CasualActivationSpec as = (CasualActivationSpec) spec;
         as.setPort( getInboundServerPort() );
         ConnectionInformation ci = ConnectionInformation.createBuilder()
-                                                        .withFactory(endpointFactory)
-                                                        .withPort(as.getPort())
-                                                        .withWorkManager(workManager)
-                                                        .withXaTerminator(xaTerminator)
-                                                        .build();
-        log.info(()->"about to create casual inbound server");
-        server = CasualServer.of(ci);
-        log.info(()->"casual inbound server bound to port: " + ci.getPort() );
-        activations.put( as.getPort(), as );
-        log.finest(()->"end endpointActivation()");
+                .withFactory(endpointFactory)
+                .withPort(as.getPort())
+                .withWorkManager(workManager)
+                .withXaTerminator(xaTerminator)
+                .build();
+        activations.put(as.getPort(), as);
+        log.info(() -> "start casual inbound server" );
+        startInboundServer( ci );
+        log.finest(() -> "end endpointActivation()");
+
+    }
+
+    private void startInboundServer( ConnectionInformation connectionInformation )
+    {
+        Consumer<CasualServer> consumer = (CasualServer runningServer) -> server = runningServer;
+        Work work = StartInboundServerWork.of( getInboundStartupServices(), connectionInformation, consumer);
+        startWork(work);
+    }
+
+    private List<String> getInboundStartupServices()
+    {
+        return configurationService.getConfiguration().getInbound().getStartup().getServices();
+    }
+
+    private void startWork(Work work)
+    {
+        try
+        {
+            workManager.startWork(work, WorkManager.INDEFINITE, null, StartInboundServerListener.of());
+        }
+        catch (WorkException e)
+        {
+            throw new InboundStartupException("Problem starting work", e);
+        }
     }
 
     @Override
     public void endpointDeactivation(MessageEndpointFactory endpointFactory,
                                      ActivationSpec spec)
     {
-        server.close();
+        if( server != null )
+        {
+            server.close();
+        }
         activations.remove(((CasualActivationSpec)spec).getPort() );
         log.finest(()->"endpointDeactivation()");
     }
@@ -127,6 +155,21 @@ public class CasualResourceAdapter implements ResourceAdapter
     public XATerminator getXATerminator()
     {
         return this.xaTerminator;
+    }
+
+    public Integer getInboundServerPort()
+    {
+        return  inboundServerPort;
+    }
+
+    public void setInboundServerPort( Integer port )
+    {
+        this.inboundServerPort = port;
+    }
+
+    public CasualServer getServer()
+    {
+        return server;
     }
 
     @Override

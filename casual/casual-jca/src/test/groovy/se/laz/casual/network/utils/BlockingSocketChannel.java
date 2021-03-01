@@ -42,6 +42,8 @@ public class BlockingSocketChannel extends AbstractTestSocketChannel
             blockingLatch.await();
         } catch (InterruptedException e)
         {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
         }
 
         return -1;

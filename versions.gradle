@@ -7,7 +7,7 @@
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '1.0.49-beta'
+version = '1.0.50-beta'
 
 ext.casual_caller_app_version = '1.0'
 
@@ -19,7 +19,6 @@ ext.libs = [
   // test
   hamcrest_all: 'org.hamcrest:hamcrest-all:1.3',
   commons_io: 'commons-io:commons-io:2.4',
-  system_rules: 'com.github.stefanbirkner:system-rules:1.19.0',
   system_lambda: 'com.github.stefanbirkner:system-lambda:1.2.0',
   // for spock
   groovy_all: 'org.codehaus.groovy:groovy-all:2.5+',

@@ -17,6 +17,7 @@ import spock.lang.Specification
 import javax.resource.spi.BootstrapContext
 import javax.resource.spi.XATerminator
 import javax.resource.spi.endpoint.MessageEndpointFactory
+import javax.resource.spi.work.WorkException
 import javax.resource.spi.work.WorkManager
 
 class CasualResourceAdapterTest extends Specification
@@ -26,7 +27,7 @@ class CasualResourceAdapterTest extends Specification
 
     def setup()
     {
-        instance = new CasualResourceAdapter()
+        instance = new CasualResourceAdapter( )
     }
 
     def "GetXAResources"()
@@ -91,12 +92,40 @@ class CasualResourceAdapterTest extends Specification
         Integer port = okAddress.getPort()
         instance.setInboundServerPort( port )
 
+        1* manager.startWork( _,_,_,_ ) >> { work, a, b, c ->
+            work.run(  )
+            return 0
+        }
+
         when:
         instance.endpointActivation(factory, spec)
 
         then:
         spec.getPort() == port
-        instance.server.channel.isActive()
+        instance.getServer(  ).isActive()
+    }
+
+    def "Activate endpoint, work fails, InboundStartupException thrown."()
+    {
+        setup:
+        BootstrapContext context = Mock(BootstrapContext)
+        WorkManager manager = Mock(WorkManager)
+        XATerminator xat = Mock(XATerminator)
+        context.getWorkManager() >> manager
+        context.getXATerminator() >> xat
+        instance.start(context)
+        MessageEndpointFactory factory = Mock(MessageEndpointFactory)
+        CasualActivationSpec spec = new CasualActivationSpec()
+        Integer port = okAddress.getPort()
+        instance.setInboundServerPort( port )
+
+        1* manager.startWork( _,_,_,_ ) >> { throw new WorkException("Refused") }
+
+        when:
+        instance.endpointActivation(factory, spec)
+
+        then:
+        thrown InboundStartupException
     }
 
     def "Deactivate endpoint"()

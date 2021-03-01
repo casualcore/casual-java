@@ -32,3 +32,5 @@ See [casual caller documentation](casual/casual-caller-api/README.md) for more i
 
 ## Further information
 [Deployment](deployment.md)
+[Configuration](configuration.md)
+[Inbound Server](inbound.md)

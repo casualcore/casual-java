@@ -1,0 +1,26 @@
+/*
+ * Copyright (c) 2021, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
+plugins {
+  id 'ear'
+}
+
+def appVersion = version
+
+dependencies {
+  earlib project( path: ':casual:casual-api')
+  deploy project( path: ':casual:casual-inbound-startup-trigger')
+}
+
+ear{
+  deploymentDescriptor{
+    applicationName = "casual-inbound-startup-trigger-app"
+    initializeInOrder = true
+    displayName = "Casual Inbound Startup Trigger App"
+    description = "Casual application to be deployed after all inbound services are deployed to trigger inbound startup"
+  }
+  archiveName = "casual-inbound-startup-trigger-app-" + appVersion + ".ear"
+}

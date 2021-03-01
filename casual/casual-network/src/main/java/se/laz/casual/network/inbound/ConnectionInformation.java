@@ -13,7 +13,7 @@ import java.util.Objects;
 
 public final class ConnectionInformation
 {
-    private static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER";
+    public static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER";
     private final int port;
     private final MessageEndpointFactory factory;
     private final XATerminator xaTerminator;

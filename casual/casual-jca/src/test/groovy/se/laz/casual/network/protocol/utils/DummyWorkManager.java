@@ -86,6 +86,7 @@ public class DummyWorkManager implements WorkManager
         }
         catch (InterruptedException e)
         {
+            Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
     }

@@ -6,20 +6,16 @@
 
 package se.laz.casual.api.buffer.type.fielded
 
-import org.junit.Rule
-import spock.lang.IgnoreIf
+
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
-import org.junit.contrib.java.lang.system.EnvironmentVariables
 
-// TODO: Remove this once https://github.com/stefanbirkner/system-rules is fixed for java 11
-@IgnoreIf({ jvm.isJava11()  })
+import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
+
 class EncodingInfoProviderTest extends Specification
 {
-    @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables()
 
     @Shared
     def defaultEncoding = StandardCharsets.UTF_8
@@ -43,20 +39,28 @@ class EncodingInfoProviderTest extends Specification
 
     def 'env set to latin 1'()
     {
-        setup:
-        environmentVariables.set(EncodingInfoProvider.FIELDED_ENCODING_ENV_NAME, latinOneEncoding.name())
+        given:
+        def c
+
         when:
-        def c = instance.getCharset()
+        withEnvironmentVariable(EncodingInfoProvider.FIELDED_ENCODING_ENV_NAME, latinOneEncoding.name()).execute( {
+            c = instance.getCharset()
+        } )
+
         then:
         c == latinOneEncoding
     }
 
     def 'unknown charset name, should default to default encoding'()
     {
-        setup:
-        environmentVariables.set(EncodingInfoProvider.FIELDED_ENCODING_ENV_NAME, 'this is not an encoding')
+        given:
+        def c
+
         when:
-        def c = instance.getCharset()
+        withEnvironmentVariable(EncodingInfoProvider.FIELDED_ENCODING_ENV_NAME, 'this is not an encoding').execute( {
+            c = instance.getCharset()
+        } )
+
         then:
         c == defaultEncoding
     }

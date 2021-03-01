@@ -89,12 +89,20 @@ class CasualServerTest extends Specification
                                                                   .withWorkManager(workManager)
                                                                   .build())
         InetSocketAddress address = (InetSocketAddress) server.channel.localAddress()
+
         when:
         sendMsg(address, message)
+
+        then:
+        server.isActive(  )
+
+        when:
         server.close()
+
         then:
         noExceptionThrown()
         1 * listener.domainConnectRequest(*_)
+        !server.isActive(  )
         !server.channel.isOpen()
     }
 

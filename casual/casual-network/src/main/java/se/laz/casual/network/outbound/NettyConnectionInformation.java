@@ -15,7 +15,7 @@ import java.util.UUID;
 
 public final class NettyConnectionInformation extends BaseConnectionInformation
 {
-    private static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER";
+    public static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER";
 
     private final Class<? extends Channel> channelClass;
     private final Correlator correlator;

@@ -8,6 +8,7 @@ package se.laz.casual.jca.inbound.handler.buffer;
 
 import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.jca.inbound.handler.HandlerException;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 
@@ -44,7 +45,7 @@ public class PassThroughBufferHandler implements BufferHandler
         }
         else
         {
-            throw new CasualRuntimeException("Unable to perform passthrough as dispatch method does not accept required parameter.");
+            throw new HandlerException("Unable to perform passthrough as dispatch method does not accept required parameter.");
         }
         return ServiceCallInfo.of( method, params );
     }

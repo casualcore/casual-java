@@ -18,7 +18,7 @@ dependencies {
   provided libs.gson
   provided libs.objenesis
 
-  testCompile libs.system_rules
+  testCompile libs.system_lambda
 
   // for spock
   testCompile libs.groovy_all

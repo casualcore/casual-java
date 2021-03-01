@@ -65,6 +65,15 @@ public final class CasualServer
         return b.bind(new InetSocketAddress(port)).syncUninterruptibly().channel();
     }
 
+    public boolean isActive( )
+    {
+        if( this.channel != null )
+        {
+            return this.channel.isActive();
+        }
+        return false;
+    }
+
     public void close()
     {
         log.info(() -> "closing server");

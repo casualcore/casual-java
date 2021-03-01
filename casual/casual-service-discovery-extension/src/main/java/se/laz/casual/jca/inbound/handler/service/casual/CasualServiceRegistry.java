@@ -77,4 +77,11 @@ public final class CasualServiceRegistry
         return serviceMetaData.values().stream().filter(CasualServiceMetaData::isUnresolved).collect(Collectors.toList());
     }
 
+    public void clear()
+    {
+        this.serviceMetaData.clear();
+        this.serviceEntries.clear();
+    }
+
+
 }

@@ -6,8 +6,7 @@
 
 package se.laz.casual.network.inbound
 
-import org.junit.Rule
-import org.junit.contrib.java.lang.system.EnvironmentVariables
+
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -15,10 +14,10 @@ import javax.resource.spi.XATerminator
 import javax.resource.spi.endpoint.MessageEndpointFactory
 import javax.resource.spi.work.WorkManager
 
+import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
+
 class ConnectionInformationTest extends Specification
 {
-    @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables()
     @Shared
     def mockFactory = Mock(MessageEndpointFactory)
     @Shared
@@ -59,13 +58,19 @@ class ConnectionInformationTest extends Specification
     def 'ok construction - network logging'()
     {
         given:
-        environmentVariables.set(ConnectionInformation.USE_LOG_HANDLER_ENV_NAME,'true')
+        def instance
+
         when:
-        def instance = ConnectionInformation.createBuilder()
-                .withWorkManager(mockWorkManager)
-                .withXaTerminator(mockXATerminator)
-                .withFactory(mockFactory)
-                .build()
+        withEnvironmentVariable(ConnectionInformation.USE_LOG_HANDLER_ENV_NAME,'true').execute(
+                {
+                    instance = ConnectionInformation.createBuilder()
+                        .withWorkManager(mockWorkManager)
+                        .withXaTerminator(mockXATerminator)
+                        .withFactory(mockFactory)
+                        .build()
+                }
+        )
+
         then:
         noExceptionThrown()
         instance != null

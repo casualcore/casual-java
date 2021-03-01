@@ -6,7 +6,6 @@
 
 plugins {
   id 'ear'
-  id 'java'
 }
 
 // since version in ear/deploymentDescriptor is the version of application.xml

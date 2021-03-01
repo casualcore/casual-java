@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 @ChannelHandler.Sharable
 public final class ExceptionHandler extends ChannelInboundHandlerAdapter
 {
-    private static final Logger log = Logger.getLogger(ChannelInboundHandlerAdapter.class.getName());
+    private static final Logger log = Logger.getLogger(ExceptionHandler.class.getName());
     public static ExceptionHandler of()
     {
         return new ExceptionHandler();
