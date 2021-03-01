@@ -16,5 +16,5 @@ dependencies {
 }
 
 jar{
-  archiveName("casual-caller-api.jar")
+  archiveName("casual-caller-api-${casual_caller_app_version}.jar")
 }
