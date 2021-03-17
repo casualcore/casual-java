@@ -17,10 +17,10 @@ public class CStringBuffer implements CasualBuffer
     private static final byte NULL_TERMINATOR_BYTE = NULL_TERMINATOR.getBytes()[0];
 
     private static final long serialVersionUID = 1L;
-    private final Charset charset;
+    private final String charset;
     private final byte[] payload;
 
-    private CStringBuffer(byte[] payload, Charset charset)
+    private CStringBuffer(byte[] payload, String charset)
     {
         this.payload = payload;
         this.charset = charset;
@@ -48,7 +48,7 @@ public class CStringBuffer implements CasualBuffer
         {
             data += NULL_TERMINATOR;
         }
-        return new CStringBuffer(data.getBytes(charset), charset);
+        return new CStringBuffer(data.getBytes(charset), charset.name());
     }
 
 
@@ -77,12 +77,12 @@ public class CStringBuffer implements CasualBuffer
         {
             throw new IllegalArgumentException("the byte[] must be null terminated.");
         }
-        return new CStringBuffer(data, charset);
+        return new CStringBuffer(data, charset.name());
     }
 
     public Charset getCharset()
     {
-        return charset;
+        return Charset.forName(charset);
     }
 
     @Override
@@ -98,6 +98,6 @@ public class CStringBuffer implements CasualBuffer
     @Override
     public String toString()
     {
-        return new String(payload, 0,payload.length - 1, charset);
+        return new String(payload, 0,payload.length - 1, Charset.forName(charset));
     }
 }
