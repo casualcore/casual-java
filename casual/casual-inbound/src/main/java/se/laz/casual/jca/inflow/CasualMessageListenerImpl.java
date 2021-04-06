@@ -88,7 +88,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
 
         CasualReply.Builder envelope = CasualReply.newBuilder()
                                                   .setCorrelationId(message.getCorrelationId())
-                                                  .setMessageType(CasualReply.MessageType.DOMAIN_CONNECT_REPLY);
+                                                  .setMessageType(CasualReply.MessageType.DOMAIN_DISCOVERY_REPLY);
         CasualDomainDiscoveryRequest request = message.getDomainDiscovery();
 
         CasualDomainDiscoveryReply.Builder replyBuilder = CasualDomainDiscoveryReply.newBuilder()

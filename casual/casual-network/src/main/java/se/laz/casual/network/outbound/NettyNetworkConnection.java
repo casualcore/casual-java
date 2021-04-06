@@ -150,6 +150,7 @@ public final class NettyNetworkConnection implements NetworkConnection
                                                                               .build();
 
         CasualRequest envelope = CasualRequest.newBuilder()
+                                              .setMessageType(CasualRequest.MessageType.DOMAIN_CONNECT_REQUEST)
                                               .setCorrelationId(MessageCreator.toUUID4(UUID.randomUUID()))
                                               .setDomainConnect(requestMessage)
                                               .build();
