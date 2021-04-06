@@ -14,22 +14,22 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.protobuf.ProtobufDecoder;
+import io.netty.handler.codec.protobuf.ProtobufEncoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
-import se.laz.casual.internal.network.OutboundConnectionInformation;
 import se.laz.casual.internal.network.NetworkConnection;
-import se.laz.casual.network.CasualNWMessageDecoder;
-import se.laz.casual.network.CasualNWMessageEncoder;
+import se.laz.casual.internal.network.OutboundConnectionInformation;
 import se.laz.casual.network.connection.CasualConnectionException;
-import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
+import se.laz.casual.network.grpc.MessageCreator;
+import se.laz.casual.network.messages.CasualDomainConnectRequest;
+import se.laz.casual.network.messages.CasualReply;
+import se.laz.casual.network.messages.CasualRequest;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -79,7 +79,8 @@ public final class NettyNetworkConnection implements NetworkConnection
                 @Override
                 protected void initChannel(SocketChannel ch)
                 {
-                    ch.pipeline().addLast(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), messageHandler, exceptionHandler);
+                    ch.pipeline().addLast(new ProtobufVarint32FrameDecoder(), new ProtobufDecoder(CasualReply.getDefaultInstance()),
+                                          new ProtobufVarint32LengthFieldPrepender(), new ProtobufEncoder(), messageHandler, exceptionHandler);
                     if(enableLogHandler)
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevel.INFO));
@@ -104,23 +105,23 @@ public final class NettyNetworkConnection implements NetworkConnection
     }
 
     @Override
-    public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message)
+    public CompletableFuture<CasualReply> request(CasualRequest message)
     {
-        CompletableFuture<CasualNWMessage<T>> f = new CompletableFuture<>();
+        CompletableFuture<CasualReply> f = new CompletableFuture<>();
         if(!channel.isActive())
         {
             f.completeExceptionally(new CasualConnectionException("can not write msg: " + message + " connection is gone"));
             return f;
         }
-        correlator.put(message.getCorrelationId(), f);
+        correlator.put(MessageCreator.toUUID(message.getCorrelationId()), f);
         ChannelFuture cf = channel.writeAndFlush(message);
         //this handles any exceptional behaviour when writing
         cf.addListener(v -> {
             if(!v.isSuccess()){
                 List<UUID> l = new ArrayList<>();
-                l.add(message.getCorrelationId());
+                l.add(MessageCreator.toUUID(message.getCorrelationId()));
                 correlator.completeExceptionally(l, new CasualConnectionException(cf.cause()));
-            }// successful correlation is done in CasualMessageHandler
+            }// successful correlation is done in CasualProtoBufMessageHandler
         });
         return f;
     }
@@ -141,18 +142,22 @@ public final class NettyNetworkConnection implements NetworkConnection
 
     private void throwIfProtocolVersionNotSupportedByEIS(long version, final UUID domainId, final String domainName)
     {
-        CasualDomainConnectRequestMessage requestMessage = CasualDomainConnectRequestMessage.createBuilder()
-                                                                                            .withExecution(UUID.randomUUID())
-                                                                                            .withDomainId(domainId)
-                                                                                            .withDomainName(domainName)
-                                                                                            .withProtocols(Arrays.asList(version))
-                                                                                            .build();
-        CasualNWMessage<CasualDomainConnectRequestMessage> nwMessage = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage);
-        CompletableFuture<CasualNWMessage<CasualDomainConnectReplyMessage>> replyEnvelopeFuture = request(nwMessage);
-        CasualNWMessage<CasualDomainConnectReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
-        if(replyEnvelope.getMessage().getProtocolVersion() != version)
+        CasualDomainConnectRequest requestMessage = CasualDomainConnectRequest.newBuilder()
+                                                                              .setExecution(MessageCreator.toUUID4(UUID.randomUUID()))
+                                                                              .setDomainId(MessageCreator.toUUID4(domainId))
+                                                                              .setDomainName(domainName)
+                                                                              .setProtocolVersion(0, version)
+                                                                              .build();
+
+        CasualRequest envelope = CasualRequest.newBuilder()
+                                              .setCorrelationId(MessageCreator.toUUID4(UUID.randomUUID()))
+                                              .setDomainConnect(requestMessage)
+                                              .build();
+        CompletableFuture<CasualReply> replyEnvelopeFuture = request(envelope);
+        CasualReply replyEnvelope = replyEnvelopeFuture.join();
+        if(replyEnvelope.getDomainConnect().getProtocolVersion() != version)
         {
-            throw new CasualConnectionException("wanted protocol version " + version + " is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion());
+            throw new CasualConnectionException("wanted protocol version " + version + " is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getDomainConnect().getProtocolVersion());
         }
     }
 

@@ -7,8 +7,8 @@
 package se.laz.casual.jca.inflow;
 
 import io.netty.channel.Channel;
+import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.XAFlags;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.api.xa.XAReturnCode;
 import se.laz.casual.api.xa.XID;
@@ -17,19 +17,21 @@ import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
-import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.laz.casual.network.grpc.MessageCreator;
+import se.laz.casual.network.messages.CasualCommitReply;
+import se.laz.casual.network.messages.CasualCommitRequest;
+import se.laz.casual.network.messages.CasualDomainConnectReply;
+import se.laz.casual.network.messages.CasualDomainConnectRequest;
+import se.laz.casual.network.messages.CasualDomainDiscoveryReply;
+import se.laz.casual.network.messages.CasualDomainDiscoveryRequest;
+import se.laz.casual.network.messages.CasualPrepareReply;
+import se.laz.casual.network.messages.CasualPrepareRequest;
+import se.laz.casual.network.messages.CasualReply;
+import se.laz.casual.network.messages.CasualRequest;
+import se.laz.casual.network.messages.CasualRollbackReply;
+import se.laz.casual.network.messages.CasualRollbackRequest;
+import se.laz.casual.network.messages.CasualServiceCallRequest;
 import se.laz.casual.network.protocol.messages.domain.Service;
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareReplyMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackReplyMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
@@ -46,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Inbound Casual Message Listener, responsible for handling all inbound requests received.
@@ -62,30 +65,39 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     private static final Long CASUAL_PROTOCOL_VERSION = 1000L;
 
     @Override
-    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel)
+    public void domainConnectRequest(CasualRequest message, Channel channel)
     {
         log.finest( "domainConnectRequest()." );
-
-        CasualDomainConnectReplyMessage reply = CasualDomainConnectReplyMessage.createBuilder()
-                                                                               .withDomainId( message.getMessage().getDomainId() )
-                                                                               .withDomainName( message.getMessage().getDomainName() )
-                                                                               .withExecution( message.getMessage().getExecution() )
-                                                                               .withProtocolVersion(CASUAL_PROTOCOL_VERSION)
-                                                                               .build();
-        CasualNWMessage<CasualDomainConnectReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
-        channel.writeAndFlush(replyMessage);
+        CasualReply.Builder envelope = CasualReply.newBuilder()
+                                                  .setCorrelationId(message.getCorrelationId())
+                                                  .setMessageType(CasualReply.MessageType.DOMAIN_CONNECT_REPLY);
+        CasualDomainConnectRequest request = message.getDomainConnect();
+        CasualDomainConnectReply reply = CasualDomainConnectReply.newBuilder()
+                                                                 .setDomainId(request.getDomainId())
+                                                                 .setDomainName(request.getDomainName())
+                                                                 .setExecution(request.getExecution())
+                                                                 .setProtocolVersion(CASUAL_PROTOCOL_VERSION)
+                                                                 .build();
+        channel.writeAndFlush(envelope.setDomainConnect(reply).build());
     }
 
     @Override
-    public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel)
+    public void domainDiscoveryRequest(CasualRequest message, Channel channel)
     {
         log.finest( "domainDiscoveryRequest()." );
 
-        CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), message.getMessage().getDomainId(), message.getMessage().getDomainName() );
+        CasualReply.Builder envelope = CasualReply.newBuilder()
+                                                  .setCorrelationId(message.getCorrelationId())
+                                                  .setMessageType(CasualReply.MessageType.DOMAIN_CONNECT_REPLY);
+        CasualDomainDiscoveryRequest request = message.getDomainDiscovery();
 
+        CasualDomainDiscoveryReply.Builder replyBuilder = CasualDomainDiscoveryReply.newBuilder()
+                                                                                    .setExecution(request.getExecution())
+                                                                                    .setDomainId(request.getDomainId())
+                                                                                    .setDomainName(request.getDomainName());
         List<Service> services = new ArrayList<>();
 
-        for( String service: message.getMessage().getServiceNames() )
+        for( String service: request.getServiceNamesList() )
         {
             try
             {
@@ -99,25 +111,32 @@ public class CasualMessageListenerImpl implements CasualMessageListener
                 //Service does not exist. Continue with the next one in the list.
             }
         }
-        reply.setServices( services );
-
-        CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
-        channel.writeAndFlush(replyMessage);
+        replyBuilder.addAllServices(services.stream()
+                                            .map(s -> se.laz.casual.network.messages.Service.newBuilder()
+                                                                                            .setTransactionType(MessageCreator.toTransactionType(s.getTransactionType()))
+                                                                                            .setTimeout(s.getTimeout())
+                                                                                            .setCategory(s.getCategory())
+                                                                                            .setHops(s.getHops())
+                                                                                            .setName(s.getName())
+                                                                                            .build())
+                                            .collect(Collectors.toList()));
+        channel.writeAndFlush(envelope.setDomainDiscovery(replyBuilder.build()).build());
     }
 
     @Override
-    public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager )
+    public void serviceCallRequest(CasualRequest message, Channel channel, WorkManager workManager )
     {
         log.finest( "serviceCallRequest()." );
 
-        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() );
+        CasualServiceCallRequest request = message.getServiceCall();
+        CasualServiceCallWork work = new CasualServiceCallWork(MessageCreator.toUUID(message.getCorrelationId()), request );
 
-        Xid xid = message.getMessage().getXid();
+        Xid xid = MessageCreator.toXID(request.getXid());
 
         try
         {
             long startup = isServiceCallTransactional( xid ) ?
-                    workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
+                    workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, request.getTimeout() ), new ServiceCallWorkListener( channel ) ) :
                     workManager.startWork( work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener( channel ));
             log.finest( ()->"Service call startup: "+ startup + "ms.");
         }
@@ -152,17 +171,20 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator)
+    public void prepareRequest(CasualRequest message, Channel channel, XATerminator xaTerminator)
     {
         log.finest( "prepareRequest()." );
 
-        Xid xid = message.getMessage().getXid();
+        CasualPrepareRequest request = message.getPrepare();
+
+        Xid xid = MessageCreator.toXID(request.getXid());
         int status = -1;
         try
         {
             status = xaTerminator.prepare( xid );
 
-        } catch (XAException e)
+        }
+        catch (XAException e)
         {
 
             status = e.errorCode;
@@ -170,79 +192,96 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         }
         finally
         {
+            CasualPrepareReply reply = CasualPrepareReply.newBuilder()
+                                                         .setExecution(request.getExecution())
+                                                         .setXid(request.getXid())
+                                                         .setResourceManagerId(request.getResourceManagerId())
+                                                         .setXaReturnCode(se.laz.casual.network.messages.XAReturnCode.valueOf(XAReturnCode.unmarshal(status).name()))
+                                                         .build();
 
-            CasualTransactionResourcePrepareReplyMessage reply =
-                    CasualTransactionResourcePrepareReplyMessage.of(
-                            message.getMessage().getExecution(),
-                            xid,
-                            message.getMessage().getResourceId(),
-                            XAReturnCode.unmarshal(status)
-                    );
-            CasualNWMessageImpl<CasualTransactionResourcePrepareReplyMessage> replyMessage = CasualNWMessageImpl.of(message.getCorrelationId(), reply);
-            channel.writeAndFlush(replyMessage);
+            CasualReply envelope = CasualReply.newBuilder()
+                                                      .setCorrelationId(message.getCorrelationId())
+                                                      .setMessageType(CasualReply.MessageType.PREPARE_REPLY)
+                                                      .setPrepare(reply)
+                                                      .build();
+            channel.writeAndFlush(envelope);
         }
     }
 
     @Override
-    public void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator)
+    public void commitRequest(CasualRequest message, Channel channel, XATerminator xaTerminator)
     {
         log.finest( "commitRequest()." );
 
-        Xid xid = message.getMessage().getXid();
-        boolean onePhase = message.getMessage().getFlags().isSet( XAFlags.TMONEPHASE );
+        CasualCommitRequest request = message.getCommit();
+
+        Xid xid = MessageCreator.toXID(request.getXid());
+
+        boolean onePhase = new Flag.Builder<XAFlags>((int)request.getXaFlags()).build().isSet(XAFlags.TMONEPHASE);
 
         int status = -1;
         try
         {
             xaTerminator.commit( xid, onePhase );
-
-        } catch (XAException e)
+        }
+        catch (XAException e)
         {
             status = e.errorCode;
             log.log( Level.WARNING, e, ()-> "XAExcception commit()" + e.getMessage() );
         }
         finally
         {
-            CasualTransactionResourceCommitReplyMessage reply =
-                    CasualTransactionResourceCommitReplyMessage.of(
-                            message.getMessage().getExecution(),
-                            xid,
-                            message.getMessage().getResourceId(),
-                            status == -1 ? XAReturnCode.XA_OK : XAReturnCode.unmarshal( status )
-                    );
-            CasualNWMessageImpl<CasualTransactionResourceCommitReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
-            channel.writeAndFlush(replyMessage);
+            se.laz.casual.network.messages.XAReturnCode xaReturnCode = se.laz.casual.network.messages.XAReturnCode.valueOf(status == -1 ? XAReturnCode.XA_OK.name() : XAReturnCode.unmarshal( status ).name());
+            CasualCommitReply reply = CasualCommitReply.newBuilder()
+                                                       .setExecution(request.getExecution())
+                                                       .setXid(request.getXid())
+                                                       .setResourceManagerId(request.getResourceManagerId())
+                                                       .setXaReturnCode(xaReturnCode)
+                                                       .build();
+            CasualReply envelope = CasualReply.newBuilder()
+                                              .setCorrelationId(message.getCorrelationId())
+                                              .setMessageType(CasualReply.MessageType.COMMIT_REPLY)
+                                              .setCommit(reply)
+                                              .build();
+            channel.writeAndFlush(envelope);
         }
     }
 
     @Override
-    public void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator)
+    public void requestRollback(CasualRequest message, Channel channel, XATerminator xaTerminator)
     {
         log.finest( "requestRollback()." );
 
-        Xid xid = message.getMessage().getXid();
+        CasualRollbackRequest request = message.getRollback();
+
+        Xid xid = MessageCreator.toXID(request.getXid());
 
         int status = -1;
         try
         {
             xaTerminator.rollback( xid );
 
-        } catch (XAException e)
+        }
+        catch (XAException e)
         {
             status = e.errorCode;
             log.log( Level.WARNING, e, ()-> "XAException rollback()" + e.getMessage() );
         }
         finally
         {
-            CasualTransactionResourceRollbackReplyMessage reply =
-                    CasualTransactionResourceRollbackReplyMessage.of(
-                            message.getMessage().getExecution(),
-                            xid,
-                            message.getMessage().getResourceId(),
-                            status == -1 ? XAReturnCode.XA_OK : XAReturnCode.unmarshal( status )
-                    );
-            CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
-            channel.writeAndFlush(replyMessage);
+            se.laz.casual.network.messages.XAReturnCode xaReturnCode = se.laz.casual.network.messages.XAReturnCode.valueOf(status == -1 ? XAReturnCode.XA_OK.name() : XAReturnCode.unmarshal( status ).name());
+            CasualRollbackReply reply = CasualRollbackReply.newBuilder()
+                                                           .setExecution(request.getExecution())
+                                                           .setXid(request.getXid())
+                                                           .setResourceManagerId(request.getResourceManagerId())
+                                                           .setXaReturnCode(xaReturnCode)
+                                                           .build();
+            CasualReply envelope = CasualReply.newBuilder()
+                                              .setCorrelationId(message.getCorrelationId())
+                                              .setMessageType(CasualReply.MessageType.ROLLBACK_REPLY)
+                                              .setRollback(reply)
+                                              .build();
+            channel.writeAndFlush(envelope);
         }
     }
 }

@@ -9,6 +9,7 @@ package se.laz.casual.network.outbound
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.util.concurrent.Future
+import org.junit.Ignore
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl

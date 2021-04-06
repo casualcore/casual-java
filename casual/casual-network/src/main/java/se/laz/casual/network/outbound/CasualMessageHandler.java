@@ -30,7 +30,7 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final CasualNWMessage<?> msg)
     {
-        correlator.complete(msg);
+        //correlator.complete(msg);
     }
 
 }

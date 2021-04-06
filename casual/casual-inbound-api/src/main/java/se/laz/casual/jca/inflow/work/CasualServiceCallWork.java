@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.inflow.work;
 
+import com.google.protobuf.ByteString;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
@@ -16,11 +17,18 @@ import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
+import se.laz.casual.network.grpc.MessageCreator;
+import se.laz.casual.network.messages.CasualReply;
+import se.laz.casual.network.messages.CasualRequest;
+import se.laz.casual.network.messages.CasualServiceCallReply;
+import se.laz.casual.network.messages.CasualServiceCallRequest;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
 import javax.resource.spi.work.Work;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -31,23 +39,23 @@ public final class CasualServiceCallWork implements Work
 {
     private static Logger log = Logger.getLogger(CasualServiceCallWork.class.getName());
 
-    private final CasualServiceCallRequestMessage message;
+    private final CasualServiceCallRequest request;
 
     private final UUID correlationId;
 
-    private CasualNWMessage<CasualServiceCallReplyMessage> response;
+    private CasualReply response;
 
     private ServiceHandler handler = null;
 
-    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message )
+    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequest request)
     {
         this.correlationId = correlationId;
-        this.message = message;
+        this.request = request;
     }
 
-    public CasualServiceCallRequestMessage getMessage()
+    public CasualServiceCallRequest getRequest()
     {
-        return message;
+        return request;
     }
 
     public UUID getCorrelationId()
@@ -55,7 +63,7 @@ public final class CasualServiceCallWork implements Work
         return correlationId;
     }
 
-    public CasualNWMessage<CasualServiceCallReplyMessage> getResponse()
+    public CasualReply getResponse()
     {
         return this.response;
     }
@@ -73,38 +81,44 @@ public final class CasualServiceCallWork implements Work
     @Override
     public void run()
     {
-        CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
-                .setXid( message.getXid() )
-                .setExecution( message.getExecution() );
+        CasualServiceCallReply.Builder replyBuilder = CasualServiceCallReply.newBuilder()
+                                                                            .setXid(request.getXid())
+                                                                            .setExecution(request.getExecution());
 
         CasualBuffer serviceResult = ServiceBuffer.empty();
         try
         {
-            ServiceHandler h = getHandler(message.getServiceName());
+            ServiceHandler h = getHandler(request.getServiceName());
 
-            InboundRequest request = InboundRequest.of( message.getServiceName(), message.getServiceBuffer() );
+            List<byte[]> payload = new ArrayList<>();
+            payload.add(this.request.getPayload().toByteArray());
+            InboundRequest request = InboundRequest.of( this.request.getServiceName(),
+                                                        ServiceBuffer.of(this.request.getBufferTypeName(), payload));
             InboundResponse reply = h.invokeService( request );
             serviceResult = reply.getBuffer();
 
             replyBuilder
-                    .setError(reply.getErrorState())
-                    .setTransactionState(reply.getTransactionState())
-                    .setUserSuppliedError( reply.getUserSuppliedErrorCode() );
+                    .setResult(reply.getErrorState().getValue())
+                    .setTransactionState(MessageCreator.toTransactionState(reply.getTransactionState()))
+                    .setUser( reply.getUserSuppliedErrorCode() );
         }
         catch( ServiceHandlerNotFoundException e )
         {
-            replyBuilder.setError( ErrorState.TPENOENT )
-                    .setTransactionState( TransactionState.ROLLBACK_ONLY );
-            log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
+            replyBuilder.setResult( ErrorState.TPENOENT.getValue() )
+                        .setTransactionState( MessageCreator.toTransactionState(TransactionState.ROLLBACK_ONLY ));
+            log.warning( ()-> "ServiceHandler not available for: " + request.getServiceName() );
         }
         finally
         {
-            CasualServiceCallReplyMessage reply = replyBuilder
-                    .setServiceBuffer( ServiceBuffer.of( serviceResult ) )
+            CasualServiceCallReply reply = replyBuilder
+                    .setPayload(ByteString.copyFrom(serviceResult.getBytes().get(0)))
+                    .setBufferTypeName(serviceResult.getType())
                     .build();
-            CasualNWMessage<CasualServiceCallReplyMessage> replyMessage = CasualNWMessageImpl.of( correlationId,reply );
-
-            response = replyMessage;
+            response = CasualReply.newBuilder()
+                                  .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                                  .setMessageType(CasualReply.MessageType.SERVICE_CALL_REPLY)
+                                  .setServiceCall(reply)
+                                  .build();
         }
     }
 

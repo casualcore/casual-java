@@ -15,6 +15,7 @@ dependencies {
   provided project(':casual:casual-inbound-handler-api')
   implementation project(":casual:casual-internal")
   implementation project(":casual:casual-network-protocol")
+  compileOnly project(':casual:casual-network-proto-buf')
 
   provided libs.javaee_api
   provided libs.netty

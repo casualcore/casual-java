@@ -9,14 +9,8 @@ package se.laz.casual.network.inbound;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.jca.inflow.CasualMessageListener;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
+import se.laz.casual.network.messages.CasualRequest;
 
 import javax.resource.spi.XATerminator;
 import javax.resource.spi.endpoint.MessageEndpoint;
@@ -26,7 +20,7 @@ import java.util.Objects;
 import java.util.logging.Logger;
 
 @ChannelHandler.Sharable
-public final class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
+public final class CasualMessageHandler extends SimpleChannelInboundHandler<CasualRequest>
 {
     private static Logger log = Logger.getLogger(CasualMessageHandler.class.getName());
     private final MessageEndpointFactory factory;
@@ -48,34 +42,33 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
         return new CasualMessageHandler(factory, xaTerminator, workManager);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, CasualNWMessage<?> message) throws Exception
+    protected void channelRead0(ChannelHandlerContext ctx, CasualRequest message) throws Exception
     {
         MessageEndpoint endpoint = factory.createEndpoint(null);
         CasualMessageListener listener = (CasualMessageListener) endpoint;
-        switch ( message.getType() )
+        switch ( message.getMessageType() )
         {
             case COMMIT_REQUEST:
-                listener.commitRequest((CasualNWMessage<CasualTransactionResourceCommitRequestMessage>)message, ctx.channel(), xaTerminator);
+                listener.commitRequest(message, ctx.channel(), xaTerminator);
                 break;
             case PREPARE_REQUEST:
-                listener.prepareRequest((CasualNWMessage<CasualTransactionResourcePrepareRequestMessage>)message, ctx.channel(), xaTerminator);
+                listener.prepareRequest(message, ctx.channel(), xaTerminator);
                 break;
-            case REQUEST_ROLLBACK:
-                listener.requestRollback((CasualNWMessage<CasualTransactionResourceRollbackRequestMessage>)message, ctx.channel(), xaTerminator);
+            case ROLLBACK_REQUEST:
+                listener.requestRollback(message, ctx.channel(), xaTerminator);
                 break;
             case SERVICE_CALL_REQUEST:
-                listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager);
+                listener.serviceCallRequest(message, ctx.channel(), workManager);
                 break;
             case DOMAIN_CONNECT_REQUEST:
-                listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, ctx.channel());
+                listener.domainConnectRequest(message, ctx.channel());
                 break;
             case DOMAIN_DISCOVERY_REQUEST:
-                listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel());
+                listener.domainDiscoveryRequest(message, ctx.channel());
                 break;
             default:
-                log.warning("Message type not supported: " + message.getType());
+                log.warning("Message type not supported: " + message.getMessageType());
         }
     }
 

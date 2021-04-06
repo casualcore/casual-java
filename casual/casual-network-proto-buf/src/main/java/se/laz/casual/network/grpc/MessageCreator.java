@@ -25,10 +25,11 @@ import se.laz.casual.network.messages.Queue;
 import se.laz.casual.network.messages.QueueMessage;
 import se.laz.casual.network.messages.Selector;
 import se.laz.casual.network.messages.Service;
-import se.laz.casual.network.messages.State;
 import se.laz.casual.network.messages.TransactionState;
 import se.laz.casual.network.messages.UUID4;
+import se.laz.casual.network.messages.XAReturnCode;
 import se.laz.casual.network.messages.XID;
+import se.laz.casual.network.messages.domain.TransactionType;
 
 import javax.transaction.xa.Xid;
 import java.time.Instant;
@@ -121,13 +122,13 @@ public final class MessageCreator
                                    .build();
     }
 
-    public static CasualPrepareReply createCasualPrepareReply(UUID execution, XID xid, int resourceManagerId, State state)
+    public static CasualPrepareReply createCasualPrepareReply(UUID execution, XID xid, int resourceManagerId, XAReturnCode state)
     {
         return CasualPrepareReply.newBuilder()
                                  .setExecution(toUUID4(execution))
                                  .setXid(xid)
                                  .setResourceManagerId(resourceManagerId)
-                                 .setState(state)
+                                 .setXaReturnCode(state)
                                  .build();
     }
 
@@ -141,13 +142,13 @@ public final class MessageCreator
                                   .build();
     }
 
-    public static CasualCommitReply createCasualCommitReply(UUID execution, XID xid, int resourceManagerId, State state)
+    public static CasualCommitReply createCasualCommitReply(UUID execution, XID xid, int resourceManagerId, XAReturnCode state)
     {
         return CasualCommitReply.newBuilder()
                                 .setExecution(toUUID4(execution))
                                 .setXid(xid)
                                 .setResourceManagerId(resourceManagerId)
-                                .setState(state)
+                                .setXaReturnCode(state)
                                 .build();
     }
 
@@ -161,13 +162,13 @@ public final class MessageCreator
                                     .build();
     }
 
-    public static CasualRollbackReply createCasualRollbackReply(UUID execution, XID xid, int resourceManagerId, State state)
+    public static CasualRollbackReply createCasualRollbackReply(UUID execution, XID xid, int resourceManagerId, XAReturnCode state)
     {
         return CasualRollbackReply.newBuilder()
                                   .setExecution(toUUID4(execution))
                                   .setXid(xid)
                                   .setResourceManagerId(resourceManagerId)
-                                  .setState(state)
+                                  .setXaReturnCode(state)
                                   .build();
     }
 
@@ -209,6 +210,16 @@ public final class MessageCreator
     }
 
     // Helpers
+    public static se.laz.casual.network.messages.TransactionType toTransactionType(TransactionType transactionType)
+    {
+        return se.laz.casual.network.messages.TransactionType.forNumber(transactionType.getId());
+    }
+
+    public static se.laz.casual.network.messages.TransactionState toTransactionState(se.laz.casual.api.flags.TransactionState transactionState)
+    {
+        return se.laz.casual.network.messages.TransactionState.forNumber(transactionState.getId());
+    }
+
     public static UUID4 toUUID4(UUID id)
     {
         return UUID4.newBuilder()

@@ -6,8 +6,7 @@
 
 package se.laz.casual.network.outbound;
 
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.network.messages.CasualReply;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +17,6 @@ public interface Correlator
     boolean isEmpty();
     void completeExceptionally(final List<UUID> l, final Exception e);
     void completeAllExceptionally(final Exception e);
-    void put(final UUID corrid, final CompletableFuture<?> f);
-    <T extends CasualNetworkTransmittable>  void complete(final CasualNWMessage<T> msg);
+    void put(final UUID corrid, final CompletableFuture<CasualReply> f);
+    void complete(final CasualReply msg);
 }

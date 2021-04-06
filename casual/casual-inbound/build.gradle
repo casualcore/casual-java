@@ -16,6 +16,7 @@ dependencies {
   implementation project(':casual:casual-network-protocol')
   implementation project(':casual:casual-inbound-api')
   implementation project(':casual:casual-inbound-handler-api')
+  compileOnly project(':casual:casual-network-proto-buf')
   provided libs.javaee_api
   provided libs.netty
   testCompile project(':casual:casual-fielded-annotations')

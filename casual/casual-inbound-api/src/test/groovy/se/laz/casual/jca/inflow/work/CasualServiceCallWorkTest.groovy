@@ -84,7 +84,7 @@ class CasualServiceCallWorkTest extends Specification
     def "Get message."()
     {
         expect:
-        instance.getMessage() == message
+        instance.getRequest() == message
     }
 
     def "Get Response."()

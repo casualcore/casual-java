@@ -15,6 +15,7 @@ defaultTasks 'build'
 dependencies {
     provided project(':casual:casual-api')
     implementation project(':casual:casual-network-protocol')
+    compileOnly project(':casual:casual-network-proto-buf')
     provided libs.javaee_api
 
     // for spock

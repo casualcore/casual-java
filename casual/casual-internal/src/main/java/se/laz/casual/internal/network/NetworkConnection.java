@@ -6,8 +6,8 @@
 
 package se.laz.casual.internal.network;
 
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.network.messages.CasualReply;
+import se.laz.casual.network.messages.CasualRequest;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface NetworkConnection
 {
-    <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message);
+    CompletableFuture<CasualReply> request(CasualRequest message);
     void close();
     boolean isActive();
 }

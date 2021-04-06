@@ -6,22 +6,24 @@
 
 package se.laz.casual.jca.queue;
 
+import com.google.protobuf.ByteString;
 import se.laz.casual.api.CasualQueueApi;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.queue.MessageSelector;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
+import se.laz.casual.api.util.time.InstantUtil;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.connection.CasualConnectionException;
-import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
-import se.laz.casual.network.protocol.messages.domain.Queue;
-import se.laz.casual.network.protocol.messages.queue.CasualDequeueReplyMessage;
-import se.laz.casual.network.protocol.messages.queue.CasualDequeueRequestMessage;
-import se.laz.casual.network.protocol.messages.queue.CasualEnqueueReplyMessage;
-import se.laz.casual.network.protocol.messages.queue.CasualEnqueueRequestMessage;
-import se.laz.casual.network.protocol.messages.queue.EnqueueMessage;
+import se.laz.casual.network.grpc.MessageCreator;
+import se.laz.casual.network.messages.CasualDequeueReply;
+import se.laz.casual.network.messages.CasualDequeueRequest;
+import se.laz.casual.network.messages.CasualDomainDiscoveryReply;
+import se.laz.casual.network.messages.CasualDomainDiscoveryRequest;
+import se.laz.casual.network.messages.CasualEnqueueReply;
+import se.laz.casual.network.messages.CasualEnqueueRequest;
+import se.laz.casual.network.messages.CasualReply;
+import se.laz.casual.network.messages.CasualRequest;
+import se.laz.casual.network.messages.Selector;
 
 import java.util.Arrays;
 import java.util.List;
@@ -85,52 +87,85 @@ public class CasualQueueCaller implements CasualQueueApi
 
     private UUID makeEnqueueCall(UUID corrid, QueueInfo qinfo, QueueMessage msg)
     {
-        CasualEnqueueRequestMessage requestMessage = CasualEnqueueRequestMessage.createBuilder()
-                                                                                .withExecution(UUID.randomUUID())
-                                                                                .withXid(connection.getCurrentXid())
-                                                                                .withQueueName(qinfo.getCompositeName())
-                                                                                .withMessage(EnqueueMessage.of(msg))
-                                                                                .build();
-        CasualNWMessage<CasualEnqueueRequestMessage> networkRequestMessage = CasualNWMessageImpl.of(corrid, requestMessage);
-        CompletableFuture<CasualNWMessage<CasualEnqueueReplyMessage>> networkReplyMessageFuture = connection.getNetworkConnection().request(networkRequestMessage);
+        CasualEnqueueRequest requestMessage = CasualEnqueueRequest.newBuilder()
+                                                                  .setExecution(MessageCreator.toUUID4(UUID.randomUUID()))
+                                                                  .setXid(MessageCreator.toXID(connection.getCurrentXid()))
+                                                                  .setQueueName(qinfo.getCompositeName())
+                                                                  .setMessage(createQueueMessage(msg))
+                                                                  .build();
 
-        CasualNWMessage<CasualEnqueueReplyMessage> networkReplyMessage = networkReplyMessageFuture.join();
-        CasualEnqueueReplyMessage replyMessage = networkReplyMessage.getMessage();
-        return replyMessage.getId();
+        CasualRequest requestEnvelope = CasualRequest.newBuilder()
+                                                     .setMessageType(CasualRequest.MessageType.ENQUEUE_REQUEST)
+                                                     .setCorrelationId(MessageCreator.toUUID4(corrid))
+                                                     .setEnqueue(requestMessage)
+                                                     .build();
+        CompletableFuture<CasualReply> networkReplyMessageFuture = connection.getNetworkConnection().request(requestEnvelope);
+
+        CasualReply networkReplyMessage = networkReplyMessageFuture.join();
+        CasualEnqueueReply replyMessage = networkReplyMessage.getEnqueue();
+        return MessageCreator.toUUID(replyMessage.getMessageId());
+    }
+
+    private se.laz.casual.network.messages.QueueMessage createQueueMessage(QueueMessage msg)
+    {
+        se.laz.casual.network.messages.QueueMessage queueMessage = se.laz.casual.network.messages.QueueMessage.newBuilder()
+                                                                                                              .setId(MessageCreator.toUUID4(msg.getId()))
+                                                                                                              .setType(msg.getPayload().getType())
+                                                                                                              .setProperties(msg.getCorrelationInformation())
+                                                                                                              .setReplyQueue(msg.getReplyQueue())
+                                                                                                              .setAvailableSince(InstantUtil.toNanos(msg.getAvailableSince()))
+                                                                                                              .setPayload(ByteString.copyFrom(msg.getPayload().getBytes().get(0)))
+                                                                                                              .build();
+        return queueMessage;
     }
 
     private List<QueueMessage> makeDequeueCall(UUID corrid, QueueInfo qinfo, MessageSelector selector)
     {
-        CasualDequeueRequestMessage requestMessage = CasualDequeueRequestMessage.createBuilder()
-                                                                                .withExecution(UUID.randomUUID())
-                                                                                .withXid(connection.getCurrentXid())
-                                                                                .withQueueName(qinfo.getCompositeName())
-                                                                                .withSelectorProperties(selector.getSelector())
-                                                                                .withSelectorUUID(selector.getSelectorId())
-                                                                                .withBlock(qinfo.getOptions().isBlocking())
-                                                                                .build();
-        CasualNWMessage<CasualDequeueRequestMessage> networkRequestMessage = CasualNWMessageImpl.of(corrid, requestMessage);
-        CompletableFuture<CasualNWMessage<CasualDequeueReplyMessage>> networkReplyMessageFuture = connection.getNetworkConnection().request(networkRequestMessage);
+        CasualDequeueRequest requestMessage = CasualDequeueRequest.newBuilder()
+                                                                  .setExecution(MessageCreator.toUUID4(UUID.randomUUID()))
+                                                                  .setXid(MessageCreator.toXID(connection.getCurrentXid()))
+                                                                  .setQueueName(qinfo.getCompositeName())
+                                                                  .setSelector(Selector.newBuilder()
+                                                                                       .setId(MessageCreator.toUUID4(selector.getSelectorId()))
+                                                                                       .setProperties(selector.getSelector())
+                                                                                       .build())
+                                                                  .setBlock(qinfo.getOptions().isBlocking())
+                                                                  .build();
 
-        CasualNWMessage<CasualDequeueReplyMessage> networkReplyMessage = networkReplyMessageFuture.join();
-        CasualDequeueReplyMessage replyMessage = networkReplyMessage.getMessage();
-        return Transformer.transform(replyMessage.getMessages());
+
+        CasualRequest requestEnvelope = CasualRequest.newBuilder()
+                                                     .setMessageType(CasualRequest.MessageType.DEQUEUE_REQUEST)
+                                                     .setCorrelationId(MessageCreator.toUUID4(corrid))
+                                                     .setDequeue(requestMessage)
+                                                     .build();
+
+        CompletableFuture<CasualReply> networkReplyMessageFuture = connection.getNetworkConnection().request(requestEnvelope);
+
+        CasualReply networkReplyMessage = networkReplyMessageFuture.join();
+        CasualDequeueReply replyMessage = networkReplyMessage.getDequeue();
+        return Transformer.transform(replyMessage);
     }
 
     private boolean queueExists( UUID corrid, String queueName)
     {
-        CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
-                                                                                            .setExecution(UUID.randomUUID())
-                                                                                            .setDomainId(UUID.randomUUID())
-                                                                                            .setDomainName( connection.getDomainName() )
-                                                                                            .setQueueNames(Arrays.asList(queueName))
-                                                                                            .build();
-        CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessageImpl.of(corrid, requestMsg);
-        CompletableFuture<CasualNWMessage<CasualDomainDiscoveryReplyMessage>> replyMsgFuture = connection.getNetworkConnection().request(msg);
+        CasualDomainDiscoveryRequest requestMsg = CasualDomainDiscoveryRequest.newBuilder()
+                                                                              .setExecution(MessageCreator.toUUID4(UUID.randomUUID()))
+                                                                              .setDomainId(MessageCreator.toUUID4(UUID.randomUUID()))
+                                                                              .setDomainName(connection.getDomainName())
+                                                                              .addAllQueueNames(Arrays.asList(queueName))
+                                                                              .build();
+        CasualRequest requestEnvelope = CasualRequest.newBuilder()
+                                                     .setMessageType(CasualRequest.MessageType.DOMAIN_DISCOVERY_REQUEST)
+                                                     .setCorrelationId(MessageCreator.toUUID4(corrid))
+                                                     .setDomainDiscovery(requestMsg)
+                                                     .build();
 
-        CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
-        return replyMsg.getMessage().getQueues().stream()
-                .map(Queue::getName)
-                .anyMatch(v -> v.equals(queueName));
+        CompletableFuture<CasualReply> replyMsgFuture = connection.getNetworkConnection().request(requestEnvelope);
+
+        CasualReply replyMsg = replyMsgFuture.join();
+        CasualDomainDiscoveryReply reply = replyMsg.getDomainDiscovery();
+        return reply.getQueuesList().stream()
+                    .map(q -> q.getName())
+                    .anyMatch(v -> v.equals(queueName));
     }
 }

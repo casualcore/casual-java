@@ -8,16 +8,17 @@ package se.laz.casual.jca;
 
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.XAFlags;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.xa.XAReturnCode;
 import se.laz.casual.api.xa.XID;
-import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareReplyMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackReplyMessage;
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
+import se.laz.casual.network.grpc.MessageCreator;
+import se.laz.casual.network.messages.CasualCommitReply;
+import se.laz.casual.network.messages.CasualCommitRequest;
+import se.laz.casual.network.messages.CasualPrepareReply;
+import se.laz.casual.network.messages.CasualPrepareRequest;
+import se.laz.casual.network.messages.CasualReply;
+import se.laz.casual.network.messages.CasualRequest;
+import se.laz.casual.network.messages.CasualRollbackReply;
+import se.laz.casual.network.messages.CasualRollbackRequest;
 
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
@@ -54,15 +55,25 @@ public class CasualXAResource implements XAResource
         {
             flags = Flag.of(XAFlags.TMONEPHASE);
         }
-        CasualTransactionResourceCommitRequestMessage commitRequest =
-            CasualTransactionResourceCommitRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
-        CasualNWMessage<CasualTransactionResourceCommitRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), commitRequest);
-        CompletableFuture<CasualNWMessage<CasualTransactionResourceCommitReplyMessage>> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
+        CasualCommitRequest commitRequest = CasualCommitRequest.newBuilder()
+                                                               .setExecution(MessageCreator.toUUID4(UUID.randomUUID()))
+                                                               .setXid(MessageCreator.toXID(xid))
+                                                               .setResourceManagerId(resourceManagerId)
+                                                               .setXaFlags(flags.getFlagValue())
+                                                               .build();
 
-        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
-        CasualTransactionResourceCommitReplyMessage replyMsg = replyEnvelope.getMessage();
-        throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
+        CasualRequest requestEnvelope = CasualRequest.newBuilder()
+                                                     .setMessageType(CasualRequest.MessageType.COMMIT_REQUEST)
+                                                     .setCorrelationId(MessageCreator.toUUID4(UUID.randomUUID()))
+                                                     .setCommit(commitRequest)
+                                                     .build();
 
+
+        CompletableFuture<CasualReply> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
+
+        CasualReply replyEnvelope = replyEnvelopeFuture.join();
+        CasualCommitReply replyMsg = replyEnvelope.getCommit();
+        throwWhenTransactionErrorCode(XAReturnCode.valueOf(replyMsg.getXaReturnCode().name()));
     }
 
     /**
@@ -119,14 +130,27 @@ public class CasualXAResource implements XAResource
     public int prepare(Xid xid) throws XAException
     {
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
-        CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
-        CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), prepareRequest);
-        CompletableFuture<CasualNWMessage<CasualTransactionResourcePrepareReplyMessage>> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
 
-        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
-        CasualTransactionResourcePrepareReplyMessage replyMsg = replyEnvelope.getMessage();
-        throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
-        return replyMsg.getTransactionReturnCode().getId();
+        CasualPrepareRequest prepareRequest = CasualPrepareRequest.newBuilder()
+                                                                  .setExecution(MessageCreator.toUUID4(UUID.randomUUID()))
+                                                                  .setXid(MessageCreator.toXID(xid))
+                                                                  .setResourceManagerId(resourceManagerId)
+                                                                  .setXaFlags(flags.getFlagValue())
+                                                                  .build();
+
+        CasualRequest requestEnvelope = CasualRequest.newBuilder()
+                                                     .setMessageType(CasualRequest.MessageType.PREPARE_REQUEST)
+                                                     .setCorrelationId(MessageCreator.toUUID4(UUID.randomUUID()))
+                                                     .setPrepare(prepareRequest)
+                                                     .build();
+
+        CompletableFuture<CasualReply> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
+
+        CasualReply replyEnvelope = replyEnvelopeFuture.join();
+        CasualPrepareReply replyMsg = replyEnvelope.getPrepare();
+        XAReturnCode transactionReturnCode = XAReturnCode.valueOf(replyMsg.getXaReturnCode().name());
+        throwWhenTransactionErrorCode(transactionReturnCode);
+        return transactionReturnCode.getId();
     }
 
     @Override
@@ -139,14 +163,26 @@ public class CasualXAResource implements XAResource
     public void rollback(Xid xid) throws XAException
     {
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
-        CasualTransactionResourceRollbackRequestMessage request =
-                CasualTransactionResourceRollbackRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
-        CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), request);
-        CompletableFuture<CasualNWMessage<CasualTransactionResourceRollbackReplyMessage>> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
 
-        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
-        CasualTransactionResourceRollbackReplyMessage replyMsg = replyEnvelope.getMessage();
-        throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
+        CasualRollbackRequest request = CasualRollbackRequest.newBuilder()
+                                                             .setExecution(MessageCreator.toUUID4(UUID.randomUUID()))
+                                                             .setXid(MessageCreator.toXID(xid))
+                                                             .setResourceManagerId(resourceManagerId)
+                                                             .setXaFlags(flags.getFlagValue())
+                                                             .build();
+
+        CasualRequest requestEnvelope = CasualRequest.newBuilder()
+                                                     .setMessageType(CasualRequest.MessageType.ROLLBACK_REQUEST)
+                                                     .setCorrelationId(MessageCreator.toUUID4(UUID.randomUUID()))
+                                                     .setRollback(request)
+                                                     .build();
+
+
+        CompletableFuture<CasualReply> replyEnvelopeFuture = casualManagedConnection.getNetworkConnection().request(requestEnvelope);
+
+        CasualReply replyEnvelope = replyEnvelopeFuture.join();
+        CasualRollbackReply replyMsg = replyEnvelope.getRollback();
+        throwWhenTransactionErrorCode(XAReturnCode.valueOf(replyMsg.getXaReturnCode().name()));
     }
 
     @Override

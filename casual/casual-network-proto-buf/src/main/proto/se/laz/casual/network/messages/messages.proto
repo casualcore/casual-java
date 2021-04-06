@@ -15,13 +15,13 @@ enum TransactionType {
     ATOMIC = 3;
 }
 
-enum TransactionState{
+enum TransactionState {
     TX_ACTIVE = 0;
     TX_TIMEOUT_ROLLBACK_ONLY = 1;
     TX_ROLLBACK_ONLY = 2;
 }
 
-enum State{
+enum ErrorState {
     OK = 0;
     TPEBADDESC = 2;
     TPEBLOCK = 3;
@@ -42,11 +42,40 @@ enum State{
     TPEMATCH = 23;
 }
 
+enum XAReturnCode{
+    XA_OK = 0;
+    XA_RBROLLBACK = 1;
+    XA_RBCOMMFAIL = 2;
+    XA_RBDEADLOCK = 3;
+    XA_RBINTEGRITY = 4;
+    XA_RBOTHER = 5;
+    XA_RBPROTO = 6;
+    XA_RBTIMEOUT = 7;
+    XA_RBTRANSIENT = 8;
+    XA_RBEND = 9;
+    XA_NOMIGRATE = 10;
+    XA_HEURHAZ = 11;
+    XA_HEURCOM = 12;
+    XA_HEURRB = 13;
+    XA_HEURMIX = 14;
+    XA_RETRY = 15;
+    XA_RDONLY = 16;
+    XAER_ASYNC = 17;
+    XAER_RMERR = 18;
+    XAER_NOTA = 19;
+    XAER_INVAL = 20;
+    XAER_PROTO = 21;
+    XAER_RMFAIL = 22;
+    XAER_DUPID = 23;
+    XAER_OUTSIDE = 24;
+}
+
 message Service{
     string name = 1;
     string category = 2;
     uint64 timeout = 3;
     uint64 hops = 4;
+    TransactionType transaction_type = 5;
 }
 
 message Queue {
@@ -234,21 +263,21 @@ message CasualPrepareReply {
     UUID4 execution = 1;
     XID xid = 2;
     uint32 resource_manager_id = 3;
-    State state = 4;
+    XAReturnCode xa_return_code = 4;
 }
 
 message CasualCommitReply {
     UUID4 execution = 1;
     XID xid = 2;
     uint32 resource_manager_id = 3;
-    State state = 4;
+    XAReturnCode xa_return_code = 4;
 }
 
 message CasualRollbackReply {
     UUID4 execution = 1;
     XID xid = 2;
     uint32 resource_manager_id = 3;
-    State state = 4;
+    XAReturnCode xa_return_code = 4;
 }
 
 message CasualEnqueueReply {
