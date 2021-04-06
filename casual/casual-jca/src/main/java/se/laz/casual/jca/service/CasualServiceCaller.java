@@ -138,7 +138,7 @@ public class CasualServiceCaller implements CasualServiceApi
         List<byte[]> payloadData = new ArrayList<>();
         payloadData.add(payload);
         ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceReplyMessage.getBufferTypeName(), payloadData);
-        ErrorState errorState = ErrorState.unmarshal(serviceReplyMessage.getResult());
+        ErrorState errorState = ErrorState.valueOf(serviceReplyMessage.getResult().name());
         return new ServiceReturn<>(serviceBuffer, (errorState == ErrorState.OK) ? ServiceReturnState.TPSUCCESS : ServiceReturnState.TPFAIL, errorState, serviceReplyMessage.getUser());
     }
 

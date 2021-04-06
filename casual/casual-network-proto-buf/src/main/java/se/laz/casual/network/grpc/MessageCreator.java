@@ -21,6 +21,7 @@ import se.laz.casual.network.messages.CasualRollbackRequest;
 import se.laz.casual.network.messages.CasualServiceCallReply;
 import se.laz.casual.network.messages.CasualServiceCallRequest;
 import se.laz.casual.network.messages.DequeueMessage;
+import se.laz.casual.network.messages.ErrorState;
 import se.laz.casual.network.messages.Queue;
 import se.laz.casual.network.messages.QueueMessage;
 import se.laz.casual.network.messages.Selector;
@@ -99,11 +100,11 @@ public final class MessageCreator
         return builder.build();
     }
 
-    public static CasualServiceCallReply createCasualServiceCallReply(UUID execution, int result, long user, XID xid, TransactionState transactionState, String bufferTypeName, byte[] payload)
+    public static CasualServiceCallReply createCasualServiceCallReply(UUID execution, se.laz.casual.api.flags.ErrorState result, long user, XID xid, TransactionState transactionState, String bufferTypeName, byte[] payload)
     {
         return CasualServiceCallReply.newBuilder()
                                      .setExecution(toUUID4(execution))
-                                     .setResult(result)
+                                     .setResult(ErrorState.valueOf(result.name()))
                                      .setUser(user)
                                      .setXid(xid)
                                      .setTransactionState(transactionState)
@@ -218,6 +219,11 @@ public final class MessageCreator
     public static se.laz.casual.network.messages.TransactionState toTransactionState(se.laz.casual.api.flags.TransactionState transactionState)
     {
         return se.laz.casual.network.messages.TransactionState.forNumber(transactionState.getId());
+    }
+
+    public static  se.laz.casual.api.flags.TransactionState toTransactionState(se.laz.casual.network.messages.TransactionState transactionState)
+    {
+        return se.laz.casual.api.flags.TransactionState.unmarshal(transactionState.getNumber());
     }
 
     public static UUID4 toUUID4(UUID id)

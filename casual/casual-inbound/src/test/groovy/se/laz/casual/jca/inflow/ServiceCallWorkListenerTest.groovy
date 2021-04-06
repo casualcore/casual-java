@@ -7,6 +7,10 @@
 package se.laz.casual.jca.inflow
 
 import io.netty.channel.embedded.EmbeddedChannel
+import io.netty.handler.codec.protobuf.ProtobufDecoder
+import io.netty.handler.codec.protobuf.ProtobufEncoder
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.external.json.JsonProvider
@@ -17,8 +21,7 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
-import se.laz.casual.network.CasualNWMessageDecoder
-import se.laz.casual.network.CasualNWMessageEncoder
+import se.laz.casual.network.messages.CasualReply
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.laz.casual.api.buffer.type.ServiceBuffer
@@ -67,7 +70,8 @@ class ServiceCallWorkListenerTest extends Specification
 
 
         inboundHandler = TestInboundHandler.of()
-        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), inboundHandler)
+        channel = new EmbeddedChannel(new ProtobufVarint32FrameDecoder(), new ProtobufDecoder(CasualReply.getDefaultInstance()),
+                new ProtobufVarint32LengthFieldPrepender(), new ProtobufEncoder(), inboundHandler)
         work = new CasualServiceCallWork( correlationId, null )
         work.response = response
 

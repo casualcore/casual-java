@@ -7,6 +7,10 @@
 package se.laz.casual.jca.inflow
 
 import io.netty.channel.embedded.EmbeddedChannel
+import io.netty.handler.codec.protobuf.ProtobufDecoder
+import io.netty.handler.codec.protobuf.ProtobufEncoder
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.XAFlags
@@ -19,8 +23,6 @@ import se.laz.casual.jca.CasualResourceAdapterException
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
-import se.laz.casual.network.CasualNWMessageDecoder
-import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.*
@@ -62,7 +64,8 @@ class CasualMessageListenerImplTest extends Specification
     {
         instance = new CasualMessageListenerImpl()
         inboundHandler = TestInboundHandler.of()
-        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), inboundHandler)
+        channel = new EmbeddedChannel(new ProtobufVarint32FrameDecoder(), new ProtobufDecoder(CasualReply.getDefaultInstance()),
+                new ProtobufVarint32LengthFieldPrepender(), new ProtobufEncoder(), inboundHandler)
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )
 

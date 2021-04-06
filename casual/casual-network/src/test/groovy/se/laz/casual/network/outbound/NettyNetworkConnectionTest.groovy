@@ -8,13 +8,16 @@ package se.laz.casual.network.outbound
 
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.embedded.EmbeddedChannel
+import io.netty.handler.codec.protobuf.ProtobufDecoder
+import io.netty.handler.codec.protobuf.ProtobufEncoder
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender
 import io.netty.util.concurrent.Future
 import org.junit.Ignore
-import se.laz.casual.network.CasualNWMessageDecoder
-import se.laz.casual.network.CasualNWMessageEncoder
-import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
+import se.laz.casual.network.grpc.MessageCreator
+import se.laz.casual.network.messages.CasualDomainDiscoveryRequest
+import se.laz.casual.network.messages.CasualReply
+import se.laz.casual.network.messages.CasualRequest
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -39,7 +42,8 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
                                                             .withDomainName('testDomain')
                                                             .withCorrelator(correlator)
                                                             .build()
-        ch = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator))
+        ch = new EmbeddedChannel(new ProtobufVarint32FrameDecoder(), new ProtobufDecoder(CasualReply.getDefaultInstance()),
+                new ProtobufVarint32LengthFieldPrepender(), new ProtobufEncoder(), CasualProtoBufMessageHandler.of(correlator), ExceptionHandler.of(correlator))
         instance = new NettyNetworkConnection(ci, correlator, ch, null)
     }
 
@@ -58,11 +62,11 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'ping ponging a domain discovery request message'()
     {
         setup:
-        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> m = createRequestMessage()
+        CasualRequest m = createRequestMessage()
         when:
-        CompletableFuture<CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage>> f = instance.request(m)
+        CompletableFuture<CasualReply> f = instance.request(m)
         ch.writeOneInbound(m)
-        CasualNWMessageImpl<CasualServiceCallReplyMessage> reply = f.get()
+        CasualReply reply = f.get()
         then:
         noExceptionThrown()
         ch.outboundMessages().size() == 1
@@ -102,13 +106,17 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
 
     def createRequestMessage()
     {
-        CasualDomainDiscoveryRequestMessage message = CasualDomainDiscoveryRequestMessage.createBuilder()
-                .setExecution(UUID.randomUUID())
-                .setDomainId(UUID.randomUUID())
+        CasualDomainDiscoveryRequest message = CasualDomainDiscoveryRequest.newBuilder()
+                .setExecution(MessageCreator.toUUID(UUID.randomUUID()))
+                .setDomainId(MessageCreator.toUUID(UUID.randomUUID()))
                 .setDomainName( "test-domain" )
-                .setServiceNames(Arrays.asList("echo"))
+                .setServiceNames(0, 'echo')
                 .build()
-        return CasualNWMessageImpl.of(corrid, message)
+        return CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.DOMAIN_DISCOVERY_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID(corrid))
+                .setDomainDiscovery(message)
+                .build()
     }
 
     def "toString test."()

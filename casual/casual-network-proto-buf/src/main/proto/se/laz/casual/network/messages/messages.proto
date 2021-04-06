@@ -251,7 +251,7 @@ message CasualDomainDiscoveryReply {
 
 message CasualServiceCallReply {
     UUID4 execution = 1;
-    uint32 result = 2;
+    ErrorState result = 2;
     uint64 user = 3;
     XID xid = 4;
     TransactionState transaction_state = 5;

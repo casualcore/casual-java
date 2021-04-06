@@ -14,13 +14,13 @@ dependencies {
   provided project(':casual:casual-api')
   provided project(':casual:casual-inbound-handler-api')
   implementation project(":casual:casual-internal")
-  implementation project(":casual:casual-network-protocol")
   compileOnly project(':casual:casual-network-proto-buf')
 
   provided libs.javaee_api
   provided libs.netty
 
   testCompile libs.gson
+  testCompile project(':casual:casual-network-proto-buf')
   // for spock
   testCompile libs.groovy_all
   testCompile libs.spock_core

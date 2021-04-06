@@ -1,12 +1,11 @@
 package se.laz.casual
 
-
+import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.network.grpc.MessageCreator
 import se.laz.casual.network.messages.CasualReply
 import se.laz.casual.network.messages.DequeueMessage
 import se.laz.casual.network.messages.Queue
 import se.laz.casual.network.messages.Service
-import se.laz.casual.network.messages.State
 import se.laz.casual.network.messages.TransactionState
 import se.laz.casual.network.messages.XID
 import spock.lang.Specification
@@ -126,7 +125,7 @@ class ReplyTest extends Specification
         def resourceManagerId = 42
         def tmpFile = File.createTempFile('CasualPrepareReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def prepareReply = MessageCreator.createCasualPrepareReply(execution, xid, resourceManagerId, State.TPENOENT)
+        def prepareReply = MessageCreator.createCasualPrepareReply(execution, xid, resourceManagerId, ErrorState.TPENOENT)
         def reply = MessageCreator.createReplyBuilder(messageType, corrid)
                                   .setPrepare(prepareReply)
                                   .build()
@@ -158,7 +157,7 @@ class ReplyTest extends Specification
         def resourceManagerId = 42
         def tmpFile = File.createTempFile('CasualCommitReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def commitReply = MessageCreator.createCasualCommitReply(execution, xid, resourceManagerId, State.OK)
+        def commitReply = MessageCreator.createCasualCommitReply(execution, xid, resourceManagerId, ErrorState.OK)
         def reply = MessageCreator.createReplyBuilder(messageType, corrid)
                                   .setCommit(commitReply)
                                   .build()
@@ -190,7 +189,7 @@ class ReplyTest extends Specification
         def resourceManagerId = 42
         def tmpFile = File.createTempFile('CasualRollbackReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def rollbackReply = MessageCreator.createCasualRollbackReply(execution, xid, resourceManagerId, State.TPESVCERR)
+        def rollbackReply = MessageCreator.createCasualRollbackReply(execution, xid, resourceManagerId, ErrorState.TPESVCERR)
         def reply = MessageCreator.createReplyBuilder(messageType, corrid)
                                   .setRollback(rollbackReply)
                                   .build()

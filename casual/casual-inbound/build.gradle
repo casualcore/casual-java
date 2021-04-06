@@ -21,6 +21,7 @@ dependencies {
   provided libs.netty
   testCompile project(':casual:casual-fielded-annotations')
 
+  testCompile project(':casual:casual-network-proto-buf')
   testCompile project(':casual:casual-inbound-handler-api')
   testCompile project(':casual:casual-inbound-handler-casual-service')
   testCompile project(':casual:casual-service-discovery-extension')

@@ -6,23 +6,23 @@
 
 package se.laz.casual.jca.inflow.work
 
+import com.google.protobuf.ByteString
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.JavaServiceCallDefinition
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.external.json.JsonProvider
 import se.laz.casual.api.external.json.JsonProviderFactory
 import se.laz.casual.api.flags.ErrorState
-import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.TransactionState
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler
 import se.laz.casual.jca.inflow.handler.test.TestHandler
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.api.buffer.type.ServiceBuffer
+import se.laz.casual.network.grpc.MessageCreator
+import se.laz.casual.network.messages.CasualReply
+import se.laz.casual.network.messages.CasualServiceCallReply
+import se.laz.casual.network.messages.CasualServiceCallRequest
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -32,7 +32,7 @@ class CasualServiceCallWorkTest extends Specification
 {
     @Shared CasualServiceCallWork instance
     @Shared UUID correlationId
-    @Shared CasualServiceCallRequestMessage message
+    @Shared CasualServiceCallRequest message
 
     @Shared JavaServiceCallDefinition serialisedCall
     @Shared String jndiServiceName = "se.laz.casual.test.Service"
@@ -58,16 +58,14 @@ class CasualServiceCallWorkTest extends Specification
 
         json = jp.toJson( serialisedCall )
 
-        message = CasualServiceCallRequestMessage.createBuilder()
-                        .setXid( XID.NULL_XID)
-                        .setExecution(UUID.randomUUID())
-                        .setServiceName( jndiServiceName )
-                        .setServiceBuffer( ServiceBuffer.of( "json",
-                                                JsonBuffer.of(
-                                                        json )
-                                                        .getBytes() ) )
-                        .setXatmiFlags( Flag.of())
-                        .build()
+        message = CasualServiceCallRequest.newBuilder()
+                .setXid(MessageCreator.toXID(XID.NULL_XID))
+                .setExecution(MessageCreator.toUUID4(UUID.randomUUID()))
+                .setServiceName(jndiServiceName)
+                .setBufferTypeName('json')
+                .setPayload(ByteString.copyFrom(json.getBytes()))
+                .setFlags(0)
+                .build()
 
         correlationId = UUID.randomUUID()
 
@@ -105,13 +103,14 @@ class CasualServiceCallWorkTest extends Specification
 
         when:
         instance.run()
-        CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
+        CasualReply replyEnvelope = instance.getResponse()
+        CasualServiceCallReply reply = replyEnvelope.getServiceCall()
 
         then:
-        reply.getMessage().getError() == ErrorState.OK
-        reply.getMessage().getTransactionState() == TransactionState.TX_ACTIVE;
-        reply.getMessage().getUserDefinedCode() == 0L
-        String j = new String( reply.getMessage().getServiceBuffer().getPayload().get( 0 ), StandardCharsets.UTF_8 )
+        ErrorState.valueOf(reply.getResult().name()) == ErrorState.OK
+        MessageCreator.toTransactionState(reply.getTransactionState()) == TransactionState.TX_ACTIVE;
+        reply.getUser() == 0L
+        String j = new String( reply.getPayload().toByteArray(), StandardCharsets.UTF_8 )
         jp.fromJson( j, String.class ) == methodParam
 
         actualRequest.getServiceName() == jndiServiceName
@@ -138,13 +137,13 @@ class CasualServiceCallWorkTest extends Specification
 
         when:
         instance.run()
-        CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
-
+        CasualReply replyEnvelope = instance.getResponse()
+        CasualServiceCallReply reply = replyEnvelope.getServiceCall()
         then:
-        reply.getMessage().getError() == expectedErrorState;
-        reply.getMessage().getTransactionState() == expectedTransactionState
-        reply.getMessage().getUserDefinedCode() == expectedUserDefinedCode
-        String j = new String( reply.getMessage().getServiceBuffer().getPayload().get( 0 ), StandardCharsets.UTF_8 )
+        ErrorState.valueOf(reply.getResult().name()) == expectedErrorState
+        MessageCreator.toTransactionState(reply.getTransactionState()) == expectedTransactionState
+        reply.getUser() == expectedUserDefinedCode
+        String j = new String( reply.getPayload().toByteArray(), StandardCharsets.UTF_8 )
         jp.fromJson( j, String.class ) == methodParam
 
         actualRequest.getServiceName() == jndiServiceName
@@ -168,12 +167,13 @@ class CasualServiceCallWorkTest extends Specification
 
         when:
         instance.run()
-        CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
+        CasualReply replyEnvelope = instance.getResponse()
+        CasualServiceCallReply reply = replyEnvelope.getServiceCall()
 
         then:
-        reply.getMessage().getError() == ErrorState.TPESVCERR
-        reply.getMessage().getTransactionState() == TransactionState.TIMEOUT_ROLLBACK_ONLY
-        String j = new String( reply.getMessage().getServiceBuffer().getPayload().get( 0 ), StandardCharsets.UTF_8 )
+        ErrorState.valueOf(reply.getResult().name()) == ErrorState.TPESVCERR
+        MessageCreator.toTransactionState(reply.getTransactionState()) == TransactionState.TIMEOUT_ROLLBACK_ONLY
+        String j = new String( reply.getPayload().toByteArray(), StandardCharsets.UTF_8 )
         j.contains( exceptionMessage )
 
         actualRequest.getServiceName() == jndiServiceName
@@ -193,11 +193,13 @@ class CasualServiceCallWorkTest extends Specification
         when:
         instance.release()
         instance.run()
-        CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
+
+        CasualReply replyEnvelope = instance.getResponse()
+        CasualServiceCallReply reply = replyEnvelope.getServiceCall()
 
         then:
-        reply.getMessage().getError() == ErrorState.OK
-        String json = new String( reply.getMessage().getServiceBuffer().getPayload().get( 0 ), StandardCharsets.UTF_8 )
+        ErrorState.valueOf(reply.getResult().name()) == ErrorState.OK
+        String json = new String( reply.getPayload().toByteArray(), StandardCharsets.UTF_8 )
         jp.fromJson( json, String.class ) == methodParam
     }
     def "getHandler returns when empty"()
@@ -219,9 +221,10 @@ class CasualServiceCallWorkTest extends Specification
 
         when:
         instance.run()
-        CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
+        CasualReply replyEnvelope = instance.getResponse()
+        CasualServiceCallReply reply = replyEnvelope.getServiceCall()
 
         then:
-        reply.getMessage().getError() == ErrorState.TPENOENT
+        ErrorState.valueOf(reply.getResult().name()) == ErrorState.TPENOENT
     }
 }

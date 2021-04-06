@@ -110,6 +110,10 @@ public final class XID implements Xid
      */
     public byte[] getData()
     {
+        if(gtridLength + bqualLength == 0)
+        {
+            return new byte[0];
+        }
         final byte[] data = new byte[gtridLength + bqualLength];
         ByteBuffer b = ByteBuffer.wrap(data);
         b.put(globalTransactionId);

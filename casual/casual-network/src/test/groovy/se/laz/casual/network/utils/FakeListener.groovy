@@ -7,14 +7,8 @@
 package se.laz.casual.network.utils
 
 import io.netty.channel.Channel
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.jca.inflow.CasualMessageListener
-import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage
-import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage
+import se.laz.casual.network.messages.CasualRequest
 
 import javax.resource.spi.XATerminator
 import javax.resource.spi.endpoint.MessageEndpoint
@@ -39,32 +33,32 @@ class FakeListener implements MessageEndpoint, CasualMessageListener
     }
 
     @Override
-    void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel) {
+    void domainConnectRequest(CasualRequest message, Channel channel) {
 
     }
 
     @Override
-    void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel) {
+    void domainDiscoveryRequest(CasualRequest message, Channel channel) {
 
     }
 
     @Override
-    void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager) {
+    void serviceCallRequest(CasualRequest message, Channel channel, WorkManager workManager) {
 
     }
 
     @Override
-    void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator) {
+    void prepareRequest(CasualRequest message, Channel channel, XATerminator xaTerminator) {
 
     }
 
     @Override
-    void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator) {
+    void commitRequest(CasualRequest message, Channel channel, XATerminator xaTerminator) {
 
     }
 
     @Override
-    void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator) {
+    void requestRollback(CasualRequest message, Channel channel, XATerminator xaTerminator) {
 
     }
 }

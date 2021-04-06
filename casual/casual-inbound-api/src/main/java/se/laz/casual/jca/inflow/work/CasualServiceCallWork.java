@@ -11,7 +11,6 @@ import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
@@ -19,12 +18,8 @@ import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 import se.laz.casual.network.grpc.MessageCreator;
 import se.laz.casual.network.messages.CasualReply;
-import se.laz.casual.network.messages.CasualRequest;
 import se.laz.casual.network.messages.CasualServiceCallReply;
 import se.laz.casual.network.messages.CasualServiceCallRequest;
-import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
 import javax.resource.spi.work.Work;
 import java.util.ArrayList;
@@ -98,20 +93,21 @@ public final class CasualServiceCallWork implements Work
             serviceResult = reply.getBuffer();
 
             replyBuilder
-                    .setResult(reply.getErrorState().getValue())
+                    .setResult(se.laz.casual.network.messages.ErrorState.valueOf(reply.getErrorState().name()))
                     .setTransactionState(MessageCreator.toTransactionState(reply.getTransactionState()))
                     .setUser( reply.getUserSuppliedErrorCode() );
         }
         catch( ServiceHandlerNotFoundException e )
         {
-            replyBuilder.setResult( ErrorState.TPENOENT.getValue() )
+            replyBuilder.setResult(se.laz.casual.network.messages.ErrorState.valueOf(ErrorState.TPENOENT.name()))
                         .setTransactionState( MessageCreator.toTransactionState(TransactionState.ROLLBACK_ONLY ));
             log.warning( ()-> "ServiceHandler not available for: " + request.getServiceName() );
         }
         finally
         {
+            byte[] payload = serviceResult.getBytes().isEmpty() ? new byte[0] : serviceResult.getBytes().get(0);
             CasualServiceCallReply reply = replyBuilder
-                    .setPayload(ByteString.copyFrom(serviceResult.getBytes().get(0)))
+                    .setPayload(ByteString.copyFrom(payload))
                     .setBufferTypeName(serviceResult.getType())
                     .build();
             response = CasualReply.newBuilder()
