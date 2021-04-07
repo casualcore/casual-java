@@ -15,7 +15,6 @@ dependencies {
   provided libs.javaee_api
   provided project(':casual:casual-api')
 
-  testCompile project(':casual:casual-network-protocol')
   // for spock
   testCompile libs.groovy_all
   testCompile libs.spock_core

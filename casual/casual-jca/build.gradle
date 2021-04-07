@@ -27,13 +27,13 @@ dependencies {
     implementation project(':casual:casual-inbound-api')
     implementation project(':casual:casual-internal')
     implementation project(':casual:casual-network')
-    implementation project(':casual:casual-network-protocol')
+
     implementation project(':casual:casual-inbound')
     provided libs.netty
     provided libs.javaee_api
     resourceAdapter project(':casual:casual-internal')
     resourceAdapter project(':casual:casual-network')
-    resourceAdapter project(':casual:casual-network-protocol')
+    resourceAdapter project(':casual:casual-network-proto-buf')
     resourceAdapter project(':casual:casual-inbound-api')
     resourceAdapterLib libs.netty
 

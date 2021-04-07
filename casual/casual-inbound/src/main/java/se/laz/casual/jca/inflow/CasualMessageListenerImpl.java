@@ -31,7 +31,6 @@ import se.laz.casual.network.messages.CasualRequest;
 import se.laz.casual.network.messages.CasualRollbackReply;
 import se.laz.casual.network.messages.CasualRollbackRequest;
 import se.laz.casual.network.messages.CasualServiceCallRequest;
-import se.laz.casual.network.protocol.messages.domain.Service;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;

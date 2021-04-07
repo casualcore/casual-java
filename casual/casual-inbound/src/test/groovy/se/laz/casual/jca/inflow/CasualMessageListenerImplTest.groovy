@@ -37,7 +37,6 @@ import se.laz.casual.network.messages.CasualRollbackReply
 import se.laz.casual.network.messages.CasualRollbackRequest
 import se.laz.casual.network.messages.CasualServiceCallRequest
 import se.laz.casual.network.messages.domain.TransactionType
-import se.laz.casual.network.protocol.messages.domain.Service
 import spock.lang.Shared
 import spock.lang.Specification
 

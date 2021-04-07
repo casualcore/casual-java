@@ -10,7 +10,6 @@ import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.network.grpc.MessageCreator;
 import se.laz.casual.network.messages.CasualDequeueReply;
-import se.laz.casual.network.protocol.messages.queue.DequeueMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,25 +44,4 @@ public final class Transformer
                            .withTimestamp(msg.getTimestamp())
                            .build();
     }
-
-    public static List<QueueMessage> transform(final List<DequeueMessage> l)
-    {
-        return l.stream()
-                .map(Transformer::transformMessage)
-                .collect(Collectors.toList());
-    }
-
-    private static QueueMessage transformMessage(final DequeueMessage msg)
-    {
-        return QueueMessage.createBuilder()
-                           .withId(msg.getId())
-                           .withAvailableSince(msg.getAvailableSince())
-                           .withPayload(msg.getPayload())
-                           .withCorrelationInformation(msg.getCorrelationInformation())
-                           .withRedelivered(msg.getNumberOfRedelivered())
-                           .withReplyQueue(msg.getReplyQueue())
-                           .withTimestamp(msg.getTimestamp())
-                           .build();
-    }
-
 }

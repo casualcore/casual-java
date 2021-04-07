@@ -8,7 +8,6 @@
 include 'casual:casual-jca'
 include 'casual:casual-api'
 include 'casual:casual-network'
-include 'casual:casual-network-protocol'
 include 'casual:casual-internal'
 include 'casual:casual-jca-app'
 include 'casual:casual-inbound-api'
