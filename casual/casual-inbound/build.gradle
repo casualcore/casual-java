@@ -13,7 +13,6 @@ plugins {
 dependencies {
   provided project(':casual:casual-api')
   implementation project(':casual:casual-internal')
-  implementation project(':casual:casual-network-protocol')
   implementation project(':casual:casual-inbound-api')
   implementation project(':casual:casual-inbound-handler-api')
   compileOnly project(':casual:casual-network-proto-buf')

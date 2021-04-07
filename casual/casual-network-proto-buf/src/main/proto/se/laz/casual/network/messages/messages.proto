@@ -19,6 +19,7 @@ enum TransactionState {
     TX_ACTIVE = 0;
     TX_TIMEOUT_ROLLBACK_ONLY = 1;
     TX_ROLLBACK_ONLY = 2;
+    TX_ERROR = 3;
 }
 
 enum ErrorState {

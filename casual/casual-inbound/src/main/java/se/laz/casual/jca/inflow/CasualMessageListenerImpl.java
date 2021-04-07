@@ -188,7 +188,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         {
 
             status = e.errorCode;
-            log.log( Level.WARNING, e, ()-> "XAExcception prepare()" + e.getMessage() );
+            log.log( Level.WARNING, e, ()-> "XAException prepare()" + e.getMessage() );
         }
         finally
         {
@@ -227,7 +227,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         catch (XAException e)
         {
             status = e.errorCode;
-            log.log( Level.WARNING, e, ()-> "XAExcception commit()" + e.getMessage() );
+            log.log( Level.WARNING, e, ()-> "XAException commit()" + e.getMessage() );
         }
         finally
         {

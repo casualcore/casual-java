@@ -213,7 +213,12 @@ public final class MessageCreator
     // Helpers
     public static se.laz.casual.network.messages.TransactionType toTransactionType(TransactionType transactionType)
     {
-        return se.laz.casual.network.messages.TransactionType.forNumber(transactionType.getId());
+        return se.laz.casual.network.messages.TransactionType.valueOf(transactionType.name());
+    }
+
+    public static TransactionType toTransactionType(se.laz.casual.network.messages.TransactionType transactionType)
+    {
+        return TransactionType.valueOf(transactionType.name());
     }
 
     public static se.laz.casual.network.messages.TransactionState toTransactionState(se.laz.casual.api.flags.TransactionState transactionState)
@@ -224,6 +229,16 @@ public final class MessageCreator
     public static  se.laz.casual.api.flags.TransactionState toTransactionState(se.laz.casual.network.messages.TransactionState transactionState)
     {
         return se.laz.casual.api.flags.TransactionState.unmarshal(transactionState.getNumber());
+    }
+
+    public static se.laz.casual.network.messages.ErrorState toErrorState(se.laz.casual.api.flags.ErrorState errorState)
+    {
+        return se.laz.casual.network.messages.ErrorState.valueOf(errorState.name());
+    }
+
+    public static se.laz.casual.api.flags.ErrorState toErrorState(se.laz.casual.network.messages.ErrorState errorState)
+    {
+        return se.laz.casual.api.flags.ErrorState.valueOf(errorState.name());
     }
 
     public static UUID4 toUUID4(UUID id)

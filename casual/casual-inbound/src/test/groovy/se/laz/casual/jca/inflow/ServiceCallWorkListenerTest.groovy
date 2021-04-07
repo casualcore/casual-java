@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.inflow
 
+import com.google.protobuf.ByteString
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.handler.codec.protobuf.ProtobufDecoder
 import io.netty.handler.codec.protobuf.ProtobufEncoder
@@ -17,14 +18,12 @@ import se.laz.casual.api.external.json.JsonProvider
 import se.laz.casual.api.external.json.JsonProviderFactory
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
+import se.laz.casual.network.grpc.MessageCreator
 import se.laz.casual.network.messages.CasualReply
-import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
-import se.laz.casual.api.buffer.type.ServiceBuffer
+import se.laz.casual.network.messages.CasualServiceCallReply
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -46,7 +45,7 @@ class ServiceCallWorkListenerTest extends Specification
     @Shared ServiceHandler handler
     @Shared List<byte[]> payload
     @Shared CasualBuffer buffer
-    @Shared CasualNWMessage<CasualServiceCallReplyMessage> response
+    @Shared CasualReply response
     @Shared TestInboundHandler inboundHandler
 
     def setup()
@@ -59,14 +58,20 @@ class ServiceCallWorkListenerTest extends Specification
 
         correlationId = UUID.randomUUID()
 
-        CasualServiceCallReplyMessage message = CasualServiceCallReplyMessage.createBuilder()
-                .setXid( createXid() )
-                .setError( ErrorState.OK )
-                .setTransactionState( TransactionState.TX_ACTIVE )
-                .setExecution( correlationId )
-                .setServiceBuffer( ServiceBuffer.of( buffer ) )
+        CasualServiceCallReply message = CasualServiceCallReply.newBuilder()
+                .setXid(MessageCreator.toXID(createXid()))
+                .setResult(MessageCreator.toErrorState(ErrorState.OK))
+                .setTransactionState(MessageCreator.toTransactionState(TransactionState.TX_ACTIVE))
+                .setExecution(MessageCreator.toUUID4(correlationId))
+                .setPayload(ByteString.copyFrom(p))
+                .setBufferTypeName('json')
                 .build()
-        response = CasualNWMessageImpl.of( correlationId, message )
+
+        response = CasualReply.newBuilder()
+                .setMessageType(CasualReply.MessageType.SERVICE_CALL_REPLY)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setServiceCall(message)
+                .build()
 
 
         inboundHandler = TestInboundHandler.of()
@@ -86,10 +91,10 @@ class ServiceCallWorkListenerTest extends Specification
         when:
         instance.workCompleted( event )
         channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualServiceCallReplyMessage> actual = inboundHandler.getMsg()
+        CasualReply actualEnvelope = inboundHandler.getMsg()
 
         then:
-        actual == response
+        actualEnvelope == response
     }
 
     Xid createXid()

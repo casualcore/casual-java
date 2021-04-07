@@ -8,11 +8,11 @@ package se.laz.casual.jca.inflow;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.network.messages.CasualReply;
 
-public class TestInboundHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
+public class TestInboundHandler extends SimpleChannelInboundHandler<CasualReply>
 {
-    private CasualNWMessage<?> msg;
+    private CasualReply msg;
     private TestInboundHandler()
     {}
 
@@ -22,11 +22,11 @@ public class TestInboundHandler extends SimpleChannelInboundHandler<CasualNWMess
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, CasualNWMessage<?> msg) throws Exception
+    protected void channelRead0(ChannelHandlerContext ctx, CasualReply msg) throws Exception
     {
         this.msg = msg;
     }
-    public CasualNWMessage<?> getMsg()
+    public CasualReply getMsg()
     {
         return msg;
     }

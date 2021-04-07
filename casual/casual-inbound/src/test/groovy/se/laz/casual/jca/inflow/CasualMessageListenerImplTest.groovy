@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.inflow
 
+import com.google.protobuf.ByteString
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.handler.codec.protobuf.ProtobufDecoder
 import io.netty.handler.codec.protobuf.ProtobufEncoder
@@ -14,8 +15,6 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.XAFlags
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage
-import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.service.CasualService
 import se.laz.casual.api.xa.XAReturnCode
 import se.laz.casual.api.xa.XID
@@ -23,12 +22,22 @@ import se.laz.casual.jca.CasualResourceAdapterException
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
+import se.laz.casual.network.grpc.MessageCreator
+import se.laz.casual.network.messages.CasualCommitReply
+import se.laz.casual.network.messages.CasualCommitRequest
+import se.laz.casual.network.messages.CasualDomainConnectReply
+import se.laz.casual.network.messages.CasualDomainConnectRequest
+import se.laz.casual.network.messages.CasualDomainDiscoveryReply
+import se.laz.casual.network.messages.CasualDomainDiscoveryRequest
+import se.laz.casual.network.messages.CasualPrepareReply
+import se.laz.casual.network.messages.CasualPrepareRequest
+import se.laz.casual.network.messages.CasualReply
+import se.laz.casual.network.messages.CasualRequest
+import se.laz.casual.network.messages.CasualRollbackReply
+import se.laz.casual.network.messages.CasualRollbackRequest
+import se.laz.casual.network.messages.CasualServiceCallRequest
 import se.laz.casual.network.messages.domain.TransactionType
-import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.domain.*
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.api.buffer.type.ServiceBuffer
-import se.laz.casual.network.protocol.messages.transaction.*
+import se.laz.casual.network.protocol.messages.domain.Service
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -44,6 +53,7 @@ import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ThreadLocalRandom
+import java.util.stream.Collectors
 
 class CasualMessageListenerImplTest extends Specification
 {
@@ -83,28 +93,33 @@ class CasualMessageListenerImplTest extends Specification
     {
         given:
         long protocolVersion = 1000L
-        CasualNWMessageImpl<CasualDomainConnectRequestMessage> message = CasualNWMessageImpl.of( correlationId,
-                CasualDomainConnectRequestMessage.createBuilder()
-                        .withDomainId( domainId )
-                        .withDomainName(domainName )
-                        .withExecution( execution )
-                        .withProtocols(Arrays.asList(protocolVersion))
-                        .build()
-        )
 
+        CasualDomainConnectRequest request = CasualDomainConnectRequest.newBuilder()
+                .setDomainId(MessageCreator.toUUID4(domainId))
+                .setDomainName(domainName)
+                .setExecution(MessageCreator.toUUID4(execution))
+                .addProtocolVersion(protocolVersion)
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.DOMAIN_CONNECT_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setDomainConnect(request)
+                .build()
         when:
         instance.domainConnectRequest( message, channel )
         channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualDomainConnectReplyMessage> reply = inboundHandler.getMsg()
+        CasualReply replyEnvelope = inboundHandler.getMsg()
+        CasualDomainConnectReply reply = replyEnvelope.getDomainConnect()
 
         then:
         reply != null
-        reply.getType() == CasualNWMessageType.DOMAIN_CONNECT_REPLY
-        reply.getCorrelationId() == correlationId
-        reply.getMessage().getDomainId() == domainId
-        reply.getMessage().getDomainName() == domainName
-        reply.getMessage().getExecution() == execution
-        reply.getMessage().getProtocolVersion() == protocolVersion
+        replyEnvelope.getMessageType() ==  CasualReply.MessageType.DOMAIN_CONNECT_REPLY
+        MessageCreator.toUUID(replyEnvelope.getCorrelationId()) == correlationId
+        reply.getDomainName() == domainName
+        MessageCreator.toUUID(reply.getDomainId()) == domainId
+        MessageCreator.toUUID(reply.getExecution()) == execution
+        reply.getProtocolVersion() == protocolVersion
     }
 
     def "DomainDiscoveryRequest"()
@@ -119,28 +134,35 @@ class CasualMessageListenerImplTest extends Specification
 
         List<String> serviceNames = Arrays.asList( serviceName )
         List<Service> expectedServices = Arrays.asList( Service.of( serviceName, "mycategory", TransactionType.AUTOMATIC ) )
-        CasualNWMessage<CasualDomainDiscoveryRequestMessage> message = CasualNWMessageImpl.of( correlationId,
-                CasualDomainDiscoveryRequestMessage.createBuilder()
-                        .setDomainId( domainId )
-                        .setDomainName(domainName )
-                        .setExecution( execution )
-                        .setServiceNames( serviceNames )
-                        .build()
-        )
+
+        CasualDomainDiscoveryRequest request = CasualDomainDiscoveryRequest.newBuilder()
+                .setDomainId(MessageCreator.toUUID4(domainId))
+                .setDomainName(domainName)
+                .setExecution(MessageCreator.toUUID4(execution))
+                .addAllServiceNames(serviceNames)
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.DOMAIN_DISCOVERY_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setDomainDiscovery(request)
+                .build()
 
         when:
         instance.domainDiscoveryRequest( message, channel )
         channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualDomainDiscoveryReplyMessage> reply = inboundHandler.getMsg()
+        CasualReply replyEnvelope = inboundHandler.getMsg()
+        CasualDomainDiscoveryReply reply = replyEnvelope.getDomainDiscovery()
 
         then:
         reply != null
-        reply.getType() == CasualNWMessageType.DOMAIN_DISCOVERY_REPLY
-        reply.getCorrelationId() == correlationId
-        reply.getMessage().getDomainId() == domainId
-        reply.getMessage().getDomainName() == domainName
-        reply.getMessage().getExecution() == execution
-        reply.getMessage().getServices() == expectedServices
+        replyEnvelope.getMessageType() == CasualReply.MessageType.DOMAIN_DISCOVERY_REPLY
+        MessageCreator.toUUID(replyEnvelope.getCorrelationId()) == correlationId
+        MessageCreator.toUUID(replyEnvelope.getCorrelationId()) == correlationId
+        reply.getDomainName() == domainName
+        MessageCreator.toUUID(reply.getDomainId()) == domainId
+        MessageCreator.toUUID(reply.getExecution()) == execution
+        toServiceList(reply.getServicesList()) == expectedServices
     }
 
     def "ServiceCallRequest"()
@@ -153,16 +175,23 @@ class CasualMessageListenerImplTest extends Specification
         long timeout = 12L
         Duration timeoutDuration = Duration.of(timeout, ChronoUnit.SECONDS)
         String serviceName = "echo"
-        CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of( correlationId,
-                CasualServiceCallRequestMessage.createBuilder()
-                        .setXid( xid )
-                        .setExecution(execution)
-                        .setServiceName( serviceName )
-                        .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
-                        .setXatmiFlags( Flag.of())
-                        .setTimeout( timeoutDuration.toNanos() )
-                        .build()
-        )
+
+        byte[] payload = JsonBuffer.of( "{\"hello\"}").getBytes().get(0)
+
+        CasualServiceCallRequest request = CasualServiceCallRequest.newBuilder()
+                .setXid(MessageCreator.toXID(xid))
+                .setExecution(MessageCreator.toUUID4(execution))
+                .setServiceName(serviceName)
+                .setBufferTypeName('json')
+                .setPayload(ByteString.copyFrom(payload))
+                .setTimeout(timeoutDuration.toNanos())
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.SERVICE_CALL_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setServiceCall(request)
+                .build()
 
         when:
         instance.serviceCallRequest( message, channel, workManager )
@@ -194,15 +223,22 @@ class CasualMessageListenerImplTest extends Specification
         CasualServiceCallWork actualWork
 
         String serviceName = "echo"
-        CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of( correlationId,
-                CasualServiceCallRequestMessage.createBuilder()
-                        .setXid( xid )
-                        .setExecution(execution)
-                        .setServiceName( serviceName )
-                        .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
-                        .setXatmiFlags( Flag.of())
-                        .build()
-        )
+
+        byte[] payload = JsonBuffer.of( "{\"hello\"}").getBytes().get(0)
+
+        CasualServiceCallRequest request = CasualServiceCallRequest.newBuilder()
+                .setXid(MessageCreator.toXID(xid))
+                .setExecution(MessageCreator.toUUID4(execution))
+                .setServiceName(serviceName)
+                .setBufferTypeName('json')
+                .setPayload(ByteString.copyFrom(payload))
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.SERVICE_CALL_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setServiceCall(request)
+                .build()
 
         when:
         instance.serviceCallRequest( message, channel, workManager )
@@ -224,15 +260,21 @@ class CasualMessageListenerImplTest extends Specification
     {
         given:
         String serviceName = "echo"
-        CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of( correlationId,
-                CasualServiceCallRequestMessage.createBuilder()
-                        .setXid( xid )
-                        .setExecution(execution)
-                        .setServiceName( serviceName )
-                        .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
-                        .setXatmiFlags( Flag.of())
-                        .build()
-        )
+
+        byte[] payload = JsonBuffer.of( "{\"hello\"}").getBytes().get(0)
+        CasualServiceCallRequest request = CasualServiceCallRequest.newBuilder()
+                .setXid(MessageCreator.toXID(xid))
+                .setExecution(MessageCreator.toUUID4(execution))
+                .setServiceName(serviceName)
+                .setBufferTypeName('json')
+                .setPayload(ByteString.copyFrom(payload))
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.SERVICE_CALL_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setServiceCall(request)
+                .build()
 
         when:
         instance.serviceCallRequest( message, channel, workManager )
@@ -250,19 +292,25 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessageImpl.of(correlationId,
-                CasualTransactionResourcePrepareRequestMessage.of(
-                        execution,
-                        xid,
-                        resource,
-                        flag
-                )
-        )
+
+        CasualPrepareRequest request = CasualPrepareRequest.newBuilder()
+                .setExecution(MessageCreator.toUUID4(execution))
+                .setXid(MessageCreator.toXID(xid))
+                .setResourceManagerId(resource)
+                .setXaFlags(flag.getFlagValue())
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.PREPARE_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setPrepare(request)
+                .build()
 
         when:
         instance.prepareRequest( message, channel, xaTerminator )
         channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
+        CasualReply replyEnvelope = inboundHandler.getMsg()
+        CasualPrepareReply reply = replyEnvelope.getPrepare()
 
         then:
         1 * xaTerminator.prepare( xid ) >> {
@@ -270,10 +318,10 @@ class CasualMessageListenerImplTest extends Specification
         }
 
         reply != null
-        reply.getType() == CasualNWMessageType.PREPARE_REQUEST_REPLY
-        reply.getCorrelationId() == correlationId
-        reply.getMessage().getExecution() == execution
-        reply.getMessage().getTransactionReturnCode() == XAReturnCode.XA_OK
+        replyEnvelope.getMessageType() == CasualReply.MessageType.PREPARE_REPLY
+        MessageCreator.toUUID(replyEnvelope.getCorrelationId()) == correlationId
+        MessageCreator.toUUID(reply.getExecution()) == execution
+        XAReturnCode.valueOf(reply.getXaReturnCode().name()) == XAReturnCode.XA_OK
     }
 
     def "PrepareRequest return code failure."()
@@ -281,19 +329,26 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessageImpl.of(correlationId,
-                CasualTransactionResourcePrepareRequestMessage.of(
-                        execution,
-                        xid,
-                        resource,
-                        flag
-                )
-        )
+
+        CasualPrepareRequest request = CasualPrepareRequest.newBuilder()
+                .setExecution(MessageCreator.toUUID4(execution))
+                .setXid(MessageCreator.toXID(xid))
+                .setResourceManagerId(resource)
+                .setXaFlags(flag.getFlagValue())
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.PREPARE_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setPrepare(request)
+                .build()
 
         when:
         instance.prepareRequest( message, channel, xaTerminator )
         channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
+
+        CasualReply replyEnvelope = inboundHandler.getMsg()
+        CasualPrepareReply reply = replyEnvelope.getPrepare()
 
         then:
         1 * xaTerminator.prepare( xid ) >> {
@@ -301,10 +356,10 @@ class CasualMessageListenerImplTest extends Specification
         }
 
         reply != null
-        reply.getType() == CasualNWMessageType.PREPARE_REQUEST_REPLY
-        reply.getCorrelationId() == correlationId
-        reply.getMessage().getExecution() == execution
-        reply.getMessage().getTransactionReturnCode() == XAReturnCode.XAER_RMERR
+        replyEnvelope.getMessageType() == CasualReply.MessageType.PREPARE_REPLY
+        MessageCreator.toUUID(replyEnvelope.getCorrelationId()) == correlationId
+        MessageCreator.toUUID(reply.getExecution()) == execution
+        XAReturnCode.valueOf(reply.getXaReturnCode().name()) == XAReturnCode.XAER_RMERR
     }
 
     def "PrepareRequest prepare throws exception, returns exception error code."()
@@ -312,19 +367,26 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessageImpl.of(correlationId,
-                CasualTransactionResourcePrepareRequestMessage.of(
-                        execution,
-                        xid,
-                        resource,
-                        flag
-                )
-        )
+
+        CasualPrepareRequest request = CasualPrepareRequest.newBuilder()
+                .setExecution(MessageCreator.toUUID4(execution))
+                .setXid(MessageCreator.toXID(xid))
+                .setResourceManagerId(resource)
+                .setXaFlags(flag.getFlagValue())
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.PREPARE_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setPrepare(request)
+                .build()
 
         when:
         instance.prepareRequest( message, channel, xaTerminator )
         channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
+
+        CasualReply replyEnvelope = inboundHandler.getMsg()
+        CasualPrepareReply reply = replyEnvelope.getPrepare()
 
         then:
         1 * xaTerminator.prepare( xid ) >> {
@@ -332,10 +394,10 @@ class CasualMessageListenerImplTest extends Specification
         }
 
         reply != null
-        reply.getType() == CasualNWMessageType.PREPARE_REQUEST_REPLY
-        reply.getCorrelationId() == correlationId
-        reply.getMessage().getExecution() == execution
-        reply.getMessage().getTransactionReturnCode() == XAReturnCode.XAER_RMERR
+        replyEnvelope.getMessageType() == CasualReply.MessageType.PREPARE_REPLY
+        MessageCreator.toUUID(replyEnvelope.getCorrelationId()) == correlationId
+        MessageCreator.toUUID(reply.getExecution()) == execution
+        XAReturnCode.valueOf(reply.getXaReturnCode().name()) == XAReturnCode.XAER_RMERR
     }
 
     def "CommitRequest"()
@@ -343,28 +405,35 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessageImpl.of(correlationId,
-                CasualTransactionResourceCommitRequestMessage.of(
-                        execution,
-                        xid,
-                        resource,
-                        flag
-                )
-        )
+
+        CasualCommitRequest request = CasualCommitRequest.newBuilder()
+                .setExecution(MessageCreator.toUUID4(execution))
+                .setXid(MessageCreator.toXID(xid))
+                .setResourceManagerId(resource)
+                .setXaFlags(flag.getFlagValue())
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.COMMIT_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setCommit(request)
+                .build()
 
         when:
         instance.commitRequest( message, channel, xaTerminator )
         channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
+
+        CasualReply replyEnvelope = inboundHandler.getMsg()
+        CasualCommitReply reply = replyEnvelope.getCommit()
 
         then:
         1 * xaTerminator.commit( xid, false )
 
         reply != null
-        reply.getType() == CasualNWMessageType.COMMIT_REQUEST_REPLY
-        reply.getCorrelationId() == correlationId
-        reply.getMessage().getExecution() == execution
-        reply.getMessage().getTransactionReturnCode() == XAReturnCode.XA_OK
+        replyEnvelope.getMessageType() == CasualReply.MessageType.COMMIT_REPLY
+        MessageCreator.toUUID(replyEnvelope.getCorrelationId()) == correlationId
+        MessageCreator.toUUID(reply.getExecution()) == execution
+        XAReturnCode.valueOf(reply.getXaReturnCode().name()) == XAReturnCode.XA_OK
     }
 
     def "CommitRequest one phase true"()
@@ -372,28 +441,35 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of( XAFlags.TMONEPHASE )
-        CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessageImpl.of(correlationId,
-                CasualTransactionResourceCommitRequestMessage.of(
-                        execution,
-                        xid,
-                        resource,
-                        flag
-                )
-        )
+
+        CasualCommitRequest request = CasualCommitRequest.newBuilder()
+                .setExecution(MessageCreator.toUUID4(execution))
+                .setXid(MessageCreator.toXID(xid))
+                .setResourceManagerId(resource)
+                .setXaFlags(flag.getFlagValue())
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.COMMIT_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setCommit(request)
+                .build()
 
         when:
         instance.commitRequest( message, channel, xaTerminator )
         channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
+
+        CasualReply replyEnvelope = inboundHandler.getMsg()
+        CasualCommitReply reply = replyEnvelope.getCommit()
 
         then:
         1 * xaTerminator.commit( xid, true )
 
         reply != null
-        reply.getType() == CasualNWMessageType.COMMIT_REQUEST_REPLY
-        reply.getCorrelationId() == correlationId
-        reply.getMessage().getExecution() == execution
-        reply.getMessage().getTransactionReturnCode() == XAReturnCode.XA_OK
+        replyEnvelope.getMessageType() == CasualReply.MessageType.COMMIT_REPLY
+        MessageCreator.toUUID(replyEnvelope.getCorrelationId()) == correlationId
+        MessageCreator.toUUID(reply.getExecution()) == execution
+        XAReturnCode.valueOf(reply.getXaReturnCode().name()) == XAReturnCode.XA_OK
     }
 
     def "CommitRequest commit throws exception, returns exception error code."()
@@ -401,19 +477,26 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> message = CasualNWMessageImpl.of(correlationId,
-                CasualTransactionResourceCommitRequestMessage.of(
-                        execution,
-                        xid,
-                        resource,
-                        flag
-                )
-        )
+
+        CasualCommitRequest request = CasualCommitRequest.newBuilder()
+                .setExecution(MessageCreator.toUUID4(execution))
+                .setXid(MessageCreator.toXID(xid))
+                .setResourceManagerId(resource)
+                .setXaFlags(flag.getFlagValue())
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.COMMIT_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setCommit(request)
+                .build()
 
         when:
         instance.commitRequest( message, channel, xaTerminator )
         channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
+
+        CasualReply replyEnvelope = inboundHandler.getMsg()
+        CasualCommitReply reply = replyEnvelope.getCommit()
 
         then:
         1 * xaTerminator.commit( xid, false ) >> {
@@ -421,10 +504,10 @@ class CasualMessageListenerImplTest extends Specification
         }
 
         reply != null
-        reply.getType() == CasualNWMessageType.COMMIT_REQUEST_REPLY
-        reply.getCorrelationId() == correlationId
-        reply.getMessage().getExecution() == execution
-        reply.getMessage().getTransactionReturnCode() == XAReturnCode.XAER_RMERR
+        replyEnvelope.getMessageType() == CasualReply.MessageType.COMMIT_REPLY
+        MessageCreator.toUUID(replyEnvelope.getCorrelationId()) == correlationId
+        MessageCreator.toUUID(reply.getExecution()) == execution
+        XAReturnCode.valueOf(reply.getXaReturnCode().name()) == XAReturnCode.XAER_RMERR
     }
 
     def "RollbackRequest"()
@@ -432,28 +515,34 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> message = CasualNWMessageImpl.of(correlationId,
-                CasualTransactionResourceRollbackRequestMessage.of(
-                        execution,
-                        xid,
-                        resource,
-                        flag
-                )
-        )
 
+        CasualRollbackRequest request = CasualRollbackRequest.newBuilder()
+                .setExecution(MessageCreator.toUUID4(execution))
+                .setXid(MessageCreator.toXID(xid))
+                .setResourceManagerId(resource)
+                .setXaFlags(flag.getFlagValue())
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.ROLLBACK_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setRollback(request)
+                .build()
         when:
         instance.requestRollback( message, channel, xaTerminator )
         channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = inboundHandler.getMsg()
+
+        CasualReply replyEnvelope = inboundHandler.getMsg()
+        CasualRollbackReply reply = replyEnvelope.getRollback()
 
         then:
         1 * xaTerminator.rollback( xid )
 
         reply != null
-        reply.getType() == CasualNWMessageType.REQUEST_ROLLBACK_REPLY
-        reply.getCorrelationId() == correlationId
-        reply.getMessage().getExecution() == execution
-        reply.getMessage().getTransactionReturnCode() == XAReturnCode.XA_OK
+        replyEnvelope.getMessageType() == CasualReply.MessageType.ROLLBACK_REPLY
+        MessageCreator.toUUID(replyEnvelope.getCorrelationId()) == correlationId
+        MessageCreator.toUUID(reply.getExecution()) == execution
+        XAReturnCode.valueOf(reply.getXaReturnCode().name()) == XAReturnCode.XA_OK
     }
 
     def "RollbackRequest rollback throws exception, returns exception error code."()
@@ -461,19 +550,26 @@ class CasualMessageListenerImplTest extends Specification
         given:
         int resource = 1
         Flag<XAFlags> flag = Flag.of()
-        CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> message = CasualNWMessageImpl.of(correlationId,
-                CasualTransactionResourceRollbackRequestMessage.of(
-                        execution,
-                        xid,
-                        resource,
-                        flag
-                )
-        )
+
+        CasualRollbackRequest request = CasualRollbackRequest.newBuilder()
+                .setExecution(MessageCreator.toUUID4(execution))
+                .setXid(MessageCreator.toXID(xid))
+                .setResourceManagerId(resource)
+                .setXaFlags(flag.getFlagValue())
+                .build()
+
+        CasualRequest message = CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.ROLLBACK_REQUEST)
+                .setCorrelationId(MessageCreator.toUUID4(correlationId))
+                .setRollback(request)
+                .build()
 
         when:
         instance.requestRollback( message, channel, xaTerminator )
         channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = inboundHandler.getMsg()
+
+        CasualReply replyEnvelope = inboundHandler.getMsg()
+        CasualRollbackReply reply = replyEnvelope.getRollback()
 
         then:
         1 * xaTerminator.rollback( xid ) >> {
@@ -481,10 +577,19 @@ class CasualMessageListenerImplTest extends Specification
         }
 
         reply != null
-        reply.getType() == CasualNWMessageType.REQUEST_ROLLBACK_REPLY
-        reply.getCorrelationId() == correlationId
-        reply.getMessage().getExecution() == execution
-        reply.getMessage().getTransactionReturnCode() == XAReturnCode.XAER_RMERR
+        replyEnvelope.getMessageType() == CasualReply.MessageType.ROLLBACK_REPLY
+        MessageCreator.toUUID(replyEnvelope.getCorrelationId()) == correlationId
+        MessageCreator.toUUID(reply.getExecution()) == execution
+        XAReturnCode.valueOf(reply.getXaReturnCode().name()) == XAReturnCode.XAER_RMERR
+    }
+
+    List<Service> toServiceList(List<se.laz.casual.network.messages.Service> services)
+    {
+        return services.stream()
+                .map({s -> Service.of(s.getName(), s.getCategory(), MessageCreator.toTransactionType(s.getTransactionType()))
+                        .setHops(s.getHops())
+                        .setTimeout(s.getTimeout())})
+                    .collect(Collectors.toList())
     }
 
     class TestCasualService implements CasualService{
