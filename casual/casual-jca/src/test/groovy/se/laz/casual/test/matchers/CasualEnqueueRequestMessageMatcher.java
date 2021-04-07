@@ -8,24 +8,22 @@ package se.laz.casual.test.matchers;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.network.protocol.messages.queue.CasualEnqueueRequestMessage;
+import se.laz.casual.network.messages.CasualEnqueueRequest;
 
 import java.util.Arrays;
 
 public class CasualEnqueueRequestMessageMatcher
 {
-    public static TypeSafeMatcher<CasualNWMessage<CasualEnqueueRequestMessage>> matching(final CasualEnqueueRequestMessage expected )
+    public static TypeSafeMatcher<CasualEnqueueRequest> matching(final CasualEnqueueRequest expected )
     {
-        return new TypeSafeMatcher<CasualNWMessage<CasualEnqueueRequestMessage>>()
+        return new TypeSafeMatcher<CasualEnqueueRequest>()
         {
             @Override
-            protected boolean matchesSafely(CasualNWMessage<CasualEnqueueRequestMessage> item)
+            protected boolean matchesSafely(CasualEnqueueRequest item)
             {
-                CasualEnqueueRequestMessage msg = item.getMessage();
-                return msg.getQueueName().equals(expected.getQueueName()) &&
-                       Arrays.deepEquals( msg.getMessage().getPayload().getPayload().toArray(), expected.getMessage().getPayload().getPayload().toArray() ) &&
-                       msg.getMessage().getReplyQueue().equals(expected.getMessage().getReplyQueue());
+                return item.getQueueName().equals(expected.getQueueName()) &&
+                       Arrays.equals( item.getMessage().getPayload().toByteArray(), expected.getMessage().getPayload().toByteArray() ) &&
+                       item.getMessage().getReplyQueue().equals(expected.getMessage().getReplyQueue());
             }
 
             @Override
@@ -34,7 +32,7 @@ public class CasualEnqueueRequestMessageMatcher
             }
 
             @Override
-            protected void describeMismatchSafely(CasualNWMessage<CasualEnqueueRequestMessage> item, Description mismatchDescription)
+            protected void describeMismatchSafely(CasualEnqueueRequest item, Description mismatchDescription)
             {
                 super.describeMismatchSafely(item, mismatchDescription);
             }

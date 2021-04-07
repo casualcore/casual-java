@@ -8,19 +8,18 @@ package se.laz.casual.test.matchers;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.laz.casual.network.messages.CasualDomainDiscoveryRequest;
 
 public final class CasualDomainDiscoveryRequestMessageMatcher
 {
-    public static TypeSafeMatcher<CasualNWMessage<CasualDomainDiscoveryRequestMessage>> matching(final CasualDomainDiscoveryRequestMessage expected )
+    public static TypeSafeMatcher<CasualDomainDiscoveryRequest> matching(final CasualDomainDiscoveryRequest expected )
     {
-        return new TypeSafeMatcher<CasualNWMessage<CasualDomainDiscoveryRequestMessage>>()
+        return new TypeSafeMatcher<CasualDomainDiscoveryRequest>()
         {
             @Override
-            protected boolean matchesSafely(CasualNWMessage<CasualDomainDiscoveryRequestMessage> item)
+            protected boolean matchesSafely(CasualDomainDiscoveryRequest item)
             {
-                if( item.getMessage().getServiceNames().equals( expected.getServiceNames() ) && item.getMessage().getQueueNames().equals( expected.getQueueNames() ) )
+                if( item.getServiceNamesList().equals( expected.getServiceNamesList() ) && item.getQueueNamesList().equals( expected.getQueueNamesList() ) )
                 {
                     return true;
                 }
@@ -34,7 +33,7 @@ public final class CasualDomainDiscoveryRequestMessageMatcher
             }
 
             @Override
-            protected void describeMismatchSafely(CasualNWMessage<CasualDomainDiscoveryRequestMessage> item, Description mismatchDescription)
+            protected void describeMismatchSafely(CasualDomainDiscoveryRequest item, Description mismatchDescription)
             {
                 super.describeMismatchSafely(item, mismatchDescription);
             }

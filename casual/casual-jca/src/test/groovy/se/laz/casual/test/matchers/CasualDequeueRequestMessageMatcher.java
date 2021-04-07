@@ -8,20 +8,18 @@ package se.laz.casual.test.matchers;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.network.protocol.messages.queue.CasualDequeueRequestMessage;
+import se.laz.casual.network.messages.CasualDequeueRequest;
 
 public class CasualDequeueRequestMessageMatcher
 {
-    public static TypeSafeMatcher<CasualNWMessage<CasualDequeueRequestMessage>> matching(final CasualDequeueRequestMessage expected )
+    public static TypeSafeMatcher<CasualDequeueRequest> matching(final CasualDequeueRequest expected )
     {
-        return new TypeSafeMatcher<CasualNWMessage<CasualDequeueRequestMessage>>()
+        return new TypeSafeMatcher<CasualDequeueRequest>()
         {
             @Override
-            protected boolean matchesSafely(CasualNWMessage<CasualDequeueRequestMessage> item)
+            protected boolean matchesSafely(CasualDequeueRequest item)
             {
-                CasualDequeueRequestMessage msg = item.getMessage();
-                return msg.getQueueName().equals(expected.getQueueName());
+                return item.getQueueName().equals(expected.getQueueName());
             }
 
             @Override
@@ -30,7 +28,7 @@ public class CasualDequeueRequestMessageMatcher
             }
 
             @Override
-            protected void describeMismatchSafely(CasualNWMessage<CasualDequeueRequestMessage> item, Description mismatchDescription)
+            protected void describeMismatchSafely(CasualDequeueRequest item, Description mismatchDescription)
             {
                 super.describeMismatchSafely(item, mismatchDescription);
             }

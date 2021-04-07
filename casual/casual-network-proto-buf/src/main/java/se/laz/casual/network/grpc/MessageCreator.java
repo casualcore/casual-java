@@ -241,6 +241,16 @@ public final class MessageCreator
         return se.laz.casual.api.flags.ErrorState.valueOf(errorState.name());
     }
 
+    public static se.laz.casual.network.messages.XAReturnCode toXAReturnCode(se.laz.casual.api.xa.XAReturnCode xaReturnCode)
+    {
+        return se.laz.casual.network.messages.XAReturnCode.valueOf(xaReturnCode.name());
+    }
+
+    public static se.laz.casual.api.xa.XAReturnCode toXAReturnCode(se.laz.casual.network.messages.XAReturnCode xaReturnCode)
+    {
+        return se.laz.casual.api.xa.XAReturnCode.valueOf(xaReturnCode.name());
+    }
+
     public static UUID4 toUUID4(UUID id)
     {
         return UUID4.newBuilder()
@@ -335,4 +345,6 @@ public final class MessageCreator
                   .setXidData(ByteString.copyFrom(data))
                   .build();
     }
+
+
 }

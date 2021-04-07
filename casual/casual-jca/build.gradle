@@ -37,6 +37,7 @@ dependencies {
     resourceAdapter project(':casual:casual-inbound-api')
     resourceAdapterLib libs.netty
 
+    testCompile project(':casual:casual-network-proto-buf')
     testCompile libs.hamcrest_all
     // for spock
     testCompile libs.groovy_all

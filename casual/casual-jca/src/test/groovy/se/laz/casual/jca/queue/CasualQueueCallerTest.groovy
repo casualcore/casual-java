@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.queue
 
+import com.google.protobuf.ByteString
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.queue.MessageSelector
 import se.laz.casual.api.queue.QueueInfo
@@ -16,11 +17,17 @@ import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceManager
 import se.laz.casual.network.connection.CasualConnectionException
-import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
-import se.laz.casual.network.protocol.messages.domain.Queue
-import se.laz.casual.network.protocol.messages.queue.*
+import se.laz.casual.network.grpc.MessageCreator
+import se.laz.casual.network.messages.CasualDequeueReply
+import se.laz.casual.network.messages.CasualDequeueRequest
+import se.laz.casual.network.messages.CasualDomainDiscoveryReply
+import se.laz.casual.network.messages.CasualDomainDiscoveryRequest
+import se.laz.casual.network.messages.CasualEnqueueReply
+import se.laz.casual.network.messages.CasualEnqueueRequest
+import se.laz.casual.network.messages.CasualReply
+import se.laz.casual.network.messages.CasualRequest
+import se.laz.casual.network.messages.DequeueMessage
+import se.laz.casual.network.messages.Selector
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -38,21 +45,21 @@ class CasualQueueCallerTest extends Specification
     @Shared UUID executionId
     @Shared UUID domainId
     @Shared UUID enqueueReplyId
-    @Shared def domainName
-    @Shared def queueName
+    @Shared String domainName
+    @Shared String queueName
     @Shared def queueSpace
     @Shared QueueInfo queueInfo
     @Shared MessageSelector nullSelector = MessageSelector.of()
     @Shared JsonBuffer message
-    @Shared CasualEnqueueRequestMessage expectedEnqueueRequest
-    @Shared CasualDequeueRequestMessage expectedDequeueRequest
-    @Shared CasualDomainDiscoveryRequestMessage expectedDomainDiscoveryRequest
-    @Shared CasualNWMessageImpl<CasualEnqueueReplyMessage> enqueueReply
-    @Shared CasualNWMessageImpl<CasualDequeueReplyMessage> dequeueReply
-    @Shared CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyFound
-    @Shared CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyNotFound
-    @Shared CasualNWMessageImpl<CasualEnqueueRequestMessage> actualEnqueueRequest
-    @Shared CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> actualDomainDiscoveryRequest
+    @Shared CasualEnqueueRequest expectedEnqueueRequest
+    @Shared CasualDequeueRequest expectedDequeueRequest
+    @Shared CasualDomainDiscoveryRequest expectedDomainDiscoveryRequest
+    @Shared CasualReply enqueueReply
+    @Shared CasualReply dequeueReply
+    @Shared CasualReply domainDiscoveryReplyFound
+    @Shared CasualReply domainDiscoveryReplyNotFound
+    @Shared CasualRequest actualEnqueueRequest
+    @Shared CasualRequest actualDomainDiscoveryRequest
     @Shared def bigBaddaBoom = 'big badda boom'
     @Shared int resourceId = 42
 
@@ -91,25 +98,30 @@ class CasualQueueCallerTest extends Specification
 
     def initialiseExpectedRequests()
     {
-        expectedEnqueueRequest = CasualEnqueueRequestMessage.createBuilder()
-                                                            .withExecution(executionId)
-                                                            .withXid(connection.getCurrentXid() )
-                                                            .withQueueName(queueInfo.compositeName)
-                                                            .withMessage(EnqueueMessage.of(QueueMessage.of(message)))
-                                                            .build()
+        expectedEnqueueRequest = CasualEnqueueRequest.newBuilder()
+                .setExecution(MessageCreator.toUUID4(executionId))
+                .setXid(MessageCreator.toXID(connection.getCurrentXid()))
+                .setQueueName(queueInfo.getCompositeName())
+                .setMessage(se.laz.casual.network.messages.QueueMessage.newBuilder()
+                        .setPayload(ByteString.copyFrom(message.getBytes().get(0)))
+                        .setType(message.getType())
+                        .build())
+                .build()
 
-        expectedDequeueRequest = CasualDequeueRequestMessage.createBuilder()
-                                                            .withXid(connection.getCurrentXid())
-                                                            .withExecution(executionId)
-                                                            .withSelectorUUID(nullSelector.getSelectorId())
-                                                            .withSelectorProperties(nullSelector.getSelector())
-                                                            .withQueueName(queueInfo.compositeName)
-                                                            .withBlock(true)
-                                                            .build()
-        expectedDomainDiscoveryRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
-                                                                            .setQueueNames([queueInfo.compositeName])
-                                                                            .setDomainName(connection.getDomainName())
-                                                                            .build()
+        expectedDequeueRequest = CasualDequeueRequest.newBuilder()
+                .setExecution(MessageCreator.toUUID4(executionId))
+                .setXid(MessageCreator.toXID(connection.getCurrentXid()))
+                .setSelector(Selector.newBuilder()
+                .setProperties('')
+                .setId(MessageCreator.toUUID4(new UUID(0,0))))
+                .setQueueName(queueInfo.getCompositeName())
+                .setBlock(true)
+                .build()
+
+        expectedDomainDiscoveryRequest = CasualDomainDiscoveryRequest.newBuilder()
+                .addAllQueueNames([queueInfo.compositeName])
+                .setDomainName(connection.getDomainName())
+                .build()
     }
 
     def initialiseReplies()
@@ -120,40 +132,60 @@ class CasualQueueCallerTest extends Specification
         domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asQueues([]))
     }
 
-    List<Queue> asQueues(List<String> queuenames)
+    List<se.laz.casual.network.messages.Queue> asQueues(List<String> queuenames)
     {
-        List<Queue> l = new ArrayList<>()
+        List<se.laz.casual.network.messages.Queue> l = new ArrayList<>()
         for(String qname : queuenames)
         {
-            l.add(Queue.of(qname))
+            l.add(se.laz.casual.network.messages.Queue.newBuilder()
+            .setName(qname)
+            .build())
         }
         return l
     }
 
-    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Queue> queues)
+    CasualReply createDomainDiscoveryReply(List<se.laz.casual.network.messages.Queue> queues)
     {
-        CasualNWMessageImpl.of(executionId,
-                           CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
-                                                            .setQueues(queues))
+        CasualDomainDiscoveryReply reply = CasualDomainDiscoveryReply.newBuilder()
+                .setExecution(MessageCreator.toUUID4(executionId))
+                .setDomainId(MessageCreator.toUUID4(domainId))
+                .setDomainName(domainName)
+                .addAllQueues(queues)
+                .build()
+        return CasualReply.newBuilder()
+                .setMessageType(CasualReply.MessageType.DOMAIN_DISCOVERY_REPLY)
+                .setCorrelationId(MessageCreator.toUUID4(executionId))
+                .setDomainDiscovery(reply)
+                .build()
     }
 
-    CasualNWMessageImpl<CasualEnqueueReplyMessage> createEnqueueReplyMessage()
+    CasualReply createEnqueueReplyMessage()
     {
-        CasualNWMessageImpl.of( executionId,
-                CasualEnqueueReplyMessage.createBuilder()
-                                         .withExecution(executionId)
-                                         .withId(enqueueReplyId)
-                                         .build())
+        CasualEnqueueReply reply = CasualEnqueueReply.newBuilder()
+        .setExecution(MessageCreator.toUUID4(executionId))
+        .setMessageId(MessageCreator.toUUID4(enqueueReplyId))
+        .build()
+        return CasualReply.newBuilder()
+                .setMessageType(CasualReply.MessageType.ENQUEUE_REPLY)
+                .setCorrelationId(MessageCreator.toUUID4(executionId))
+                .setEnqueue(reply)
+                .build()
     }
 
-    CasualNWMessageImpl<CasualDequeueReplyMessage> createDequeueReplyMessage()
+    CasualReply createDequeueReplyMessage()
     {
-        CasualNWMessageImpl.of(executionId,
-                CasualDequeueReplyMessage.createBuilder()
-                                         .withExecution(executionId)
-                                         .withMessages(Arrays.asList(DequeueMessage.of(QueueMessage.of(message))))
-                                         .build()
-        )
+        CasualDequeueReply reply = CasualDequeueReply.newBuilder()
+                .setExecution(MessageCreator.toUUID4(executionId))
+                .addAllMessage([DequeueMessage.newBuilder()
+                                        .setPayload(ByteString.copyFrom(message.getBytes().get(0)))
+                                        .setType(message.getType())
+                                        .build()])
+                .build()
+        return CasualReply.newBuilder()
+                .setMessageType(CasualReply.MessageType.DEQUEUE_REPLY)
+                .setCorrelationId(MessageCreator.toUUID4(executionId))
+                .setDequeue(reply)
+                .build()
     }
 
     def 'enqueue'()
@@ -164,11 +196,11 @@ class CasualQueueCallerTest extends Specification
         noExceptionThrown()
         msgId == enqueueReplyId
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualEnqueueRequestMessage> input ->
+            CasualRequest input ->
                 actualEnqueueRequest = input
                 return new CompletableFuture<>(enqueueReply)
         }
-        expect actualEnqueueRequest, matching( expectedEnqueueRequest )
+        expect actualEnqueueRequest.getEnqueue(), matching( expectedEnqueueRequest )
     }
 
     def 'enqueue goes big badda boom'()
@@ -179,7 +211,7 @@ class CasualQueueCallerTest extends Specification
         null == msgId
         thrown(CasualConnectionException)
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualEnqueueRequestMessage> input ->
+            CasualRequest input ->
                 throw new RuntimeException(bigBaddaBoom)
         }
     }
@@ -192,7 +224,7 @@ class CasualQueueCallerTest extends Specification
         messages == null
         thrown(CasualConnectionException)
         1 * networkConnection.request(_) >> {
-            CasualNWMessageImpl<CasualDequeueRequestMessage> input ->
+            CasualRequest input ->
                 throw new RuntimeException(bigBaddaBoom)
         }
     }
@@ -204,11 +236,11 @@ class CasualQueueCallerTest extends Specification
         then:
         r == true
         1 * networkConnection.request(_) >> {
-            CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
+            CasualRequest input ->
                 actualDomainDiscoveryRequest = input
                 return new CompletableFuture<>(domainDiscoveryReplyFound)
         }
-        expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
+        expect actualDomainDiscoveryRequest.getDomainDiscovery(), matching(expectedDomainDiscoveryRequest)
     }
 
     def 'queueExists - not found'()
@@ -218,11 +250,11 @@ class CasualQueueCallerTest extends Specification
         then:
         r == false
         1 * networkConnection.request(_) >> {
-            CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
+            CasualRequest input ->
                 actualDomainDiscoveryRequest = input
                 return new CompletableFuture<>(domainDiscoveryReplyNotFound)
         }
-        expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
+        expect actualDomainDiscoveryRequest.getDomainDiscovery(), matching(expectedDomainDiscoveryRequest)
     }
 
     def 'queueExists goes big badda boom'()
@@ -233,7 +265,7 @@ class CasualQueueCallerTest extends Specification
         messages == null
         thrown(CasualConnectionException)
         1 * networkConnection.request(_) >> {
-            CasualNWMessageImpl<CasualDequeueRequestMessage> input ->
+            CasualRequest input ->
                 throw new RuntimeException(bigBaddaBoom)
         }
     }

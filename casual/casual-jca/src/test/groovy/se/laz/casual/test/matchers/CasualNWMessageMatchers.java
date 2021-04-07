@@ -7,31 +7,30 @@
 package se.laz.casual.test.matchers;
 
 import org.hamcrest.TypeSafeMatcher;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
-import se.laz.casual.network.protocol.messages.queue.CasualDequeueRequestMessage;
-import se.laz.casual.network.protocol.messages.queue.CasualEnqueueRequestMessage;
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
+import se.laz.casual.network.messages.CasualDequeueRequest;
+import se.laz.casual.network.messages.CasualDomainDiscoveryRequest;
+import se.laz.casual.network.messages.CasualEnqueueRequest;
+import se.laz.casual.network.messages.CasualServiceCallRequest;
 
 public final class CasualNWMessageMatchers
 {
 
-    public static TypeSafeMatcher<CasualNWMessage<CasualDomainDiscoveryRequestMessage>> matching(final CasualDomainDiscoveryRequestMessage expected )
+    public static TypeSafeMatcher<CasualDomainDiscoveryRequest> matching(final CasualDomainDiscoveryRequest expected )
     {
         return CasualDomainDiscoveryRequestMessageMatcher.matching( expected );
     }
 
-    public static TypeSafeMatcher<CasualNWMessage<CasualServiceCallRequestMessage>> matching(final CasualServiceCallRequestMessage expected )
+    public static TypeSafeMatcher<CasualServiceCallRequest> matching(final CasualServiceCallRequest expected )
     {
         return CasualServiceCallRequestMessageMatcher.matching( expected );
     }
 
-    public static TypeSafeMatcher<CasualNWMessage<CasualEnqueueRequestMessage>> matching(final CasualEnqueueRequestMessage expected )
+    public static TypeSafeMatcher<CasualEnqueueRequest> matching(final CasualEnqueueRequest expected )
     {
         return CasualEnqueueRequestMessageMatcher.matching( expected );
     }
 
-    public static TypeSafeMatcher<CasualNWMessage<CasualDequeueRequestMessage>> matching(final CasualDequeueRequestMessage expected )
+    public static TypeSafeMatcher<CasualDequeueRequest> matching(final CasualDequeueRequest expected )
     {
         return CasualDequeueRequestMessageMatcher.matching( expected );
     }

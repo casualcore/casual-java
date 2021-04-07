@@ -6,14 +6,20 @@
 
 package se.laz.casual.jca
 
-
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.XAFlags
 import se.laz.casual.api.xa.XAReturnCode
 import se.laz.casual.api.xa.XID
 import se.laz.casual.internal.network.NetworkConnection
-import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.transaction.*
+import se.laz.casual.network.grpc.MessageCreator
+import se.laz.casual.network.messages.CasualCommitReply
+import se.laz.casual.network.messages.CasualCommitRequest
+import se.laz.casual.network.messages.CasualPrepareReply
+import se.laz.casual.network.messages.CasualPrepareRequest
+import se.laz.casual.network.messages.CasualReply
+import se.laz.casual.network.messages.CasualRequest
+import se.laz.casual.network.messages.CasualRollbackReply
+import se.laz.casual.network.messages.CasualRollbackRequest
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -31,15 +37,15 @@ class CasualXAResourceTest extends Specification
     @Shared CasualManagedConnection managedConnection
     @Shared NetworkConnection networkConnection
     @Shared Xid xid1, xid2
-    @Shared CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> expectedPrepareRequestMessage
-    @Shared CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> actualPrepareRequestMessage
-    @Shared CasualNWMessageImpl<CasualTransactionResourcePrepareReplyMessage> prepareReplyMessage
-    @Shared CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> expectedRollbackRequestMessage
-    @Shared CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> actualRollbackRequestMessage
-    @Shared CasualNWMessageImpl<CasualTransactionResourceRollbackReplyMessage> rollbackReplyMessage
-    @Shared CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> expectedCommitRequestMessage
-    @Shared CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> actualCommitRequestMessage
-    @Shared CasualNWMessageImpl<CasualTransactionResourceCommitReplyMessage> commitReplyMessage
+    @Shared CasualRequest expectedPrepareRequestMessage
+    @Shared CasualRequest actualPrepareRequestMessage
+    @Shared CasualReply prepareReplyMessage
+    @Shared CasualRequest expectedRollbackRequestMessage
+    @Shared CasualRequest actualRollbackRequestMessage
+    @Shared CasualReply rollbackReplyMessage
+    @Shared CasualRequest expectedCommitRequestMessage
+    @Shared CasualRequest actualCommitRequestMessage
+    @Shared CasualReply commitReplyMessage
     @Shared CasualResourceManager transactionResources
     @Shared int resourceId = 42
 
@@ -76,31 +82,44 @@ class CasualXAResourceTest extends Specification
         expectedCommitRequestMessage = createCommitRequestMessage( xid1, Flag.of( XAFlags.TMNOFLAGS ) )
     }
 
-    CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> createPrepareRequestMessage(Xid xid, Flag<XAFlags> flags )
+    CasualRequest createPrepareRequestMessage(Xid xid, Flag<XAFlags> flags )
     {
-        return CasualNWMessageImpl.of(null,
-                CasualTransactionResourcePrepareRequestMessage.of(null,
-                        xid,
-                        mcf.getResourceId(),
-                        flags) )
+        CasualPrepareRequest request = CasualPrepareRequest.newBuilder()
+                .setXid(MessageCreator.toXID(xid1))
+                .setResourceManagerId(mcf.getResourceId())
+                .setXaFlags(flags.getFlagValue())
+                .build()
+        return CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.PREPARE_REQUEST)
+                .setPrepare(request)
+                .build()
     }
 
-    CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> createRollbackRequestMessage(Xid xid, Flag<XAFlags> flags )
+    CasualRequest createRollbackRequestMessage(Xid xid, Flag<XAFlags> flags )
     {
-        return CasualNWMessageImpl.of(null,
-                CasualTransactionResourceRollbackRequestMessage.of(null,
-                        xid,
-                        mcf.getResourceId(),
-                        flags) )
+        CasualRollbackRequest request = CasualRollbackRequest.newBuilder()
+                .setXid(MessageCreator.toXID(xid1))
+                .setResourceManagerId(mcf.getResourceId())
+                .setXaFlags(flags.getFlagValue())
+                .build()
+        return CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.ROLLBACK_REQUEST)
+                .setRollback(request)
+                .build()
     }
 
-    CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> createCommitRequestMessage(Xid xid, Flag<XAFlags> flags )
+    CasualRequest createCommitRequestMessage(Xid xid, Flag<XAFlags> flags )
     {
-        return CasualNWMessageImpl.of(null,
-                CasualTransactionResourceCommitRequestMessage.of(null,
-                        xid,
-                        mcf.getResourceId(),
-                        flags) )
+        println "flag value: ${flags.getFlagValue()}"
+        CasualCommitRequest request = CasualCommitRequest.newBuilder()
+                .setXid(MessageCreator.toXID(xid1))
+                .setResourceManagerId(mcf.getResourceId())
+                .setXaFlags(flags.getFlagValue())
+                .build()
+        return CasualRequest.newBuilder()
+                .setMessageType(CasualRequest.MessageType.COMMIT_REQUEST)
+                .setCommit(request)
+                .build()
     }
 
     def initialiseReplies()
@@ -110,37 +129,43 @@ class CasualXAResourceTest extends Specification
         commitReplyMessage = createCommitReplyMessage( xid1, XAReturnCode.XA_OK )
     }
 
-    CasualNWMessageImpl<CasualTransactionResourcePrepareReplyMessage> createPrepareReplyMessage(Xid xid, XAReturnCode returnCode )
+    CasualReply createPrepareReplyMessage(Xid xid, XAReturnCode returnCode )
     {
-        CasualNWMessageImpl.of( null,
-                CasualTransactionResourcePrepareReplyMessage.of( null,
-                        xid,
-                        mcf.getResourceId(),
-                        returnCode
-                )
-        )
+        CasualPrepareReply reply = CasualPrepareReply.newBuilder()
+                .setXid(MessageCreator.toXID(xid1))
+                .setResourceManagerId(mcf.getResourceId())
+                .setXaReturnCode(MessageCreator.toXAReturnCode(returnCode))
+                .build()
+        return CasualReply.newBuilder()
+                .setMessageType(CasualReply.MessageType.PREPARE_REPLY)
+                .setPrepare(reply)
+                .build()
     }
 
-    CasualNWMessageImpl<CasualTransactionResourceRollbackReplyMessage> createRollbackReplyMessage(Xid xid, XAReturnCode returnCode )
+    CasualReply createRollbackReplyMessage(Xid xid, XAReturnCode returnCode )
     {
-        CasualNWMessageImpl.of( null,
-                CasualTransactionResourceRollbackReplyMessage.of( null,
-                        xid,
-                        mcf.getResourceId(),
-                        returnCode
-                )
-        )
+        CasualRollbackReply reply = CasualRollbackReply.newBuilder()
+                .setXid(MessageCreator.toXID(xid1))
+                .setResourceManagerId(mcf.getResourceId())
+                .setXaReturnCode(MessageCreator.toXAReturnCode(returnCode))
+                .build()
+        return CasualReply.newBuilder()
+                .setMessageType(CasualReply.MessageType.ROLLBACK_REPLY)
+                .setRollback(reply)
+                .build()
     }
 
-    CasualNWMessageImpl<CasualTransactionResourceCommitReplyMessage> createCommitReplyMessage(Xid xid, XAReturnCode returnCode )
+    CasualReply createCommitReplyMessage(Xid xid, XAReturnCode returnCode )
     {
-        CasualNWMessageImpl.of( null,
-                CasualTransactionResourceCommitReplyMessage.of( null,
-                        xid,
-                        mcf.getResourceId(),
-                        returnCode
-                )
-        )
+        CasualCommitReply reply = CasualCommitReply.newBuilder()
+                .setXid(MessageCreator.toXID(xid1))
+                .setResourceManagerId(mcf.getResourceId())
+                .setXaReturnCode(MessageCreator.toXAReturnCode(returnCode))
+                .build()
+        return CasualReply.newBuilder()
+                .setMessageType(CasualReply.MessageType.COMMIT_REPLY)
+                .setCommit(reply)
+                .build()
     }
 
 
@@ -246,13 +271,13 @@ class CasualXAResourceTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> input ->
+            CasualRequest input ->
                 actualCommitRequestMessage = input
                 return new CompletableFuture<>(commitReplyMessage)
         }
-
-        actualCommitRequestMessage.getMessage().getXid() == xid1
-        actualCommitRequestMessage.getMessage().getFlags() == Flag.of( XAFlags.TMNOFLAGS )
+        CasualCommitRequest commitRequest = actualCommitRequestMessage.getCommit()
+        MessageCreator.toXID(commitRequest.getXid()) == xid1
+        commitRequest.getXaFlags() == Flag.of( XAFlags.TMNOFLAGS ).getFlagValue()
     }
 
     def "Commit one phase true, returns ok."()
@@ -263,13 +288,13 @@ class CasualXAResourceTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> input ->
+            CasualRequest input ->
                 actualCommitRequestMessage = input
                 return new CompletableFuture<>(commitReplyMessage)
         }
-
-        actualCommitRequestMessage.getMessage().getXid() == xid1
-        actualCommitRequestMessage.getMessage().getFlags() == Flag.of( XAFlags.TMONEPHASE )
+        CasualCommitRequest commitRequest = actualCommitRequestMessage.getCommit()
+        MessageCreator.toXID(commitRequest.getXid()) == xid1
+        commitRequest.getXaFlags() == Flag.of( XAFlags.TMONEPHASE ).getFlagValue()
     }
 
     def "Commit returns read only."()
@@ -283,12 +308,12 @@ class CasualXAResourceTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> input ->
+            CasualRequest input ->
                 actualCommitRequestMessage = input
                 return new CompletableFuture<>(commitReplyMessage)
         }
-
-        actualCommitRequestMessage.getMessage().getXid() == xid1
+        CasualCommitRequest commitRequest = actualCommitRequestMessage.getCommit()
+        MessageCreator.toXID(commitRequest.getXid()) == xid1
     }
 
     def "Commit returns fail, throws XAException."()
@@ -302,12 +327,12 @@ class CasualXAResourceTest extends Specification
         then:
         thrown XAException
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualTransactionResourceCommitRequestMessage> input ->
+            CasualRequest input ->
                 actualCommitRequestMessage = input
                 return new CompletableFuture<>(commitReplyMessage)
         }
-
-        actualCommitRequestMessage.getMessage().getXid() == xid1
+        CasualCommitRequest commitRequest = actualCommitRequestMessage.getCommit()
+        MessageCreator.toXID(commitRequest.getXid()) == xid1
     }
 
 
@@ -335,12 +360,12 @@ class CasualXAResourceTest extends Specification
         reply == XAReturnCode.XA_OK.getId()
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> input ->
+            CasualRequest input ->
                 actualPrepareRequestMessage = input
                 return new CompletableFuture<>(prepareReplyMessage)
         }
-
-        actualPrepareRequestMessage.getMessage().getXid() == xid1
+        CasualPrepareRequest actualPrepareRequest = actualPrepareRequestMessage.getPrepare()
+        MessageCreator.toXID(actualPrepareRequest.getXid()) == xid1
     }
 
     def "Prepare returns read only."()
@@ -355,12 +380,12 @@ class CasualXAResourceTest extends Specification
         reply == XAReturnCode.XA_RDONLY.getId()
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> input ->
+            CasualRequest input ->
                 actualPrepareRequestMessage = input
                 return new CompletableFuture<>(prepareReplyMessage)
         }
-
-        actualPrepareRequestMessage.getMessage().getXid() == xid1
+        CasualPrepareRequest actualPrepareRequest = actualPrepareRequestMessage.getPrepare()
+        MessageCreator.toXID(actualPrepareRequest.getXid()) == xid1
     }
 
     def "Prepare returns fail, throws XAException."()
@@ -375,12 +400,12 @@ class CasualXAResourceTest extends Specification
         thrown XAException
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> input ->
+            CasualRequest input ->
                 actualPrepareRequestMessage = input
                 return new CompletableFuture<>(prepareReplyMessage)
         }
-
-        actualPrepareRequestMessage.getMessage().getXid() == xid1
+        CasualPrepareRequest actualPrepareRequest = actualPrepareRequestMessage.getPrepare()
+        MessageCreator.toXID(actualPrepareRequest.getXid()) == xid1
     }
 
     def "recover is returns empty array."()
@@ -400,12 +425,12 @@ class CasualXAResourceTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> input ->
+            CasualRequest input ->
                 actualRollbackRequestMessage = input
                 return new CompletableFuture<>(rollbackReplyMessage)
         }
-
-        actualRollbackRequestMessage.getMessage().getXid() == xid1
+        CasualRollbackRequest actualRollbackRequest = actualRollbackRequestMessage.getRollback()
+        MessageCreator.toXID(actualRollbackRequest.getXid()) == xid1
     }
 
     def "Rollback returns read only."()
@@ -419,12 +444,12 @@ class CasualXAResourceTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> input ->
+            CasualRequest input ->
                 actualRollbackRequestMessage = input
                 return new CompletableFuture<>(rollbackReplyMessage)
         }
-
-        actualRollbackRequestMessage.getMessage().getXid() == xid1
+        CasualRollbackRequest actualRollbackRequest = actualRollbackRequestMessage.getRollback()
+        MessageCreator.toXID(actualRollbackRequest.getXid()) == xid1
     }
 
     def "Rollback returns fail, throws XAException."()
@@ -438,12 +463,12 @@ class CasualXAResourceTest extends Specification
         then:
         thrown XAException
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> input ->
+            CasualRequest input ->
                 actualRollbackRequestMessage = input
                 return new CompletableFuture<>(rollbackReplyMessage)
         }
-
-        actualRollbackRequestMessage.getMessage().getXid() == xid1
+        CasualRollbackRequest actualRollbackRequest = actualRollbackRequestMessage.getRollback()
+        MessageCreator.toXID(actualRollbackRequest.getXid()) == xid1
     }
 
     def "getTransactionTimeout when not set returns default value."()

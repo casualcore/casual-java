@@ -9,6 +9,7 @@ package se.laz.casual.network.inbound
 import io.netty.channel.ChannelHandlerContext
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
+import se.laz.casual.network.messages.CasualRequest
 import se.laz.casual.network.utils.FakeListener
 import spock.lang.Shared
 import spock.lang.Specification
@@ -34,10 +35,9 @@ class CasualMessageHandlerTest extends Specification
         factory.createEndpoint(_) >> {
             return listener
         }
-        def msg = Mock(CasualNWMessage)
-        msg.getType() >> {
-            msgType
-        }
+        def msg = CasualRequest.newBuilder()
+                .setMessageType(msgType)
+                .build()
         def xaTerminator = Mock(XATerminator)
         def workManager = Mock(WorkManager)
         def instance = CasualMessageHandler.of(factory, xaTerminator, workManager)
@@ -48,12 +48,12 @@ class CasualMessageHandlerTest extends Specification
         1 * listener."${methodName}"(*_)
         where:
         msgType                                      | methodName
-        CasualNWMessageType.DOMAIN_CONNECT_REQUEST   | 'domainConnectRequest'
-        CasualNWMessageType.DOMAIN_DISCOVERY_REQUEST | 'domainDiscoveryRequest'
-        CasualNWMessageType.SERVICE_CALL_REQUEST     | 'serviceCallRequest'
-        CasualNWMessageType.PREPARE_REQUEST          | 'prepareRequest'
-        CasualNWMessageType.COMMIT_REQUEST           | 'commitRequest'
-        CasualNWMessageType.REQUEST_ROLLBACK         | 'requestRollback'
+        CasualRequest.MessageType.DOMAIN_CONNECT_REQUEST   | 'domainConnectRequest'
+        CasualRequest.MessageType.DOMAIN_DISCOVERY_REQUEST | 'domainDiscoveryRequest'
+        CasualRequest.MessageType.SERVICE_CALL_REQUEST     | 'serviceCallRequest'
+        CasualRequest.MessageType.PREPARE_REQUEST          | 'prepareRequest'
+        CasualRequest.MessageType.COMMIT_REQUEST           | 'commitRequest'
+        CasualRequest.MessageType.ROLLBACK_REQUEST         | 'requestRollback'
     }
 
     def 'test failed construction'()

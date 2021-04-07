@@ -7,6 +7,7 @@ import se.laz.casual.network.messages.DequeueMessage
 import se.laz.casual.network.messages.Queue
 import se.laz.casual.network.messages.Service
 import se.laz.casual.network.messages.TransactionState
+import se.laz.casual.network.messages.XAReturnCode
 import se.laz.casual.network.messages.XID
 import spock.lang.Specification
 
@@ -93,7 +94,7 @@ class ReplyTest extends Specification
         XID xid = MessageCreator.createXID(gtridLength, bqualLength, 42, 'asdf'.getBytes())
         def tmpFile = File.createTempFile('CasualServiceCallReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def serviceCallReply = MessageCreator.createCasualServiceCallReply(execution, result, user, xid, TransactionState.TX_ACTIVE, 'Fast type', 'asdf'.getBytes())
+        def serviceCallReply = MessageCreator.createCasualServiceCallReply(execution, ErrorState.unmarshal(result), user, xid, TransactionState.TX_ACTIVE, 'Fast type', 'asdf'.getBytes())
         def reply = MessageCreator.createReplyBuilder(messageType, corrid)
                                   .setServiceCall(serviceCallReply)
                                   .build()
@@ -125,7 +126,7 @@ class ReplyTest extends Specification
         def resourceManagerId = 42
         def tmpFile = File.createTempFile('CasualPrepareReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def prepareReply = MessageCreator.createCasualPrepareReply(execution, xid, resourceManagerId, ErrorState.TPENOENT)
+        def prepareReply = MessageCreator.createCasualPrepareReply(execution, xid, resourceManagerId, XAReturnCode.XA_OK)
         def reply = MessageCreator.createReplyBuilder(messageType, corrid)
                                   .setPrepare(prepareReply)
                                   .build()
@@ -157,7 +158,7 @@ class ReplyTest extends Specification
         def resourceManagerId = 42
         def tmpFile = File.createTempFile('CasualCommitReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def commitReply = MessageCreator.createCasualCommitReply(execution, xid, resourceManagerId, ErrorState.OK)
+        def commitReply = MessageCreator.createCasualCommitReply(execution, xid, resourceManagerId, XAReturnCode.XA_OK)
         def reply = MessageCreator.createReplyBuilder(messageType, corrid)
                                   .setCommit(commitReply)
                                   .build()
@@ -189,7 +190,7 @@ class ReplyTest extends Specification
         def resourceManagerId = 42
         def tmpFile = File.createTempFile('CasualRollbackReply','.bin')
         FileOutputStream os = new FileOutputStream(tmpFile)
-        def rollbackReply = MessageCreator.createCasualRollbackReply(execution, xid, resourceManagerId, ErrorState.TPESVCERR)
+        def rollbackReply = MessageCreator.createCasualRollbackReply(execution, xid, resourceManagerId, XAReturnCode.XA_OK)
         def reply = MessageCreator.createReplyBuilder(messageType, corrid)
                                   .setRollback(rollbackReply)
                                   .build()

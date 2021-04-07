@@ -8,44 +8,36 @@ package se.laz.casual.test.matchers;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
+import se.laz.casual.network.messages.CasualServiceCallRequest;
 
 import java.util.Arrays;
-import java.util.List;
 
 public final class CasualServiceCallRequestMessageMatcher
 {
-    public static TypeSafeMatcher<CasualNWMessage<CasualServiceCallRequestMessage>> matching(final CasualServiceCallRequestMessage expected )
+    public static TypeSafeMatcher<CasualServiceCallRequest> matching(final CasualServiceCallRequest expected )
     {
-        return new TypeSafeMatcher<CasualNWMessage<CasualServiceCallRequestMessage>>()
+        return new TypeSafeMatcher<CasualServiceCallRequest>()
         {
             @Override
-            protected boolean matchesSafely(CasualNWMessage<CasualServiceCallRequestMessage> item)
+            protected boolean matchesSafely(CasualServiceCallRequest item)
             {
-                CasualServiceCallRequestMessage msg = item.getMessage();
-
-                if( ! msg.getServiceName().equals( expected.getServiceName() ) )
+                if( ! item.getServiceName().equals( expected.getServiceName() ) )
                 {
                     return false;
                 }
 
-                List<byte[]> itemPayload = msg.getServiceBuffer().getPayload();
-                List<byte[]> expectedPayload = expected.getServiceBuffer().getPayload();
+                byte[] itemPayload = item.getPayload().toByteArray();
+                byte[] expectedPayload = expected.getPayload().toByteArray();
 
-                if( expectedPayload.size() != itemPayload.size() )
+                if( expectedPayload.length != itemPayload.length )
                 {
                     return false;
                 }
 
-                for( int i=0; i< expectedPayload.size(); i++ )
+                if(! Arrays.equals(expectedPayload, itemPayload))
                 {
-                    if( ! Arrays.equals( expectedPayload.get( i ), itemPayload.get( i ) ) )
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-
                 return true;
             }
 
@@ -55,7 +47,7 @@ public final class CasualServiceCallRequestMessageMatcher
             }
 
             @Override
-            protected void describeMismatchSafely(CasualNWMessage<CasualServiceCallRequestMessage> item, Description mismatchDescription)
+            protected void describeMismatchSafely(CasualServiceCallRequest item, Description mismatchDescription)
             {
                 super.describeMismatchSafely(item, mismatchDescription);
             }

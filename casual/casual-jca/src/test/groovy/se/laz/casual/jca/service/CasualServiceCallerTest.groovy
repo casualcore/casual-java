@@ -6,10 +6,16 @@
 
 package se.laz.casual.jca.service
 
+import com.google.protobuf.ByteString
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ServiceReturn
 import se.laz.casual.api.buffer.type.JsonBuffer
-import se.laz.casual.api.flags.*
+import se.laz.casual.api.flags.AtmiFlags
+import se.laz.casual.api.flags.ErrorState
+import se.laz.casual.api.flags.Flag
+import se.laz.casual.api.flags.ServiceReturnState
+import se.laz.casual.api.flags.TransactionState
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.api.xa.XID
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
@@ -17,15 +23,14 @@ import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceAdapter
 import se.laz.casual.jca.CasualResourceManager
 import se.laz.casual.network.connection.CasualConnectionException
+import se.laz.casual.network.grpc.MessageCreator
+import se.laz.casual.network.messages.CasualDomainDiscoveryReply
+import se.laz.casual.network.messages.CasualDomainDiscoveryRequest
+import se.laz.casual.network.messages.CasualReply
+import se.laz.casual.network.messages.CasualRequest
+import se.laz.casual.network.messages.CasualServiceCallReply
+import se.laz.casual.network.messages.CasualServiceCallRequest
 import se.laz.casual.network.messages.domain.TransactionType
-import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
-import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
-import se.laz.casual.network.protocol.messages.domain.Service
-import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -45,13 +50,13 @@ class CasualServiceCallerTest extends Specification
     @Shared String domainName
     @Shared String serviceName
     @Shared JsonBuffer message
-    @Shared CasualServiceCallRequestMessage expectedServiceRequest
-    @Shared CasualNWMessageImpl<CasualServiceCallReplyMessage> serviceReply
-    @Shared CasualNWMessageImpl<CasualServiceCallRequestMessage> actualServiceRequest
-    @Shared CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> actualDomainDiscoveryRequest
-    @Shared CasualDomainDiscoveryRequestMessage expectedDomainDiscoveryRequest
-    @Shared CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyFound
-    @Shared CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> domainDiscoveryReplyNotFound
+    @Shared CasualServiceCallRequest expectedServiceRequest
+    @Shared CasualReply serviceReply
+    @Shared CasualRequest actualServiceRequest
+    @Shared CasualRequest actualDomainDiscoveryRequest
+    @Shared CasualDomainDiscoveryRequest expectedDomainDiscoveryRequest
+    @Shared CasualReply domainDiscoveryReplyFound
+    @Shared CasualReply domainDiscoveryReplyNotFound
     @Shared mcf
     @Shared ra
     @Shared workManager
@@ -89,13 +94,15 @@ class CasualServiceCallerTest extends Specification
 
     def initialiseExpectedRequests()
     {
-        expectedServiceRequest = CasualServiceCallRequestMessage.createBuilder()
-                .setServiceBuffer(ServiceBuffer.of(message.getType(), message.getBytes()))
+        expectedServiceRequest = CasualServiceCallRequest.newBuilder()
+                .setBufferTypeName(message.getType())
+                .setPayload(ByteString.copyFrom(message.getBytes().get(0)))
                 .setServiceName(serviceName)
-                .setXid( connection.getCurrentXid() )
+                .setXid(MessageCreator.toXID(connection.getCurrentXid()))
                 .build()
-        expectedDomainDiscoveryRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
-                .setServiceNames([serviceName])
+
+        expectedDomainDiscoveryRequest = CasualDomainDiscoveryRequest.newBuilder()
+                .addAllServiceNames([serviceName])
                 .setDomainName(connection.getDomainName())
                 .build()
     }
@@ -107,47 +114,64 @@ class CasualServiceCallerTest extends Specification
         domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asServices([]))
     }
 
-    List<Service> asServices(List<String> serviceNames)
+    List<se.laz.casual.network.messages.Service> asServices(List<String> serviceNames)
     {
-        List<Service> l = new ArrayList<>()
+        List<se.laz.casual.network.messages.Service> l = new ArrayList<>()
         for(String s : serviceNames)
         {
-            l.add(Service.of(s, '', TransactionType.AUTOMATIC))
+            l.add(se.laz.casual.network.messages.Service.newBuilder()
+            .setName(s)
+            .setCategory('')
+            .setTransactionType(MessageCreator.toTransactionType(TransactionType.AUTOMATIC))
+            .build())
         }
         return l
     }
 
-    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Service> services)
+    CasualReply createDomainDiscoveryReply(List<se.laz.casual.network.messages.Service> services)
     {
-        CasualNWMessageImpl.of(executionId,
-                CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
-                                                 .setServices(services))
+        CasualDomainDiscoveryReply reply = CasualDomainDiscoveryReply.newBuilder()
+                .addAllServices(services)
+                .setDomainId(MessageCreator.toUUID4(domainId))
+                .setDomainName(domainName)
+                .build()
+        return CasualReply.newBuilder()
+                .setMessageType(CasualReply.MessageType.DOMAIN_DISCOVERY_REPLY)
+                .setCorrelationId(MessageCreator.toUUID4(executionId))
+                .setDomainDiscovery(reply)
+                .build()
     }
 
-    CasualNWMessageImpl<CasualServiceCallReplyMessage> createServiceCallReplyMessage(ErrorState errorState, TransactionState transactionState, JsonBuffer message )
+    CasualReply createServiceCallReplyMessage(ErrorState errorState, TransactionState transactionState, JsonBuffer message )
     {
-        CasualNWMessageImpl.of( executionId,
-                CasualServiceCallReplyMessage.createBuilder()
-                        .setExecution( executionId )
-                        .setError( errorState)
-                        .setTransactionState( transactionState )
-                        .setXid( XID.NULL_XID )
-                        .setServiceBuffer(ServiceBuffer.of(message))
-                        .build()
-        )
+        CasualServiceCallReply reply = CasualServiceCallReply.newBuilder()
+                .setExecution(MessageCreator.toUUID4(executionId))
+                .setResult(MessageCreator.toErrorState(errorState))
+                .setTransactionState(MessageCreator.toTransactionState(transactionState))
+                .setXid(MessageCreator.toXID(XID.NULL_XID))
+                .setBufferTypeName('json')
+                .setPayload(ByteString.copyFrom(message.getBytes().get(0)))
+                .build()
+        return CasualReply.newBuilder()
+                .setMessageType(CasualReply.MessageType.SERVICE_CALL_REPLY)
+                .setCorrelationId(MessageCreator.toUUID4(executionId))
+                .setServiceCall(reply)
+                .build()
     }
 
-    CasualNWMessageImpl<CasualServiceCallReplyMessage> createServiceCallReplyMessageError(ErrorState errorState, TransactionState transactionState)
+    CasualReply createServiceCallReplyMessageError(ErrorState errorState, TransactionState transactionState)
     {
-        CasualNWMessageImpl.of( executionId,
-                CasualServiceCallReplyMessage.createBuilder()
-                        .setExecution( executionId )
-                        .setError( errorState)
-                        .setTransactionState( transactionState )
-                        .setXid( XID.NULL_XID )
-                        .setServiceBuffer(ServiceBuffer.empty())
-                        .build()
-        )
+        CasualServiceCallReply reply = CasualServiceCallReply.newBuilder()
+                .setExecution(MessageCreator.toUUID4(executionId))
+                .setResult(MessageCreator.toErrorState(errorState))
+                .setTransactionState(MessageCreator.toTransactionState(transactionState))
+                .setXid(MessageCreator.toXID(XID.NULL_XID))
+                .build()
+        return CasualReply.newBuilder()
+                .setMessageType(CasualReply.MessageType.SERVICE_CALL_REPLY)
+                .setCorrelationId(MessageCreator.toUUID4(executionId))
+                .setServiceCall(reply)
+                .build()
     }
 
     def "Tpcall service is available performs service call and returns result of service call."()
@@ -161,11 +185,11 @@ class CasualServiceCallerTest extends Specification
 
         1 * networkConnection.request( _ ) >> {
 
-            CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
+            CasualRequest input ->
                 actualServiceRequest = input
                 return new CompletableFuture<>(serviceReply)
         }
-        expect actualServiceRequest, matching( expectedServiceRequest )
+        expect actualServiceRequest.getServiceCall(), matching( expectedServiceRequest )
     }
 
     def "Tpcall service not available returns TPNOENT"()
@@ -178,12 +202,12 @@ class CasualServiceCallerTest extends Specification
         then:
         noExceptionThrown()
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
+            CasualRequest input ->
                 actualServiceRequest = input
                 return new CompletableFuture<>(serviceReply)
         }
 
-        expect actualServiceRequest, matching( expectedServiceRequest )
+        expect actualServiceRequest.getServiceCall(), matching( expectedServiceRequest )
     }
 
     def "Tpcall service is available performs service call which fails, returns failure result."()
@@ -199,12 +223,12 @@ class CasualServiceCallerTest extends Specification
         result.getServiceReturnState() == ServiceReturnState.TPFAIL
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
+            CasualRequest input ->
                 actualServiceRequest = input
                 return new CompletableFuture<>(serviceReply)
         }
 
-        expect actualServiceRequest, matching( expectedServiceRequest )
+        expect actualServiceRequest.getServiceCall(), matching( expectedServiceRequest )
     }
 
     def "Tpacall service is available performs service call and returns result of service call."()
@@ -218,12 +242,12 @@ class CasualServiceCallerTest extends Specification
         result.getServiceReturnState() == ServiceReturnState.TPSUCCESS
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
+            CasualRequest input ->
                 actualServiceRequest = input
                 return new CompletableFuture<>(serviceReply)
         }
 
-        expect actualServiceRequest, matching( expectedServiceRequest )
+        expect actualServiceRequest.getServiceCall(), matching( expectedServiceRequest )
     }
 
     def 'tpacall fails'()
@@ -235,7 +259,7 @@ class CasualServiceCallerTest extends Specification
         result.isCompletedExceptionally()
 
         1 * networkConnection.request( _ ) >> {
-            CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
+            CasualRequest input ->
                 actualServiceRequest = input
                 CompletableFuture<ServiceReturn<CasualBuffer>> f = new CompletableFuture<>()
                 f.completeExceptionally(new CasualProtocolException('oopsie'))
@@ -251,11 +275,11 @@ class CasualServiceCallerTest extends Specification
         noExceptionThrown()
         r == true
         1 * networkConnection.request(_) >> {
-            CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
+            CasualRequest input ->
                 actualDomainDiscoveryRequest = input
                 return new CompletableFuture<>(domainDiscoveryReplyFound)
         }
-        expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
+        expect actualDomainDiscoveryRequest.getDomainDiscovery(), matching(expectedDomainDiscoveryRequest)
     }
 
     def 'serviceExists - not found'()
@@ -266,11 +290,11 @@ class CasualServiceCallerTest extends Specification
         noExceptionThrown()
         r == false
         1 * networkConnection.request(_) >> {
-            CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
+            CasualRequest input ->
                 actualDomainDiscoveryRequest = input
                 return new CompletableFuture<>(domainDiscoveryReplyNotFound)
         }
-        expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
+        expect actualDomainDiscoveryRequest.getDomainDiscovery(), matching(expectedDomainDiscoveryRequest)
     }
 
     def 'tpcall fails, exception is wrapped in CasualConnectionException'()
