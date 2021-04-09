@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.outbound;
 
+import se.laz.casual.network.grpc.MessageCreator;
 import se.laz.casual.network.messages.CasualReply;
 
 import java.util.List;
@@ -37,7 +38,7 @@ public final class CorrelatorImpl implements Correlator
     public void complete(final CasualReply msg)
     {
         @SuppressWarnings("unchecked")
-        CompletableFuture<CasualReply> f = requests.remove(msg.getCorrelationId());
+        CompletableFuture<CasualReply> f = requests.remove(MessageCreator.toUUID(msg.getCorrelationId()));
         if(null == f)
         {
             // log failure, this is an inconsistency that should not occur

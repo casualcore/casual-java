@@ -8,29 +8,30 @@ package se.laz.casual.network.outbound;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.network.messages.CasualReply;
 
 import java.util.Objects;
 
-public final class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
+public final class CasualMessageHandler extends SimpleChannelInboundHandler<CasualReply>
 {
     private final Correlator correlator;
 
-    private CasualMessageHandler(final Correlator correlator)
+    private CasualMessageHandler(boolean autoRelease, Correlator correlator)
     {
+        super(autoRelease);
         this.correlator = correlator;
     }
 
-    public static CasualMessageHandler of(final Correlator correlator)
+    public static CasualMessageHandler of(Correlator correlator)
     {
         Objects.requireNonNull(correlator, "correlator can not be null");
-        return new CasualMessageHandler(correlator);
+        return new CasualMessageHandler(true, correlator);
     }
 
     @Override
-    protected void channelRead0(final ChannelHandlerContext ctx, final CasualNWMessage<?> msg)
+    protected void channelRead0(ChannelHandlerContext ctx, CasualReply msg) throws Exception
     {
-        //correlator.complete(msg);
+        correlator.complete(msg);
     }
 
 }

@@ -6,15 +6,19 @@
 
 package se.laz.casual.network.inbound
 
+
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.EventLoop
-import org.junit.Ignore
+import io.netty.channel.embedded.EmbeddedChannel
+import io.netty.handler.codec.protobuf.ProtobufDecoder
+import io.netty.handler.codec.protobuf.ProtobufEncoder
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender
 import se.laz.casual.internal.network.InboundConnectionInformation
 import se.laz.casual.network.grpc.MessageCreator
 import se.laz.casual.network.messages.CasualDomainConnectRequest
 import se.laz.casual.network.messages.CasualRequest
-import se.laz.casual.network.utils.ByteUtils
 import se.laz.casual.network.utils.FakeListener
 import spock.lang.Shared
 import spock.lang.Specification
@@ -22,12 +26,10 @@ import spock.lang.Specification
 import javax.resource.spi.XATerminator
 import javax.resource.spi.endpoint.MessageEndpointFactory
 import javax.resource.spi.work.WorkManager
-import java.nio.ByteBuffer
-import java.nio.channels.SocketChannel
 
-@Ignore
 class CasualServerTest extends Specification
 {
+    @Shared EmbeddedChannel embeddedChannel
     @Shared Channel channel
     @Shared CasualServer server
     @Shared UUID correlationId = UUID.randomUUID()
@@ -76,7 +78,7 @@ class CasualServerTest extends Specification
                 .setDomainId(MessageCreator.toUUID4(domainId))
                 .setDomainName(domainName)
                 .setExecution(MessageCreator.toUUID4(execution))
-                .setProtocolVersion(0, protocolVersion)
+                .addProtocolVersion(protocolVersion)
                 .build()
 
         CasualRequest message = CasualRequest.newBuilder()
@@ -98,28 +100,20 @@ class CasualServerTest extends Specification
                                                                   .withFactory(factory)
                                                                   .withWorkManager(workManager)
                                                                   .build())
-        InetSocketAddress address = (InetSocketAddress) server.channel.localAddress()
-
-        when:
-        sendMsg(address, message)
-
-        then:
-        server.isActive(  )
-
-        when:
         server.close()
-
+        // Set our own embedded channel to use for the "server"
+        server.channel = new EmbeddedChannel(new ProtobufVarint32FrameDecoder(), new ProtobufDecoder(CasualRequest.getDefaultInstance()),
+                new ProtobufVarint32LengthFieldPrepender(), new ProtobufEncoder(), CasualMessageHandler.of(factory, xaTerminator, workManager), ExceptionHandler.of())
+        when:
+        sendMsg(message, server.channel)
         then:
         noExceptionThrown()
         1 * listener.domainConnectRequest(*_)
-        !server.isActive(  )
-        !server.channel.isOpen()
     }
 
-    def sendMsg(InetSocketAddress address, CasualRequest msg)
+    def sendMsg(CasualRequest msg, EmbeddedChannel ch)
     {
-        SocketChannel socketChannel = SocketChannel.open(address)
-        byte[] payload = msg.toByteArray();
-        ByteUtils.writeFully(socketChannel, ByteBuffer.wrap(payload), payload.length)
+        ch.writeOneInbound(msg)
     }
+
 }

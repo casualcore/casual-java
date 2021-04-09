@@ -21,7 +21,7 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.internal.network.InboundConnectionInformation;
-import se.laz.casual.network.messages.CasualReply;
+import se.laz.casual.network.messages.CasualRequest;
 
 import java.net.InetSocketAddress;
 import java.util.logging.Logger;
@@ -58,7 +58,7 @@ public final class CasualServer
                 @Override
                 protected void initChannel(SocketChannel ch)
                 {
-                    ch.pipeline().addLast(new ProtobufVarint32FrameDecoder(), new ProtobufDecoder(CasualReply.getDefaultInstance()),
+                    ch.pipeline().addLast(new ProtobufVarint32FrameDecoder(), new ProtobufDecoder(CasualRequest.getDefaultInstance()),
                             new ProtobufVarint32LengthFieldPrepender(), new ProtobufEncoder(), messageHandler, exceptionHandler);
                     if(enableLogHandler)
                     {

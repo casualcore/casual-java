@@ -61,6 +61,7 @@ public final class NettyNetworkConnection implements NetworkConnection
         Objects.requireNonNull(ci, "network listener can not be null");
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         Correlator correlator = ci.getCorrelator();
+
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator), ci.isLogHandlerEnabled());
         NettyNetworkConnection c = new NettyNetworkConnection(ci, correlator, ch, workerGroup);
         ch.closeFuture().addListener(f -> handleClose(c, networkListener));
@@ -146,7 +147,7 @@ public final class NettyNetworkConnection implements NetworkConnection
                                                                               .setExecution(MessageCreator.toUUID4(UUID.randomUUID()))
                                                                               .setDomainId(MessageCreator.toUUID4(domainId))
                                                                               .setDomainName(domainName)
-                                                                              .setProtocolVersion(0, version)
+                                                                              .addProtocolVersion(version)
                                                                               .build();
 
         CasualRequest envelope = CasualRequest.newBuilder()

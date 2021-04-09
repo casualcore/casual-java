@@ -7,7 +7,6 @@
 package se.laz.casual.network.outbound
 
 import com.google.protobuf.ByteString
-import org.junit.Ignore
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.flags.ErrorState
@@ -21,7 +20,6 @@ import spock.lang.Specification
 
 import java.util.concurrent.CompletableFuture
 
-@Ignore
 class CasualMessageHandlerTest extends Specification
 {
     @Shared

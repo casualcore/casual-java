@@ -13,11 +13,12 @@ import io.netty.handler.codec.protobuf.ProtobufEncoder
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender
 import io.netty.util.concurrent.Future
-import org.junit.Ignore
 import se.laz.casual.network.grpc.MessageCreator
+import se.laz.casual.network.messages.CasualDomainDiscoveryReply
 import se.laz.casual.network.messages.CasualDomainDiscoveryRequest
 import se.laz.casual.network.messages.CasualReply
 import se.laz.casual.network.messages.CasualRequest
+import se.laz.casual.network.messages.Service
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -43,7 +44,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
                                                             .withCorrelator(correlator)
                                                             .build()
         ch = new EmbeddedChannel(new ProtobufVarint32FrameDecoder(), new ProtobufDecoder(CasualReply.getDefaultInstance()),
-                new ProtobufVarint32LengthFieldPrepender(), new ProtobufEncoder(), CasualProtoBufMessageHandler.of(correlator), ExceptionHandler.of(correlator))
+                new ProtobufVarint32LengthFieldPrepender(), new ProtobufEncoder(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator))
         instance = new NettyNetworkConnection(ci, correlator, ch, null)
     }
 
@@ -63,14 +64,15 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     {
         setup:
         CasualRequest m = createRequestMessage()
+        CasualReply expectedReply = createReplyMessage()
         when:
         CompletableFuture<CasualReply> f = instance.request(m)
-        ch.writeOneInbound(m)
+        ch.writeOneInbound(expectedReply)
         CasualReply reply = f.get()
         then:
         noExceptionThrown()
         ch.outboundMessages().size() == 1
-        reply == m
+        reply == expectedReply
     }
 
     def 'close'()
@@ -107,14 +109,31 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def createRequestMessage()
     {
         CasualDomainDiscoveryRequest message = CasualDomainDiscoveryRequest.newBuilder()
-                .setExecution(MessageCreator.toUUID(UUID.randomUUID()))
-                .setDomainId(MessageCreator.toUUID(UUID.randomUUID()))
+                .setExecution(MessageCreator.toUUID4(UUID.randomUUID()))
+                .setDomainId(MessageCreator.toUUID4(UUID.randomUUID()))
                 .setDomainName( "test-domain" )
-                .setServiceNames(0, 'echo')
+                .addServiceNames('echo')
                 .build()
         return CasualRequest.newBuilder()
                 .setMessageType(CasualRequest.MessageType.DOMAIN_DISCOVERY_REQUEST)
-                .setCorrelationId(MessageCreator.toUUID(corrid))
+                .setCorrelationId(MessageCreator.toUUID4(corrid))
+                .setDomainDiscovery(message)
+                .build()
+    }
+
+    def createReplyMessage()
+    {
+        CasualDomainDiscoveryReply message = CasualDomainDiscoveryReply.newBuilder()
+                .setExecution(MessageCreator.toUUID4(UUID.randomUUID()))
+                .setDomainId(MessageCreator.toUUID4(UUID.randomUUID()))
+                .setDomainName( "test-domain" )
+                .addServices(Service.newBuilder()
+                        .setName('echo')
+                        .build())
+                .build()
+        return CasualReply.newBuilder()
+                .setMessageType(CasualReply.MessageType.DOMAIN_DISCOVERY_REPLY)
+                .setCorrelationId(MessageCreator.toUUID4(corrid))
                 .setDomainDiscovery(message)
                 .build()
     }
