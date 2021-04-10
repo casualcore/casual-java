@@ -15,7 +15,6 @@ import io.netty.handler.codec.protobuf.ProtobufDecoder
 import io.netty.handler.codec.protobuf.ProtobufEncoder
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender
-import se.laz.casual.internal.network.InboundConnectionInformation
 import se.laz.casual.network.grpc.MessageCreator
 import se.laz.casual.network.messages.CasualDomainConnectRequest
 import se.laz.casual.network.messages.CasualRequest
@@ -29,7 +28,6 @@ import javax.resource.spi.work.WorkManager
 
 class CasualServerTest extends Specification
 {
-    @Shared EmbeddedChannel embeddedChannel
     @Shared Channel channel
     @Shared CasualServer server
     @Shared UUID correlationId = UUID.randomUUID()
@@ -94,12 +92,12 @@ class CasualServerTest extends Specification
         }
         def xaTerminator = Mock(XATerminator)
         def workManager = Mock(WorkManager)
-        server = CasualServer.of(InboundConnectionInformation.createBuilder()
-                                                                  .withPort(0)
-                                                                  .withXaTerminator(xaTerminator)
-                                                                  .withFactory(factory)
-                                                                  .withWorkManager(workManager)
-                                                                  .build())
+        server = CasualServer.of(ConnectionInformation.createBuilder()
+                                                      .withPort(0)
+                                                      .withXaTerminator(xaTerminator)
+                                                      .withFactory(factory)
+                                                      .withWorkManager(workManager)
+                                                      .build())
         server.close()
         // Set our own embedded channel to use for the "server"
         server.channel = new EmbeddedChannel(new ProtobufVarint32FrameDecoder(), new ProtobufDecoder(CasualRequest.getDefaultInstance()),

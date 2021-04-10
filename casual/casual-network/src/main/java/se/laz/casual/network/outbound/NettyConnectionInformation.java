@@ -8,13 +8,12 @@ package se.laz.casual.network.outbound;
 
 import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import se.laz.casual.internal.network.OutboundConnectionInformation;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class NettyConnectionInformation extends OutboundConnectionInformation
+public final class NettyConnectionInformation extends BaseConnectionInformation
 {
     public static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER";
 

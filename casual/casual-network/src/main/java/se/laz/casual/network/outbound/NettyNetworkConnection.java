@@ -21,7 +21,6 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.internal.network.NetworkConnection;
-import se.laz.casual.internal.network.OutboundConnectionInformation;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.grpc.MessageCreator;
 import se.laz.casual.network.messages.CasualDomainConnectRequest;
@@ -47,7 +46,7 @@ public final class NettyNetworkConnection implements NetworkConnection
     private final EventLoopGroup workerGroup;
     private final AtomicBoolean connected = new AtomicBoolean(true);
 
-    private NettyNetworkConnection(OutboundConnectionInformation ci, Correlator correlator, Channel channel, EventLoopGroup workerGroup)
+    private NettyNetworkConnection(NettyConnectionInformation ci, Correlator correlator, Channel channel, EventLoopGroup workerGroup)
     {
         this.ci = ci;
         this.correlator = correlator;

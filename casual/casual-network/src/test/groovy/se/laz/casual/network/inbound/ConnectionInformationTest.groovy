@@ -26,7 +26,7 @@ class ConnectionInformationTest extends Specification
     def 'invalid construction'()
     {
         when:
-        InboundConnectionInformation.createBuilder()
+        ConnectionInformation.createBuilder()
                              .withWorkManager(workManager)
                              .withXaTerminator(xaTerminator)
                              .withFactory(factory)
@@ -43,7 +43,7 @@ class ConnectionInformationTest extends Specification
     def 'ok construction - no network logging'()
     {
         when:
-        def instance = InboundConnectionInformation.createBuilder()
+        def instance = ConnectionInformation.createBuilder()
                                             .withWorkManager(mockWorkManager)
                                             .withXaTerminator(mockXATerminator)
                                             .withFactory(mockFactory)

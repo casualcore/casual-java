@@ -20,7 +20,6 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import se.laz.casual.internal.network.InboundConnectionInformation;
 import se.laz.casual.network.messages.CasualRequest;
 
 import java.net.InetSocketAddress;
@@ -33,14 +32,14 @@ public final class CasualServer
 {
     private static final Logger log = Logger.getLogger(CasualServer.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
-    private final Channel channel;
+    private Channel channel;
 
     public CasualServer(Channel channel)
     {
         this.channel = channel;
     }
 
-    public static CasualServer of(final InboundConnectionInformation ci)
+    public static CasualServer of(final ConnectionInformation ci)
     {
         CasualMessageHandler mh = CasualMessageHandler.of(ci.getFactory(), ci.getXaTerminator(), ci.getWorkManager());
         Channel c = init(mh, ExceptionHandler.of(), ci.getPort(), ci.isLogHandlerEnabled());

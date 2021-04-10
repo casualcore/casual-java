@@ -97,7 +97,8 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'casual disconnected'()
     {
         given:
-        def channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator))
+        def channel = new EmbeddedChannel(new ProtobufVarint32FrameDecoder(), new ProtobufDecoder(CasualReply.getDefaultInstance()),
+                new ProtobufVarint32LengthFieldPrepender(), new ProtobufEncoder(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator))
         def newInstance = new NettyNetworkConnection(ci, correlator, channel, null)
         def future = channel.closeFuture().addListener({ f -> se.laz.casual.network.outbound.NettyNetworkConnection.handleClose(newInstance, this) })
         when:

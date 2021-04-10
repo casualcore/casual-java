@@ -4,15 +4,14 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.internal.network;
+package se.laz.casual.network.inbound;
 
 import javax.resource.spi.XATerminator;
 import javax.resource.spi.endpoint.MessageEndpointFactory;
 import javax.resource.spi.work.WorkManager;
 import java.util.Objects;
 
-// Inbound
-public final class InboundConnectionInformation
+public final class ConnectionInformation
 {
     public static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER";
     private final int port;
@@ -91,7 +90,7 @@ public final class InboundConnectionInformation
             return this;
         }
 
-        public InboundConnectionInformation build()
+        public ConnectionInformation build()
         {
             Objects.requireNonNull(factory, "factory can not be null");
             Objects.requireNonNull(xaTerminator, "xaTerminator can not be null");
