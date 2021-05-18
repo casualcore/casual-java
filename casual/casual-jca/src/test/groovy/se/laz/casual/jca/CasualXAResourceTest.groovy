@@ -238,6 +238,26 @@ class CasualXAResourceTest extends Specification
 
     }
 
+   def 'start after end with TMSUSPEND does not throw'()
+   {
+      given:
+      def startStatus = XAFlags.TMNOFLAGS
+      def endStatus = XAFlags.TMSUSPEND
+      def startAgainStatus = XAFlags.TMRESUME
+      when:
+      instance.start(xid1, startStatus.value)
+      then:
+      noExceptionThrown()
+      when:
+      instance.end(xid1, endStatus.value)
+      then:
+      noExceptionThrown()
+      when:
+      instance.start(xid1, startAgainStatus.value)
+      then:
+      noExceptionThrown()
+   }
+
     def "Commit one phase false. returns ok."()
     {
         when:

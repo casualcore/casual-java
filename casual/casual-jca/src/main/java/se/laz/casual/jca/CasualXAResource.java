@@ -24,12 +24,14 @@ import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Logger;
 
 /**
  * @author jone
  */
 public class CasualXAResource implements XAResource
 {
+    private static final Logger LOG = Logger.getLogger(CasualXAResource.class.getName());
     private static final Xid[] NO_XIDS = {};
     private final CasualManagedConnection casualManagedConnection;
     private final int resourceManagerId;
@@ -54,6 +56,7 @@ public class CasualXAResource implements XAResource
         {
             flags = Flag.of(XAFlags.TMONEPHASE);
         }
+        LOG.finest(()->"trying to commit, xid: " + xid + " onePhase?"+onePhaseCommit);
         CasualTransactionResourceCommitRequestMessage commitRequest =
             CasualTransactionResourceCommitRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourceCommitRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), commitRequest);
@@ -62,7 +65,7 @@ public class CasualXAResource implements XAResource
         CasualNWMessage<CasualTransactionResourceCommitReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
         CasualTransactionResourceCommitReplyMessage replyMsg = replyEnvelope.getMessage();
         throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
-
+        LOG.finest(() -> "commited, xid: " + xid);
     }
 
     /**
@@ -75,6 +78,7 @@ public class CasualXAResource implements XAResource
     @Override
     public void end(Xid xid, int flag) throws XAException
     {
+        LOG.finest(()->"end, xid: " + xid + " flag: " + flag);
         CasualResourceManager.getInstance().remove(xid);
         disassociate();
         XAFlags f = XAFlags.unmarshall(flag);
@@ -86,6 +90,7 @@ public class CasualXAResource implements XAResource
             case TMSUSPEND:
                 break;
             default:
+                LOG.finest(()->"throwing XAException.XAER_RMFAIL");
                 throw new XAException(XAException.XAER_RMFAIL);
         }
     }
@@ -118,6 +123,7 @@ public class CasualXAResource implements XAResource
     @Override
     public int prepare(Xid xid) throws XAException
     {
+        LOG.finest(()->"trying to prepare, xid: " + xid);
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
         CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), prepareRequest);
@@ -126,6 +132,7 @@ public class CasualXAResource implements XAResource
         CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
         CasualTransactionResourcePrepareReplyMessage replyMsg = replyEnvelope.getMessage();
         throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
+        LOG.finest(()->"prepared, xid: " + xid);
         return replyMsg.getTransactionReturnCode().getId();
     }
 
@@ -138,6 +145,7 @@ public class CasualXAResource implements XAResource
     @Override
     public void rollback(Xid xid) throws XAException
     {
+        LOG.finest(()->"trying to rollback, xid: " + xid);
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
         CasualTransactionResourceRollbackRequestMessage request =
                 CasualTransactionResourceRollbackRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
@@ -147,6 +155,7 @@ public class CasualXAResource implements XAResource
         CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
         CasualTransactionResourceRollbackReplyMessage replyMsg = replyEnvelope.getMessage();
         throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
+        LOG.finest(()->"rolled, xid: " + xid);
     }
 
     @Override
@@ -159,9 +168,11 @@ public class CasualXAResource implements XAResource
     @Override
     public void start(Xid xid, int i) throws XAException
     {
+        LOG.finest(()-> "start, xid: " + xid + " flag: " + i);
         if(!(XAFlags.TMJOIN.getValue() == i || XAFlags.TMRESUME.getValue() == i) &&
             CasualResourceManager.getInstance().isPending(xid))
         {
+            LOG.finest(()->"throwing XAException.XAER_DUPID");
             throw new XAException(XAException.XAER_DUPID);
         }
         associate(xid);
@@ -197,6 +208,7 @@ public class CasualXAResource implements XAResource
             case XA_RDONLY:
                 break;
             default:
+                LOG.finest(()->"throwing XAException for XAReturnCode: " + transactionReturnCode);
                 throw new XAException( transactionReturnCode.getId());
         }
     }

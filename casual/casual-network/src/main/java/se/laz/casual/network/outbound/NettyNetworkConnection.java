@@ -38,7 +38,7 @@ import java.util.logging.Logger;
 
 public final class NettyNetworkConnection implements NetworkConnection
 {
-    private static final Logger log = Logger.getLogger(NettyNetworkConnection.class.getName());
+    private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
     private final BaseConnectionInformation ci;
     private final Correlator correlator;
@@ -82,7 +82,7 @@ public final class NettyNetworkConnection implements NetworkConnection
                     if(enableLogHandler)
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevel.INFO));
-                        log.info(() -> "outbound network log handler enabled");
+                        LOG.info(() -> "outbound network log handler enabled");
                     }
                 }
             });
@@ -108,6 +108,7 @@ public final class NettyNetworkConnection implements NetworkConnection
         CompletableFuture<CasualNWMessage<T>> f = new CompletableFuture<>();
         if(!channel.isActive())
         {
+            LOG.finest("channel not active, connection gone");
             f.completeExceptionally(new CasualConnectionException("can not write msg: " + message + " connection is gone"));
             return f;
         }
@@ -129,7 +130,7 @@ public final class NettyNetworkConnection implements NetworkConnection
     {
         connected.set(false);
         // all channels are closed when the event loop group shuts down
-        workerGroup.shutdownGracefully().addListener(futureListener -> log.info("network connection " + this + " gracefully closed"));
+        workerGroup.shutdownGracefully().addListener(futureListener -> LOG.info("network connection " + this + " gracefully closed"));
     }
 
     @Override
