@@ -17,7 +17,8 @@ public enum TransactionType
     AUTOMATIC((short)0),
     JOIN((short)1),
     ATOMIC((short)2),
-    NONE((short)3);
+    NONE((short)3),
+    BRANCH((short)4);
 
     private final short id;
     TransactionType(short id)

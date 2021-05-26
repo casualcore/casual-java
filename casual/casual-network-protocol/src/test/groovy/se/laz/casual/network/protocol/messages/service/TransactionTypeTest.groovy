@@ -17,7 +17,7 @@ class TransactionTypeTest extends Specification
     def "unmarshalling with invalid id"()
     {
         setup:
-        short id = TransactionType.NONE.id + 1
+        short id = TransactionType.BRANCH.id + 1
         when:
         def t = TransactionType.unmarshal(id)
         then:
@@ -28,12 +28,16 @@ class TransactionTypeTest extends Specification
 
     def "roundtripping with a valid id"()
     {
-        setup:
-        def t = TransactionType.JOIN
-        when:
-        def unmarshalled = TransactionType.unmarshal(TransactionType.marshal(t))
-        then:
-        t == unmarshalled
+        expect:
+        def unmarshalled = TransactionType.unmarshal(TransactionType.marshal(transactionType))
+        transactionType == unmarshalled
+        where:
+        transactionType           | _
+        TransactionType.AUTOMATIC | _
+        TransactionType.JOIN      | _
+        TransactionType.ATOMIC    | _
+        TransactionType.NONE      | _
+        TransactionType.BRANCH    | _
     }
 
 }
