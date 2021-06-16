@@ -12,6 +12,8 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.api.xa.XAReturnCode;
 import se.laz.casual.api.xa.XID;
+import se.laz.casual.config.ConfigurationService;
+import se.laz.casual.config.Domain;
 import se.laz.casual.jca.CasualResourceAdapterException;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
@@ -66,9 +68,10 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     {
         log.finest( "domainConnectRequest()." );
 
+        Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
         CasualDomainConnectReplyMessage reply = CasualDomainConnectReplyMessage.createBuilder()
-                                                                               .withDomainId( message.getMessage().getDomainId() )
-                                                                               .withDomainName( message.getMessage().getDomainName() )
+                                                                               .withDomainId( domain.getId() )
+                                                                               .withDomainName( domain.getName() )
                                                                                .withExecution( message.getMessage().getExecution() )
                                                                                .withProtocolVersion(CASUAL_PROTOCOL_VERSION)
                                                                                .build();
@@ -81,7 +84,8 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     {
         log.finest( "domainDiscoveryRequest()." );
 
-        CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), message.getMessage().getDomainId(), message.getMessage().getDomainName() );
+        Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
+        CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), domain.getId(), domain.getName() );
 
         List<Service> services = new ArrayList<>();
 

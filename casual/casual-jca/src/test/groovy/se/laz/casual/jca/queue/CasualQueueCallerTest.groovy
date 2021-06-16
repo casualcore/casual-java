@@ -15,6 +15,7 @@ import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceManager
+import se.laz.casual.config.Domain
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
@@ -82,7 +83,7 @@ class CasualQueueCallerTest extends Specification
         executionId = UUID.randomUUID()
         domainId = UUID.randomUUID()
         enqueueReplyId = UUID.randomUUID()
-        domainName = connection.getDomainName()
+        domainName = Domain.getName()
         queueName = 'echo'
         queueSpace = 'asdf'
         queueInfo = QueueInfo.createBuilder().withQspace(queueSpace).withQname(queueName).build()
@@ -108,7 +109,7 @@ class CasualQueueCallerTest extends Specification
                                                             .build()
         expectedDomainDiscoveryRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
                                                                             .setQueueNames([queueInfo.compositeName])
-                                                                            .setDomainName(connection.getDomainName())
+                                                                            .setDomainName(Domain.getName())
                                                                             .build()
     }
 

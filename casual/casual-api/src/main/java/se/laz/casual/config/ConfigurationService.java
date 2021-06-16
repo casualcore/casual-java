@@ -65,6 +65,7 @@ public class ConfigurationService
                 .map( Mode::fromName )
                 .orElse( Mode.IMMEDIATE );
         return Configuration.newBuilder()
+                .withDomain( Domain.getFromEnv() )
                 .withInbound( Inbound.newBuilder()
                         .withStartup( Startup.newBuilder()
                                 .withMode( mode )

@@ -11,10 +11,17 @@ import java.util.Objects;
 public class Configuration
 {
     private final Inbound inbound;
+    private final Domain domain;
 
-    public Configuration( Inbound inbound )
+    public Configuration(Domain domain, Inbound inbound )
     {
+        this.domain = domain;
         this.inbound = inbound;
+    }
+
+    public Domain getDomain()
+    {
+        return domain == null ? Domain.of(null) : domain;
     }
 
     public Inbound getInbound()
@@ -34,7 +41,7 @@ public class Configuration
             return false;
         }
         Configuration that = (Configuration) o;
-        return Objects.equals( getInbound(), that.getInbound() );
+        return Objects.equals( getDomain(), that.getDomain() ) && Objects.equals( getInbound(), that.getInbound() );
     }
 
     @Override
@@ -47,6 +54,7 @@ public class Configuration
     public String toString()
     {
         return "Configuration{" +
+                "domain=" + getDomain() + ", " +
                 "inbound=" + getInbound() +
                 '}';
     }
@@ -59,6 +67,7 @@ public class Configuration
     public static final class Builder
     {
         private Inbound inbound;
+        private Domain domain;
 
         private Builder()
         {
@@ -70,9 +79,15 @@ public class Configuration
             return this;
         }
 
+        public Builder withDomain(Domain domain)
+        {
+            this.domain = domain;
+            return this;
+        }
+
         public Configuration build()
         {
-            return new Configuration( inbound );
+            return new Configuration(domain, inbound );
         }
     }
 }

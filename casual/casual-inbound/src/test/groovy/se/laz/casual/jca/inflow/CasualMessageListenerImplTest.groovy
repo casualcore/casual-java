@@ -15,7 +15,9 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.service.CasualService
 import se.laz.casual.api.xa.XAReturnCode
 import se.laz.casual.api.xa.XID
+import se.laz.casual.config.ConfigurationService
 import se.laz.casual.jca.CasualResourceAdapterException
+import se.laz.casual.config.Domain
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
@@ -57,9 +59,11 @@ class CasualMessageListenerImplTest extends Specification
     @Shared Xid xid
     @Shared String serviceName = "echo"
     @Shared TestInboundHandler inboundHandler
+    @Shared Domain domain
 
     def setup()
     {
+        domain = ConfigurationService.getInstance().getConfiguration().getDomain()
         instance = new CasualMessageListenerImpl()
         inboundHandler = TestInboundHandler.of()
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), inboundHandler)
@@ -98,8 +102,8 @@ class CasualMessageListenerImplTest extends Specification
         reply != null
         reply.getType() == CasualNWMessageType.DOMAIN_CONNECT_REPLY
         reply.getCorrelationId() == correlationId
-        reply.getMessage().getDomainId() == domainId
-        reply.getMessage().getDomainName() == domainName
+        reply.getMessage().getDomainId() == domain.getId()
+        reply.getMessage().getDomainName() == domain.getName()
         reply.getMessage().getExecution() == execution
         reply.getMessage().getProtocolVersion() == protocolVersion
     }
@@ -134,8 +138,8 @@ class CasualMessageListenerImplTest extends Specification
         reply != null
         reply.getType() == CasualNWMessageType.DOMAIN_DISCOVERY_REPLY
         reply.getCorrelationId() == correlationId
-        reply.getMessage().getDomainId() == domainId
-        reply.getMessage().getDomainName() == domainName
+        reply.getMessage().getDomainId() == domain.getId()
+        reply.getMessage().getDomainName() == domain.getName()
         reply.getMessage().getExecution() == execution
         reply.getMessage().getServices() == expectedServices
     }

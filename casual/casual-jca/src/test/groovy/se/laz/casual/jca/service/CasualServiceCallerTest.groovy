@@ -16,6 +16,7 @@ import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceAdapter
 import se.laz.casual.jca.CasualResourceManager
+import se.laz.casual.config.Domain
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -82,7 +83,7 @@ class CasualServiceCallerTest extends Specification
     {
         executionId = UUID.randomUUID()
         domainId = UUID.randomUUID()
-        domainName = connection.getDomainName()
+        domainName = Domain.getName()
         serviceName = "echo"
         message = JsonBuffer.of( "{msg: \"hello echo service.\"}" )
     }
@@ -96,7 +97,7 @@ class CasualServiceCallerTest extends Specification
                 .build()
         expectedDomainDiscoveryRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
                 .setServiceNames([serviceName])
-                .setDomainName(connection.getDomainName())
+                .setDomainName(Domain.getName())
                 .build()
     }
 

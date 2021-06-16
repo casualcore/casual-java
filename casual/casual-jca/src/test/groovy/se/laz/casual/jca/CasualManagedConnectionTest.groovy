@@ -15,7 +15,6 @@ import javax.resource.NotSupportedException
 import javax.resource.ResourceException
 import javax.resource.spi.ConnectionEvent
 import javax.resource.spi.ConnectionEventListener
-import javax.resource.spi.ConnectionRequestInfo
 import javax.transaction.xa.XAResource
 import javax.transaction.xa.Xid
 
@@ -34,12 +33,6 @@ class CasualManagedConnectionTest extends Specification
         NetworkConnection networkConnection = Mock( )
         networkConnection.isActive() >> true
         instance.networkConnection = networkConnection
-    }
-
-    def "GetDomainName returns a value."()
-    {
-        expect:
-        instance.getDomainName() != null
     }
 
     def "GetNetworkConnection returns same instance."()

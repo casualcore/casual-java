@@ -6,6 +6,8 @@
 
 package se.laz.casual.jca;
 
+import se.laz.casual.config.ConfigurationService;
+import se.laz.casual.config.Domain;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
 import se.laz.casual.network.outbound.NettyConnectionInformation;
@@ -32,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -44,7 +45,6 @@ import java.util.logging.Logger;
  */
 public class CasualManagedConnection implements ManagedConnection, NetworkListener
 {
-    private static final String DOMAIN_NAME = "casual-java";
     private static final Logger log = Logger.getLogger(CasualManagedConnection.class.getName());
 
     private PrintWriter logwriter;
@@ -71,16 +71,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     }
 
     /**
-     * Domain name of the current managed connection instance.
-     *
-     * @return name of the associated domain.
-     */
-    public String getDomainName()
-    {
-        return DOMAIN_NAME;
-    }
-
-    /**
      * Underlying physical network connection managed by this
      * managed connection instance.
      *
@@ -92,10 +82,11 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         {
             if (networkConnection == null)
             {
+                Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
                 NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
                                                                           .withProtocolVersion(mcf.getCasualProtocolVersion())
-                                                                          .withDomainId(UUID.randomUUID())
-                                                                          .withDomainName(DOMAIN_NAME)
+                                                                          .withDomainId(domain.getId())
+                                                                          .withDomainName(domain.getName())
                                                                           .build();
                 networkConnection = NettyNetworkConnection.of(ci, this);
                 log.finest(()->"created new nw connection " + this);

@@ -15,6 +15,8 @@ import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.config.ConfigurationService;
+import se.laz.casual.config.Domain;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
@@ -109,10 +111,11 @@ public class CasualServiceCaller implements CasualServiceApi
     private boolean serviceExists( UUID corrid, String serviceName)
     {
         LOG.finest(()->"issuing domain discovery, corrid: " + corrid + " serviceName: " + serviceName);
+        Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
                                                                                             .setExecution(UUID.randomUUID())
-                                                                                            .setDomainId(UUID.randomUUID())
-                                                                                            .setDomainName( connection.getDomainName() )
+                                                                                            .setDomainId(domain.getId())
+                                                                                            .setDomainName(domain.getName())
                                                                                             .setServiceNames(Arrays.asList(serviceName))
                                                                                             .build();
         CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessageImpl.of(corrid, requestMsg);
