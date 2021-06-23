@@ -16,11 +16,11 @@ import java.util.Map;
 
 public class JndiUtil
 {
-    private static final String JAVA_GLOBAL_CONTEXT = "java:global/";
     private static final String BEAN_INTERFACE_SEPERATOR = "!";
     private static final String SEPERATOR = "/";
     private static final String PACKAGE_SEPERATOR = ".";
-    private static final String CURRENT_CONTEXT = "";
+    public static final String JAVA_GLOBAL_CONTEXT = "java:global/";
+    public static final String CURRENT_CONTEXT = "";
 
     private JndiUtil()
     {}
