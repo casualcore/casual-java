@@ -13,9 +13,11 @@ import javax.naming.NamingException;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class JndiUtil
 {
+    private static final Logger logger = Logger.getLogger(JndiUtil.class.getName());
     private static final String BEAN_INTERFACE_SEPERATOR = "!";
     private static final String SEPERATOR = "/";
     private static final String PACKAGE_SEPERATOR = ".";
@@ -82,14 +84,21 @@ public class JndiUtil
             String name = next.getName();
             String childPath = jndiPath + (jndiPath.contains(BEAN_INTERFACE_SEPERATOR) ? PACKAGE_SEPERATOR : SEPERATOR ) + name;
 
-            Object tmp = ctx.lookup(name);
-            if (tmp instanceof Context)
+            try
             {
-                results.putAll( findAllProxyInstance((Context) tmp, childPath ) );
+                Object tmp = ctx.lookup(name);
+                if (tmp instanceof Context)
+                {
+                    results.putAll(findAllProxyInstance((Context) tmp, childPath));
+                }
+                else if (tmp instanceof Proxy)
+                {
+                    results.put(childPath, (Proxy) tmp);
+                }
             }
-            else if( tmp instanceof Proxy )
+            catch(NamingException e)
             {
-                results.put(childPath, (Proxy)tmp);
+                logger.warning(() -> "lookup failed for: " + name);
             }
         }
         return results;
