@@ -6,7 +6,6 @@
 
 package se.laz.casual.jca.inbound.handler.buffer;
 
-import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.jca.inbound.handler.HandlerException;
 import se.laz.casual.jca.inbound.handler.InboundRequest;

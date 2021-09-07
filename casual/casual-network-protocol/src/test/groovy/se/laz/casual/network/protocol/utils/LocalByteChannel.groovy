@@ -12,6 +12,7 @@ import java.nio.channels.ByteChannel
 class LocalByteChannel implements ByteChannel
 {
     List<ByteBuffer[]> bytes = new ArrayList<>()
+
     @Override
     int read(ByteBuffer dst) throws IOException
     {

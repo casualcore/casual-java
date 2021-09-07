@@ -12,6 +12,10 @@ import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.MessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
+import se.laz.casual.network.protocol.decoding.decoders.conversation.ConnectReplyMessageDecoder;
+import se.laz.casual.network.protocol.decoding.decoders.conversation.ConnectRequestMessageDecoder;
+import se.laz.casual.network.protocol.decoding.decoders.conversation.DisconnectMessageDecoder;
+import se.laz.casual.network.protocol.decoding.decoders.conversation.RequestMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.domain.CasualDomainConnectReplyMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.domain.CasualDomainConnectRequestMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.domain.CasualDomainDiscoveryReplyMessageDecoder;
@@ -99,6 +103,14 @@ public final class CasualMessageDecoder
                 return (NetworkDecoder<T>) CasualTransactionResourceRollbackRequestMessageDecoder.of();
             case REQUEST_ROLLBACK_REPLY:
                 return (NetworkDecoder<T>) CasualTransactionResourceRollbackReplyMessageDecoder.of();
+            case CONVERSATION_CONNECT:
+                return (NetworkDecoder<T>) ConnectRequestMessageDecoder.of();
+            case CONVERSATION_CONNECT_REPLY:
+                return (NetworkDecoder<T>) ConnectReplyMessageDecoder.of();
+            case CONVERSATION_REQUEST:
+                return (NetworkDecoder<T>) RequestMessageDecoder.of();
+            case CONVERSATION_DISCONNECT:
+                return (NetworkDecoder<T>) DisconnectMessageDecoder.of();
             default:
                 throw new UnsupportedOperationException("Unknown messagetype: " + header.getType());
         }
