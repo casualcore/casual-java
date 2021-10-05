@@ -13,12 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * SPI factory for retrieving registered {@link ServiceHandler} instances.
  */
 public final class ServiceHandlerFactory
 {
+    private static final Logger LOG = Logger.getLogger(ServiceHandlerFactory.class.getName());
     private static ServiceLoader<ServiceHandler> handlerLoader = ServiceLoader.load( ServiceHandler.class );
 
     private static final Map<String,ServiceHandler> serviceHandlerCache = new ConcurrentHashMap<>();
@@ -61,14 +63,25 @@ public final class ServiceHandlerFactory
         List<ServiceHandler> handlers = getHandlers();
         Prioritise.highestToLowest( handlers );
 
+        log(handlers);
+
         for( ServiceHandler h: handlers )
         {
             if( h.canHandleService( serviceName ) )
             {
                 serviceHandlerCache.put( serviceName, h );
+                LOG.info(() -> "service handler: " + h + " chosen for service: " + serviceName);
                 return h;
             }
         }
         throw new ServiceHandlerNotFoundException( "None of the registered handlers, handle service named: " + serviceName );
+    }
+
+    private static void log(List<ServiceHandler> handlers)
+    {
+        LOG.info(()->"# of service handlers: " + handlers.size());
+        LOG.info(()->"service handlers in priority order descending: ");
+        handlers.stream()
+                .forEach(handler -> LOG.info(() -> "handler: " + handler));
     }
 }
