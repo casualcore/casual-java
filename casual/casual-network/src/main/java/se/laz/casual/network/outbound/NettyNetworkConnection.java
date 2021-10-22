@@ -12,7 +12,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -43,25 +42,23 @@ public final class NettyNetworkConnection implements NetworkConnection
     private final BaseConnectionInformation ci;
     private final Correlator correlator;
     private final Channel channel;
-    private final EventLoopGroup workerGroup;
     private final AtomicBoolean connected = new AtomicBoolean(true);
 
-    private NettyNetworkConnection(BaseConnectionInformation ci, Correlator correlator, Channel channel, EventLoopGroup workerGroup)
+    private NettyNetworkConnection(BaseConnectionInformation ci, Correlator correlator, Channel channel)
     {
         this.ci = ci;
         this.correlator = correlator;
         this.channel = channel;
-        this.workerGroup = workerGroup;
     }
 
     public static NetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
     {
         Objects.requireNonNull(ci, "connection info can not be null");
         Objects.requireNonNull(ci, "network listener can not be null");
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         Correlator correlator = ci.getCorrelator();
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator), ci.isLogHandlerEnabled());
-        NettyNetworkConnection c = new NettyNetworkConnection(ci, correlator, ch, workerGroup);
+        NettyNetworkConnection c = new NettyNetworkConnection(ci, correlator, ch);
         ch.closeFuture().addListener(f -> handleClose(c, networkListener));
         c.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
         return c;
@@ -98,6 +95,7 @@ public final class NettyNetworkConnection implements NetworkConnection
         if(c.connected.get())
         {
             // only inform on casual disconnect
+            // will result in a close call on the ManagedConnection ( by the application server)
             networkListener.disconnected();
         }
     }
@@ -129,8 +127,16 @@ public final class NettyNetworkConnection implements NetworkConnection
     public void close()
     {
         connected.set(false);
-        // all channels are closed when the event loop group shuts down
-        workerGroup.shutdownGracefully().addListener(futureListener -> LOG.info("network connection " + this + " gracefully closed"));
+        channel.disconnect().syncUninterruptibly().addListener(futureListener -> {
+            if(futureListener.isSuccess())
+            {
+                LOG.info(() -> "network connection " + this + " closed");
+            }
+            else
+            {
+                LOG.info(() -> "network connection close failed: " + futureListener.cause());
+            }
+        });
     }
 
     @Override
@@ -163,7 +169,6 @@ public final class NettyNetworkConnection implements NetworkConnection
         sb.append("ci=").append(ci);
         sb.append(", correlator=").append(correlator);
         sb.append(", channel=").append(channel);
-        sb.append(", workerGroup=").append(workerGroup);
         sb.append('}');
         return sb.toString();
     }

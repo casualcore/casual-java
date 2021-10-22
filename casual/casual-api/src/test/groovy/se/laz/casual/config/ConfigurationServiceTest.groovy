@@ -63,6 +63,44 @@ class ConfigurationServiceTest extends Specification
         "casual-config-discover.json"  || Mode.DISCOVER  | ["service1", "service2"]
     }
 
+    @Unroll
+    def "outbound config #executorName, #numberOfThreads"()
+    {
+        given:
+        Configuration expected = Configuration.newBuilder()
+                .withOutbound(Outbound.of(Optional.ofNullable(executorName), Optional.ofNullable(numberOfThreads)))
+                .build()
+
+        when:
+        Configuration actual
+        withEnvironmentVariable( ConfigurationService.CASUAL_CONFIG_FILE_ENV_NAME, "src/test/resources/" + file )
+                .execute( {
+                    instance = new ConfigurationService()
+                    actual = instance.getConfiguration(  )} )
+
+        then:
+        actual == expected
+
+        where:
+        file                                                  || executorName                                                        || numberOfThreads
+        'casual-config-outbound.json'                         || 'java:comp/env/concurrent/casualManagedExecutorService'             || 10
+        'casual-config-outbound-executorName-missing.json'    || 'java:comp/DefaultManagedExecutorService'                           || 10
+        'casual-config-outbound-numberOfThreads-missing.json' || 'java:comp/env/concurrent/casualManagedExecutorService'             || 0
+        'casual-config-outbound-null.json'                    || 'java:comp/DefaultManagedExecutorService'                           || 0
+    }
+
+    def 'default outbound config, no file'()
+    {
+        given:
+        Configuration expected = Configuration.newBuilder()
+                .withOutbound(Outbound.of(Optional.ofNullable('java:comp/DefaultManagedExecutorService'), Optional.ofNullable(0)))
+                .build()
+        when:
+        Configuration actual = ConfigurationService.getInstance().getConfiguration()
+        then:
+        actual == expected
+    }
+
     def "Get configuration where file not found, throws CasualRuntimeException."()
     {
         when:

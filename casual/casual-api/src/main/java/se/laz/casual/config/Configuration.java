@@ -7,16 +7,18 @@
 package se.laz.casual.config;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class Configuration
 {
     private final Inbound inbound;
     private final Domain domain;
-
-    public Configuration(Domain domain, Inbound inbound )
+    private final Outbound outbound;
+    public Configuration(Domain domain, Inbound inbound, Outbound outbound)
     {
         this.domain = domain;
         this.inbound = inbound;
+        this.outbound = outbound;
     }
 
     public Domain getDomain()
@@ -29,33 +31,39 @@ public class Configuration
         return inbound == null ? Inbound.newBuilder().build() : inbound;
     }
 
-    @Override
-    public boolean equals( Object o )
+    public Outbound getOutbound()
     {
-        if( this == o )
+        return outbound == null ? Outbound.of(Optional.empty(), Optional.empty()) : outbound;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
         {
             return true;
         }
-        if( o == null || getClass() != o.getClass() )
+        if (o == null || getClass() != o.getClass())
         {
             return false;
         }
         Configuration that = (Configuration) o;
-        return Objects.equals( getDomain(), that.getDomain() ) && Objects.equals( getInbound(), that.getInbound() );
+        return Objects.equals(getInbound(), that.getInbound()) && Objects.equals(getDomain(), that.getDomain()) && Objects.equals(getOutbound(), that.getOutbound());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( getInbound() );
+        return Objects.hash(getInbound(), getDomain(), getOutbound());
     }
 
     @Override
     public String toString()
     {
         return "Configuration{" +
-                "domain=" + getDomain() + ", " +
                 "inbound=" + getInbound() +
+                ", domain=" + getDomain() +
+                ", outbound=" + getOutbound() +
                 '}';
     }
 
@@ -68,6 +76,7 @@ public class Configuration
     {
         private Inbound inbound;
         private Domain domain;
+        private Outbound outbound;
 
         private Builder()
         {
@@ -85,9 +94,15 @@ public class Configuration
             return this;
         }
 
+        public Builder withOutbound( Outbound outbound )
+        {
+            this.outbound = outbound;
+            return this;
+        }
+
         public Configuration build()
         {
-            return new Configuration(domain, inbound );
+            return new Configuration(domain, inbound, outbound );
         }
     }
 }

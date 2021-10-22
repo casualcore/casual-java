@@ -1,0 +1,6 @@
+{
+  "outbound":
+  {
+    "numberOfThreads": 10
+  }
+}

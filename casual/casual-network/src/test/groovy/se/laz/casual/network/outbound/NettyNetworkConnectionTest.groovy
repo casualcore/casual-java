@@ -6,9 +6,9 @@
 
 package se.laz.casual.network.outbound
 
-import io.netty.channel.EventLoopGroup
+import io.netty.channel.Channel
+import io.netty.channel.ChannelFuture
 import io.netty.channel.embedded.EmbeddedChannel
-import io.netty.util.concurrent.Future
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -39,7 +39,10 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
                                                             .withCorrelator(correlator)
                                                             .build()
         ch = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator))
-        instance = new NettyNetworkConnection(ci, correlator, ch, null)
+        NettyNetworkConnection.createEventLoopGroup() >> {
+            return null;
+        }
+        instance = new NettyNetworkConnection(ci, correlator, ch)
     }
 
     def 'Of with a null connection info throws NullPointerException.'()
@@ -71,15 +74,15 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'close'()
     {
         setup:
-        def eventloopGroup = Mock(EventLoopGroup)
-        1 * eventloopGroup.shutdownGracefully() >> {
-            def nettyFuture = Mock(Future)
-            1 * nettyFuture.addListener(_) >> {
-                return nettyFuture
-            }
-            return nettyFuture
+        def channel = Mock(Channel)
+        def channelFuture = Mock(ChannelFuture)
+        1 * channel.disconnect() >> {
+            channelFuture
         }
-        instance = new NettyNetworkConnection(ci, correlator, ch, eventloopGroup)
+        channelFuture.syncUninterruptibly() >> {
+            channelFuture
+        }
+        instance = new NettyNetworkConnection(ci, correlator, channel)
         when:
         instance.close()
         then:
@@ -91,7 +94,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     {
         given:
         def channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator))
-        def newInstance = new NettyNetworkConnection(ci, correlator, channel, null)
+        def newInstance = new NettyNetworkConnection(ci, correlator, channel)
         def future = channel.closeFuture().addListener({ f -> se.laz.casual.network.outbound.NettyNetworkConnection.handleClose(newInstance, this) })
         when:
         future.channel().disconnect()

@@ -1,0 +1,7 @@
+{
+  "outbound":
+  {
+    "managedExecutorServiceName": "java:comp/env/concurrent/casualManagedExecutorService",
+    "numberOfThreads": 10
+  }
+}
