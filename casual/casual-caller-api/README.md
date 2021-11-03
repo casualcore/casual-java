@@ -40,6 +40,18 @@ If there's only one connection that matches then that one is used
 
 If there are more than one then we randomly choose one of them to issue the actual call.
 
+## Failover and recovery after failure
+
+Casual caller since version 1.1.0 has built in failover for when one or more configured casual instances are unreachable. If there are multiple casual backends available attempts will be made to redirect calls to other connection factories that have discovered the same service. When performing calls services with the fewest hops will always be prioritized. If a service is known at multiple connection factories with a different number of hops the variants with more hops will only be called if the connection factory with fewer hops fails to establish connections to casual.
+
+When casual caller detects a failure on a connection factory that factory is removed from load balancing until it has been validated that new connections can be established through it. This process runs on a timer with a default interval of 5 seconds. The interval can be configured through the environment variable `CASUAL_CALLER_VALIDATION_INTERVAL` that accepts an interval in milliseconds and should not have a unit. If invalid configuration values are detected then the timer will fall back to the default 5 second interval.
+
+## Caching
+
+If one or more CasualConnectionFactory isn't able to establish connections to casual upon service discovery they are skipped at that time. A record is kept of what factories have been discovered for each service to ensure that discovery can be carried out at a later time to ensure that for example load balancing keeps working even if not all configured casual backends are available at all times.
+
+In case services are added or removed from the casual backends there is no automatic cache invalidation to handle this. Restarting the application server will always clear the cache, but casual caller also supplies a JMX bean `se.laz.casual.caller:CasualCallerControl` that allows an administrator of the application server to purge the cache for discovered services and queues respectively. The JMX bean also supplies information about what has been discovered, and can tell which CasualConnectionFactories have been checked with service discovery for each service and on which factories services are known to exist.
+
 ## How do I use casual caller in my application?
 
 You will find casual caller as a global jndi entry, that is:

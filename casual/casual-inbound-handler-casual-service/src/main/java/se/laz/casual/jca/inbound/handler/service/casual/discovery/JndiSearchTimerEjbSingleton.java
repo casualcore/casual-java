@@ -109,7 +109,7 @@ public class JndiSearchTimerEjbSingleton
         }
     }
 
-    private boolean hasMatchingAnnotation(CasualServiceMetaData metaData, Class<?> found, Method method ) throws ClassNotFoundException, NoSuchMethodException
+    private boolean hasMatchingAnnotation(CasualServiceMetaData metaData, Class<?> found, Method method ) throws NoSuchMethodException
     {
         Method foundMethod = Arrays.stream(found.getDeclaredMethods())
                 .filter(m -> matches(m, method))

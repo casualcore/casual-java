@@ -35,13 +35,17 @@ class CacheTest extends Specification
     def qInfoList = [QueueInfo.createBuilder().withQspace('hairy').withQname('otter').build(), QueueInfo.createBuilder().withQspace('drunken').withQname('monkey').build()]
     @Shared
     def serviceNames = ['casual.rollback', 'casually.casual']
+    @Shared
+    def priority = 17L
+    @Shared
+    def priorityMapping
 
     def setup()
     {
         instance = new Cache()
         qInfoList.forEach({q -> instance.store(q, [cacheEntryOne])})
-        serviceNames.forEach({ s -> instance.store(s, [cacheEntryTwo])})
-        instance.store(serviceName, [cacheEntryOne, cacheEntryTwo])
+        serviceNames.forEach({ s -> instance.store(s, ConnectionFactoriesByPriority.of([(priority): [cacheEntryTwo]]))})
+        instance.store(serviceName, ConnectionFactoriesByPriority.of([(priority): [cacheEntryOne, cacheEntryTwo]]))
     }
 
     def 'store null cache entry'()
@@ -57,10 +61,10 @@ class CacheTest extends Specification
         given:
         def anotherServiceName = 'anotherServiceName'
         when:
-        instance.store(anotherServiceName, [cacheEntryOne, cacheEntryTwo])
+        instance.store(anotherServiceName, ConnectionFactoriesByPriority.of([(priority): [cacheEntryOne, cacheEntryTwo]]))
         def entries = instance.get(anotherServiceName)
         then:
-        entries.size() == 2
+        entries.getForPriority(priority).size() == 2
     }
 
     def 'get missing service entry'()

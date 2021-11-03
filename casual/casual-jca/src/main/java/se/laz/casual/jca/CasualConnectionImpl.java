@@ -13,6 +13,7 @@ import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.queue.MessageSelector;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
+import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.jca.queue.CasualQueueCaller;
 import se.laz.casual.jca.service.CasualServiceCaller;
 import se.laz.casual.network.connection.CasualConnectionException;
@@ -90,6 +91,12 @@ public class CasualConnectionImpl implements CasualConnection
     {
         throwIfInvalidated();
         return getCasualServiceCaller().serviceExists(serviceName);
+    }
+
+    @Override
+    public List<ServiceDetails> serviceDetails(String serviceName)
+    {
+        return getCasualServiceCaller().serviceDetails(serviceName);
     }
 
     @Override

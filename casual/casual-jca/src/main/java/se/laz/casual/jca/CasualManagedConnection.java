@@ -41,6 +41,7 @@ import java.util.logging.Logger;
  * The application server pools these objects
  * It contains one physical connection and is used to create connection handle objects and transaction resources.
  * These in turn knows their managed connection and can invoke network operations.
+ *
  * @version $Revision: $
  */
 public class CasualManagedConnection implements ManagedConnection, NetworkListener
@@ -99,15 +100,25 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public Object getConnection(Subject subject,
                                 ConnectionRequestInfo cxRequestInfo) throws ResourceException
     {
-        log.finest("getConnection()");
-        if(!getNetworkConnection().isActive())
+        try
         {
-            closeNetworkConnection();
-            throw new CommException("connection to casual is gone");
+            log.finest("getConnection()");
+            if (!getNetworkConnection().isActive())
+            {
+                closeNetworkConnection();
+                throw new CommException("connection to casual is gone");
+            }
+            CasualConnectionImpl c = new CasualConnectionImpl(this);
+            connectionHandles.add(c);
+            return c;
         }
-        CasualConnectionImpl c = new CasualConnectionImpl(this );
-        connectionHandles.add(c);
-        return c;
+        catch (Exception e)
+        {
+            // Most likely what will be caught here is a Netty variant of java.net.ConnectException
+            casualNotAvailable();
+
+            throw new CommException(e);
+        }
     }
 
     @Override
@@ -253,6 +264,19 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         return "CasualManagedConnection{" +
                 ", xaResource=" + xaResource +
                 '}';
+    }
+
+    public void casualNotAvailable()
+    {
+        // Mark transaction branch as read only when we fail to establish connection (i.e. casual is down)
+        // If this isn't done the application server will attempt to commit this broken resource, which
+        // does not make sense. This is imperative to enable retries for casual calls, because otherwise
+        // the transaction is unusable.
+        xaResource.setReadOnly();
+
+        // Some application servers may reuse this resource after exception is thrown. As long as networkConnection
+        // is null for the next use of this resource it should not be a problem.
+        networkConnection = null;
     }
 
     @Override

@@ -10,6 +10,7 @@ import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ServiceReturn
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.ServiceReturnState
+import se.laz.casual.api.service.ServiceDetails
 import spock.lang.Specification
 
 import java.util.concurrent.CompletableFuture
@@ -90,6 +91,12 @@ class CasualServiceApiTest extends Specification
         boolean serviceExists(String serviceName)
         {
             return false
+        }
+
+        @Override
+        List<ServiceDetails> serviceDetails(String serviceName)
+        {
+            return []
         }
     }
 

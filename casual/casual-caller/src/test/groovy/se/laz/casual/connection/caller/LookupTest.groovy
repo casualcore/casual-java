@@ -7,8 +7,10 @@
 package se.laz.casual.connection.caller
 
 import se.laz.casual.api.queue.QueueInfo
+import se.laz.casual.api.service.ServiceDetails
 import se.laz.casual.jca.CasualConnection
 import se.laz.casual.jca.CasualConnectionFactory
+import se.laz.casual.network.messages.domain.TransactionType
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -38,6 +40,8 @@ class LookupTest extends Specification
     QueueInfo qinfo = QueueInfo.createBuilder().withQspace('oddball').withQname('raccoon').build()
     @Shared
     def serviceName = 'casual.echo'
+    @Shared
+    def priority = 13L
 
     def setup()
     {
@@ -80,19 +84,23 @@ class LookupTest extends Specification
     {
         setup:
         def cacheEntries = [ConnectionFactoryEntry.of(jndiNameOne, conFac), ConnectionFactoryEntry.of(jndiNameTwo, conFacTwo)]
+        con.serviceDetails(serviceName) >> []
+        conTwo.serviceDetails(serviceName) >> [new ServiceDetails(serviceName, "", TransactionType.NONE, 0L, priority)]
         con.serviceExists(serviceName) >> false
         conTwo.serviceExists(serviceName) >> true
         when:
         def entries = instance.find(serviceName, cacheEntries)
         then:
         !entries.isEmpty()
-        entries[0].jndiName == jndiNameTwo
+        entries.getForPriority(priority)[0].jndiName == jndiNameTwo
     }
 
     def 'find jndi name using serviceinfo - should not find it'()
     {
         setup:
         def cacheEntries = [ConnectionFactoryEntry.of(jndiNameOne, conFac), ConnectionFactoryEntry.of(jndiNameTwo, conFacTwo)]
+        con.serviceDetails(serviceName) >> []
+        conTwo.serviceDetails(serviceName) >> []
         con.serviceExists(serviceName) >> false
         conTwo.serviceExists(serviceName) >> false
         when:

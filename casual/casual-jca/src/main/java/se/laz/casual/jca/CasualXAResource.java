@@ -36,6 +36,7 @@ public class CasualXAResource implements XAResource
     private final CasualManagedConnection casualManagedConnection;
     private final int resourceManagerId;
     private Xid currentXid = XID.NULL_XID;
+    private boolean readOnly = false;
 
     public CasualXAResource(final CasualManagedConnection connection, int resourceManagerId)
     {
@@ -123,6 +124,11 @@ public class CasualXAResource implements XAResource
     @Override
     public int prepare(Xid xid) throws XAException
     {
+        if (isReadOnly())
+        {
+            return XAResource.XA_RDONLY;
+        }
+
         LOG.finest(()->"trying to prepare, xid: " + xid);
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
         CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
@@ -169,6 +175,7 @@ public class CasualXAResource implements XAResource
     public void start(Xid xid, int i) throws XAException
     {
         LOG.finest(()-> "start, xid: " + xid + " flag: " + i);
+        readOnly = false;
         if(!(XAFlags.TMJOIN.getValue() == i || XAFlags.TMRESUME.getValue() == i) &&
             CasualResourceManager.getInstance().isPending(xid))
         {
@@ -198,6 +205,16 @@ public class CasualXAResource implements XAResource
     public void disassociate()
     {
         currentXid = XID.NULL_XID;
+    }
+
+    public void setReadOnly()
+    {
+        readOnly = true;
+    }
+
+    public boolean isReadOnly()
+    {
+        return readOnly;
     }
 
     private void throwWhenTransactionErrorCode(final XAReturnCode transactionReturnCode) throws XAException

@@ -9,8 +9,10 @@ package se.laz.casual.connection.caller;
 import se.laz.casual.api.queue.QueueInfo;
 
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
 {
@@ -26,12 +28,12 @@ public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
     {
         Objects.requireNonNull(qinfo, "qinfo can not be null");
         List<ConnectionFactoryEntry> cachedEntries = cache.get(qinfo);
-        if(!cachedEntries.isEmpty())
+        if (!cachedEntries.isEmpty())
         {
             return cachedEntries;
         }
         List<ConnectionFactoryEntry> newEntries = lookup.find(qinfo, connectionFactoryProvider.get());
-        if(!newEntries.isEmpty())
+        if (!newEntries.isEmpty())
         {
             cache.store(qinfo, newEntries);
         }
@@ -41,18 +43,29 @@ public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
     @Override
     public List<ConnectionFactoryEntry> get(String serviceName)
     {
+        // Services by cache
         Objects.requireNonNull(serviceName, "serviceName can not be null");
-        List<ConnectionFactoryEntry> cachedEntries = cache.get(serviceName);
-        if(!cachedEntries.isEmpty())
+        ConnectionFactoriesByPriority cachedEntries = cache.get(serviceName);
+        if (!cachedEntries.isEmpty() && cachedEntries.hasCheckedAllValid(connectionFactoryProvider.get()))
         {
-            return cachedEntries;
+            // Using cached entries and no further discovery is appropriate
+            return cachedEntries.randomizeWithPriority();
         }
-        List<ConnectionFactoryEntry> newEntries = lookup.find(serviceName, connectionFactoryProvider.get());
-        if(!newEntries.isEmpty())
+
+        // Services by lookup. Only lookup against previously unresolved connection factories.
+        ConnectionFactoriesByPriority newEntries = lookup.find(serviceName, connectionFactoryProvider.get()
+                .stream()
+                .filter(entry -> !cache.get(serviceName).isResolved(entry.getJndiName()))
+                .collect(Collectors.toList()));
+        if (!newEntries.isEmpty())
         {
             cache.store(serviceName, newEntries);
+            return cache.get(serviceName).randomizeWithPriority();
         }
-        return newEntries;
-    }
 
+        // If we only have a bunch of invalid connection-factories to report it should be done so,
+        // because a different error may be reported depending on if the service has no known backend
+        // or if none of the known backends are available
+        return cachedEntries.isEmpty() ? Collections.emptyList() : cachedEntries.randomizeWithPriority();
+    }
 }

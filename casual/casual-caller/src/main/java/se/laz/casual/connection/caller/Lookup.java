@@ -7,35 +7,62 @@
 package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.queue.QueueInfo;
+import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualConnectionFactory;
 
 import javax.resource.ResourceException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.Function;
+import java.util.logging.Logger;
 
 public class Lookup
 {
-    public  List<ConnectionFactoryEntry> find(QueueInfo qinfo, List<ConnectionFactoryEntry> cacheEntries)
+    private static final Logger LOG = Logger.getLogger(Lookup.class.getName());
+
+    public List<ConnectionFactoryEntry> find(QueueInfo qinfo, List<ConnectionFactoryEntry> cacheEntries)
     {
-        return find(cacheEntries, con -> con.queueExists(qinfo));
+        return findQueue(cacheEntries, con -> con.queueExists(qinfo));
     }
 
-    public  List<ConnectionFactoryEntry> find(String serviceName, List<ConnectionFactoryEntry> cacheEntries)
+    public ConnectionFactoriesByPriority find(String serviceName, List<ConnectionFactoryEntry> cacheEntries)
     {
-        return find(cacheEntries, con -> con.serviceExists(serviceName));
+        return findService(cacheEntries, con -> con.serviceDetails(serviceName));
     }
 
-    private List<ConnectionFactoryEntry> find(List<ConnectionFactoryEntry> cacheEntries, Predicate<CasualConnection> predicate)
+    private ConnectionFactoriesByPriority findService(List<ConnectionFactoryEntry> cacheEntries,
+                                                      Function<CasualConnection, List<ServiceDetails>> fetchFunction)
+    {
+        ConnectionFactoriesByPriority foundEntries = ConnectionFactoriesByPriority.emptyInstance();
+        for (ConnectionFactoryEntry entry : cacheEntries)
+        {
+            if (!foundEntries.isResolved(entry.getJndiName()))
+            {
+                CasualConnectionFactory connectionFactory = entry.getConnectionFactory();
+                try (CasualConnection con = connectionFactory.getConnection())
+                {
+                    foundEntries.store(fetchFunction.apply(con), entry);
+                    foundEntries.setResolved(entry.getJndiName());
+                }
+                catch (ResourceException e)
+                {
+                    LOG.warning("Skipping connection factory " + entry.getJndiName() + " for lookup because it was unreachable");
+                }
+            }
+        }
+        return foundEntries;
+    }
+
+    private List<ConnectionFactoryEntry> findQueue(List<ConnectionFactoryEntry> cacheEntries, PredicateThrowsResourceException<CasualConnection> predicate)
     {
         List<ConnectionFactoryEntry> foundEntries = new ArrayList<>();
-        for(ConnectionFactoryEntry entry : cacheEntries)
+        for (ConnectionFactoryEntry entry : cacheEntries)
         {
             CasualConnectionFactory connectionFactory = entry.getConnectionFactory();
-            try(CasualConnection con = connectionFactory.getConnection())
+            try (CasualConnection con = connectionFactory.getConnection())
             {
-                if(predicate.test(con))
+                if (predicate.test(con))
                 {
                     foundEntries.add(entry);
                 }
@@ -48,4 +75,8 @@ public class Lookup
         return foundEntries;
     }
 
+    public interface PredicateThrowsResourceException<T>
+    {
+        boolean test(T object) throws ResourceException;
+    }
 }

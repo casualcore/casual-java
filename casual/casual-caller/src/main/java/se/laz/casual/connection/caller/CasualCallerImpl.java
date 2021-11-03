@@ -12,6 +12,7 @@ import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.queue.MessageSelector;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
+import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.jca.CasualConnection;
 
 import javax.ejb.Remote;
@@ -26,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
 @Stateless
 public class CasualCallerImpl implements CasualCaller
 {
+    private TpCallerFailover tpCaller = new TpCallerFailover();
     private ConnectionFactoryLookup lookup;
     private ConnectionFactoryProvider connectionFactoryProvider;
 
@@ -48,35 +50,25 @@ public class CasualCallerImpl implements CasualCaller
     @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        ConnectionFactoryEntry entry = RandomEntry.getEntry(lookup.get(serviceName)).orElse(RandomEntry.getRandomEntry(connectionFactoryProvider.get()));
-        try(CasualConnection connection = entry.getConnectionFactory().getConnection())
-        {
-            return connection.tpcall(serviceName, data, flags);
-        }
-        catch (ResourceException e)
-        {
-            throw new CasualResourceException(e);
-        }
+        return tpCaller.tpcall(serviceName, data, flags, lookup);
     }
 
     @Override
     public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        ConnectionFactoryEntry entry = RandomEntry.getEntry(lookup.get(serviceName)).orElse(RandomEntry.getRandomEntry(connectionFactoryProvider.get()));
-        try(CasualConnection connection = entry.getConnectionFactory().getConnection())
-        {
-            return connection.tpacall(serviceName, data, flags);
-        }
-        catch (ResourceException e)
-        {
-            throw new CasualResourceException(e);
-        }
+        return tpCaller.tpacall(serviceName, data, flags, lookup);
     }
 
     @Override
     public boolean serviceExists(String serviceName)
     {
         return !lookup.get(serviceName).isEmpty();
+    }
+
+    @Override
+    public List<ServiceDetails> serviceDetails(String serviceName)
+    {
+        throw new CasualCallerException("CasualCaller does not support serviceDetails. Please use CasualServiceCaller::serviceDetails to get specific service details.");
     }
 
     @Override

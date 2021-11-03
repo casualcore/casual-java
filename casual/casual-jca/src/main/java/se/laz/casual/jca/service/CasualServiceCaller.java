@@ -15,6 +15,7 @@ import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
 import se.laz.casual.jca.CasualManagedConnection;
@@ -28,7 +29,9 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestM
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
@@ -39,14 +42,14 @@ public class CasualServiceCaller implements CasualServiceApi
     private static final String SERVICE_NAME_LITERAL = " serviceName: ";
     private CasualManagedConnection connection;
 
-    private CasualServiceCaller( CasualManagedConnection connection )
+    private CasualServiceCaller(CasualManagedConnection connection)
     {
         this.connection = connection;
     }
 
-    public static CasualServiceCaller of( CasualManagedConnection connection )
+    public static CasualServiceCaller of(CasualManagedConnection connection)
     {
-        return new CasualServiceCaller( connection );
+        return new CasualServiceCaller(connection);
     }
 
     @Override
@@ -56,26 +59,27 @@ public class CasualServiceCaller implements CasualServiceApi
         {
             return tpacall(serviceName, data, flags).join();
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             throw new CasualConnectionException(e);
         }
     }
 
     @Override
-    public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall( String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         CompletableFuture<ServiceReturn<CasualBuffer>> f = new CompletableFuture<>();
         UUID corrId = UUID.randomUUID();
-        CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> ff = makeServiceCall( corrId, serviceName, data, flags);
-        ff.whenComplete((v, e) ->{
-            if(null != e)
+        CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> ff = makeServiceCall(corrId, serviceName, data, flags);
+        ff.whenComplete((v, e) ->
+        {
+            if (null != e)
             {
-                LOG.finest(()->"service call request failed for corrid: " + corrId + SERVICE_NAME_LITERAL + serviceName);
+                LOG.finest(() -> "service call request failed for corrid: " + corrId + SERVICE_NAME_LITERAL + serviceName);
                 f.completeExceptionally(e);
                 return;
             }
-            LOG.finest(()->"service call request ok for corrid: " + corrId + SERVICE_NAME_LITERAL + serviceName);
+            LOG.finest(() -> "service call request ok for corrid: " + corrId + SERVICE_NAME_LITERAL + serviceName);
             f.complete(toServiceReturn(v));
         });
         return f;
@@ -88,10 +92,30 @@ public class CasualServiceCaller implements CasualServiceApi
         {
             return serviceExists(UUID.randomUUID(), serviceName);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             throw new CasualConnectionException(e);
         }
+    }
+
+    @Override
+    public List<ServiceDetails> serviceDetails(String serviceName)
+    {
+        List<ServiceDetails> serviceDetailsList = new ArrayList<>();
+
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = serviceDiscovery(UUID.randomUUID(), serviceName);
+        replyMsg
+                .getMessage()
+                .getServices()
+                .forEach(service -> serviceDetailsList.add(
+                        ServiceDetails.createBuilder()
+                                .withName(service.getName())
+                                .withCategory(service.getCategory())
+                                .withTransactionType(service.getTransactionType())
+                                .withTimeout(service.getTimeout())
+                                .withHops(service.getHops()).build()));
+
+        return serviceDetailsList;
     }
 
     private CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
@@ -101,29 +125,35 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setExecution(UUID.randomUUID())
                 .setServiceBuffer(ServiceBuffer.of(data))
                 .setServiceName(serviceName)
-                .setXid( connection.getCurrentXid() )
+                .setXid(connection.getCurrentXid())
                 .setTimeout(timeout.toNanos())
                 .setXatmiFlags(flags).build();
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
-        LOG.finest(()->"issuing service call reequest, corrid: " + corrid + SERVICE_NAME_LITERAL + serviceName);
+        LOG.finest(() -> "issuing service call reequest, corrid: " + corrid + SERVICE_NAME_LITERAL + serviceName);
         return connection.getNetworkConnection().request(serviceRequestNetworkMessage);
     }
 
-    private boolean serviceExists( UUID corrid, String serviceName)
+    private CasualNWMessage<CasualDomainDiscoveryReplyMessage> serviceDiscovery(UUID corrid, String serviceName)
     {
-        LOG.finest(()->"issuing domain discovery, corrid: " + corrid + SERVICE_NAME_LITERAL + serviceName);
+        LOG.finest(() -> "issuing domain discovery, corrid: " + corrid + SERVICE_NAME_LITERAL + serviceName);
         Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
-                                                                                            .setExecution(UUID.randomUUID())
-                                                                                            .setDomainId(domain.getId())
-                                                                                            .setDomainName(domain.getName())
-                                                                                            .setServiceNames(Arrays.asList(serviceName))
-                                                                                            .build();
+                .setExecution(UUID.randomUUID())
+                .setDomainId(domain.getId())
+                .setDomainName(domain.getName())
+                .setServiceNames(Arrays.asList(serviceName))
+                .build();
         CasualNWMessage<CasualDomainDiscoveryRequestMessage> msg = CasualNWMessageImpl.of(corrid, requestMsg);
         CompletableFuture<CasualNWMessage<CasualDomainDiscoveryReplyMessage>> replyMsgFuture = connection.getNetworkConnection().request(msg);
 
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
-        LOG.finest(()->"domain discovery ok for corrid: " + corrid + SERVICE_NAME_LITERAL + serviceName);
+        LOG.finest(() -> "domain discovery ok for corrid: " + corrid + SERVICE_NAME_LITERAL + serviceName);
+        return replyMsg;
+    }
+
+    private boolean serviceExists(UUID corrid, String serviceName)
+    {
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = serviceDiscovery(corrid, serviceName);
         return replyMsg.getMessage().getServices().stream()
                 .map(Service::getName)
                 .anyMatch(v -> v.equals(serviceName));

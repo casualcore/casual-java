@@ -5,14 +5,25 @@
  */
 package se.laz.casual.connection.caller;
 
+import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualConnectionFactory;
 
+import javax.resource.ResourceException;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public final class ConnectionFactoryEntry
 {
+    private static final Logger LOG = Logger.getLogger(ConnectionFactoryEntry.class.getName());
+
     private final String jndiName;
     private final CasualConnectionFactory connectionFactory;
+
+    /**
+     * Connection factory entries should invalidate on connection errors and revalidate as soon as a new valid
+     * connection can be established.
+     */
+    private boolean valid = true;
 
     private ConnectionFactoryEntry(String jndiName, CasualConnectionFactory connectionFactory)
     {
@@ -35,6 +46,41 @@ public final class ConnectionFactoryEntry
     public CasualConnectionFactory getConnectionFactory()
     {
         return connectionFactory;
+    }
+
+    public boolean isValid()
+    {
+        return valid;
+    }
+
+    public boolean isInvalid()
+    {
+        return !valid;
+    }
+
+    public void invalidate()
+    {
+        valid = false;
+        LOG.finest(() -> "Invalidated CasualConnection with jndiName=" + jndiName);
+    }
+
+    public void validate()
+    {
+        try
+        {
+            CasualConnection con = connectionFactory.getConnection();
+            con.close();
+
+            // We just want to check that a connection could be established to check connectivity
+            valid = true;
+            LOG.finest(() -> "Successfully validated CasualConnection with jndiName=" + jndiName);
+        }
+        catch (ResourceException e)
+        {
+            // Failure to connect during validation should automatically invalidate connectionfactoryentry
+            valid = false;
+            LOG.warning(() -> "Failed validation of CasualConnection with jndiName=" + jndiName);
+        }
     }
 
 

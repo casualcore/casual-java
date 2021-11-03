@@ -7,9 +7,9 @@
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '1.0.60-beta'
+version = '1.0.61-beta'
 
-ext.casual_caller_app_version = '1.0'
+ext.casual_caller_app_version = '1.1.0'
 
 ext.libs = [
   netty : 'io.netty:netty-all:4.1.65.Final',

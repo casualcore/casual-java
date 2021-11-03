@@ -7,6 +7,7 @@
 package se.laz.casual.connection.caller
 
 import se.laz.casual.api.queue.QueueInfo
+import se.laz.casual.jca.CasualConnection
 import se.laz.casual.jca.CasualConnectionFactory
 import spock.lang.Shared
 import spock.lang.Specification
@@ -35,9 +36,37 @@ class ConnectionFactoryLookupServiceTest extends Specification
     def env = new HashMap()
     @Shared
     ConnectionFactoryLookupService instance
+    @Shared
+    def priority = 3L
+
+
+
+    @Shared
+    def priorityHigh = 3L
+    @Shared
+    def priorityLow = 31L
+    @Shared
+    def conFacHighJndi = 'conFacHighJndi'
+    @Shared
+    def conFacLowJndi = 'conFacLowJndi'
+    @Shared
+    CasualConnectionFactory conFacHigh
+    @Shared
+    CasualConnectionFactory conFacLow
+    @Shared
+    CasualConnection conHigh
+    @Shared
+    CasualConnection conLow
 
     def setup()
     {
+        conHigh = Mock(CasualConnection)
+        conLow = Mock(CasualConnection)
+        conFacHigh = Mock(CasualConnectionFactory)
+        conFacLow = Mock(CasualConnectionFactory)
+        conFacHigh.getConnection() >> conHigh
+        conFacLow.getConnection() >> conLow
+
         conFac = Mock(CasualConnectionFactory)
         conFacTwo = Mock(CasualConnectionFactory)
         connnectionFactoryProvider = Mock(ConnectionFactoryProvider)
@@ -56,7 +85,7 @@ class ConnectionFactoryLookupServiceTest extends Specification
             [ConnectionFactoryEntry.of(jndiNameConFactoryOne, conFac), ConnectionFactoryEntry.of(jndiNameConFactoryTwo, conFacTwo)] as List<ConnectionFactoryEntry>
         }
         expect:
-        def entries = connnectionFactoryProvider.get();
+        def entries = connnectionFactoryProvider.get()
         entries.size() == 2
         instance.connectionFactoryProvider == connnectionFactoryProvider
         instance.cache == cache
@@ -101,7 +130,8 @@ class ConnectionFactoryLookupServiceTest extends Specification
     {
         setup:
         ConnectionFactoryEntry entry = ConnectionFactoryEntry.of(jndiNameConFactoryTwo, conFacTwo)
-        lookup.find(serviceName, _) >> [entry]
+        connnectionFactoryProvider.get() >> [entry]
+        lookup.find(serviceName, _) >> ConnectionFactoriesByPriority.of([(priority): [entry]])
         when:
         def entries = instance.get(serviceName)
         then:
@@ -112,7 +142,8 @@ class ConnectionFactoryLookupServiceTest extends Specification
     def 'service info get jndi name, no cached entry - not found'()
     {
         setup:
-        lookup.find(serviceName, _) >> []
+        connnectionFactoryProvider.get() >> []
+        lookup.find(serviceName, _) >> ConnectionFactoriesByPriority.of([:])
         when:
         def entries = instance.get(serviceName)
         then:
@@ -123,12 +154,78 @@ class ConnectionFactoryLookupServiceTest extends Specification
     {
         setup:
         ConnectionFactoryEntry entry = ConnectionFactoryEntry.of(jndiNameConFactoryTwo, conFacTwo)
-        cache.store(serviceName, [entry])
+        connnectionFactoryProvider.get() >> [entry]
+        cache.store(serviceName, ConnectionFactoriesByPriority.of([(priority): [entry]], [entry.getJndiName()]))
         when:
         def entries = instance.get(serviceName)
         then:
         entries.size() == 1
         entries[0] == entry
         0 * lookup.find(serviceName, _)
+    }
+
+    def "order is randomized"()
+    {
+        setup:
+        def entriesPerPriority = 128
+        Map<Long, List<ConnectionFactoryEntry>> lookupMap = [:]
+
+        List<ConnectionFactoryEntry> listOfEntries = []
+        for (int i = 0; i < entriesPerPriority; i++)
+        {
+            listOfEntries.add(ConnectionFactoryEntry.of("jndi_index_"+i, conFacHigh))
+        }
+        lookupMap.put(1L, listOfEntries)
+
+        connnectionFactoryProvider.get() >> listOfEntries
+
+        lookup.find(serviceName, _) >> ConnectionFactoriesByPriority.of(lookupMap)
+
+        when:
+        def result1 = instance.get(serviceName)
+        def result2 = instance.get(serviceName)
+
+        then:
+        // entries are shuffeled
+        result1 != result2
+
+        // .. but they should still contains all the same items
+        result1.sort() == result2.sort()
+    }
+
+    def "priority is descending"()
+    {
+        setup:
+        def conFac1 = Mock(CasualConnectionFactory)
+        def conFac2 = Mock(CasualConnectionFactory)
+        def conFac3 = Mock(CasualConnectionFactory)
+        def conFac4 = Mock(CasualConnectionFactory)
+
+        def conFac1Name = "name1"
+        def conFac2Name = "name2"
+        def conFac3Name = "name3"
+        def conFac4Name = "name4"
+
+        def conFac1Entry = ConnectionFactoryEntry.of(conFac1Name, conFac1)
+        def conFac2Entry = ConnectionFactoryEntry.of(conFac2Name, conFac2)
+        def conFac3Entry = ConnectionFactoryEntry.of(conFac3Name, conFac3)
+        def conFac4Entry = ConnectionFactoryEntry.of(conFac4Name, conFac4)
+
+        connnectionFactoryProvider.get() >> [conFac1Entry, conFac2Entry, conFac3Entry, conFac4Entry]
+        lookup.find(serviceName, _) >> ConnectionFactoriesByPriority.of([
+                (3L): [conFac1Entry],
+                (2L): [conFac2Entry],
+                (1L): [conFac3Entry],
+                (0L): [conFac4Entry],
+        ])
+
+        when:
+        def result = instance.get(serviceName)
+
+        then:
+        result[0].getConnectionFactory() == conFac4
+        result[1].getConnectionFactory() == conFac3
+        result[2].getConnectionFactory() == conFac2
+        result[3].getConnectionFactory() == conFac1
     }
 }

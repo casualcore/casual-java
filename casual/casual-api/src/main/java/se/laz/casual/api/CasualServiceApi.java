@@ -10,7 +10,9 @@ import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
+import se.laz.casual.api.service.ServiceDetails;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -54,5 +56,10 @@ public interface CasualServiceApi
      */
     boolean serviceExists( String serviceName);
 
-
+    /**
+     * Fetch detailed lookup data for a service
+     * @param serviceName the service name
+     * @return A list of every instance that handles the service, with metadata for each. An empty list if the service isn't found.
+     */
+    List<ServiceDetails> serviceDetails(String serviceName);
 }
