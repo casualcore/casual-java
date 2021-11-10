@@ -18,7 +18,7 @@ import se.laz.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
 import java.util.List;
 import java.util.Optional;
 
-public final class CasualNWMessageDecoder extends ByteToMessageDecoder
+public class CasualNWMessageDecoder extends ByteToMessageDecoder
 {
     private enum State{
         READ_HEADER, READ_PAYLOAD

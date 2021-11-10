@@ -46,8 +46,7 @@ public class ConnectionFactoryEntryValidationTimer
             }
             catch (NumberFormatException e)
             {
-                LOG.severe("Invalid config value for casual caller validation timer.");
-                e.printStackTrace();
+                LOG.severe("Invalid config value for casual caller validation timer.\n" + e);
             }
         }
 

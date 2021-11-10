@@ -12,7 +12,7 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 
 import java.util.Objects;
 
-public final class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
+public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
 {
     private final Correlator correlator;
 

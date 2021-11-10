@@ -12,7 +12,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder;
 
-public final class CasualNWMessageEncoder extends MessageToByteEncoder<CasualNWMessage<?>>
+public class CasualNWMessageEncoder extends MessageToByteEncoder<CasualNWMessage<?>>
 {
     private CasualNWMessageEncoder()
     {}

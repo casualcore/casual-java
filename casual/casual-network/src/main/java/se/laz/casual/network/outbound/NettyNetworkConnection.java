@@ -57,7 +57,8 @@ public final class NettyNetworkConnection implements NetworkConnection
         Objects.requireNonNull(ci, "network listener can not be null");
         EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         Correlator correlator = ci.getCorrelator();
-        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator), ci.isLogHandlerEnabled());
+        OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenerIfNotConnected(channel, networkListener);
+        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
         NettyNetworkConnection c = new NettyNetworkConnection(ci, correlator, ch);
         ch.closeFuture().addListener(f -> handleClose(c, networkListener));
         c.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());

@@ -20,21 +20,25 @@ import java.util.UUID;
 public class ExceptionHandler extends ChannelInboundHandlerAdapter
 {
     private final Correlator correlator;
+    private final OnNetworkError onNetworkError;
 
-    private ExceptionHandler(Correlator correlator)
+    private ExceptionHandler(Correlator correlator, OnNetworkError onNetworkError)
     {
         this.correlator = correlator;
+        this.onNetworkError = onNetworkError;
     }
 
-    public static ExceptionHandler of(final Correlator correlator)
+    public static ExceptionHandler of(final Correlator correlator, OnNetworkError onNetworkError)
     {
         Objects.requireNonNull(correlator, "correlator can not be null");
-        return new ExceptionHandler(correlator);
+        Objects.requireNonNull(onNetworkError, "onNetworkError can not be null");
+        return new ExceptionHandler(correlator, onNetworkError);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
     {
+        onNetworkError.notifyListenerIfNotConnected(ctx.channel());
         completeReqExceptionally(cause);
     }
 
