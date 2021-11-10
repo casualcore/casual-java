@@ -19,7 +19,7 @@ class ConnectionFactoryLookupServiceTest extends Specification
     @Shared
     def jndiNameConFactoryTwo = 'eis/anotherCasualConnectionFactory'
     @Shared
-    QueueInfo qinfo = QueueInfo.createBuilder().withQspace('oddball').withQname('raccoon').build()
+    QueueInfo qinfo = QueueInfo.createBuilder().withQueueName('oddball.raccoon').build()
     @Shared
     def serviceName = 'casual.echo'
     @Shared

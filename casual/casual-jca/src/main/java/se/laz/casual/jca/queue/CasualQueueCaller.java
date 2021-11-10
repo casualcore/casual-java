@@ -77,7 +77,7 @@ public class CasualQueueCaller implements CasualQueueApi
     {
         try
         {
-            return queueExists(UUID.randomUUID(), qinfo.getCompositeName());
+            return queueExists(UUID.randomUUID(), qinfo.getQueueName());
         }
         catch(Exception e)
         {
@@ -90,7 +90,7 @@ public class CasualQueueCaller implements CasualQueueApi
         CasualEnqueueRequestMessage requestMessage = CasualEnqueueRequestMessage.createBuilder()
                                                                                 .withExecution(UUID.randomUUID())
                                                                                 .withXid(connection.getCurrentXid())
-                                                                                .withQueueName(qinfo.getCompositeName())
+                                                                                .withQueueName(qinfo.getQueueName())
                                                                                 .withMessage(EnqueueMessage.of(msg))
                                                                                 .build();
         CasualNWMessage<CasualEnqueueRequestMessage> networkRequestMessage = CasualNWMessageImpl.of(corrid, requestMessage);
@@ -106,7 +106,7 @@ public class CasualQueueCaller implements CasualQueueApi
         CasualDequeueRequestMessage requestMessage = CasualDequeueRequestMessage.createBuilder()
                                                                                 .withExecution(UUID.randomUUID())
                                                                                 .withXid(connection.getCurrentXid())
-                                                                                .withQueueName(qinfo.getCompositeName())
+                                                                                .withQueueName(qinfo.getQueueName())
                                                                                 .withSelectorProperties(selector.getSelector())
                                                                                 .withSelectorUUID(selector.getSelectorId())
                                                                                 .withBlock(qinfo.getOptions().isBlocking())

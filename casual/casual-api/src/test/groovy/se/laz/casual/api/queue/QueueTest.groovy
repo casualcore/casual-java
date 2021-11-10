@@ -6,19 +6,15 @@ import spock.lang.Specification
 class QueueTest extends Specification
 {
     @Shared
-    def qspace = 'CasualQueueSpace'
-    @Shared
     def qname = 'CasualQueue'
     def 'with default options'()
     {
         when:
         def info = QueueInfo.createBuilder()
-                            .withQspace(qspace)
-                            .withQname(qname)
+                            .withQueueName(qname)
                             .build()
         then:
-        info.getQspace() == qspace
-        info.getQname() == qname
+        info.getQueueName() == qname
         info.getOptions() != null
         info.getOptions().isBlocking() == false
     }
@@ -27,15 +23,13 @@ class QueueTest extends Specification
     {
         when:
         def info = QueueInfo.createBuilder()
-                .withQspace(qspace)
-                .withQname(qname)
+                .withQueueName(qname)
                 .withOptions(QueueOptions.createBuilder()
-                                         .withBlock(true)
-                                         .build())
+                        .withBlock(true)
+                        .build())
                 .build()
         then:
-        info.getQspace() == qspace
-        info.getQname() == qname
+        info.getQueueName() == qname
         info.getOptions() != null
         info.getOptions().isBlocking() == true
     }

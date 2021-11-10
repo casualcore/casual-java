@@ -30,9 +30,9 @@ class CacheTest extends Specification
     @Shared
     def serviceName = 'casual.test.echo'
     @Shared
-    def qInfo = QueueInfo.createBuilder().withQspace('space1').withQname('agrajag').build()
+    def qInfo = QueueInfo.createBuilder().withQueueName('space1.agrajag').build()
     @Shared
-    def qInfoList = [QueueInfo.createBuilder().withQspace('hairy').withQname('otter').build(), QueueInfo.createBuilder().withQspace('drunken').withQname('monkey').build()]
+    def qInfoList = [QueueInfo.createBuilder().withQueueName('hairy.otter').build(), QueueInfo.createBuilder().withQueueName('drunken.monkey').build()]
     @Shared
     def serviceNames = ['casual.rollback', 'casually.casual']
     @Shared
@@ -95,7 +95,7 @@ class CacheTest extends Specification
     def 'get missing queue entry'()
     {
         given:
-        def qinfoNotStored = QueueInfo.createBuilder().withQspace("abc").withQname("Ford Prefect").build()
+        def qinfoNotStored = QueueInfo.createBuilder().withQueueName("abc.Ford Prefect").build()
         when:
         def entries = instance.get(qinfoNotStored)
         then:

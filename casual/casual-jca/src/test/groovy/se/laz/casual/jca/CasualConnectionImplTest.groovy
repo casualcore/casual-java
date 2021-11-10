@@ -108,8 +108,7 @@ class CasualConnectionImplTest extends Specification
         when:
         instance.invalidate()
         instance.enqueue(QueueInfo.createBuilder()
-                                  .withQspace('qspace')
-                                  .withQname('qname')
+                                  .withQueueName('qname')
                                   .build(), QueueMessage.of(JsonBuffer.of( "{}")))
         then:
         thrown CasualConnectionException
@@ -120,8 +119,7 @@ class CasualConnectionImplTest extends Specification
         when:
         instance.invalidate()
         instance.dequeue(QueueInfo.createBuilder()
-                                  .withQspace('qspace')
-                                  .withQname('qname')
+                                  .withQueueName('qname')
                                   .build(), MessageSelector.of())
         then:
         thrown CasualConnectionException
@@ -157,13 +155,11 @@ class CasualConnectionImplTest extends Specification
         def msg = QueueMessage.of(JsonBuffer.of( "{}"))
         when:
         instance.enqueue(QueueInfo.createBuilder()
-                .withQspace('qspace')
-                .withQname('qname')
+                .withQueueName('qname')
                 .build(), msg)
         then:
         1 * queueCaller.enqueue(QueueInfo.createBuilder()
-                .withQspace('qspace')
-                .withQname('qname')
+                .withQueueName('qname')
                 .build(), msg)
     }
 
@@ -174,13 +170,11 @@ class CasualConnectionImplTest extends Specification
         ((CasualConnectionImpl) instance).queueCaller = queueCaller
         when:
         instance.dequeue(QueueInfo.createBuilder()
-                .withQspace('qspace')
-                .withQname('qname')
+                .withQueueName('qname')
                 .build(), MessageSelector.of())
         then:
         1 * queueCaller.dequeue(QueueInfo.createBuilder()
-                .withQspace('qspace')
-                .withQname('qname')
+                .withQueueName('qname')
                 .build(), MessageSelector.of())
     }
 

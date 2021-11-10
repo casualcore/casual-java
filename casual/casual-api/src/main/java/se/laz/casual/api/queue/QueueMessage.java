@@ -9,14 +9,16 @@ package se.laz.casual.api.queue;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.util.time.InstantUtil;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class QueueMessage
+public final class QueueMessage implements Serializable
 {
+    private static final long serialVersionUID = 1L;
     private final UUID id;
     private final String correlationInformation;
     private final String replyQueue;
@@ -45,7 +47,7 @@ public final class QueueMessage
     {
         return createBuilder().withPayload(payload)
                               .withCorrelationInformation(correlationInformation)
-                              .withReplyQueue(replyQueue.getCompositeName())
+                              .withReplyQueue(replyQueue.getQueueName())
                               .withAvailableSince(availableSince)
                               .build();
     }

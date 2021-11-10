@@ -12,12 +12,10 @@ import java.util.Objects;
 public final class QueueInfo implements Serializable
 {
     private static final long serialVersionUID = 1L;
-    private final String qspace;
     private final String qname;
     private final QueueOptions options;
-    private QueueInfo(String qspace, String qname, QueueOptions options)
+    private QueueInfo(String qname, QueueOptions options)
     {
-        this.qspace = qspace;
         this.qname = qname;
         this.options = options;
     }
@@ -27,19 +25,9 @@ public final class QueueInfo implements Serializable
         return new Builder();
     }
 
-    public String getQspace()
-    {
-        return qspace;
-    }
-
-    public String getQname()
+    public String getQueueName()
     {
         return qname;
-    }
-
-    public String getCompositeName()
-    {
-        return qspace + ":" + qname;
     }
 
     public QueueOptions getOptions()
@@ -59,22 +47,20 @@ public final class QueueInfo implements Serializable
             return false;
         }
         QueueInfo queueInfo = (QueueInfo) o;
-        return Objects.equals(qspace, queueInfo.qspace) &&
-            Objects.equals(qname, queueInfo.qname) &&
+        return Objects.equals(qname, queueInfo.qname) &&
             Objects.equals(options, queueInfo.options);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(qspace, qname, options);
+        return Objects.hash(qname, options);
     }
 
     @Override
     public String toString()
     {
         final StringBuilder sb = new StringBuilder("QueueInfo{");
-        sb.append("qspace='").append(qspace).append('\'');
         sb.append(", qname='").append(qname).append('\'');
         sb.append(", options=").append(options);
         sb.append('}');
@@ -83,17 +69,10 @@ public final class QueueInfo implements Serializable
 
     public static final class Builder
     {
-        private String qspace;
         private String qname;
         private QueueOptions options = QueueOptions.defaultOptions();
 
-        public Builder withQspace(String qspace)
-        {
-            this.qspace = qspace;
-            return this;
-        }
-
-        public Builder withQname(String qname)
+        public Builder withQueueName(String qname)
         {
             this.qname = qname;
             return this;
@@ -107,9 +86,8 @@ public final class QueueInfo implements Serializable
 
         public QueueInfo build()
         {
-            Objects.requireNonNull(qspace, "qspace can not be null");
             Objects.requireNonNull(qname, "qname can not be null");
-            return new QueueInfo(qspace, qname, options);
+            return new QueueInfo(qname, options);
         }
     }
 }

@@ -41,7 +41,6 @@ class CasualQueueCallerTest extends Specification
     @Shared UUID enqueueReplyId
     @Shared def domainName
     @Shared def queueName
-    @Shared def queueSpace
     @Shared QueueInfo queueInfo
     @Shared MessageSelector nullSelector = MessageSelector.of()
     @Shared JsonBuffer message
@@ -85,8 +84,7 @@ class CasualQueueCallerTest extends Specification
         enqueueReplyId = UUID.randomUUID()
         domainName = Domain.getName()
         queueName = 'echo'
-        queueSpace = 'asdf'
-        queueInfo = QueueInfo.createBuilder().withQspace(queueSpace).withQname(queueName).build()
+        queueInfo = QueueInfo.createBuilder().withQueueName(queueName).build()
         message = JsonBuffer.of( "{msg: \"hello echo service.\"}" )
     }
 
@@ -95,7 +93,7 @@ class CasualQueueCallerTest extends Specification
         expectedEnqueueRequest = CasualEnqueueRequestMessage.createBuilder()
                                                             .withExecution(executionId)
                                                             .withXid(connection.getCurrentXid() )
-                                                            .withQueueName(queueInfo.compositeName)
+                                                            .withQueueName(queueInfo.queueName)
                                                             .withMessage(EnqueueMessage.of(QueueMessage.of(message)))
                                                             .build()
 
@@ -104,11 +102,11 @@ class CasualQueueCallerTest extends Specification
                                                             .withExecution(executionId)
                                                             .withSelectorUUID(nullSelector.getSelectorId())
                                                             .withSelectorProperties(nullSelector.getSelector())
-                                                            .withQueueName(queueInfo.compositeName)
+                                                            .withQueueName(queueInfo.queueName)
                                                             .withBlock(true)
                                                             .build()
         expectedDomainDiscoveryRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
-                                                                            .setQueueNames([queueInfo.compositeName])
+                                                                            .setQueueNames([queueInfo.queueName])
                                                                             .setDomainName(Domain.getName())
                                                                             .build()
     }
@@ -117,7 +115,7 @@ class CasualQueueCallerTest extends Specification
     {
         enqueueReply = createEnqueueReplyMessage()
         dequeueReply = createDequeueReplyMessage()
-        domainDiscoveryReplyFound = createDomainDiscoveryReply(asQueues([queueInfo.compositeName]))
+        domainDiscoveryReplyFound = createDomainDiscoveryReply(asQueues([queueInfo.queueName]))
         domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asQueues([]))
     }
 

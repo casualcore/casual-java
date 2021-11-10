@@ -115,7 +115,7 @@ class CasualCallerImplTest extends Specification
     def 'dequeue fail getting connection from connection factory'()
     {
         given:
-        def queueInfo = QueueInfo.createBuilder().withQname("foo").withQspace("bar").build()
+        def queueInfo = QueueInfo.createBuilder().withQueueName("bar.foo").build()
         def messageSelector = MessageSelector.of()
         def connectionFactory = Mock(CasualConnectionFactory)
         connectionFactory.getConnection() >> {
@@ -135,7 +135,7 @@ class CasualCallerImplTest extends Specification
     def 'enqueue fail getting connection from connection factory'()
     {
         given:
-        def queueInfo = QueueInfo.createBuilder().withQname("foo").withQspace("bar").build()
+        def queueInfo = QueueInfo.createBuilder().withQueueName("bar.foo").build()
         def queueMessage = QueueMessage.of(Mock(CasualBuffer))
         def connectionFactory = Mock(CasualConnectionFactory)
         connectionFactory.getConnection() >> {
@@ -201,7 +201,7 @@ class CasualCallerImplTest extends Specification
     def 'enqueue ok'()
     {
         given:
-        def queueInfo = QueueInfo.createBuilder().withQname("foo").withQspace("bar").build()
+        def queueInfo = QueueInfo.createBuilder().withQueueName("bar.foo").build()
         def queueMessage = QueueMessage.of(Mock(CasualBuffer))
         def connectionFactory = Mock(CasualConnectionFactory)
         def uuid = UUID.randomUUID()
@@ -223,7 +223,7 @@ class CasualCallerImplTest extends Specification
     def 'dequeue ok'()
     {
         given:
-        def queueInfo = QueueInfo.createBuilder().withQname("foo").withQspace("bar").build()
+        def queueInfo = QueueInfo.createBuilder().withQueueName("bar.foo").build()
         def messageSelector = MessageSelector.of()
         def queueMessage = [QueueMessage.of(Mock(CasualBuffer))]
         def connectionFactory = Mock(CasualConnectionFactory)
