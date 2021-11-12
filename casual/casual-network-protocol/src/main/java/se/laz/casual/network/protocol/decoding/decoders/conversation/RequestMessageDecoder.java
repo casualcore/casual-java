@@ -7,13 +7,12 @@
 package se.laz.casual.network.protocol.decoding.decoders.conversation;
 
 import se.laz.casual.api.buffer.type.ServiceBuffer;
-import se.laz.casual.api.util.Pair;
+import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
-import se.laz.casual.network.protocol.utils.ConversationRoutes;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
@@ -60,17 +59,14 @@ public final class RequestMessageDecoder implements NetworkDecoder<Request>
         final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ConversationRequestSizes.EXECUTION.getNetworkSize()));
         currentOffset += ConversationRequestSizes.EXECUTION.getNetworkSize();
 
-        int numberOfRoutes = (int)ByteBuffer.wrap(data, currentOffset, ConversationRequestSizes.ROUTES_SIZE.getNetworkSize()).getLong();
-        currentOffset += ConversationRequestSizes.ROUTES_SIZE.getNetworkSize();
-        Pair<Integer, List<UUID>> routePair = ConversationRoutes.getRoutes(numberOfRoutes, data, currentOffset);
-        currentOffset = routePair.first();
-        List<UUID> routes = routePair.second();
-
-        long events = ByteBuffer.wrap(data, currentOffset, ConversationRequestSizes.EVENTS.getNetworkSize()).getLong();
-        currentOffset += ConversationRequestSizes.EVENTS.getNetworkSize();
+        Duplex duplex = Duplex.unmarshall(ByteBuffer.wrap(data, currentOffset, ConversationRequestSizes.DUPLEX.getNetworkSize()).getShort());
+        currentOffset += ConversationRequestSizes.DUPLEX.getNetworkSize();
 
         int resultCode  = ByteBuffer.wrap(data, currentOffset, ConversationRequestSizes.RESULT_CODE.getNetworkSize()).getInt();
         currentOffset += ConversationRequestSizes.RESULT_CODE.getNetworkSize();
+
+        long userCode  = ByteBuffer.wrap(data, currentOffset, ConversationRequestSizes.USER_CODE.getNetworkSize()).getLong();
+        currentOffset += ConversationRequestSizes.USER_CODE.getNetworkSize();
 
         int serviceBufferTypeSize = (int) ByteBuffer.wrap(data, currentOffset, ConversationRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize()).getLong();
         currentOffset += ConversationRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize();
@@ -84,9 +80,9 @@ public final class RequestMessageDecoder implements NetworkDecoder<Request>
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
         return Request.createBuilder()
                 .setExecution(execution)
-                .setRoutes(routes)
-                .setEvents(events)
+                .setDuplex(duplex)
                 .setResultCode(resultCode)
+                .setUserCode(userCode)
                 .setServiceBuffer(serviceBuffer)
                 .build();
     }

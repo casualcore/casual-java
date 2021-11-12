@@ -25,7 +25,7 @@ import java.nio.ByteBuffer
 class CasualTransactionResourceCommitReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.transaction.resource.commit.Request.5203.bin'
+    def resource = '/protocol/bin/message.transaction.resource.commit.Reply.1000.5204.bin'
 
     @Shared
     def data

@@ -25,7 +25,7 @@ import java.nio.ByteBuffer
 class CasualTransactionResourceRollbackReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.transaction.resource.rollback.Reply.5206.bin'
+    def resource = '/protocol/bin/message.transaction.resource.rollback.Reply.1000.5206.bin'
 
     @Shared
     def data

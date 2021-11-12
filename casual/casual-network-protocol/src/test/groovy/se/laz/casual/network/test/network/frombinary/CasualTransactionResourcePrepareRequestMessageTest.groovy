@@ -25,7 +25,7 @@ import java.nio.ByteBuffer
 class CasualTransactionResourcePrepareRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.transaction.resource.prepare.Request.5201.bin'
+    def resource = '/protocol/bin/message.transaction.resource.prepare.Request.1000.5201.bin'
 
     @Shared
     def data

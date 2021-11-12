@@ -25,7 +25,7 @@ import java.nio.ByteBuffer
 class CompleteCasualServiceCallReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.service.call.Reply.3101.bin'
+    def resource = '/protocol/bin/message.service.call.Reply.1000.3101.bin'
 
     @Shared
     def data
@@ -59,7 +59,7 @@ class CompleteCasualServiceCallReplyMessageTest extends Specification
         header != null
         resurrectedHeader != null
         resurrectedHeader == header
-        resurrectedHeader.payloadSize == 109
+        resurrectedHeader.payloadSize == 237
     }
 
     def "roundtrip message"()

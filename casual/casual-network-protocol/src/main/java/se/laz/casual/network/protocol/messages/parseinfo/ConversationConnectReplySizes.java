@@ -12,10 +12,6 @@ package se.laz.casual.network.protocol.messages.parseinfo;
 public enum ConversationConnectReplySizes
 {
     EXECUTION(16, 16),
-    ROUTES_SIZE(8,8),
-    ROUTE_ELEMENT_SIZE(16,16),
-    RECORDING_SIZE(8,8),
-    RECORDING_ELEMENT_SIZE(16,16),
     RESULT_CODE(4, 4);
     
     private final int nativeSize;

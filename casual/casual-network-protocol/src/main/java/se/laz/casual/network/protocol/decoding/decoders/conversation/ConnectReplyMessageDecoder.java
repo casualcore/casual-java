@@ -6,18 +6,15 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.conversation;
 
-import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.conversation.ConnectReply;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationConnectReplySizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
-import se.laz.casual.network.protocol.utils.ConversationRoutes;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -58,24 +55,10 @@ public final class ConnectReplyMessageDecoder implements NetworkDecoder<ConnectR
         final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ConversationConnectReplySizes.EXECUTION.getNetworkSize()));
         currentOffset += ConversationConnectReplySizes.EXECUTION.getNetworkSize();
 
-        int numberOfRoutes = (int)ByteBuffer.wrap(data, currentOffset, ConversationConnectReplySizes.RECORDING_SIZE.getNetworkSize()).getLong();
-        currentOffset += ConversationConnectReplySizes.RECORDING_SIZE.getNetworkSize();
-        Pair<Integer, List<UUID>> routePair = ConversationRoutes.getRoutes(numberOfRoutes, data, currentOffset);
-        currentOffset = routePair.first();
-        List<UUID> routes = routePair.second();
-
-        int numberOfRecordings = (int)ByteBuffer.wrap(data, currentOffset, ConversationConnectReplySizes.RECORDING_SIZE.getNetworkSize()).getLong();
-        currentOffset += ConversationConnectReplySizes.RECORDING_SIZE.getNetworkSize();
-        Pair<Integer, List<UUID>> recodingPair = ConversationRoutes.getRoutes(numberOfRecordings, data, currentOffset);
-        currentOffset = recodingPair.first();
-        List<UUID> recordings = recodingPair.second();
-
         int resultCode = ByteBuffer.wrap(data, currentOffset, ConversationConnectReplySizes.RESULT_CODE.getNetworkSize()).getInt();
 
         return ConnectReply.createBuilder()
                 .setExecution(execution)
-                .setRecordingNodes(recordings)
-                .setRoutes(routes)
                 .setResultCode(resultCode)
                 .build();
     }

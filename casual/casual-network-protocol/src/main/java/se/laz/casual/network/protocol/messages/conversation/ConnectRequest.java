@@ -7,8 +7,7 @@
 package se.laz.casual.network.protocol.messages.conversation;
 
 import se.laz.casual.api.buffer.type.ServiceBuffer;
-import se.laz.casual.api.flags.AtmiFlags;
-import se.laz.casual.api.flags.Flag;
+import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.api.xa.XID;
@@ -21,7 +20,6 @@ import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -33,29 +31,21 @@ public class ConnectRequest implements CasualNetworkTransmittable
     private long timeout;
     private final String parentName;
     private final Xid xid;
-    private final Flag<AtmiFlags> xatmiFlags;
+    private final Duplex duplex;
     private final ServiceBuffer serviceBuffer;
-    private final List<UUID> recordingNodes;
 
     // private constructor, only used by the builder of this class
     @SuppressWarnings("squid:S00107")
-    private ConnectRequest(UUID execution, String serviceName, long timeout, String parentName, Xid xid, Flag<AtmiFlags> xatmiFlags, ServiceBuffer serviceBuffer, List<UUID> recordingNodes)
+    private ConnectRequest(UUID execution, String serviceName, long timeout, String parentName, Xid xid, Duplex duplex, ServiceBuffer serviceBuffer)
     {
         this.execution = execution;
         this.serviceName = serviceName;
         this.timeout = timeout;
         this.parentName = parentName;
         this.xid = xid;
-        this.xatmiFlags = xatmiFlags;
+        this.duplex = duplex;
         this.serviceBuffer = serviceBuffer;
-        this.recordingNodes = recordingNodes;
     }
-
-    public List<UUID> getRecordingNodes()
-    {
-        return Collections.unmodifiableList(recordingNodes);
-    }
-
     @Override
     public CasualNWMessageType getType()
     {
@@ -74,8 +64,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
                 ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize() +
                 ConversationConnectRequestSizes.PARENT_NAME_SIZE.getNetworkSize() + parentNameBytes.length +
                 XIDUtils.getXIDNetworkSize(xid) +
-                ConversationConnectRequestSizes.FLAGS.getNetworkSize() +
-                ConversationConnectRequestSizes.RECORDING_SIZE.getNetworkSize() + recordingNodes.size() * ConversationConnectRequestSizes.RECORDING_ELEMENT_SIZE.getNetworkSize() +
+                ConversationConnectRequestSizes.DUPLEX.getNetworkSize() +
                 ConversationConnectRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ConversationConnectRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
         return toNetworkBytes((int)messageSize, serviceNameBytes, parentNameBytes, serviceBytes);
     }
@@ -93,11 +82,6 @@ public class ConnectRequest implements CasualNetworkTransmittable
     public Xid getXid()
     {
         return XID.of(xid);
-    }
-
-    public Flag<AtmiFlags> getXatmiFlags()
-    {
-        return Flag.of(xatmiFlags);
     }
 
     public ServiceBuffer getServiceBuffer()
@@ -127,15 +111,15 @@ public class ConnectRequest implements CasualNetworkTransmittable
         private long timeout;
         private String parentName;
         private Xid xid;
-        private Flag<AtmiFlags> xatmiFlags;
+        private Duplex duplex;
         private ServiceBuffer serviceBuffer;
-        private List<UUID> recordingNodes = new ArrayList<>();
 
         private ConnectRequestBuilder()
         {}
 
         public ConnectRequestBuilder setExecution(UUID execution)
-        {         this.execution = execution;
+        {
+            this.execution = execution;
             return this;
         }
 
@@ -163,9 +147,9 @@ public class ConnectRequest implements CasualNetworkTransmittable
             return this;
         }
 
-        public ConnectRequestBuilder setXatmiFlags(Flag<AtmiFlags> xatmiFlags)
+        public ConnectRequestBuilder setDuplex(Duplex duplex)
         {
-            this.xatmiFlags = xatmiFlags;
+            this.duplex = duplex;
             return this;
         }
 
@@ -175,15 +159,9 @@ public class ConnectRequest implements CasualNetworkTransmittable
             return this;
         }
 
-        public ConnectRequestBuilder setRecordingNodes(List<UUID> recordingNodes)
-        {
-            this.recordingNodes = recordingNodes;
-            return this;
-        }
-
         public ConnectRequest build()
         {
-            return new ConnectRequest(execution,serviceName,timeout,parentName,xid,xatmiFlags,serviceBuffer,recordingNodes);
+            return new ConnectRequest(execution, serviceName, timeout, parentName,xid, duplex, serviceBuffer);
         }
     }
 
@@ -198,9 +176,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
                 .putLong(parentNameBytes.length)
                 .put(parentNameBytes);
         CasualEncoderUtils.writeXID(xid, b);
-        b.putLong(xatmiFlags.getFlagValue());
-        b.putLong(recordingNodes.size());
-        recordingNodes.forEach(uuid -> CasualEncoderUtils.writeUUID(uuid, b));
+        b.putShort(duplex.getValue());
         b.putLong(serviceBytes.get(0).length).put(serviceBytes.get(0));
         serviceBytes.remove(0);
         final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
@@ -222,13 +198,13 @@ public class ConnectRequest implements CasualNetworkTransmittable
             return false;
         }
         ConnectRequest that = (ConnectRequest) o;
-        return timeout == that.timeout && Objects.equals(execution, that.execution) && Objects.equals(serviceName, that.serviceName) && Objects.equals(parentName, that.parentName) && Objects.equals(xid, that.xid) && Objects.equals(xatmiFlags, that.xatmiFlags) && Objects.equals(recordingNodes, that.recordingNodes);
+        return timeout == that.timeout && Objects.equals(execution, that.execution) && Objects.equals(serviceName, that.serviceName) && Objects.equals(parentName, that.parentName) && Objects.equals(xid, that.xid) && Objects.equals(duplex, that.duplex);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(execution, serviceName, timeout, parentName, xid, xatmiFlags, recordingNodes);
+        return Objects.hash(execution, serviceName, timeout, parentName, xid, duplex);
     }
 
     @Override
@@ -240,9 +216,8 @@ public class ConnectRequest implements CasualNetworkTransmittable
                 ", timeout=" + timeout +
                 ", parentName='" + parentName + '\'' +
                 ", xid=" + xid +
-                ", xatmiFlags=" + xatmiFlags +
+                ", duplex=" + duplex +
                 ", serviceBuffer=" + serviceBuffer +
-                ", routes=" + recordingNodes +
                 '}';
     }
 }

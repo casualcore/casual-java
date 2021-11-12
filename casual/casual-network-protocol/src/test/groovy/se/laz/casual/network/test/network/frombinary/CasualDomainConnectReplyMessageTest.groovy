@@ -22,7 +22,7 @@ import java.nio.ByteBuffer
 class CasualDomainConnectReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.gateway.domain.connect.Reply.7201.bin'
+    def resource = '/protocol/bin/message.gateway.domain.connect.Reply.1000.7201.bin'
 
     @Shared
     def data

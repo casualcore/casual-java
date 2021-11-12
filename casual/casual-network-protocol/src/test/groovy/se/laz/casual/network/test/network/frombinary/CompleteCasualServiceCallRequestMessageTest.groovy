@@ -25,7 +25,7 @@ import java.nio.ByteBuffer
 class CompleteCasualServiceCallRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.service.call.Request.3100.bin'
+    def resource = '/protocol/bin/message.service.call.Request.1000.3100.bin'
 
     @Shared
     def data

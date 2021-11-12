@@ -25,7 +25,7 @@ import java.nio.ByteBuffer
 class CompleteCasualDomainDiscoveryRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.gateway.domain.discovery.Request.7300.bin'
+    def resource = '/protocol/bin/message.gateway.domain.discovery.Request.1000.7300.bin'
 
     @Shared
     def data

@@ -7,15 +7,13 @@
 package se.laz.casual.network.protocol.decoding.decoders.conversation;
 
 import se.laz.casual.api.buffer.type.ServiceBuffer;
-import se.laz.casual.api.flags.AtmiFlags;
-import se.laz.casual.api.flags.Flag;
+import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.conversation.ConnectRequest;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationConnectRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
-import se.laz.casual.network.protocol.utils.ConversationRoutes;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
@@ -25,9 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Created by aleph on 2017-03-16.
- */
 public final class ConnectRequestMessageDecoder implements NetworkDecoder<ConnectRequest>
 {
     private ConnectRequestMessageDecoder()
@@ -80,14 +75,8 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
         currentOffset = xidInfo.first();
         final Xid xid = xidInfo.second();
 
-        int flags = (int) ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.FLAGS.getNetworkSize()).getLong();
-        currentOffset += ConversationConnectRequestSizes.FLAGS.getNetworkSize();
-
-        int numberOfRoutes = (int)ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.RECORDING_SIZE.getNetworkSize()).getLong();
-        currentOffset += ConversationConnectRequestSizes.RECORDING_SIZE.getNetworkSize();
-        Pair<Integer, List<UUID>> routePair = ConversationRoutes.getRoutes(numberOfRoutes, data, currentOffset);
-        currentOffset = routePair.first();
-        List<UUID> routes = routePair.second();
+        Duplex duplex = Duplex.unmarshall(ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.DUPLEX.getNetworkSize()).getShort());
+        currentOffset += ConversationConnectRequestSizes.DUPLEX.getNetworkSize();
 
         int serviceBufferTypeSize = (int) ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize()).getLong();
         currentOffset += ConversationConnectRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize();
@@ -105,8 +94,7 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
                 .setTimeout(timeout)
                 .setParentName(parentName)
                 .setXid(xid)
-                .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
-                .setRecordingNodes(routes)
+                .setDuplex(duplex)
                 .setServiceBuffer(serviceBuffer)
                 .build();
     }

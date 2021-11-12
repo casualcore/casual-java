@@ -12,10 +12,9 @@ package se.laz.casual.network.protocol.messages.parseinfo;
 public enum ConversationRequestSizes
 {
     EXECUTION(16, 16),
-    ROUTES_SIZE(8,8),
-    ROUTE_ELEMENT_SIZE(16,16),
-    EVENTS(8, 8),
+    DUPLEX(2, 2),
     RESULT_CODE(4, 4),
+    USER_CODE(8,8),
     BUFFER_TYPE_NAME_SIZE(8, 8),
     BUFFER_PAYLOAD_SIZE(8, 8);
 

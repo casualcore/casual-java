@@ -23,7 +23,7 @@ import java.nio.ByteBuffer
 class ConversationRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.conversation.Request.3202.bin'
+    def resource = '/protocol/bin/message.conversation.Send.1000.3212.bin'
 
     @Shared
     def data
@@ -34,7 +34,7 @@ class ConversationRequestMessageTest extends Specification
         println("len ${data.length}")
         then:
         assert(data != null)
-        assert(data.length == 252)
+        assert(data.length == 214)
     }
 
     def "get header"()

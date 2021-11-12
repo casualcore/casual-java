@@ -20,9 +20,7 @@ public enum ConversationConnectRequestSizes
     XID_GTRID_LENGTH(8, 8),
     XID_BQUAL_LENGTH(8, 8),
     XID_PAYLOAD(32, 32),
-    FLAGS(8, 8),
-    RECORDING_SIZE(8,8),
-    RECORDING_ELEMENT_SIZE(16,16),
+    DUPLEX(2, 2),
     BUFFER_TYPE_NAME_SIZE(8, 8),
     BUFFER_PAYLOAD_SIZE(8, 8);
 
