@@ -17,6 +17,8 @@ import se.laz.casual.jca.CasualConnection;
 
 import javax.ejb.Remote;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.resource.ResourceException;
 import java.util.List;
@@ -25,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Remote(CasualCaller.class)
 @Stateless
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 public class CasualCallerImpl implements CasualCaller
 {
     private TpCallerFailover tpCaller = new TpCallerFailover();
