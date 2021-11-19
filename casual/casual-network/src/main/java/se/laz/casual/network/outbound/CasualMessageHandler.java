@@ -11,9 +11,11 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
 {
+    private static final Logger LOG = Logger.getLogger(CasualMessageHandler.class.getName());
     private final Correlator correlator;
 
     private CasualMessageHandler(final Correlator correlator)
@@ -30,6 +32,7 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final CasualNWMessage<?> msg)
     {
+        LOG.finest(() -> String.format("reply: %s", LogTool.asLogEntry(msg)));
         correlator.complete(msg);
     }
 

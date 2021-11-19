@@ -104,6 +104,7 @@ public final class NettyNetworkConnection implements NetworkConnection
     @Override
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message)
     {
+        LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)));
         CompletableFuture<CasualNWMessage<T>> f = new CompletableFuture<>();
         if(!channel.isActive())
         {
@@ -118,6 +119,7 @@ public final class NettyNetworkConnection implements NetworkConnection
             if(!v.isSuccess()){
                 List<UUID> l = new ArrayList<>();
                 l.add(message.getCorrelationId());
+                LOG.finest(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
                 correlator.completeExceptionally(l, new CasualConnectionException(cf.cause()));
             }// successful correlation is done in CasualMessageHandler
         });

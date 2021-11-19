@@ -16,6 +16,7 @@ import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.service.ServiceDetails;
+import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
 import se.laz.casual.jca.CasualManagedConnection;
@@ -75,11 +76,11 @@ public class CasualServiceCaller implements CasualServiceApi
         {
             if (null != e)
             {
-                LOG.finest(() -> "service call request failed for corrid: " + corrId + SERVICE_NAME_LITERAL + serviceName);
+                LOG.finest(() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
                 f.completeExceptionally(e);
                 return;
             }
-            LOG.finest(() -> "service call request ok for corrid: " + corrId + SERVICE_NAME_LITERAL + serviceName);
+            LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
             f.complete(toServiceReturn(v));
         });
         return f;
@@ -129,13 +130,13 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setTimeout(timeout.toNanos())
                 .setXatmiFlags(flags).build();
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
-        LOG.finest(() -> "issuing service call reequest, corrid: " + corrid + SERVICE_NAME_LITERAL + serviceName);
+        LOG.finest(() -> "issuing service call reequest, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
         return connection.getNetworkConnection().request(serviceRequestNetworkMessage);
     }
 
     private CasualNWMessage<CasualDomainDiscoveryReplyMessage> serviceDiscovery(UUID corrid, String serviceName)
     {
-        LOG.finest(() -> "issuing domain discovery, corrid: " + corrid + SERVICE_NAME_LITERAL + serviceName);
+        LOG.finest(() -> "issuing domain discovery, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
         Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
                 .setExecution(UUID.randomUUID())
@@ -147,7 +148,7 @@ public class CasualServiceCaller implements CasualServiceApi
         CompletableFuture<CasualNWMessage<CasualDomainDiscoveryReplyMessage>> replyMsgFuture = connection.getNetworkConnection().request(msg);
 
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
-        LOG.finest(() -> "domain discovery ok for corrid: " + corrid + SERVICE_NAME_LITERAL + serviceName);
+        LOG.finest(() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
         return replyMsg;
     }
 
