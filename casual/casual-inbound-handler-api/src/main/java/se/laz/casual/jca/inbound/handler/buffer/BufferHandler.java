@@ -8,7 +8,7 @@ package se.laz.casual.jca.inbound.handler.buffer;
 
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
-import se.laz.casual.jca.inbound.handler.Prioritisable;
+import se.laz.casual.spi.Prioritisable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;

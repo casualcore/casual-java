@@ -6,7 +6,8 @@
 
 package se.laz.casual.jca.inbound.handler.service;
 
-import se.laz.casual.jca.inbound.handler.Prioritise;
+import se.laz.casual.spi.Prioritise;
+import se.laz.casual.spi.Priority;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,7 @@ public final class ServiceHandlerFactory
     }
 
     /**
-     * Retrieve the most appropriate {@link ServiceHandler} base on it's {@link se.laz.casual.jca.inbound.handler.Priority}.
+     * Retrieve the most appropriate {@link ServiceHandler} base on it's {@link Priority}.
      *
      * If there is no registered handler a {@link ServiceHandlerNotFoundException} is thrown.
      *

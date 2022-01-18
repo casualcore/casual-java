@@ -1,4 +1,4 @@
-package se.laz.casual.jca.inbound.handler;
+package se.laz.casual.spi;
 
 /**
  * Priority for use when ordering handlers.

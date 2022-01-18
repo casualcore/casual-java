@@ -8,7 +8,7 @@ package se.laz.casual.jca.inbound.handler.test;
 
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
-import se.laz.casual.jca.inbound.handler.Priority;
+import se.laz.casual.spi.Priority;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 

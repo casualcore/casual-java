@@ -1,5 +1,6 @@
-package se.laz.casual.jca.inbound.handler
+package se.laz.casual.spi
 
+import se.laz.casual.spi.Priority
 import spock.lang.Specification
 
 class PriorityTest extends Specification

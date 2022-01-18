@@ -1,5 +1,8 @@
-package se.laz.casual.jca.inbound.handler
+package se.laz.casual.spi
 
+import se.laz.casual.spi.Prioritisable
+import se.laz.casual.spi.Prioritise
+import se.laz.casual.spi.Priority
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll

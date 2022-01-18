@@ -140,39 +140,6 @@ class CasualServiceHandlerTest extends Specification
         reply.getBuffer().getBytes().isEmpty()
     }
 
-    /*def "Call Service get no such method exception on first invocation, tries and returns result."()
-    {
-        given:
-        File jarFile = TempTestJarTool.create( SimpleObject.class, SimpleService.class )
-        ClassLoader classloader1 = TestClassLoaderTool.createClassLoader( jarFile )
-        Class<?> simpleServiceClass = classloader1.loadClass( SimpleService.getName() )
-        Class<?> simpleObjectClass = classloader1.loadClass( SimpleObject.getName() )
-        Method method = simpleServiceClass.getMethod( methodName, simpleObjectClass )
-        CasualService service = new TestCasualService()
-
-        CasualServiceMetaData s = new CasualServiceMetaData( service, method, SimpleService.class )
-        CasualServiceRegistry.getInstance().serviceMetaData.put( casualServiceName, s )
-
-        1 * context.lookup( jndiServiceName ) >> {
-            return jndiObject
-        }
-        CasualServiceRegistry.getInstance().getServiceMetaData( casualServiceName ).getProxyMethod() == null
-
-        when:
-        InboundResponse reply = instance.invokeService( message )
-
-        then:
-        1 * proxyService.echo( methodObject ) >> {
-            return methodObject
-        }
-        reply.isSuccessful()
-
-        FieldedTypeBuffer actual = FieldedTypeBuffer.create( reply.getBuffer().getBytes() )
-        actual == buffer
-
-        CasualServiceRegistry.getInstance().getServiceMetaData( casualServiceName ).getProxyMethod() != null
-    }*/
-
     def "Call Service with buffer service throws exception return ErrorState.TPSVCERR."()
     {
         given:

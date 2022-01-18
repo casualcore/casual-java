@@ -9,7 +9,7 @@ package se.laz.casual.jca.inbound.handler.test;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
-import se.laz.casual.jca.inbound.handler.Priority;
+import se.laz.casual.spi.Priority;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 
 public class TestHandler2 implements ServiceHandler

@@ -1,4 +1,4 @@
-package se.laz.casual.jca.inbound.handler;
+package se.laz.casual.spi;
 
 import java.util.Collections;
 import java.util.List;
