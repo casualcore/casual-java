@@ -15,6 +15,7 @@ import javax.resource.ResourceException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Lookup
@@ -47,7 +48,7 @@ public class Lookup
                 }
                 catch (ResourceException e)
                 {
-                    LOG.warning("Skipping connection factory " + entry.getJndiName() + " for lookup because it was unreachable");
+                    LOG.log(Level.WARNING, e, ()->"Skipping connection factory " + entry.getJndiName() + " for lookup, received error: " + e.getMessage());
                 }
             }
         }

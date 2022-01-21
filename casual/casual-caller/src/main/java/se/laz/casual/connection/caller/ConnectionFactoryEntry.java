@@ -10,6 +10,7 @@ import se.laz.casual.jca.CasualConnectionFactory;
 
 import javax.resource.ResourceException;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class ConnectionFactoryEntry
@@ -77,9 +78,9 @@ public final class ConnectionFactoryEntry
         }
         catch (ResourceException e)
         {
-            // Failure to connect during validation should automatically invalidate connectionfactoryentry
+            // Failure to connect during validation should automatically invalidate ConnectionFactoryEntry
             valid = false;
-            LOG.warning(() -> "Failed validation of CasualConnection with jndiName=" + jndiName);
+            LOG.log(Level.WARNING, e, ()->"Failed validation of CasualConnection with jndiName=" + jndiName + ", received error: " + e.getMessage());
         }
     }
 
