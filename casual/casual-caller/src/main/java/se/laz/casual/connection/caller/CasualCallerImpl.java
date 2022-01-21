@@ -21,6 +21,10 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.resource.ResourceException;
+import javax.transaction.InvalidTransactionException;
+import javax.transaction.SystemException;
+import javax.transaction.Transaction;
+import javax.transaction.TransactionManager;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -33,16 +37,18 @@ public class CasualCallerImpl implements CasualCaller
     private TpCallerFailover tpCaller = new TpCallerFailover();
     private ConnectionFactoryLookup lookup;
     private ConnectionFactoryProvider connectionFactoryProvider;
+    private TransactionManager transactionManager;
 
     // NOP constructor needed for WLS
     public CasualCallerImpl()
     {}
 
     @Inject
-    public CasualCallerImpl(ConnectionFactoryLookup lookup, ConnectionFactoryProvider connectionFactoryProvider)
+    public CasualCallerImpl(ConnectionFactoryLookup lookup, ConnectionFactoryProvider connectionFactoryProvider, TransactionManagerProvider transactionManagerProvider)
     {
         this.lookup = lookup;
         this.connectionFactoryProvider = connectionFactoryProvider;
+        this.transactionManager = transactionManagerProvider.getTransactionManager();
         List<ConnectionFactoryEntry> possibleEntries = connectionFactoryProvider.get();
         if(possibleEntries.isEmpty())
         {
@@ -53,13 +59,13 @@ public class CasualCallerImpl implements CasualCaller
     @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        return tpCaller.tpcall(serviceName, data, flags, lookup);
+        return flags.isSet(AtmiFlags.TPNOTRAN) ? tpcallNoTransaction(serviceName, data, flags) : tpCaller.tpcall(serviceName, data, flags, lookup);
     }
 
     @Override
     public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        return tpCaller.tpacall(serviceName, data, flags, lookup);
+        return flags.isSet(AtmiFlags.TPNOTRAN) ? tpacallNoTransaction(serviceName, data, flags) : tpCaller.tpacall(serviceName, data, flags, lookup);
     }
 
     @Override
@@ -106,6 +112,44 @@ public class CasualCallerImpl implements CasualCaller
     public boolean queueExists(QueueInfo qinfo)
     {
         return !lookup.get(qinfo).isEmpty();
+    }
+
+    private ServiceReturn<CasualBuffer> tpcallNoTransaction(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    {
+        try
+        {
+            Transaction currentTransaction = transactionManager.suspend();
+            ServiceReturn<CasualBuffer> value = tpCaller.tpcall(serviceName, data, flags, lookup);
+            transactionManager.resume(currentTransaction);
+            return value;
+        }
+        catch (SystemException e)
+        {
+            throw new CasualCallerException("Failed suspending current transaction", e);
+        }
+        catch (InvalidTransactionException e)
+        {
+            throw new CasualCallerException("Failed resuming transaction", e);
+        }
+    }
+
+    private CompletableFuture<ServiceReturn<CasualBuffer>> tpacallNoTransaction(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    {
+        try
+        {
+            Transaction currentTransaction = transactionManager.suspend();
+            CompletableFuture<ServiceReturn<CasualBuffer>> value = tpCaller.tpacall(serviceName, data, flags, lookup);
+            transactionManager.resume(currentTransaction);
+            return value;
+        }
+        catch (SystemException e)
+        {
+            throw new CasualCallerException("Failed suspending current transaction", e);
+        }
+        catch (InvalidTransactionException e)
+        {
+            throw new CasualCallerException("Failed resuming transaction", e);
+        }
     }
 
 

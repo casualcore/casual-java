@@ -15,6 +15,7 @@ import spock.lang.Specification
 
 import javax.resource.ResourceException
 import javax.resource.spi.EISSystemException
+import javax.transaction.TransactionManager
 import java.util.concurrent.CompletableFuture
 
 class CasualCallerImplTest extends Specification
@@ -24,9 +25,12 @@ class CasualCallerImplTest extends Specification
     ConnectionFactoryProvider connectionFactoryProvider
     CasualConnectionFactory fallBackConnectionFactory
     ConnectionFactoryEntry fallBackEntry
+    TransactionManager transactionManager
+    TransactionManagerProvider transactionManagerProvider
 
     def setup()
     {
+        transactionManager = Mock(TransactionManager)
         fallBackConnectionFactory = Mock(CasualConnectionFactory)
         def fallbackConnection = Mock(CasualConnection)
         fallbackConnection.tpcall('does not exist', _, _) >> {
@@ -40,7 +44,9 @@ class CasualCallerImplTest extends Specification
         connectionFactoryProvider.get() >> {
             [fallBackEntry]
         }
-        instance = new CasualCallerImpl(lookup, connectionFactoryProvider)
+        transactionManagerProvider = Mock(TransactionManagerProvider)
+        transactionManagerProvider.getTransactionManager() >> { transactionManager }
+        instance = new CasualCallerImpl(lookup, connectionFactoryProvider, transactionManagerProvider)
     }
 
     def 'construction, no entries found - should throw'()
@@ -49,7 +55,7 @@ class CasualCallerImplTest extends Specification
         ConnectionFactoryProvider provider = Mock(ConnectionFactoryProvider)
         provider.get() >> []
         when:
-        new CasualCallerImpl(lookup, provider)
+        new CasualCallerImpl(lookup, provider, Mock(TransactionManagerProvider))
         then:
         thrown(CasualCallerException)
     }
@@ -180,7 +186,7 @@ class CasualCallerImplTest extends Specification
         given:
         def serviceName = 'echo'
         def connectionFactory = Mock(CasualConnectionFactory)
-        def future = Mock(CompletableFuture)
+        def future = new CompletableFuture();
         def callingBuffer = Mock(CasualBuffer)
         def flags = Flag.of(AtmiFlags.NOFLAG)
         connectionFactory.getConnection() >> {
@@ -197,6 +203,32 @@ class CasualCallerImplTest extends Specification
         then:
         actual == future
     }
+
+    def 'TPNOTRAN tpcall'()
+    {
+       given:
+       def caller = new CasualCallerImpl(lookup, connectionFactoryProvider, transactionManagerProvider)
+       caller.tpCaller = Mock(TpCallerFailover)
+       1 * transactionManager.suspend()
+       1 * transactionManager.resume(_)
+       when:
+       caller.tpcall("foo", Mock(CasualBuffer), Flag.of(AtmiFlags.TPNOTRAN))
+       then:
+       noExceptionThrown()
+    }
+
+   def 'TPNOTRAN tpacall'()
+   {
+      given:
+      def caller = new CasualCallerImpl(lookup, connectionFactoryProvider, transactionManagerProvider)
+      caller.tpCaller = Mock(TpCallerFailover)
+      1 * transactionManager.suspend()
+      1 * transactionManager.resume(_)
+      when:
+      caller.tpacall("foo", Mock(CasualBuffer), Flag.of(AtmiFlags.TPNOTRAN))
+      then:
+      noExceptionThrown()
+   }
 
     def 'enqueue ok'()
     {
