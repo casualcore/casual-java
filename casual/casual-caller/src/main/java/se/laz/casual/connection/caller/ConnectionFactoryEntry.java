@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public final class ConnectionFactoryEntry
+public class ConnectionFactoryEntry
 {
     private static final Logger LOG = Logger.getLogger(ConnectionFactoryEntry.class.getName());
 
@@ -107,5 +107,14 @@ public final class ConnectionFactoryEntry
     public int hashCode()
     {
         return Objects.hash(jndiName);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "ConnectionFactoryEntry{" +
+                "jndiName='" + jndiName + '\'' +
+                ", valid=" + valid +
+                '}';
     }
 }

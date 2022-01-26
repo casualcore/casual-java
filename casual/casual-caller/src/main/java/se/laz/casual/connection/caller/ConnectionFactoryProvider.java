@@ -24,6 +24,7 @@ public class ConnectionFactoryProvider
 
     public List<ConnectionFactoryEntry> get()
     {
+        connectionFactories = StaleConnectionFactoryHandler.revalidateConnectionFactories(connectionFactories);
         return Collections.unmodifiableList(connectionFactories);
     }
 
