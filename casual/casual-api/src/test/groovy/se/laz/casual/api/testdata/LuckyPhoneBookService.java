@@ -27,6 +27,10 @@ public class LuckyPhoneBookService
         this.luckyNumbers = luckyNumbers;
     }
 
+    // NOP-constructor needed
+    private LuckyPhoneBookService()
+    {}
+
     public static LuckyPhoneBookService of(int age, String name, List<String> phoneNumbers, List<Integer> luckyNumbers)
     {
         Objects.requireNonNull(name);

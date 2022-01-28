@@ -6,9 +6,6 @@
 
 package se.laz.casual.api.buffer.type.fielded.marshalling.details;
 
-import org.objenesis.Objenesis;
-import org.objenesis.ObjenesisSerializer;
-import org.objenesis.instantiator.ObjectInstantiator;
 import se.laz.casual.api.buffer.type.fielded.FieldedData;
 import se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer;
 import se.laz.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
@@ -17,6 +14,7 @@ import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedUnmarshallingExc
 import se.laz.casual.api.util.Pair;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -54,14 +52,26 @@ public final class Unmarshaller
 
     private static <T> Optional<T> createObject(final FieldedTypeBuffer b, final Class<T> clazz, int listIndex, FieldedTypeBufferProcessorMode mode)
     {
-        Objenesis objenesis = new ObjenesisSerializer();
-        ObjectInstantiator<T> clazzInstantiator = objenesis.getInstantiatorOf(clazz);
-        T instance = clazzInstantiator.newInstance();
+        T instance = createInstance(clazz);
         List<Field> fields = CommonDetails.getCasuallyAnnotatedFields(instance.getClass());
         boolean didReadField = readFields(b, instance, fields, listIndex, mode);
         Map<Method, List<ParameterInfo>> methodInfo = CommonDetails.getParameterInfo(instance.getClass());
         boolean didReadAnnotatedParam = readMethodsWithAnnotatedParameters(b, instance, methodInfo, listIndex, mode);
         return (didReadField || didReadAnnotatedParam) ? Optional.of(instance) : Optional.empty();
+    }
+
+    private static <T> T createInstance(Class<T> clazz)
+    {
+        try
+        {
+            Constructor<T> constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        }
+        catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
+        {
+            throw new FieldedUnmarshallingException("Missing NOP constructor for class: " + clazz, e);
+        }
     }
 
     public static Object[] createMethodParameterObjects(FieldedTypeBuffer b, Method m, FieldedTypeBufferProcessorMode mode)

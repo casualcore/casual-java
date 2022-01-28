@@ -23,6 +23,13 @@ public final class PojoWithMappableFieldArray implements Serializable
     {
         this.dates = dates;
     }
+
+    // NOP-constructor needed
+    private PojoWithMappableFieldArray()
+    {
+        dates = null;
+    }
+
     public static PojoWithMappableFieldArray of(final LocalDate[] dates)
     {
         Objects.requireNonNull(dates);

@@ -15,6 +15,9 @@ public final class SimplePojoService
     {
         this.pojo = pojo;
     }
+    // NOP-constructor needed
+    private SimplePojoService()
+    {}
     public static SimplePojoService of(SimplePojo pojo)
     {
         Objects.requireNonNull(pojo);

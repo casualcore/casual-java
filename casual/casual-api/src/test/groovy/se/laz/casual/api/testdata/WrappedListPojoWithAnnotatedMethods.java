@@ -21,6 +21,9 @@ public final class WrappedListPojoWithAnnotatedMethods implements Serializable
     {
         this.simplePojos = simplePojos;
     }
+    // NOP-constructor needed
+    private WrappedListPojoWithAnnotatedMethods()
+    {}
     public static WrappedListPojoWithAnnotatedMethods of(final List<SimplePojo> simplePojos)
     {
         Objects.requireNonNull(simplePojos);

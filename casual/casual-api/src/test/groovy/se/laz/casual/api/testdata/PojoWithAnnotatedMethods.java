@@ -28,6 +28,7 @@ public final class PojoWithAnnotatedMethods implements Serializable
         this.luckyNumbers = luckyNumbers;
     }
 
+    // NOP-constructor needed
     private PojoWithAnnotatedMethods()
     {}
 

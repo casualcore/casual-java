@@ -25,6 +25,13 @@ public final class PojoWithMappableField implements Serializable
         this.from = from;
         this.to = to;
     }
+    // NOP-constructor needed
+    private PojoWithMappableField()
+    {
+        from = null;
+        to = null;
+    }
+
     public static PojoWithMappableField of(final LocalDate from, final LocalDate to)
     {
         Objects.requireNonNull(from);

@@ -21,6 +21,13 @@ public final class ArrayWithWrappedPojo implements Serializable
     {
         this.simplePojos = simplePojos;
     }
+
+    // NOP-constructor needed
+    private ArrayWithWrappedPojo()
+    {
+        simplePojos = null;
+    }
+
     public static ArrayWithWrappedPojo of(final SimplePojo[] simplePojos)
     {
         Objects.requireNonNull(simplePojos);

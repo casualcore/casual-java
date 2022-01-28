@@ -16,7 +16,6 @@ dependencies {
   provided project(":casual:casual-fielded-annotations")
   provided libs.javaee_api
   provided libs.gson
-  provided libs.objenesis
 
   testCompile libs.system_lambda
 

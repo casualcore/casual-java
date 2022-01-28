@@ -28,6 +28,11 @@ public class WrappedPojo implements Serializable
         this.sp = sp;
         this.symbol = symbol;
     }
+    private WrappedPojo()
+    {
+        sp = null;
+        symbol = null;
+    }
     public static WrappedPojo of(final SimplePojo sp, String symbol)
     {
         Objects.requireNonNull(sp);

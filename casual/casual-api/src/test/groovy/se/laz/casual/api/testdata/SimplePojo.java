@@ -18,7 +18,12 @@ public final class SimplePojo implements Serializable
     private final String name;
     @CasualFieldElement(name = "FLD_LONG1")
     private final int age;
-
+    // NOP-constructor needed
+    private SimplePojo()
+    {
+        name = null;
+        age = 0;
+    }
     private SimplePojo(final String name, int age)
     {
         this.name = name;

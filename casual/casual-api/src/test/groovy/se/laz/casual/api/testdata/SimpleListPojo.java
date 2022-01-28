@@ -21,7 +21,7 @@ public class SimpleListPojo implements Serializable
 
     @CasualFieldElement(name = "FLD_LONG3", lengthName = "FLD_LONG2")
     final List<Integer> numbers;
-
+    // NOP-constructor needed
     private SimpleListPojo()
     {
         strings = null;

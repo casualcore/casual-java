@@ -20,6 +20,13 @@ public final class ArraysSameNamePojo implements Serializable
     @CasualFieldElement(name = "FLD_LONG1", lengthName = "FLD_LONG4")
     private final int[] dogs;
 
+    // NOP-constructor needed
+    private ArraysSameNamePojo()
+    {
+        cats = null;
+        dogs = null;
+    }
+
     private ArraysSameNamePojo(final int[] cats, final int[] dogs)
     {
         this.cats = cats;

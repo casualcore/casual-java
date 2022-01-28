@@ -24,6 +24,11 @@ public final class PojoWithMappableFieldList implements Serializable
     {
         this.dates = dates;
     }
+    // NOP-constructor needed
+    private PojoWithMappableFieldList()
+    {
+        dates = null;
+    }
     public static PojoWithMappableFieldList of(final List<LocalDate> dates)
     {
         Objects.requireNonNull(dates);

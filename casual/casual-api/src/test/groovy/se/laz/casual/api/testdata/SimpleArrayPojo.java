@@ -19,6 +19,7 @@ public class SimpleArrayPojo implements Serializable
     private final int[] numbers;
     @CasualFieldElement(name = "FLD_LONG4", lengthName = "FLD_LONG2")
     private final Long[] wrappedNumbers;
+    // NOP-constructor needed
     private SimpleArrayPojo()
     {
         this.numbers = null;

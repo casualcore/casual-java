@@ -22,6 +22,9 @@ public final class PojoWithMappableParamArray implements Serializable
     {
         this.dates = dates;
     }
+    // NOP-constructor needed
+    private PojoWithMappableParamArray()
+    {}
     public static PojoWithMappableParamArray of(final LocalDate[] dates)
     {
         Objects.requireNonNull(dates);

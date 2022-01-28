@@ -18,7 +18,9 @@ public final class PojoWithNullableFields implements Serializable
     private String name;
     @CasualFieldElement(name = "FLD_LONG1")
     private Integer age;
-
+    // NOP-constructor needed
+    private PojoWithNullableFields()
+    {}
     private PojoWithNullableFields(String name, Integer age)
     {
         this.name = name;

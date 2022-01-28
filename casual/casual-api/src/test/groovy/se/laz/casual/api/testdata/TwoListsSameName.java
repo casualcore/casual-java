@@ -19,6 +19,12 @@ public final class TwoListsSameName implements Serializable
     final List<Integer> pandas;
     @CasualFieldElement(name = "FLD_LONG1", lengthName = "FLD_LONG2")
     final List<Integer> numbers;
+    // NOP-constructor needed
+    private TwoListsSameName()
+    {
+        pandas = null;
+        numbers = null;
+    }
     private TwoListsSameName(final List<Integer> numbers, final List<Integer> pandas)
     {
         this.numbers = numbers;

@@ -23,6 +23,9 @@ public final class PojoWithMappableParam implements Serializable
         this.from = from;
         this.to = to;
     }
+    // NOP-constructor needed
+    private PojoWithMappableParam()
+    {}
     public static PojoWithMappableParam of(final LocalDate from, final LocalDate to)
     {
         Objects.requireNonNull(from);
