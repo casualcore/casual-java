@@ -21,9 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class BufferHandlerFactory
 {
     private static final BufferHandler PASSTHROUGH_HANDLER = new PassThroughBufferHandler();
-
-    private static ServiceLoader<BufferHandler> handlerLoader = ServiceLoader.load( BufferHandler.class );
-
     private static final Map<String,BufferHandler> bufferHandlerCache = new ConcurrentHashMap<>();
 
     private BufferHandlerFactory()
@@ -38,7 +35,7 @@ public final class BufferHandlerFactory
     public static List<BufferHandler> getHandlers()
     {
         List<BufferHandler> handlers = new ArrayList<>();
-        for( BufferHandler h: handlerLoader )
+        for( BufferHandler h: ServiceLoader.load( BufferHandler.class ) )
         {
             handlers.add( h );
         }

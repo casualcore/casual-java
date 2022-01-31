@@ -22,14 +22,10 @@ import java.util.logging.Logger;
 public final class ServiceHandlerFactory
 {
     private static final Logger LOG = Logger.getLogger(ServiceHandlerFactory.class.getName());
-    private static ServiceLoader<ServiceHandler> handlerLoader = ServiceLoader.load( ServiceHandler.class );
-
     private static final Map<String,ServiceHandler> serviceHandlerCache = new ConcurrentHashMap<>();
 
     private ServiceHandlerFactory()
-    {
-
-    }
+    {}
 
     /**
      * Retrieve all registered {@link ServiceHandler}s available.
@@ -39,7 +35,7 @@ public final class ServiceHandlerFactory
     public static List<ServiceHandler> getHandlers()
     {
         List<ServiceHandler> handlers = new ArrayList<>();
-        for( ServiceHandler h: handlerLoader )
+        for( ServiceHandler h: ServiceLoader.load( ServiceHandler.class ) )
         {
             handlers.add( h );
         }
@@ -80,9 +76,17 @@ public final class ServiceHandlerFactory
 
     private static void log(List<ServiceHandler> handlers)
     {
-        LOG.info(()->"# of service handlers: " + handlers.size());
-        LOG.info(()->"service handlers in priority order descending: ");
-        handlers.stream()
-                .forEach(handler -> LOG.info(() -> "handler: " + handler));
+        LOG.info(()-> "# of service handlers: " + handlers.size() + "\n" + logHandlers(handlers));
+    }
+
+    private static String logHandlers(List<ServiceHandler> handlers)
+    {
+        StringBuilder sb = new StringBuilder("service handlers in priority order descending:");
+        for(ServiceHandler handler : handlers)
+        {
+            sb.append("Handler: " + handler);
+            sb.append("Priority: " + handler.getPriority());
+        }
+        return sb.toString();
     }
 }

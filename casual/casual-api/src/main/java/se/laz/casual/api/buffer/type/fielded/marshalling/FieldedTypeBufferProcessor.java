@@ -25,15 +25,13 @@ import java.util.ServiceLoader;
  */
 public final class FieldedTypeBufferProcessor
 {
-    private static ServiceLoader<FieldedMarshaller> marshallerServiceLoader = ServiceLoader.load( FieldedMarshaller.class );
-    private static FieldedMarshaller marshaller = loadMarshaller();
     private FieldedTypeBufferProcessor()
     {}
 
-    private static FieldedMarshaller loadMarshaller()
+    private static FieldedMarshaller getMarshaller()
     {
         List<FieldedMarshaller> marshallers = new ArrayList<>();
-        for ( FieldedMarshaller m : marshallerServiceLoader)
+        for ( FieldedMarshaller m : ServiceLoader.load( FieldedMarshaller.class ))
         {
             marshallers.add(m);
         }
@@ -50,7 +48,7 @@ public final class FieldedTypeBufferProcessor
      */
     public static FieldedTypeBuffer marshall(final Object o)
     {
-        return marshaller.marshall(o, FieldedTypeBufferProcessorMode.RELAXED);
+        return getMarshaller().marshall(o, FieldedTypeBufferProcessorMode.RELAXED);
     }
 
     /**
@@ -62,7 +60,7 @@ public final class FieldedTypeBufferProcessor
      */
     public static FieldedTypeBuffer marshall(final Object o, FieldedTypeBufferProcessorMode mode)
     {
-        return marshaller.marshall(o, mode);
+        return getMarshaller().marshall(o, mode);
     }
 
     /**
@@ -75,7 +73,7 @@ public final class FieldedTypeBufferProcessor
      */
     public static <T> T unmarshall(final FieldedTypeBuffer b, final Class<T> clazz)
     {
-        return marshaller.unmarshall(b, clazz, FieldedTypeBufferProcessorMode.RELAXED);
+        return getMarshaller().unmarshall(b, clazz, FieldedTypeBufferProcessorMode.RELAXED);
     }
 
     /**
@@ -89,7 +87,7 @@ public final class FieldedTypeBufferProcessor
      */
     public static <T> T unmarshall(final FieldedTypeBuffer b, final Class<T> clazz, FieldedTypeBufferProcessorMode mode)
     {
-        return marshaller.unmarshall(b, clazz, mode);
+        return getMarshaller().unmarshall(b, clazz, mode);
     }
 
     /**
@@ -101,7 +99,7 @@ public final class FieldedTypeBufferProcessor
      */
     public static Object[] unmarshall(final FieldedTypeBuffer b, final Method m)
     {
-        return marshaller.unmarshall(b, m, FieldedTypeBufferProcessorMode.RELAXED);
+        return getMarshaller().unmarshall(b, m, FieldedTypeBufferProcessorMode.RELAXED);
     }
 
     /**
@@ -114,7 +112,7 @@ public final class FieldedTypeBufferProcessor
      */
     public static Object[] unmarshall(final FieldedTypeBuffer b, final Method m, FieldedTypeBufferProcessorMode mode)
     {
-        return marshaller.unmarshall(b, m, mode);
+        return getMarshaller().unmarshall(b, m, mode);
     }
 
 }
