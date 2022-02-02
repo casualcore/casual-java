@@ -30,6 +30,11 @@ public final class EventLoopFactory
     private static EventLoopGroup createEventLoopGroup()
     {
         Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
+        if(outbound.getUnmanaged())
+        {
+            LOG.info(() -> "outbound not using any ManagedExecutorService, running unmanaged");
+            return new NioEventLoopGroup(outbound.getNumberOfThreads());
+        }
         return new NioEventLoopGroup(outbound.getNumberOfThreads(), getManagedExecutorService(outbound.getManagedExecutorServiceName()));
     }
 

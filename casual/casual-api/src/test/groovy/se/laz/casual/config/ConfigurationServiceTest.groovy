@@ -68,7 +68,7 @@ class ConfigurationServiceTest extends Specification
     {
         given:
         Configuration expected = Configuration.newBuilder()
-                .withOutbound(Outbound.of(Optional.ofNullable(executorName), Optional.ofNullable(numberOfThreads)))
+                .withOutbound(Outbound.of(Optional.ofNullable(executorName), Optional.ofNullable(numberOfThreads), Optional.of(unmanaged)))
                 .build()
 
         when:
@@ -82,11 +82,12 @@ class ConfigurationServiceTest extends Specification
         actual == expected
 
         where:
-        file                                                  || executorName                                                        || numberOfThreads
-        'casual-config-outbound.json'                         || 'java:comp/env/concurrent/casualManagedExecutorService'             || 10
-        'casual-config-outbound-executorName-missing.json'    || 'java:comp/DefaultManagedExecutorService'                           || 10
-        'casual-config-outbound-numberOfThreads-missing.json' || 'java:comp/env/concurrent/casualManagedExecutorService'             || 0
-        'casual-config-outbound-null.json'                    || 'java:comp/DefaultManagedExecutorService'                           || 0
+        file                                                  || executorName                                                        || numberOfThreads || unmanaged
+        'casual-config-outbound.json'                         || 'java:comp/env/concurrent/casualManagedExecutorService'             || 10              || false
+        'casual-config-outbound-executorName-missing.json'    || 'java:comp/DefaultManagedExecutorService'                           || 10              || false
+        'casual-config-outbound-numberOfThreads-missing.json' || 'java:comp/env/concurrent/casualManagedExecutorService'             || 0               || false
+        'casual-config-outbound-null.json'                    || 'java:comp/DefaultManagedExecutorService'                           || 0               || false
+        'casual-config-outbound-unmanaged.json'               || 'java:comp/DefaultManagedExecutorService'                           || 0               || true
     }
 
     def 'default outbound config, no file'()
