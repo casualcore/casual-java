@@ -10,9 +10,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class Startup
 {
+    private static final Logger LOG = Logger.getLogger(Startup.class.getName());
     private final Mode mode;
     private final List<String> services;
 
@@ -99,6 +101,7 @@ public class Startup
 
         public Startup build()
         {
+            LOG.info(() -> "Casual Inbound Startup mode is: " + mode);
             return new Startup( mode, services );
         }
     }

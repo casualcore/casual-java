@@ -12,7 +12,8 @@ Casual supports the following configuration options which can be set using envir
 * `CASUAL_INBOUND_STARTUP_MODE` - Set mode for inbound startup. Default `immediate`. Alternatives `trigger`, `discover`.
     See [Inbound Startup Configuration](inbound.md#startup-configuration) for more details.
 
-NB - if a `CASUAL_CONFIG_FILE` is provided, it take precedence over the `CASUAL_INBOUND_STARTUP_MODE` setting. 
+NB - if a `CASUAL_CONFIG_FILE` is provided, it take precedence over the `CASUAL_INBOUND_STARTUP_MODE` setting.
+However, if some configuration is missing from the configuration file but has a setting via an environment variable then this will be used before any hardcoded default setting.
 
 ## Casual Config File
 

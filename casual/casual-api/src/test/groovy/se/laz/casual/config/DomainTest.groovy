@@ -39,4 +39,5 @@ class DomainTest extends Specification
         expect:
         instance.getId() != null
     }
+
 }

@@ -24,13 +24,18 @@ public final class Domain
      */
     private Domain()
     {
-        name = DOMAIN_NAME_DEFAULT;
+        name = getFromEnvIfAvailableDefaultIfNot();
     }
 
 
     private Domain(String domainName)
     {
-        this.name = Optional.ofNullable(domainName).orElse(DOMAIN_NAME_DEFAULT);
+        this.name = Optional.ofNullable(domainName).orElse(getFromEnvIfAvailableDefaultIfNot());
+    }
+
+    private String getFromEnvIfAvailableDefaultIfNot()
+    {
+        return Optional.ofNullable(System.getenv(DOMAIN_NAME_ENV)).orElse(DOMAIN_NAME_DEFAULT);
     }
 
     /**

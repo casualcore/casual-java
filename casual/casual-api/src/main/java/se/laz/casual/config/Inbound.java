@@ -7,9 +7,11 @@
 package se.laz.casual.config;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class Inbound
 {
+    public static final String CASUAL_INBOUND_STARTUP_MODE = "CASUAL_INBOUND_STARTUP_MODE";
     private final Startup startup;
 
     public Inbound( Startup startup )
@@ -72,6 +74,16 @@ public class Inbound
 
         public Inbound build()
         {
+            if(startup == null)
+            {
+                // try to get startup mode from env variable, otherwise default
+                String startupMode = Optional.ofNullable(System.getenv(CASUAL_INBOUND_STARTUP_MODE)).orElse(null);
+                if(null != startupMode)
+                {
+                    Mode mode = Mode.fromName(startupMode);
+                    return new Inbound(Startup.newBuilder().withMode(mode).build());
+                }
+            }
             return new Inbound( startup );
         }
     }
