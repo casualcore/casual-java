@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public final class PojoWithMappableFieldList implements Serializable
 {
     private static final long serialVersionUID = 1;
-    @CasualFieldElement(name ="FLD_STRING1", lengthName = "FLD_LONG1", mapper = LocalDateMapper.class)
+    @CasualFieldElement(name ="FLD_STRING1", mapper = LocalDateMapper.class)
     private final List<LocalDate> dates;
     private PojoWithMappableFieldList(final List<LocalDate> dates)
     {

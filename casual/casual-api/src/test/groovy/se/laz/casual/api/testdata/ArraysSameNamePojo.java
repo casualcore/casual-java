@@ -15,6 +15,7 @@ import java.util.Objects;
 public final class ArraysSameNamePojo implements Serializable
 {
     private static final long serialVersionUID = 1;
+    // notice: lengthName is needed here since the data field name is the same ( FLD_LONG1)
     @CasualFieldElement(name = "FLD_LONG1", lengthName = "FLD_LONG3")
     private final int[] cats;
     @CasualFieldElement(name = "FLD_LONG1", lengthName = "FLD_LONG4")

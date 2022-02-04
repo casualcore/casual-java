@@ -15,7 +15,7 @@ import java.util.Objects;
 public final class ArrayWithWrappedPojo implements Serializable
 {
     private static final long serialVersionUID = 1;
-    @CasualFieldElement(lengthName = "FLD_LONG3")
+    @CasualFieldElement
     private final SimplePojo[] simplePojos;
     private ArrayWithWrappedPojo(SimplePojo[] simplePojos)
     {

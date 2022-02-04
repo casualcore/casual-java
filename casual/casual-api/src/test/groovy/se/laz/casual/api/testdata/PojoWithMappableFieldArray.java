@@ -19,21 +19,27 @@ public final class PojoWithMappableFieldArray implements Serializable
     private static final long serialVersionUID = 1;
     @CasualFieldElement(name ="FLD_STRING1", lengthName = "FLD_LONG1", mapper = LocalDateMapper.class)
     private final LocalDate[] dates;
-    private PojoWithMappableFieldArray(final LocalDate[] dates)
+    @CasualFieldElement(name ="FLD_STRING2", mapper = LocalDateMapper.class)
+    private final LocalDate[] moreDates;
+
+    private PojoWithMappableFieldArray(final LocalDate[] dates, final LocalDate[] moreDates)
     {
         this.dates = dates;
+        this.moreDates = moreDates;
     }
 
     // NOP-constructor needed
     private PojoWithMappableFieldArray()
     {
         dates = null;
+        moreDates = null;
     }
 
-    public static PojoWithMappableFieldArray of(final LocalDate[] dates)
+    public static PojoWithMappableFieldArray of(final LocalDate[] dates, final LocalDate[] moreDates)
     {
         Objects.requireNonNull(dates);
-        return new PojoWithMappableFieldArray(dates);
+        Objects.requireNonNull(moreDates);
+        return new PojoWithMappableFieldArray(dates, moreDates);
     }
 
     @Override

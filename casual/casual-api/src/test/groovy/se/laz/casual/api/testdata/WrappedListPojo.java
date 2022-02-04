@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public final class WrappedListPojo implements Serializable
 {
     private static final long serialVersionUID = 1;
-    @CasualFieldElement(lengthName = "FLD_LONG2")
+    @CasualFieldElement
     private final List<SimplePojo> simplePojos;
     private WrappedListPojo(final List<SimplePojo> simplePojos)
     {

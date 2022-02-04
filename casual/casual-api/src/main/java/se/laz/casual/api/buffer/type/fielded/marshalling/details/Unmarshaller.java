@@ -215,7 +215,7 @@ public final class Unmarshaller
     private static Optional<FieldedData<?>> readAccordingToMode(FieldedTypeBuffer b, String name, int index, FieldedTypeBufferProcessorMode mode)
     {
         Optional<FieldedData<?>> v = b.peek(name, index, true);
-        if(!v.isPresent() &&FieldedTypeBufferProcessorMode.STRICT == mode)
+        if(!v.isPresent() && FieldedTypeBufferProcessorMode.STRICT == mode)
         {
             throw new FieldedUnmarshallingException("strict mode and missing value for name: " + name + " with index: " + index);
         }
@@ -224,9 +224,66 @@ public final class Unmarshaller
 
     public static void readArrayValue(FieldedTypeBuffer b, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, FieldedTypeBufferProcessorMode mode, Optional<Function<Object, ?>> mapper)
     {
-        String listLengthName = CommonDetails.getListLengthName(annotation).orElseThrow(() -> new FieldedUnmarshallingException("list type but @CasualFieldElement is missing lengthName!"));
-        int arraySize = (int)toObject(b.read(listLengthName, 0, true), true);
-        if(0 == arraySize)
+        String listLengthName = CommonDetails.getListLengthName(annotation).orElse(null);
+        if(null != listLengthName)
+        {
+            readArrayValueBounded(listLengthName, b, annotation, consumer, type, mode, mapper);
+            return;
+        }
+        readArrayValueUnbounded(b, annotation, consumer, type, mode, mapper);
+    }
+
+    private static void readArrayValueUnbounded(FieldedTypeBuffer b, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, FieldedTypeBufferProcessorMode mode, Optional<Function<Object,?>> mapper)
+    {
+        Class<?> componentType = CommonDetails.wrapIfPrimitive(type.getComponentType());
+        boolean castToInt = componentType.equals(Integer.class);
+        List<Object> result = new ArrayList<>();
+        AtomicBoolean hasMoreObjects = new AtomicBoolean(true);
+        if(type.getComponentType().isPrimitive() || CommonDetails.isFieldedType(componentType))
+        {
+            while (hasMoreObjects.get())
+            {
+                Optional<FieldedData<?>> v = readAccordingToMode(b, annotation.name(), 0, mode);
+                v.ifPresent(r -> result.add(toObject(r, castToInt)));
+                hasMoreObjects.set(v.isPresent());
+            }
+        }
+        else
+        {
+            while (hasMoreObjects.get())
+            {
+                mapper.ifPresent(m -> {
+                    Optional<FieldedData<?>> v = readAccordingToMode(b, annotation.name(), 0, mode);
+                    v.ifPresent(value -> result.add(m.apply(toObject(value, castToInt))));
+                    hasMoreObjects.set(v.isPresent());
+                });
+                if(!mapper.isPresent())
+                {
+                    Optional<?> object = createObject(b, componentType, 0, mode);
+                    object.ifPresent(result::add);
+                    hasMoreObjects.set(object.isPresent());
+                }
+            }
+        }
+        if(result.isEmpty())
+        {
+            consumer.accept(null);
+        }
+        else
+        {
+            Object objectArray = Array.newInstance(type.getComponentType(), result.size());
+            for(int i = 0; i < result.size(); ++i)
+            {
+                Array.set(objectArray, i , result.get(i));
+            }
+            consumer.accept(objectArray);
+        }
+    }
+
+    private static void readArrayValueBounded(String listLengthName, FieldedTypeBuffer b, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, FieldedTypeBufferProcessorMode mode, Optional<Function<Object,?>> mapper)
+    {
+        int arraySize =  (int) toObject(b.read(listLengthName, 0, true), true);
+        if (0 == arraySize)
         {
             consumer.accept(null);
         }
@@ -273,10 +330,48 @@ public final class Unmarshaller
         {
             throw new FieldedUnmarshallingException("list but type is not parameterized");
         }
+        String listLengthName = CommonDetails.getListLengthName(annotation).orElse(null);
+        if(null != listLengthName)
+        {
+            readListValueBounded(listType, listLengthName, b, annotation, consumer, mode, mapper);
+            return;
+        }
+        readListValueUnbounded(listType, b, annotation, consumer, mode, mapper);
+    }
+
+    private static void readListValueUnbounded(Type listType, FieldedTypeBuffer b, CasualFieldElement annotation, Consumer<Object> consumer, FieldedTypeBufferProcessorMode mode, Optional<Function<Object,?>> mapper) throws ClassNotFoundException
+    {
         ParameterizedType parameterizedType = (ParameterizedType)listType;
         Type elementType = parameterizedType.getActualTypeArguments()[0];
         Class<?> elementClass = CommonDetails.adaptTypeToFielded(CommonDetails.wrapIfPrimitive(Class.forName(elementType.getTypeName())));
-        String listLengthName = CommonDetails.getListLengthName(annotation).orElseThrow(() -> new FieldedUnmarshallingException("list type but @CasualFieldElement is missing lengthName!"));
+        List<Object> l = new ArrayList<>();
+        final boolean castToInt = elementType.equals(Integer.class);
+        if(CommonDetails.isFieldedType(elementClass))
+        {
+            boolean hasMoreElements = true;
+            while(hasMoreElements)
+            {
+                Optional<FieldedData<?>> v = readAccordingToMode(b, annotation.name(), 0, mode);
+                v.ifPresent(r -> l.add(toObject(r, castToInt)));
+                hasMoreElements = v.isPresent();
+            }
+        }
+        else
+        {
+            boolean hasMoreElements = true;
+            while(hasMoreElements)
+            {
+                hasMoreElements = readListPojo(b, annotation.name(), mode, l, mapper, elementClass, castToInt);
+            }
+        }
+        consumer.accept(l);
+    }
+
+    private static void readListValueBounded(Type listType, String listLengthName, FieldedTypeBuffer b, CasualFieldElement annotation, Consumer<Object> consumer, FieldedTypeBufferProcessorMode mode, Optional<Function<Object,?>> mapper) throws ClassNotFoundException
+    {
+        ParameterizedType parameterizedType = (ParameterizedType)listType;
+        Type elementType = parameterizedType.getActualTypeArguments()[0];
+        Class<?> elementClass = CommonDetails.adaptTypeToFielded(CommonDetails.wrapIfPrimitive(Class.forName(elementType.getTypeName())));
         int listSize = (int)toObject(b.read(listLengthName, 0, true), true);
         List<Object> l = new ArrayList<>(listSize);
         final boolean castToInt = elementType.equals(Integer.class);
@@ -298,11 +393,13 @@ public final class Unmarshaller
         consumer.accept(l);
     }
 
-    private static void readListPojo(FieldedTypeBuffer b, String name, FieldedTypeBufferProcessorMode mode, List<Object> l, Optional<Function<Object, ?>> mapper, Class<?> elementClass, boolean castToInt)
+    private static boolean readListPojo(FieldedTypeBuffer b, String name, FieldedTypeBufferProcessorMode mode, List<Object> l, Optional<Function<Object, ?>> mapper, Class<?> elementClass, boolean castToInt)
     {
+        AtomicBoolean didRead = new AtomicBoolean(false);
         mapper.ifPresent(m -> {
             Optional<FieldedData<?>> v = readAccordingToMode(b, name, 0, mode);
             v.ifPresent(value -> l.add(m.apply(toObject(value, castToInt))));
+            didRead.set(v.isPresent());
         });
         if(!mapper.isPresent())
         {
@@ -310,8 +407,10 @@ public final class Unmarshaller
             if (null != v)
             {
                 l.add(v);
+                didRead.set(true);
             }
         }
+        return didRead.get();
     }
 
 

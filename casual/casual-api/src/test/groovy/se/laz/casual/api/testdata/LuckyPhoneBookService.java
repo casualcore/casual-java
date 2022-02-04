@@ -54,7 +54,7 @@ public class LuckyPhoneBookService
         this.name = name;
     }
 
-    public void setPhoneNumbers(@CasualFieldElement(name = "FLD_STRING2", lengthName = "FLD_LONG3") List<String> l)
+    public void setPhoneNumbers(@CasualFieldElement(name = "FLD_STRING2") List<String> l)
     {
         this.phoneNumbers = l.stream().collect(Collectors.toList());
     }

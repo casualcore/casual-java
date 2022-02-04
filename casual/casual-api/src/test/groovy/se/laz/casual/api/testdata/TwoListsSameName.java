@@ -15,6 +15,7 @@ import java.util.Objects;
 public final class TwoListsSameName implements Serializable
 {
     private static final long serialVersionUID = 1;
+    // Notice that lengthName field is needed here since the data field name is shared ( FLD_LONG1)
     @CasualFieldElement(name = "FLD_LONG1", lengthName = "FLD_LONG3")
     final List<Integer> pandas;
     @CasualFieldElement(name = "FLD_LONG1", lengthName = "FLD_LONG2")

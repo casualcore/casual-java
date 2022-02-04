@@ -10,7 +10,6 @@ import se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer;
 import se.laz.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
 import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedMarshallingException;
 import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessorMode;
-import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedUnmarshallingException;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -158,8 +157,8 @@ public final class Marshaller
     {
         Class<?> componentType = o.getClass().getComponentType();
         int arrayLength = Array.getLength(o);
-        String listLengthName = CommonDetails.getListLengthName(annotation).orElseThrow(() -> new FieldedUnmarshallingException("array type but @CasualFieldElement is missing lengthName!"));
-        b.write(listLengthName, (long)arrayLength);
+        Optional<String> listLengthName = CommonDetails.getListLengthName(annotation);
+        listLengthName.ifPresent(name -> b.write(name, (long)arrayLength));
         if(componentType.isPrimitive() || CommonDetails.isFieldedType(componentType))
         {
             Object[] array = toObjectArray(o, componentType, arrayLength);
@@ -207,8 +206,11 @@ public final class Marshaller
 
     public static void writeListType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final List<?> l, FieldedTypeBufferProcessorMode mode, Optional<Function<Object, ?>> mapper)
     {
-        String listLengthName = CommonDetails.getListLengthName(annotation).orElseThrow(() -> new FieldedUnmarshallingException("list type but @CasualFieldElement is missing lengthName!"));
-        b.write(listLengthName, (long)l.size());
+        String listLengthName = CommonDetails.getListLengthName(annotation).orElse(null);
+        if(null != listLengthName)
+        {
+            b.write(listLengthName, (long) l.size());
+        }
         if(l.isEmpty())
         {
             return;

@@ -13,6 +13,7 @@ import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedUnmarshallingExc
 import se.laz.casual.api.testdata.*
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.lang.reflect.Method
 import java.time.LocalDate
@@ -82,53 +83,53 @@ class FieldedTypeBufferProcessorTest extends Specification
     @Shared
     LocalDate[] localDates = [LocalDate.of(1972, 1, 1), LocalDate.of(2017, 1, 1)]
     @Shared
-    PojoWithMappableFieldArray pojoWithMappableFieldArray = PojoWithMappableFieldArray.of(localDates)
+    LocalDate[] moreLocalDates = [LocalDate.of(1971, 1, 1), LocalDate.of(2016, 1, 1)]
+    @Shared
+    PojoWithMappableFieldArray pojoWithMappableFieldArray = PojoWithMappableFieldArray.of(localDates, moreLocalDates)
     @Shared
     PojoWithMappableParamArray pojoWithMappableParamArray = PojoWithMappableParamArray.of(localDates)
 
-    def 'roundtripping - relaxed'()
+    @Unroll
+    def 'roundtripping - relaxed #instance:#instanceClass'()
     {
         expect:
         FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(instance, FieldedTypeBufferProcessorMode.RELAXED)
-        !b.isEmpty()
         def r = FieldedTypeBufferProcessor.unmarshall(b, instanceClass, FieldedTypeBufferProcessorMode.RELAXED)
         r == instance
-        !b.isEmpty()
         where:
-        instance                           | instanceClass
-        twoListsSameName                   | TwoListsSameName.class
-        twoListsSameNameFirstEmpty         | TwoListsSameName.class
-        twoListsSameNameSecondEmpty        | TwoListsSameName.class
-        simplePojo                         | SimplePojo.class
-        listSimplePojo                     | SimpleListPojo.class
-        emptyListSimplePojo                | SimpleListPojo.class
-        arraySimplePojo                    | SimpleArrayPojo.class
-        arraysSameNamePojo                 | ArraysSameNamePojo.class
-        arrayWithWrappedPojo               | ArrayWithWrappedPojo.class
-        wrappedSimplePojo                  | WrappedPojo.class
-        withAnnotatedMethods               | PojoWithAnnotatedMethods.class
-        emptyWithAnnotatedMethods          | PojoWithAnnotatedMethods.class
-        wrappedListPojo                    | WrappedListPojo.class
-        emptyWrappedListPojo               | WrappedListPojo.class
-        wrappedListPojoWithParameters      | WrappedListPojoWithAnnotatedMethods.class
-        emptyWrappedListPojoWithParameters | WrappedListPojoWithAnnotatedMethods.class
-        pojoWithNullableFieldsMissingName  | PojoWithNullableFields.class
-        pojoWithMappableField              | PojoWithMappableField.class
-        pojoWithMappableFieldList          | PojoWithMappableFieldList.class
-        pojoWithMappableParam              | PojoWithMappableParam.class
-        pojoWithMappableParamList          | PojoWithMappableParamList.class
-        pojoWithMappableFieldArray         | PojoWithMappableFieldArray.class
-        pojoWithMappableParamArray         | PojoWithMappableParamArray.class
+        instance                             | instanceClass
+        twoListsSameName                     | TwoListsSameName.class
+        twoListsSameNameFirstEmpty           | TwoListsSameName.class
+        twoListsSameNameSecondEmpty          | TwoListsSameName.class
+        simplePojo                           | SimplePojo.class
+        listSimplePojo                       | SimpleListPojo.class
+        emptyListSimplePojo                  | SimpleListPojo.class
+        arraySimplePojo                      | SimpleArrayPojo.class
+        arraysSameNamePojo                   | ArraysSameNamePojo.class
+        arrayWithWrappedPojo                 | ArrayWithWrappedPojo.class
+        wrappedSimplePojo                    | WrappedPojo.class
+        withAnnotatedMethods                 | PojoWithAnnotatedMethods.class
+        emptyWithAnnotatedMethods            | PojoWithAnnotatedMethods.class
+        wrappedListPojo                      | WrappedListPojo.class
+        emptyWrappedListPojo                 | WrappedListPojo.class
+        wrappedListPojoWithParameters        | WrappedListPojoWithAnnotatedMethods.class
+        emptyWrappedListPojoWithParameters   | WrappedListPojoWithAnnotatedMethods.class
+        pojoWithNullableFieldsMissingName    | PojoWithNullableFields.class
+        pojoWithMappableField                | PojoWithMappableField.class
+        pojoWithMappableFieldList            | PojoWithMappableFieldList.class
+        pojoWithMappableParam                | PojoWithMappableParam.class
+        pojoWithMappableParamList            | PojoWithMappableParamList.class
+        pojoWithMappableFieldArray           | PojoWithMappableFieldArray.class
+        pojoWithMappableParamArray           | PojoWithMappableParamArray.class
     }
 
-    def 'roundtripping - strict'()
+    @Unroll
+    def 'roundtripping - strict #instance:#instanceClass'()
     {
         expect:
         FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(instance, FieldedTypeBufferProcessorMode.STRICT)
-        !b.isEmpty()
         def r = FieldedTypeBufferProcessor.unmarshall(b, instanceClass, FieldedTypeBufferProcessorMode.STRICT)
         r == instance
-        !b.isEmpty()
         where:
         instance                           | instanceClass
         twoListsSameName                   | TwoListsSameName.class
@@ -137,20 +138,10 @@ class FieldedTypeBufferProcessorTest extends Specification
         simplePojo                         | SimplePojo.class
         listSimplePojo                     | SimpleListPojo.class
         emptyListSimplePojo                | SimpleListPojo.class
-        arraySimplePojo                    | SimpleArrayPojo.class
         arraysSameNamePojo                 | ArraysSameNamePojo.class
-        arrayWithWrappedPojo               | ArrayWithWrappedPojo.class
         wrappedSimplePojo                  | WrappedPojo.class
-        withAnnotatedMethods               | PojoWithAnnotatedMethods.class
-        emptyWithAnnotatedMethods          | PojoWithAnnotatedMethods.class
-        wrappedListPojo                    | WrappedListPojo.class
-        emptyWrappedListPojo               | WrappedListPojo.class
-        wrappedListPojoWithParameters      | WrappedListPojoWithAnnotatedMethods.class
-        emptyWrappedListPojoWithParameters | WrappedListPojoWithAnnotatedMethods.class
         pojoWithMappableField              | PojoWithMappableField.class
-        pojoWithMappableFieldList          | PojoWithMappableFieldList.class
         pojoWithMappableParam              | PojoWithMappableParam.class
-        pojoWithMappableParamList          | PojoWithMappableParamList.class
     }
 
     def 'strict marshalling and null field value'()

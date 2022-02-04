@@ -31,13 +31,13 @@ public final class PojoWithMappableParamArray implements Serializable
         return new PojoWithMappableParamArray(dates);
     }
 
-    @CasualFieldElement(name ="FLD_STRING1", lengthName = "FLD_LONG1", mapper = LocalDateMapper.class)
+    @CasualFieldElement(name ="FLD_STRING1", mapper = LocalDateMapper.class)
     public LocalDate[] getDates()
     {
         return dates;
     }
 
-    public PojoWithMappableParamArray setDates(@CasualFieldElement(name ="FLD_STRING1", lengthName = "FLD_LONG1", mapper = LocalDateMapper.class) LocalDate[] dates)
+    public PojoWithMappableParamArray setDates(@CasualFieldElement(name ="FLD_STRING1", mapper = LocalDateMapper.class) LocalDate[] dates)
     {
         this.dates = dates;
         return this;

@@ -32,13 +32,13 @@ public final class PojoWithMappableParamList implements Serializable
         return new PojoWithMappableParamList(dates.stream().collect(Collectors.toList()));
     }
 
-    @CasualFieldElement(name ="FLD_STRING1", lengthName = "FLD_LONG1", mapper = LocalDateMapper.class)
+    @CasualFieldElement(name ="FLD_STRING1", mapper = LocalDateMapper.class)
     public List<LocalDate> getDates()
     {
         return dates.stream().collect(Collectors.toList());
     }
 
-    public PojoWithMappableParamList setDates(@CasualFieldElement(name ="FLD_STRING1", lengthName = "FLD_LONG1", mapper = LocalDateMapper.class)
+    public PojoWithMappableParamList setDates(@CasualFieldElement(name ="FLD_STRING1", mapper = LocalDateMapper.class)
                                               final List<LocalDate> dates)
     {
         this.dates = dates.stream().collect(Collectors.toList());
