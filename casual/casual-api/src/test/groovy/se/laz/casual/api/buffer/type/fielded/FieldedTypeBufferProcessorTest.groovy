@@ -161,8 +161,7 @@ class FieldedTypeBufferProcessorTest extends Specification
         def r = FieldedTypeBufferProcessor.unmarshall(b, PojoWithNullableFields.class, FieldedTypeBufferProcessorMode.STRICT)
         then:
         r == null
-        def e = thrown(FieldedUnmarshallingException)
-        e.message == 'strict mode and missing value for name: FLD_STRING1 with index: 0'
+        thrown(FieldedUnmarshallingException)
     }
 
     def 'service unmarshalling annotated parameter methods'()
