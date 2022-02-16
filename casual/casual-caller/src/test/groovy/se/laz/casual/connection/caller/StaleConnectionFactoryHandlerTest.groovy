@@ -18,7 +18,7 @@ class StaleConnectionFactoryHandlerTest extends Specification
       given:
       def entries = [createEntry(false), createEntry(false), createEntry(false), createEntry(false),createEntry(false)]
       when:
-      def newEntries = StaleConnectionFactoryHandler.revalidateConnectionFactories(entries, Mock(InitialContext))
+      def newEntries = StaleConnectionFactoryHandler.of().revalidateConnectionFactories(entries, Mock(InitialContext))
       then:
       newEntries == entries
    }
@@ -31,7 +31,7 @@ class StaleConnectionFactoryHandlerTest extends Specification
       def newConnectionFactory = Mock(CasualConnectionFactory)
       context.lookup(_) >> newConnectionFactory
       when:
-      def newEntries = StaleConnectionFactoryHandler.revalidateConnectionFactories(entries, context)
+      def newEntries = StaleConnectionFactoryHandler.of().revalidateConnectionFactories(entries, context)
       def replacedEntry = newEntries.stream()
                                                        .filter({it.getJndiName() == 'stale'})
                                                        .findFirst()

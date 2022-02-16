@@ -21,7 +21,7 @@ class ConnectionFactoryFinderTest extends Specification
             entries
         }
         when:
-        def result = ConnectionFactoryFinder.findConnectionFactory(root, context)
+        def result = ConnectionFactoryFinder.of().findConnectionFactory(root, context)
         then:
         result.isEmpty()
     }
@@ -47,7 +47,7 @@ class ConnectionFactoryFinderTest extends Specification
             'A string and not an instance of CasualConnectionFactory'
         }
         when:
-        def result = ConnectionFactoryFinder.findConnectionFactory(root, context)
+        def result = ConnectionFactoryFinder.of().findConnectionFactory(root, context)
         then:
         result.isEmpty()
     }
@@ -74,7 +74,7 @@ class ConnectionFactoryFinderTest extends Specification
             Mock(CasualConnectionFactory)
         }
         when:
-        def result = ConnectionFactoryFinder.findConnectionFactory(root, context)
+        def result = ConnectionFactoryFinder.of().findConnectionFactory(root, context)
         then:
         !result.isEmpty()
         result[0].jndiName == completeJndiName

@@ -16,13 +16,21 @@ import java.util.logging.Logger;
 
 // connection factories can go stale, at least on WLS
 // if so we need to issue a new lookup
-public final class StaleConnectionFactoryHandler
+public class StaleConnectionFactoryHandler
 {
     private static final Logger LOG = Logger.getLogger(StaleConnectionFactoryHandler.class.getName());
-    private StaleConnectionFactoryHandler()
-    {}
 
-    public static List<ConnectionFactoryEntry> revalidateConnectionFactories(List<ConnectionFactoryEntry> connectionFactories)
+    public StaleConnectionFactoryHandler()
+    {
+        // public NOP-constructor needed for wls-only
+    }
+
+    public static StaleConnectionFactoryHandler of()
+    {
+        return new StaleConnectionFactoryHandler();
+    }
+
+    public List<ConnectionFactoryEntry> revalidateConnectionFactories(List<ConnectionFactoryEntry> connectionFactories)
     {
         try
         {
@@ -35,7 +43,7 @@ public final class StaleConnectionFactoryHandler
         }
     }
 
-    public static List<ConnectionFactoryEntry> revalidateConnectionFactories(List<ConnectionFactoryEntry> connectionFactories, InitialContext context)
+    public List<ConnectionFactoryEntry> revalidateConnectionFactories(List<ConnectionFactoryEntry> connectionFactories, InitialContext context)
     {
         List<ConnectionFactoryEntry> entries = new ArrayList<>();
         entries.addAll(connectionFactories);

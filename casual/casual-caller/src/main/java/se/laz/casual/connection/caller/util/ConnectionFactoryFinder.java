@@ -17,13 +17,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-public final class ConnectionFactoryFinder
+public class ConnectionFactoryFinder
 {
     private static final Logger log = Logger.getLogger(ConnectionFactoryFinder.class.getName());
-    private ConnectionFactoryFinder()
-    {}
+    public ConnectionFactoryFinder()
+    {
+        // public NOP-constructor needed for wls-only
+    }
 
-    public static List<ConnectionFactoryEntry> findConnectionFactory(String root)
+    public static ConnectionFactoryFinder of()
+    {
+        return new ConnectionFactoryFinder();
+    }
+
+    public List<ConnectionFactoryEntry> findConnectionFactory(String root)
     {
         try
         {
@@ -37,7 +44,7 @@ public final class ConnectionFactoryFinder
         return Collections.<ConnectionFactoryEntry>emptyList();
     }
 
-    public static List<ConnectionFactoryEntry> findConnectionFactory(String root, InitialContext context)
+    public List<ConnectionFactoryEntry> findConnectionFactory(String root, InitialContext context)
     {
         try
         {
