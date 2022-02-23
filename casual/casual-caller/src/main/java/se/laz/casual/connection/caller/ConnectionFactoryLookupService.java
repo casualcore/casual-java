@@ -43,17 +43,18 @@ public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
     @Override
     public List<ConnectionFactoryEntry> get(String serviceName)
     {
-        // Services by cache
         Objects.requireNonNull(serviceName, "serviceName can not be null");
+        // call this here to force, possible, recreation of stale connection factories also in cache
+        List<ConnectionFactoryEntry> possibleConnectionFactories = connectionFactoryProvider.get();
         ConnectionFactoriesByPriority cachedEntries = cache.get(serviceName);
-        if (!cachedEntries.isEmpty() && cachedEntries.hasCheckedAllValid(connectionFactoryProvider.get()))
+        if (!cachedEntries.isEmpty() && cachedEntries.hasCheckedAllValid(possibleConnectionFactories))
         {
             // Using cached entries and no further discovery is appropriate
             return cachedEntries.randomizeWithPriority();
         }
 
         // Services by lookup. Only lookup against previously unresolved connection factories.
-        ConnectionFactoriesByPriority newEntries = lookup.find(serviceName, connectionFactoryProvider.get()
+        ConnectionFactoriesByPriority newEntries = lookup.find(serviceName, possibleConnectionFactories
                 .stream()
                 .filter(entry -> !cache.get(serviceName).isResolved(entry.getJndiName()))
                 .collect(Collectors.toList()));

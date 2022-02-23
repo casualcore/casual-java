@@ -8,7 +8,7 @@ package se.laz.casual.connection.caller
 
 import se.laz.casual.jca.CasualConnectionFactory
 import spock.lang.Specification
-
+import javax.enterprise.event.Event;
 import javax.naming.InitialContext
 
 class StaleConnectionFactoryHandlerTest extends Specification
@@ -17,8 +17,11 @@ class StaleConnectionFactoryHandlerTest extends Specification
    {
       given:
       def entries = [createEntry(false), createEntry(false), createEntry(false), createEntry(false),createEntry(false)]
+      def eventOriginator = Mock(Event){
+         0 * fire(_)
+      }
       when:
-      def newEntries = StaleConnectionFactoryHandler.of().revalidateConnectionFactories(entries, Mock(InitialContext))
+      def newEntries = StaleConnectionFactoryHandler.of(eventOriginator).revalidateConnectionFactories(entries, Mock(InitialContext))
       then:
       newEntries == entries
    }
@@ -30,8 +33,11 @@ class StaleConnectionFactoryHandlerTest extends Specification
       def context = Mock(InitialContext)
       def newConnectionFactory = Mock(CasualConnectionFactory)
       context.lookup(_) >> newConnectionFactory
+      def eventOriginator = Mock(Event){
+         1 * fire(_)
+      }
       when:
-      def newEntries = StaleConnectionFactoryHandler.of().revalidateConnectionFactories(entries, context)
+      def newEntries = StaleConnectionFactoryHandler.of(eventOriginator).revalidateConnectionFactories(entries, context)
       def replacedEntry = newEntries.stream()
                                                        .filter({it.getJndiName() == 'stale'})
                                                        .findFirst()

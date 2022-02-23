@@ -7,6 +7,8 @@ package se.laz.casual.connection.caller;
 
 import se.laz.casual.jca.CasualConnectionFactory;
 
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.ArrayList;
@@ -19,15 +21,17 @@ import java.util.logging.Logger;
 public class StaleConnectionFactoryHandler
 {
     private static final Logger LOG = Logger.getLogger(StaleConnectionFactoryHandler.class.getName());
+    private Event<ConnectionFactoryEntryChangedEvent> entryChangedEvent;
 
-    public StaleConnectionFactoryHandler()
+    @Inject
+    public StaleConnectionFactoryHandler(Event<ConnectionFactoryEntryChangedEvent> entryChangedEvent)
     {
-        // public NOP-constructor needed for wls-only
+        this.entryChangedEvent = entryChangedEvent;
     }
 
-    public static StaleConnectionFactoryHandler of()
+    public static StaleConnectionFactoryHandler of(Event<ConnectionFactoryEntryChangedEvent> entryChangedEvent)
     {
-        return new StaleConnectionFactoryHandler();
+        return new StaleConnectionFactoryHandler( entryChangedEvent );
     }
 
     public List<ConnectionFactoryEntry> revalidateConnectionFactories(List<ConnectionFactoryEntry> connectionFactories)
@@ -51,7 +55,7 @@ public class StaleConnectionFactoryHandler
         return entries;
     }
 
-    private static ConnectionFactoryEntry replaceStale(ConnectionFactoryEntry entry, InitialContext context)
+    private ConnectionFactoryEntry replaceStale(ConnectionFactoryEntry entry, InitialContext context)
     {
         if(isStale(entry))
         {
@@ -63,13 +67,14 @@ public class StaleConnectionFactoryHandler
         return entry;
     }
 
-    private static Optional<ConnectionFactoryEntry> recreate(String jndiName, InitialContext context)
+    private Optional<ConnectionFactoryEntry> recreate(String jndiName, InitialContext context)
     {
         try
         {
             CasualConnectionFactory connectionFactory = (CasualConnectionFactory) context.lookup(jndiName);
             ConnectionFactoryEntry entry = ConnectionFactoryEntry.of(jndiName, connectionFactory);
             LOG.info(() -> "recreated stale ConnectionFactoryEntry: " + entry);
+            entryChangedEvent.fire(new ConnectionFactoryEntryChangedEvent(jndiName, entry));
             return Optional.of(entry);
         }
         catch (NamingException e)

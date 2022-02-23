@@ -11,22 +11,39 @@ import se.laz.casual.api.service.ServiceDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class ConnectionFactoriesByPriority
 {
-    private final Map<Long, List<ConnectionFactoryEntry>> mapping = new HashMap<>();
+    private static final Logger LOG = Logger.getLogger(ConnectionFactoriesByPriority.class.getName());
+    private final Map<Long, List<ConnectionFactoryEntry>> mapping = new ConcurrentHashMap<>();
     private final Set<String> checkedConnectionFactories = new HashSet<>();
     private final Set<String> foundConnectionFactories = new HashSet<>();
 
     private ConnectionFactoriesByPriority()
     {
+    }
+
+    public synchronized void replace(ConnectionFactoryEntry newEntry)
+    {
+        for(List<ConnectionFactoryEntry> connectionFactoryEntries : mapping.values())
+        {
+            for(int i = 0; i < connectionFactoryEntries.size(); ++i)
+            {
+                if(connectionFactoryEntries.get(i).equals(newEntry))
+                {
+                    connectionFactoryEntries.set(i, newEntry);
+                    LOG.info(() -> "replaced stale entry with new entry: " + newEntry);
+                }
+            }
+        }
     }
 
     public List<Long> getOrderedKeys()
