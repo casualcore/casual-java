@@ -26,6 +26,11 @@ public final class PrettyPrinter
 
     private static String toHex(byte[] bytes)
     {
+        // note: on wls branch is sometimes null, on wildfly we then see 0 instead
+        if(null == bytes)
+        {
+            return "null";
+        }
         BigInteger val = new BigInteger(1, bytes);
         return String.format("%x", val);
     }
