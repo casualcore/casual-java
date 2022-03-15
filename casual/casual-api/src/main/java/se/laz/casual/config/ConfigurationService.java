@@ -62,7 +62,7 @@ public class ConfigurationService
     private Configuration buildConfigurationFromEnvs( )
     {
         Mode mode = getEnv( CASUAL_INBOUND_STARTUP_MODE_ENV_NAME )
-                .map( Mode::fromName )
+                .map( name -> name.isEmpty() ? Mode.IMMEDIATE : Mode.fromName( name ) )
                 .orElse( Mode.IMMEDIATE );
         return Configuration.newBuilder()
                 .withDomain( Domain.getFromEnv() )

@@ -143,6 +143,10 @@ class ConfigurationServiceTest extends Specification
         Mode.Constants.IMMEDIATE || Mode.IMMEDIATE | []
         Mode.Constants.TRIGGER   || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE]
         Mode.Constants.DISCOVER  || Mode.DISCOVER  | []
+        // This test is for when the env var is set such as FOO=
+        // When reading it with System.getEnv that then is returned as the empty string as opposed to null if the env var
+        // was not set at all - the expected behaviour in this case is that the default mode is used
+        ''                       || Mode.IMMEDIATE | []
     }
 
 
