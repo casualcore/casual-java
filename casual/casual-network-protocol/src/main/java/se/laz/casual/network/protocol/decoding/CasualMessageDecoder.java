@@ -20,6 +20,8 @@ import se.laz.casual.network.protocol.decoding.decoders.domain.CasualDomainConne
 import se.laz.casual.network.protocol.decoding.decoders.domain.CasualDomainConnectRequestMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.domain.CasualDomainDiscoveryReplyMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.domain.CasualDomainDiscoveryRequestMessageDecoder;
+import se.laz.casual.network.protocol.decoding.decoders.domain.DomainDisconnectReplyMessageDecoder;
+import se.laz.casual.network.protocol.decoding.decoders.domain.DomainDisconnectRequestMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.queue.CasualDequeueReplyMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.queue.CasualDequeueRequestMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.queue.CasualEnqueueReplyMessageDecoder;
@@ -71,6 +73,10 @@ public final class CasualMessageDecoder
                 return (NetworkDecoder<T>) CasualDomainDiscoveryRequestMessageDecoder.of();
             case DOMAIN_DISCOVERY_REPLY:
                 return (NetworkDecoder<T>) CasualDomainDiscoveryReplyMessageDecoder.of();
+            case DOMAIN_DISCONNECT_REQUEST:
+                return (NetworkDecoder<T>) DomainDisconnectRequestMessageDecoder.of();
+            case DOMAIN_DISCONNECT_REPLY:
+                return (NetworkDecoder<T>) DomainDisconnectReplyMessageDecoder.of();
             case DOMAIN_CONNECT_REQUEST:
                 return (NetworkDecoder<T>) CasualDomainConnectRequestMessageDecoder.of();
             case DOMAIN_CONNECT_REPLY:

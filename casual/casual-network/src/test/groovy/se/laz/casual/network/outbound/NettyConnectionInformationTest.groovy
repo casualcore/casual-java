@@ -8,6 +8,7 @@ package se.laz.casual.network.outbound
 
 import io.netty.channel.Channel
 import io.netty.channel.socket.nio.NioSocketChannel
+import se.laz.casual.network.ProtocolVersion
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -22,7 +23,7 @@ class NettyConnectionInformationTest extends Specification
     @Shared
     String testDomainName = 'nifty'
     @Shared
-    long testProtocolVersion = 1
+    long testProtocolVersion = 1000
     @Shared
     Class<? extends Channel> testChannelClass = NioSocketChannel.class
     @Shared
@@ -37,7 +38,7 @@ class NettyConnectionInformationTest extends Specification
                                                  .withDomainId(domainId)
                                                  .withDomainName(domainName)
                                                  .withAddress(address)
-                                                 .withProtocolVersion(protocolVersion)
+                                                 .withProtocolVersion(ProtocolVersion.unmarshall(protocolVersion))
                                                  .build()
         then:
         null == instance
@@ -58,7 +59,7 @@ class NettyConnectionInformationTest extends Specification
                 .withDomainId(domainId)
                 .withDomainName(domainName)
                 .withAddress(address)
-                .withProtocolVersion(protocolVersion)
+                .withProtocolVersion(ProtocolVersion.unmarshall(protocolVersion))
                 .build()
         then:
         null != instance
@@ -84,7 +85,7 @@ class NettyConnectionInformationTest extends Specification
                     .withDomainId(domainId)
                     .withDomainName(domainName)
                     .withAddress(address)
-                    .withProtocolVersion(protocolVersion)
+                    .withProtocolVersion(ProtocolVersion.unmarshall(protocolVersion))
                     .build()
         } )
 

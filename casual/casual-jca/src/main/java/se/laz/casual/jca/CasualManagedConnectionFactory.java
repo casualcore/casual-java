@@ -5,6 +5,8 @@
  */
 package se.laz.casual.jca;
 
+import se.laz.casual.network.ProtocolVersion;
+
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
@@ -58,9 +60,9 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       this.portNumber = portNumber;
    }
 
-   public Long getCasualProtocolVersion()
+   public ProtocolVersion getCasualProtocolVersion()
    {
-      return casualProtocolVersion;
+      return ProtocolVersion.unmarshall(casualProtocolVersion);
    }
 
    public CasualManagedConnectionFactory setCasualProtocolVersion(Long casualProtocolVersion)

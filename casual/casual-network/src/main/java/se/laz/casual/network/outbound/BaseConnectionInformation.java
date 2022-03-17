@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.outbound;
 
+import se.laz.casual.network.ProtocolVersion;
+
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.UUID;
@@ -15,9 +17,9 @@ public abstract class BaseConnectionInformation
     private final InetSocketAddress address;
     private final UUID domainId;
     private final String domainName;
-    private long protocolVersion;
+    private ProtocolVersion protocolVersion;
     private final boolean logHandlerEnabled;
-    protected BaseConnectionInformation(final InetSocketAddress address, long protocolVersion, final UUID domainId, final String domainName, boolean logHandlerEnabled)
+    protected BaseConnectionInformation(final InetSocketAddress address, ProtocolVersion protocolVersion, final UUID domainId, final String domainName, boolean logHandlerEnabled)
     {
         this.address = address;
         this.protocolVersion = protocolVersion;
@@ -43,7 +45,7 @@ public abstract class BaseConnectionInformation
 
     public long getProtocolVersion()
     {
-        return protocolVersion;
+        return protocolVersion.getVersion();
     }
 
     public boolean isLogHandlerEnabled()

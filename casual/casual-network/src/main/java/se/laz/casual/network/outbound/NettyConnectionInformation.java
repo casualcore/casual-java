@@ -8,6 +8,7 @@ package se.laz.casual.network.outbound;
 
 import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import se.laz.casual.network.ProtocolVersion;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -20,7 +21,7 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
     private final Class<? extends Channel> channelClass;
     private final Correlator correlator;
 
-    private NettyConnectionInformation(InetSocketAddress address, long protocolVersion, UUID domainId, String domainName, Class<? extends Channel> channelClass, Correlator correlator, boolean logHandlerEnabled)
+    private NettyConnectionInformation(InetSocketAddress address, ProtocolVersion protocolVersion, UUID domainId, String domainName, Class<? extends Channel> channelClass, Correlator correlator, boolean logHandlerEnabled)
     {
         super(address, protocolVersion, domainId, domainName, logHandlerEnabled);
         this.channelClass = channelClass;
@@ -82,7 +83,7 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
         private InetSocketAddress address;
         private UUID domainId;
         private String domainName;
-        private long protocolVersion;
+        private ProtocolVersion protocolVersion;
         private Class<? extends Channel> channelClass;
         private Correlator correlator;
 
@@ -104,7 +105,7 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
             return this;
         }
 
-        public Builder withProtocolVersion(long protocolVersion)
+        public Builder withProtocolVersion(ProtocolVersion protocolVersion)
         {
             this.protocolVersion = protocolVersion;
             return this;

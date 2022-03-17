@@ -13,6 +13,7 @@ import io.netty.channel.ChannelPromise
 import io.netty.channel.embedded.EmbeddedChannel
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
@@ -36,7 +37,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         correlator = CorrelatorImpl.of()
         ci = NettyConnectionInformation.createBuilder()
                                                             .withAddress(new InetSocketAddress(3712))
-                                                            .withProtocolVersion(1000l)
+                                                            .withProtocolVersion(ProtocolVersion.VERSION_1_0)
                                                             .withDomainId(UUID.randomUUID())
                                                             .withDomainName('testDomain')
                                                             .withCorrelator(correlator)
