@@ -86,7 +86,10 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
         currentOffset += ConversationConnectRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize();
         final byte[] payloadData = Arrays.copyOfRange(data, currentOffset, currentOffset + serviceBufferPayloadSize);
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
-        serviceBufferPayload.add(payloadData);
+        if(payloadData.length > 0)
+        {
+            serviceBufferPayload.add(payloadData);
+        }
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
         return ConnectRequest.createBuilder()
                 .setExecution(execution)

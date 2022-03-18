@@ -15,6 +15,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.internal.network.NetworkConnection;
@@ -22,33 +23,40 @@ import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
+import se.laz.casual.network.protocol.messages.conversation.Request;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 
+import javax.enterprise.concurrent.ManagedExecutorService;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
-public final class NettyNetworkConnection implements NetworkConnection
+public final class NettyNetworkConnection implements NetworkConnection, ConversationClose
 {
     private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
     private final BaseConnectionInformation ci;
     private final Correlator correlator;
+    private final ConversationMessageStorage conversationMessageStorage;
     private final Channel channel;
     private final AtomicBoolean connected = new AtomicBoolean(true);
+    private final ManagedExecutorService managedExecutorService;
 
-    private NettyNetworkConnection(BaseConnectionInformation ci, Correlator correlator, Channel channel)
+    private NettyNetworkConnection(BaseConnectionInformation ci, Correlator correlator, Channel channel, ConversationMessageStorage conversationMessageStorage, ManagedExecutorService managedExecutorService)
     {
         this.ci = ci;
         this.correlator = correlator;
         this.channel = channel;
+        this.conversationMessageStorage = conversationMessageStorage;
+        this.managedExecutorService = managedExecutorService;
     }
 
     public static NetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
@@ -57,15 +65,17 @@ public final class NettyNetworkConnection implements NetworkConnection
         Objects.requireNonNull(ci, "network listener can not be null");
         EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         Correlator correlator = ci.getCorrelator();
+        ConversationMessageStorage conversationMessageStorage = ConversationMessageStorageImpl.of();
         OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenerIfNotConnected(channel, networkListener);
-        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
-        NettyNetworkConnection c = new NettyNetworkConnection(ci, correlator, ch);
-        ch.closeFuture().addListener(f -> handleClose(c, networkListener));
-        c.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
-        return c;
+        ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of( conversationMessageStorage);
+        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
+        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, EventLoopFactory.getManagedExecutorService());
+        ch.closeFuture().addListener(f -> handleClose(networkConnection, networkListener));
+        networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
+        return networkConnection;
     }
 
-    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)
+    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)
     {
         Bootstrap b = new Bootstrap()
             .group(workerGroup)
@@ -76,7 +86,7 @@ public final class NettyNetworkConnection implements NetworkConnection
                 @Override
                 protected void initChannel(SocketChannel ch)
                 {
-                    ch.pipeline().addLast(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), messageHandler, exceptionHandler);
+                    ch.pipeline().addLast(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), messageHandler, conversationMessageHandler, exceptionHandler);
                     if(enableLogHandler)
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevel.INFO));
@@ -127,6 +137,38 @@ public final class NettyNetworkConnection implements NetworkConnection
     }
 
     @Override
+    public <X extends CasualNetworkTransmittable> void send(CasualNWMessage<X> message)
+    {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        ChannelFuture cf = channel.writeAndFlush(message);
+        //this handles any exceptional behaviour when writing
+        cf.addListener(v -> {
+            if(!v.isSuccess())
+            {
+                future.completeExceptionally(new CasualConnectionException("NetttyNetworkConnection::send failed\nmsg: " + message, v.cause()));
+            }
+            else
+            {
+                future.complete(true);
+            }
+        });
+        future.join();
+    }
+
+    @Override
+    public CompletableFuture<CasualNWMessage<Request>> receive(UUID corrid)
+    {
+        CompletableFuture<CasualNWMessage<Request>> future = new CompletableFuture<>();
+        Optional<CasualNWMessage<Request>> maybeMessage = conversationMessageStorage.nextMessage(corrid);
+        maybeMessage.ifPresent(future::complete);
+        if(!future.isDone())
+        {
+            managedExecutorService.execute(() -> future.complete(conversationMessageStorage.takeFirst(corrid)));
+        }
+        return future;
+    }
+
+    @Override
     public void close()
     {
         connected.set(false);
@@ -174,5 +216,18 @@ public final class NettyNetworkConnection implements NetworkConnection
         sb.append(", channel=").append(channel);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public ConversationClose getConversationClose()
+    {
+        return this::close;
+    }
+
+
+    @Override
+    public void close(UUID conversationalCorrId)
+    {
+        ConversationMessageStorageImpl.remove(conversationalCorrId);
     }
 }

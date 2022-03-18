@@ -27,6 +27,7 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
 {
     private static final long serialVersionUID = 1L;
     private static final ServiceBuffer EMPTY_INSTANCE = new ServiceBuffer("", new ArrayList<>());
+    private static final ServiceBuffer NULL_INSTANCE = new ServiceBuffer("NULL", new ArrayList<>());
     private String type;
     private List<byte[]> payload;
     private ServiceBuffer(final String type, final List<byte[]> payload)
@@ -61,6 +62,11 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
     public static ServiceBuffer empty()
     {
         return EMPTY_INSTANCE;
+    }
+
+    public static ServiceBuffer nullBuffer()
+    {
+        return NULL_INSTANCE;
     }
 
     private static boolean notValidBufferData(String type, List<byte[]> payload)

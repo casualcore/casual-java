@@ -120,9 +120,10 @@ public class Request implements CasualNetworkTransmittable
 
     public static final class RequestBuilder
     {
+        private static final int NO_RESULT_CODE = -1;
         private UUID execution;
         private Duplex duplex;
-        private int resultCode;
+        private int resultCode = NO_RESULT_CODE;
         private long userCode;
         private ServiceBuffer serviceBuffer;
 
@@ -161,6 +162,10 @@ public class Request implements CasualNetworkTransmittable
 
         public Request build()
         {
+            Objects.requireNonNull(execution, "execution can not be null");
+            Objects.requireNonNull(serviceBuffer, "serviceBuffer can not be null");
+            Objects.requireNonNull(duplex, "duplex can not be null");
+            Objects.requireNonNull(serviceBuffer, "serviceBuffer can not be null");
             return new Request(execution, duplex, resultCode, userCode, serviceBuffer);
         }
     }

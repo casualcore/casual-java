@@ -109,7 +109,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
         private UUID execution;
         private String serviceName;
         private long timeout;
-        private String parentName;
+        private String parentName = "";
         private Xid xid;
         private Duplex duplex;
         private ServiceBuffer serviceBuffer;
@@ -161,6 +161,10 @@ public class ConnectRequest implements CasualNetworkTransmittable
 
         public ConnectRequest build()
         {
+            if(null == serviceBuffer)
+            {
+                serviceBuffer = ServiceBuffer.nullBuffer();
+            }
             return new ConnectRequest(execution, serviceName, timeout, parentName,xid, duplex, serviceBuffer);
         }
     }

@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca;
 
+import se.laz.casual.api.Conversation;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
 import se.laz.casual.api.flags.AtmiFlags;
@@ -14,11 +15,14 @@ import se.laz.casual.api.queue.MessageSelector;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.api.service.ServiceDetails;
+import se.laz.casual.jca.conversation.ConversationConnectCaller;
 import se.laz.casual.jca.queue.CasualQueueCaller;
 import se.laz.casual.jca.service.CasualServiceCaller;
 import se.laz.casual.network.connection.CasualConnectionException;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -32,6 +36,7 @@ public class CasualConnectionImpl implements CasualConnection
 {
     private CasualServiceCaller serviceCaller;
     private CasualQueueCaller queueCaller;
+    private ConversationConnectCaller conversationConnectCaller;
     private CasualManagedConnection managedConnection;
 
     /**
@@ -148,6 +153,24 @@ public class CasualConnectionImpl implements CasualConnection
         this.managedConnection = managedConnection;
     }
 
+    @Override
+    public Conversation tpconnect(String serviceName, Optional<CasualBuffer> data, Flag<AtmiFlags> flags)
+    {
+        Objects.requireNonNull(serviceName,"serviceName can not be null");
+        Objects.requireNonNull(data, "data can not be null");
+        Objects.requireNonNull(flags, "flags can not be null");
+        return getConversationConnectCaller().tpconnect(serviceName, data, flags);
+    }
+
+    private ConversationConnectCaller getConversationConnectCaller()
+    {
+        if ( conversationConnectCaller == null )
+        {
+            conversationConnectCaller = ConversationConnectCaller.of(getManagedConnection());
+        }
+        return conversationConnectCaller;
+    }
+
     CasualServiceCaller getCasualServiceCaller()
     {
         if( serviceCaller == null )
@@ -168,6 +191,8 @@ public class CasualConnectionImpl implements CasualConnection
         this.serviceCaller  = serviceCaller;
     }
 
+
+
     @Override
     public String toString()
     {
@@ -175,4 +200,5 @@ public class CasualConnectionImpl implements CasualConnection
                 "managedConnection=" + managedConnection +
                 '}';
     }
+
 }

@@ -23,6 +23,12 @@ public class CasualConnectionException extends CasualRuntimeException
     {
         super(t);
     }
+
+    public CasualConnectionException(String message, Throwable t)
+    {
+        super(message, t);
+    }
+
     public CasualConnectionException(String msg)
     {
         super(msg);

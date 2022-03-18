@@ -11,17 +11,24 @@ import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import io.netty.channel.embedded.EmbeddedChannel
+import se.laz.casual.api.buffer.type.JsonBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
+import se.laz.casual.api.conversation.Duplex
+import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.ProtocolVersion
+import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
+import se.laz.casual.network.protocol.messages.conversation.Request
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.util.concurrent.CompletableFuture
+import javax.enterprise.concurrent.ManagedExecutorService
+import java.util.concurrent.*
 
 class NettyNetworkConnectionTest extends Specification implements NetworkListener
 {
@@ -29,11 +36,14 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     @Shared NettyNetworkConnection instance
     @Shared NettyConnectionInformation ci
     @Shared Correlator correlator
+    @Shared ConversationMessageStorage conversationMessageStorage
     @Shared EmbeddedChannel ch
     private boolean casualDisconnected = false;
 
     def setup()
     {
+        TestExecutorService testExecutorService = new TestExecutorService()
+        conversationMessageStorage = ConversationMessageStorageImpl.of()
         correlator = CorrelatorImpl.of()
         ci = NettyConnectionInformation.createBuilder()
                                                             .withAddress(new InetSocketAddress(3712))
@@ -42,8 +52,9 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
                                                             .withDomainName('testDomain')
                                                             .withCorrelator(correlator)
                                                             .build()
-        ch = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator, Mock(OnNetworkError)))
-        instance = new NettyNetworkConnection(ci, correlator, ch)
+        def conversationMessageHandler = ConversationMessageHandler.of(conversationMessageStorage)
+        ch = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, Mock(OnNetworkError)))
+        instance = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, testExecutorService)
     }
 
     def 'Of with a null connection info throws NullPointerException.'()
@@ -72,6 +83,53 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         reply == m
     }
 
+    def 'send conversation request message, no message is stored'()
+    {
+       given:
+       CasualNWMessage<Request> requestMessage = CasualNWMessageImpl.of(UUID.randomUUID(), Request.createBuilder()
+               .setExecution(UUID.randomUUID())
+               .setDuplex(Duplex.RECEIVE)
+               .setServiceBuffer(ServiceBuffer.of(JsonBuffer.of('{"hello":"world"}')))
+               .build())
+       when:
+       instance.send(requestMessage)
+       then:
+       conversationMessageStorage.numberOfConversations() == 0
+    }
+
+   def 'send fail'()
+   {
+      given:
+      CasualNWMessage<Request> requestMessage = Mock()
+      when:
+      instance.send(requestMessage)
+      then:
+      def e = thrown( CompletionException )
+      e.cause.class == CasualConnectionException
+   }
+
+   def 'recv one conversation request message'()
+   {
+      given:
+      def corrId = UUID.randomUUID()
+      CasualNWMessage<Request> requestMessage = CasualNWMessageImpl.of(corrId, Request.createBuilder()
+              .setExecution(UUID.randomUUID())
+              .setDuplex(Duplex.SEND)
+              .setResultCode(0)
+              .setServiceBuffer(ServiceBuffer.empty())
+              .build())
+      when:
+      ch.writeOneInbound(requestMessage)
+      then:
+      conversationMessageStorage.size(corrId) == 1
+      when:
+      CompletableFuture<CasualNWMessage<Request>> future = instance.receive(corrId)
+      def inboundMsg = future.join()
+      then:
+      inboundMsg == requestMessage
+      conversationMessageStorage.size(corrId) == 0
+   }
+
     def 'close'()
     {
         setup:
@@ -83,7 +141,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         channelFuture.syncUninterruptibly() >> {
             channelFuture
         }
-        instance = new NettyNetworkConnection(ci, correlator, channel)
+        instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, Mock(ManagedExecutorService))
         when:
         instance.close()
         then:
@@ -95,7 +153,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     {
         given:
         def channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator, Mock(OnNetworkError)))
-        def newInstance = new NettyNetworkConnection(ci, correlator, channel)
+        def newInstance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, Mock(ManagedExecutorService))
         def future = channel.closeFuture().addListener({ f -> se.laz.casual.network.outbound.NettyNetworkConnection.handleClose(newInstance, this) })
         when:
         future.channel().disconnect()
@@ -140,7 +198,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         onNetworkError.notifyListenerIfNotConnected(channel) >> {
             networkError = true
         }
-        def localInstance = new NettyNetworkConnection(ci, correlator, channel)
+        def localInstance = new NettyNetworkConnection(ci, correlator, channel, Mock(ConversationMessageStorage), Mock(ManagedExecutorService))
         CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> requestMessage = createRequestMessage()
         when:
         localInstance.request(requestMessage)
@@ -176,4 +234,83 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     {
         casualDisconnected = true;
     }
+
+   class TestExecutorService implements ManagedExecutorService
+   {
+      @Override
+      void shutdown()
+      {}
+
+      @Override
+      List<Runnable> shutdownNow()
+      {
+         return null
+      }
+
+      @Override
+      boolean isShutdown()
+      {
+         return false
+      }
+
+      @Override
+      boolean isTerminated()
+      {
+         return false
+      }
+
+      @Override
+      boolean awaitTermination(long l, TimeUnit timeUnit) throws InterruptedException
+      {
+         return false
+      }
+
+      @Override
+      def <T> java.util.concurrent.Future<T> submit(Callable<T> callable)
+      {
+         return null
+      }
+
+      @Override
+      def <T> java.util.concurrent.Future<T> submit(Runnable runnable, T t)
+      {
+         return null
+      }
+
+      @Override
+      java.util.concurrent.Future<?> submit(Runnable runnable)
+      {
+         return null
+      }
+
+      @Override
+      def <T> List<java.util.concurrent.Future<T>> invokeAll(Collection<? extends Callable<T>> collection) throws InterruptedException
+      {
+         return null
+      }
+
+      @Override
+      def <T> List<java.util.concurrent.Future<T>> invokeAll(Collection<? extends Callable<T>> collection, long l, TimeUnit timeUnit) throws InterruptedException
+      {
+         return null
+      }
+
+      @Override
+      def <T> T invokeAny(Collection<? extends Callable<T>> collection) throws InterruptedException, ExecutionException
+      {
+         return null
+      }
+
+      @Override
+      def <T> T invokeAny(Collection<? extends Callable<T>> collection, long l, TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException
+      {
+         return null
+      }
+
+      @Override
+      void execute(Runnable runnable)
+      {
+         CompletableFuture.runAsync(runnable)
+      }
+   }
 }
