@@ -6,6 +6,8 @@
 
 package se.laz.casual.api.buffer.type.fielded;
 
+import se.laz.casual.api.buffer.type.fielded.json.CasualFieldedLookupException;
+
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -26,6 +28,14 @@ public enum FieldType
     private final String name;
     private final Class<?> clazz;
     private static final String FIELD_TYPE = "FieldType: ";
+    private static final Short DEFAULT_VALUE_SHORT = 0;
+    private static final Long DEFAULT_VALUE_LONG = 0L;
+    private static final Character DEFAULT_VALUE_CHAR = Character.MIN_VALUE;
+    private static final Float DEFAULT_VALUE_FLOAT = 0.0f;
+    private static final Double DEFAULT_VALUE_DOUBLE = 0.0;
+    private static final String DEFAULT_VALUE_STRING = "";
+    private static final byte[] DEFAULT_VALUE_BINARY = new byte[0];
+
     FieldType(int v, String name, Class<?> clazz)
     {
         this.v = v;
@@ -119,5 +129,29 @@ public enum FieldType
     public Class<?> getClazz()
     {
         return clazz;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T defaultValue()
+    {
+        switch(this)
+        {
+            case CASUAL_FIELD_LONG:
+                return (T)DEFAULT_VALUE_LONG;
+            case CASUAL_FIELD_FLOAT:
+                return (T)DEFAULT_VALUE_FLOAT;
+            case CASUAL_FIELD_DOUBLE:
+                return (T)DEFAULT_VALUE_DOUBLE;
+            case CASUAL_FIELD_CHAR:
+                return (T)DEFAULT_VALUE_CHAR;
+            case CASUAL_FIELD_SHORT:
+                return (T)DEFAULT_VALUE_SHORT;
+            case CASUAL_FIELD_BINARY:
+                return (T)DEFAULT_VALUE_BINARY;
+            case CASUAL_FIELD_STRING:
+                return (T)DEFAULT_VALUE_STRING;
+            default:
+                throw new CasualFieldedLookupException("No defaultValue available for: " + this);
+        }
     }
 }

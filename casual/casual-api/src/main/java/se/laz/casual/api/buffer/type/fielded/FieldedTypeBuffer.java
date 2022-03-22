@@ -33,6 +33,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
 {
     private static final long serialVersionUID = 1L;
     private Map<String, List<FieldedData<?>>> m;
+    private boolean allowNullUseDefault = false;
     private FieldedTypeBuffer(final Map<String, List<FieldedData<?>>> m)
     {
         this.m = m;
@@ -54,12 +55,49 @@ public final class FieldedTypeBuffer implements CasualBuffer
     }
 
     /**
+     * Creates a new buffer that allows for writing default values when a user provides a null value
+     *
+     * @param l fielded encoded data
+     * @return a new buffer
+     */
+    public static FieldedTypeBuffer createAllowNullUseDefault(final List<byte[]> l)
+    {
+        FieldedTypeBuffer buffer = create(l);
+        buffer.allowNullUseDefault = true;
+        return buffer;
+    }
+
+    /**
      * Creates a new empty buffer
      * @return a new empty buffer
      */
     public static FieldedTypeBuffer create()
     {
         return new FieldedTypeBuffer(new HashMap<>());
+    }
+
+    /**
+     * Creates a new empty buffer that allows for writing default values when a user provides a null value
+     * @return a new empty buffer
+     */
+    public static FieldedTypeBuffer createAllowNullUseDefault()
+    {
+        FieldedTypeBuffer buffer = create();
+        buffer.allowNullUseDefault = true;
+        return buffer;
+    }
+
+    /**
+     * Creates a copy of a buffer
+     * Note that there is no deep copying going on as the keys and values are immutable
+     * @param b the buffer to copy
+     * @return a new buffer
+     */
+    public static FieldedTypeBuffer ofAllowNullUseDefault(FieldedTypeBuffer b)
+    {
+        FieldedTypeBuffer buffer = of(b);
+        buffer.allowNullUseDefault = true;
+        return buffer;
     }
 
     /**
@@ -334,25 +372,16 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return l.stream().collect(Collectors.toList());
     }
 
-    public <T> FieldedTypeBuffer writeAll(final String name, final List<T> values)
+    private <T> FieldedTypeBuffer writeAll(final String name, final List<T> values)
     {
         for(T v : values)
         {
-            write(name, v);
+            writeListItem(name, v);
         }
         return this;
     }
 
-    /**
-     * Write {@code value} by {@code name} to buffer
-     * Note that int is widened to long as int is not a {@link FieldType}
-     * @throws CasualFieldedLookupException in case the {@code name} is unknown
-     * @param name the name
-     * @param value the value
-     * @param <T> the type of the value
-     * @return this buffer
-     */
-    public <T> FieldedTypeBuffer write(final String name, final T value)
+    private <T> FieldedTypeBuffer writeListItem(final String name, final T value)
     {
         final CasualField f = CasualFieldedLookup.forName(name).orElseThrow(createNameMissingException(name, Optional.empty()));
         final Class<?> clazz = f.getType().getClazz();
@@ -375,6 +404,89 @@ public final class FieldedTypeBuffer implements CasualBuffer
         }
         List<FieldedData<?>> lf = m.get(f.getName());
         lf.add(FieldedDataImpl.of(value, FieldType.unmarshall(valueClazz)));
+        return this;
+    }
+
+    public FieldedTypeBuffer write(final String name, final Object value)
+    {
+        return writeMaybeAllowNull(name, value, Optional.of(value.getClass()));
+    }
+
+    public FieldedTypeBuffer write(final String name, final Integer value)
+    {
+        return writeMaybeAllowNull(name, value, Optional.of(Integer.class));
+    }
+
+    public FieldedTypeBuffer write(final String name, final Long value)
+    {
+        return writeMaybeAllowNull(name, value, Optional.of(Long.class));
+    }
+
+    public FieldedTypeBuffer write(final String name, final Short value)
+    {
+        return writeMaybeAllowNull(name, value, Optional.of(Short.class));
+    }
+
+    public FieldedTypeBuffer write(final String name, final Character value)
+    {
+        return writeMaybeAllowNull(name, value, Optional.of(Character.class));
+    }
+
+    public FieldedTypeBuffer write(final String name, final byte[] value)
+    {
+        return writeMaybeAllowNull(name, value, Optional.of(byte[].class));
+    }
+
+    public FieldedTypeBuffer write(final String name, final Float value)
+    {
+        return writeMaybeAllowNull(name, value, Optional.of(Float.class));
+    }
+
+    public FieldedTypeBuffer write(final String name, final Double value)
+    {
+        return writeMaybeAllowNull(name, value, Optional.of(Double.class));
+    }
+
+    public FieldedTypeBuffer write(final String name, final String value)
+    {
+        return writeMaybeAllowNull(name, value, Optional.of(String.class));
+    }
+
+    /**
+     * Write {@code value} by {@code name} to buffer
+     * Note that int is widened to long as int is not a {@link FieldType}
+     * @throws CasualFieldedLookupException in case the {@code name} is unknown
+     * @param name the name
+     * @param value the value
+     * @param <T> the type of the value
+     * @return this buffer
+     */
+    private <T> FieldedTypeBuffer writeMaybeAllowNull(final String name, final T value, Optional<Class<?>> providedValueClazz)
+    {
+        T theValue = value;
+        final CasualField f = CasualFieldedLookup.forName(name).orElseThrow(createNameMissingException(name, Optional.empty()));
+        final Class<?> clazz = f.getType().getClazz();
+        final Class<?> valueClazz = providedValueClazz.orElseGet(() -> value.getClass());
+        final FieldType fieldType = FieldType.unmarshall((valueClazz.equals(Integer.class)) ? Long.class : valueClazz);
+        theValue = (null == theValue && allowNullUseDefault) ? fieldType.defaultValue() : theValue;
+        if(!clazz.equals(valueClazz))
+        {
+            // int is widened to long
+            if (valueClazz.equals(Integer.class) && clazz.equals(Long.class))
+            {
+                return writeMaybeAllowNull(name, ((Integer)theValue).longValue(), Optional.empty());
+            }
+            else
+            {
+                throw new CasualFieldedLookupException("class: " + valueClazz + " is not compatible with field class: " + clazz);
+            }
+        }
+        if (!m.containsKey(f.getName()))
+        {
+            m.put(f.getName(), new ArrayList<>());
+        }
+        List<FieldedData<?>> lf = m.get(f.getName());
+        lf.add(FieldedDataImpl.of(theValue, fieldType));
         return this;
     }
 
