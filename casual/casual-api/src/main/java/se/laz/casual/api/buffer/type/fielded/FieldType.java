@@ -33,7 +33,7 @@ public enum FieldType
     private static final Integer DEFAULT_VALUE_INTEGER = 0;
     private static final Character DEFAULT_VALUE_CHAR = Character.MIN_VALUE;
     private static final Float DEFAULT_VALUE_FLOAT = 0.0f;
-    private static final Double DEFAULT_VALUE_DOUBLE = 0.0;
+    private static final Double DEFAULT_VALUE_DOUBLE = 0.0d;
     private static final String DEFAULT_VALUE_STRING = "";
     private static final byte[] DEFAULT_VALUE_BINARY = new byte[0];
 

@@ -64,7 +64,7 @@ public class FieldedNullWriteTest
     {
         String name = "FLD_DOUBLE1";
         Double value = null;
-        Double expectedValue = 0.0;
+        Double expectedValue = 0.0d;
         FieldedTypeBuffer writeBuffer = FieldedTypeBuffer.createAllowNullUseDefault();
         FieldedTypeBuffer fb = FieldedTypeBuffer.create(writeBuffer.write(name, value).encode());
         Double readValue = fb.read(name).getData(Double.class);

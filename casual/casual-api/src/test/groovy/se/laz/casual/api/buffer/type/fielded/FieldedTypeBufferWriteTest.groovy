@@ -22,7 +22,7 @@ class FieldedTypeBufferWriteTest extends Specification
         name         | v
         'FLD_SHORT1' | 42 as short
         'FLD_LONG1'  | 42l
-        'FLD_LONG2'  | 42
+        'FLD_LONG2'  | 42 as int
         'FLD_CHAR1'  | '0' as char
         'FLD_CHAR2'  | 'ö' as char
         'FLD_FLOAT3' | 128f
