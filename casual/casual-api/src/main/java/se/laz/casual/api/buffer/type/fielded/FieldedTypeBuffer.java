@@ -55,7 +55,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
     }
 
     /**
-     * Creates a new buffer that allows for writing default values when a user provides a null value
+     * Creates a new buffer that allows for writing default values when a user writes a null value
      *
      * @param l fielded encoded data
      * @return a new buffer
@@ -77,7 +77,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
     }
 
     /**
-     * Creates a new empty buffer that allows for writing default values when a user provides a null value
+     * Creates a new empty buffer that allows for writing default values when a user writes a null value
      * @return a new empty buffer
      */
     public static FieldedTypeBuffer createAllowNullUseDefault()
@@ -90,6 +90,9 @@ public final class FieldedTypeBuffer implements CasualBuffer
     /**
      * Creates a copy of a buffer
      * Note that there is no deep copying going on as the keys and values are immutable
+     *
+     * Allows for writing default values when a user writes a null value
+     *
      * @param b the buffer to copy
      * @return a new buffer
      */

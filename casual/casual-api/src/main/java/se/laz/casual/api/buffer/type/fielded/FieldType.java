@@ -6,7 +6,7 @@
 
 package se.laz.casual.api.buffer.type.fielded;
 
-import se.laz.casual.api.buffer.type.fielded.json.CasualFieldedLookupException;
+import se.laz.casual.api.CasualTypeException;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -152,7 +152,7 @@ public enum FieldType
             case CASUAL_FIELD_STRING:
                 return (T)DEFAULT_VALUE_STRING;
             default:
-                throw new CasualFieldedLookupException("No defaultValue available for: " + this);
+                throw new CasualTypeException("No defaultValue available for: " + this);
         }
     }
 
