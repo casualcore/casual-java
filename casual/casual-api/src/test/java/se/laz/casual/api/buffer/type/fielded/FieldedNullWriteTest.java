@@ -7,9 +7,10 @@
 package se.laz.casual.api.buffer.type.fielded;
 
 import org.junit.Test;
-
 import java.math.BigDecimal;
-import java.util.Arrays;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Testing enabling developers to write null to fielded even though it can not be transported.
@@ -27,12 +28,12 @@ public class FieldedNullWriteTest
         FieldedTypeBuffer writeBuffer = FieldedTypeBuffer.createAllowNullUseDefault();
         FieldedTypeBuffer fb = FieldedTypeBuffer.create(writeBuffer.write(name, value).encode());
         Short readValue = fb.read(name).getData(Short.class);
-        assert readValue == expectedValue :  "does not match";
+        assertEquals(readValue, expectedValue);
 
         name = "FLD_SHORT2";
         fb = FieldedTypeBuffer.create(writeBuffer.write(name, value).encode());
         readValue = fb.read(name).getData(Short.class);
-        assert readValue == expectedValue :  "does not match";
+        assertEquals(readValue, expectedValue);
     }
 
     @Test
@@ -44,7 +45,7 @@ public class FieldedNullWriteTest
         FieldedTypeBuffer writeBuffer = FieldedTypeBuffer.createAllowNullUseDefault();
         FieldedTypeBuffer fb = FieldedTypeBuffer.create(writeBuffer.write(name, value).encode());
         Long readValue = fb.read(name).getData(Long.class);
-        assert readValue == expectedValue :  "does not match";
+        assertEquals(readValue, expectedValue);
     }
 
     @Test
@@ -56,7 +57,7 @@ public class FieldedNullWriteTest
         FieldedTypeBuffer writeBuffer = FieldedTypeBuffer.createAllowNullUseDefault();
         FieldedTypeBuffer fb = FieldedTypeBuffer.create(writeBuffer.write(name, value).encode());
         Integer readValue = fb.read(name).getData(Integer.class);
-        assert readValue == expectedValue :  "does not match";
+        assertEquals(readValue, expectedValue);
     }
 
     @Test
@@ -70,7 +71,7 @@ public class FieldedNullWriteTest
         Double readValue = fb.read(name).getData(Double.class);
         BigDecimal actualAsBigDecimal = BigDecimal.valueOf(readValue);
         BigDecimal expectedAsBigDecimal = BigDecimal.valueOf(expectedValue);
-        assert expectedAsBigDecimal.equals(actualAsBigDecimal) :  "does not match";
+        assertEquals(expectedAsBigDecimal, actualAsBigDecimal);
     }
 
     @Test
@@ -84,7 +85,7 @@ public class FieldedNullWriteTest
         Float readValue = fb.read(name).getData(Float.class);
         BigDecimal actualAsBigDecimal = BigDecimal.valueOf(readValue);
         BigDecimal expectedAsBigDecimal = BigDecimal.valueOf(expectedValue);
-        assert expectedAsBigDecimal.equals(actualAsBigDecimal) :  "does not match";
+        assertEquals(expectedAsBigDecimal, actualAsBigDecimal);
     }
 
     @Test
@@ -96,7 +97,7 @@ public class FieldedNullWriteTest
         FieldedTypeBuffer writeBuffer = FieldedTypeBuffer.createAllowNullUseDefault();
         FieldedTypeBuffer fb = FieldedTypeBuffer.create(writeBuffer.write(name, value).encode());
         String readValue = fb.read(name).getData(String.class);
-        assert expectedValue.equals(readValue) :  "does not match";
+        assertEquals(readValue, expectedValue);
     }
 
     @Test
@@ -108,7 +109,7 @@ public class FieldedNullWriteTest
         FieldedTypeBuffer writeBuffer = FieldedTypeBuffer.createAllowNullUseDefault();
         FieldedTypeBuffer fb = FieldedTypeBuffer.create(writeBuffer.write(name, value).encode());
         Character readValue = fb.read(name).getData(Character.class);
-        assert expectedValue.equals(readValue) :  "does not match";
+        assertEquals(readValue, expectedValue);
     }
 
     @Test
@@ -120,7 +121,7 @@ public class FieldedNullWriteTest
         FieldedTypeBuffer writeBuffer = FieldedTypeBuffer.createAllowNullUseDefault();
         FieldedTypeBuffer fb = FieldedTypeBuffer.create(writeBuffer.write(name, value).encode());
         byte[] readValue = fb.read(name).getData(byte[].class);
-        assert Arrays.equals(expectedValue, readValue) :  "does not match";
+        assertArrayEquals(readValue, expectedValue);
     }
 
 }

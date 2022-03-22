@@ -463,19 +463,25 @@ public final class FieldedTypeBuffer implements CasualBuffer
      */
     private <T> FieldedTypeBuffer writeMaybeAllowNull(final String name, final T value, Optional<Class<?>> providedValueClazz)
     {
-        T theValue = value;
+        T localValue = value;
         final CasualField f = CasualFieldedLookup.forName(name).orElseThrow(createNameMissingException(name, Optional.empty()));
         final Class<?> clazz = f.getType().getClazz();
+        // We really want lazy evaluation here since value can be null
+        @SuppressWarnings("squid:S1612")
         final Class<?> valueClazz = providedValueClazz.orElseGet(() -> value.getClass());
         final boolean isIntegerValue = valueClazz.equals(Integer.class);
         final FieldType fieldType = FieldType.unmarshall((isIntegerValue) ? Long.class : valueClazz);
-        theValue = (!isIntegerValue && null == theValue && allowNullUseDefault) ? fieldType.defaultValue() : (isIntegerValue && null == theValue && allowNullUseDefault) ? fieldType.defaultValueInteger() : theValue;
+        localValue = maybeDefaultValue(isIntegerValue, localValue, fieldType);
         if(!clazz.equals(valueClazz))
         {
             // int is widened to long
             if (valueClazz.equals(Integer.class) && clazz.equals(Long.class))
             {
-                return writeMaybeAllowNull(name, ((Integer)theValue).longValue(), Optional.empty());
+                if(null == localValue)
+                {
+                    throw new NullPointerException("value is not allowed to be null");
+                }
+                return writeMaybeAllowNull(name, ((Integer)localValue).longValue(), Optional.empty());
             }
             else
             {
@@ -487,8 +493,17 @@ public final class FieldedTypeBuffer implements CasualBuffer
             m.put(f.getName(), new ArrayList<>());
         }
         List<FieldedData<?>> lf = m.get(f.getName());
-        lf.add(FieldedDataImpl.of(theValue, fieldType));
+        lf.add(FieldedDataImpl.of(localValue, fieldType));
         return this;
+    }
+
+    private <T> T maybeDefaultValue(boolean isIntegerValue, T theValue, FieldType fieldType)
+    {
+        if(null == theValue && allowNullUseDefault)
+        {
+            return isIntegerValue ? fieldType.defaultValueInteger() : fieldType.defaultValue();
+        }
+        return theValue;
     }
 
     @Override
