@@ -467,8 +467,9 @@ public final class FieldedTypeBuffer implements CasualBuffer
         final CasualField f = CasualFieldedLookup.forName(name).orElseThrow(createNameMissingException(name, Optional.empty()));
         final Class<?> clazz = f.getType().getClazz();
         final Class<?> valueClazz = providedValueClazz.orElseGet(() -> value.getClass());
-        final FieldType fieldType = FieldType.unmarshall((valueClazz.equals(Integer.class)) ? Long.class : valueClazz);
-        theValue = (null == theValue && allowNullUseDefault) ? fieldType.defaultValue() : theValue;
+        final boolean isIntegerValue = valueClazz.equals(Integer.class);
+        final FieldType fieldType = FieldType.unmarshall((isIntegerValue) ? Long.class : valueClazz);
+        theValue = (!isIntegerValue && null == theValue && allowNullUseDefault) ? fieldType.defaultValue() : (isIntegerValue && null == theValue && allowNullUseDefault) ? fieldType.defaultValueInteger() : theValue;
         if(!clazz.equals(valueClazz))
         {
             // int is widened to long

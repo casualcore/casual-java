@@ -30,6 +30,7 @@ public enum FieldType
     private static final String FIELD_TYPE = "FieldType: ";
     private static final Short DEFAULT_VALUE_SHORT = 0;
     private static final Long DEFAULT_VALUE_LONG = 0L;
+    private static final Integer DEFAULT_VALUE_INTEGER = 0;
     private static final Character DEFAULT_VALUE_CHAR = Character.MIN_VALUE;
     private static final Float DEFAULT_VALUE_FLOAT = 0.0f;
     private static final Double DEFAULT_VALUE_DOUBLE = 0.0;
@@ -153,5 +154,11 @@ public enum FieldType
             default:
                 throw new CasualFieldedLookupException("No defaultValue available for: " + this);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T defaultValueInteger()
+    {
+        return (T)DEFAULT_VALUE_INTEGER;
     }
 }
