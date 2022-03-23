@@ -7,7 +7,7 @@
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '1.0.76-beta'
+version = '1.0.77-beta'
 
 
 ext.casual_caller_app_version = '1.2.4'
@@ -24,5 +24,5 @@ ext.libs = [
   // for spock
   groovy_all: 'org.codehaus.groovy:groovy-all:2.5+',
   spock_core: 'org.spockframework:spock-core:1.3-groovy-2.5',
-  cglib_nodep: 'cglib:cglib-nodep:3.2.4'
+  cglib_nodep: 'cglib:cglib-nodep:3.2.4',
 ]
