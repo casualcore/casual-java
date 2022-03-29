@@ -172,16 +172,10 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     public void close()
     {
         connected.set(false);
-        channel.disconnect().syncUninterruptibly().addListener(futureListener -> {
-            if(futureListener.isSuccess())
-            {
-                LOG.info(() -> "network connection " + this + " closed");
-            }
-            else
-            {
-                LOG.info(() -> "network connection close failed: " + futureListener.cause());
-            }
-        });
+        if(channel.isOpen())
+        {
+            channel.close();
+        }
     }
 
     @Override
