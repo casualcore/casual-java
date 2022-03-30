@@ -65,13 +65,12 @@ public class ConnectionFactoryEntry
         LOG.finest(() -> "Invalidated CasualConnection with jndiName=" + jndiName);
     }
 
+    //Note: due to try with resources usage where we never use the resource
+    @SuppressWarnings("try")
     public void validate()
     {
-        try
+        try(CasualConnection con = connectionFactory.getConnection())
         {
-            CasualConnection con = connectionFactory.getConnection();
-            con.close();
-
             // We just want to check that a connection could be established to check connectivity
             valid = true;
             LOG.finest(() -> "Successfully validated CasualConnection with jndiName=" + jndiName);
