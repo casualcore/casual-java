@@ -37,7 +37,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     @Shared NettyConnectionInformation ci
     @Shared Correlator correlator
     @Shared ConversationMessageStorage conversationMessageStorage
-    @Shared EmbeddedChannel ch
+    @Shared EmbeddedChannel channel
     private boolean casualDisconnected = false;
 
     def setup()
@@ -53,8 +53,8 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
                                                             .withCorrelator(correlator)
                                                             .build()
         def conversationMessageHandler = ConversationMessageHandler.of(conversationMessageStorage)
-        ch = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, Mock(OnNetworkError)))
-        instance = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, testExecutorService)
+        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, Mock(OnNetworkError)))
+        instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, testExecutorService)
     }
 
     def 'Of with a null connection info throws NullPointerException.'()
@@ -75,11 +75,11 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> m = createRequestMessage()
         when:
         CompletableFuture<CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage>> f = instance.request(m)
-        ch.writeOneInbound(m)
+        channel.writeOneInbound(m)
         CasualNWMessageImpl<CasualServiceCallReplyMessage> reply = f.get()
         then:
         noExceptionThrown()
-        ch.outboundMessages().size() == 1
+        channel.outboundMessages().size() == 1
         reply == m
     }
 
@@ -119,7 +119,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
               .setServiceBuffer(ServiceBuffer.empty())
               .build())
       when:
-      ch.writeOneInbound(requestMessage)
+      channel.writeOneInbound(requestMessage)
       then:
       conversationMessageStorage.size(corrId) == 1
       when:
@@ -134,13 +134,10 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     {
         setup:
         def channel = Mock(Channel)
-        def channelFuture = Mock(ChannelFuture)
-        1 * channel.disconnect() >> {
-            channelFuture
+        1 * channel.isOpen() >> {
+           return true
         }
-        channelFuture.syncUninterruptibly() >> {
-            channelFuture
-        }
+        1 * channel.close()
         instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, Mock(ManagedExecutorService))
         when:
         instance.close()
