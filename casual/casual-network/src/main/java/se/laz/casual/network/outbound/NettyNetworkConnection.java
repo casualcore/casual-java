@@ -72,6 +72,7 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, EventLoopFactory.getManagedExecutorService());
         ch.closeFuture().addListener(f -> handleClose(networkConnection, networkListener));
         networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
+        LOG.finest(() -> networkConnection + " connected to: " + ci.getAddress());
         return networkConnection;
     }
 
@@ -171,9 +172,11 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     @Override
     public void close()
     {
+        LOG.finest(() -> this + " -> close called by appserver");
         connected.set(false);
         if(channel.isOpen())
         {
+            LOG.finest(() -> this + " network connection was open, closing");
             channel.close();
         }
     }
