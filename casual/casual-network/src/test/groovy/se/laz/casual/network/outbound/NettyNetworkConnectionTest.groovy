@@ -134,9 +134,6 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     {
         setup:
         def channel = Mock(Channel)
-        1 * channel.isOpen() >> {
-           return true
-        }
         1 * channel.close()
         instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, Mock(ManagedExecutorService))
         when:
