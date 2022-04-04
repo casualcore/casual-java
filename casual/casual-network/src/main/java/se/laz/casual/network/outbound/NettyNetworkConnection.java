@@ -172,13 +172,9 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     @Override
     public void close()
     {
-        LOG.finest(() -> this + " -> close called by appserver");
         connected.set(false);
-        if(channel.isOpen())
-        {
-            LOG.finest(() -> this + " network connection was open, closing");
-            channel.close();
-        }
+        LOG.finest(() -> this + " network connection close called by appserver, closing");
+        channel.close();
     }
 
     @Override
