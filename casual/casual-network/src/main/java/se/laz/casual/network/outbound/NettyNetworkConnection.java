@@ -70,9 +70,9 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of( conversationMessageStorage);
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, EventLoopFactory.getManagedExecutorService());
+        LOG.finest(() -> networkConnection + " connected to: " + ci.getAddress());
         ch.closeFuture().addListener(f -> handleClose(networkConnection, networkListener));
         networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
-        LOG.finest(() -> networkConnection + " connected to: " + ci.getAddress());
         return networkConnection;
     }
 
@@ -95,6 +95,7 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
                     }
                 }
             });
+        LOG.finest(() -> "about to connect to: " + address);
         return b.connect(address).syncUninterruptibly().channel();
     }
 
@@ -115,7 +116,7 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     @Override
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message)
     {
-        LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)));
+        LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
         CompletableFuture<CasualNWMessage<T>> f = new CompletableFuture<>();
         if(!channel.isActive())
         {
@@ -192,10 +193,14 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
                                                                                             .withProtocols(Arrays.asList(version))
                                                                                             .build();
         CasualNWMessage<CasualDomainConnectRequestMessage> nwMessage = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage);
+        LOG.finest(() -> "about to send handshake: " + this);
         CompletableFuture<CasualNWMessage<CasualDomainConnectReplyMessage>> replyEnvelopeFuture = request(nwMessage);
+        LOG.finest(() -> "handshake sent: " + this);
         CasualNWMessage<CasualDomainConnectReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
+        LOG.finest(() -> "received handshake reply: " + this);
         if(replyEnvelope.getMessage().getProtocolVersion() != version)
         {
+            LOG.warning(() -> "protocol version mismatch, requesting:  " + version + " reply version: " + replyEnvelope.getMessage().getProtocolVersion());
             throw new CasualConnectionException("wanted protocol version " + version + " is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion());
         }
     }
