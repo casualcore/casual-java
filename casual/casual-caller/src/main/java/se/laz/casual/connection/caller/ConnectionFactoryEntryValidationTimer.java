@@ -60,9 +60,15 @@ public class ConnectionFactoryEntryValidationTimer
     public void validateConnectionFactories()
     {
         LOG.finest("Running ConnectionFactoryEntryValidationTimer");
-
-        connectionFactoryProvider.get().stream()
-                .filter(ConnectionFactoryEntry::isInvalid)
-                .forEach(ConnectionFactoryEntry::validate);
+        try
+        {
+            connectionFactoryProvider.get().stream()
+                                     .filter(ConnectionFactoryEntry::isInvalid)
+                                     .forEach(ConnectionFactoryEntry::validate);
+        }
+        catch(Exception e)
+        {
+            LOG.warning(() -> "failed validating connection factories: " + e);
+        }
     }
 }
