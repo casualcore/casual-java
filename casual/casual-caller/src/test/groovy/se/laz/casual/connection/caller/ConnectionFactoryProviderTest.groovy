@@ -14,15 +14,10 @@ class ConnectionFactoryProviderTest extends Specification
    {
       given:
       ConnectionFactoryEntry entry = Mock(ConnectionFactoryEntry)
-      StaleConnectionFactoryHandler staleConnectionFactoryHandler = Mock(StaleConnectionFactoryHandler)
-      staleConnectionFactoryHandler.revalidateConnectionFactories(_) >> {
-         List<ConnectionFactoryEntry> connectionFactories ->
-            return connectionFactories
-      }
       ConnectionFactoryFinder connectionFactoryFinder = Mock(ConnectionFactoryFinder)
       connectionFactoryFinder.findConnectionFactory(_) >>> [[entry]]
       // spying to verify the interaction
-      ConnectionFactoryProvider instance = Spy(ConnectionFactoryProvider, constructorArgs: [staleConnectionFactoryHandler, connectionFactoryFinder]) {
+      ConnectionFactoryProvider instance = Spy(ConnectionFactoryProvider, constructorArgs: [connectionFactoryFinder]) {
          1 * initialize()
       }
       // @PostConstruct
@@ -37,15 +32,10 @@ class ConnectionFactoryProviderTest extends Specification
    {
       given:
       ConnectionFactoryEntry entry = Mock(ConnectionFactoryEntry)
-      StaleConnectionFactoryHandler staleConnectionFactoryHandler = Mock(StaleConnectionFactoryHandler)
-      staleConnectionFactoryHandler.revalidateConnectionFactories(_) >> {
-         List<ConnectionFactoryEntry> connectionFactories ->
-            return connectionFactories
-      }
       ConnectionFactoryFinder connectionFactoryFinder = Mock(ConnectionFactoryFinder)
       connectionFactoryFinder.findConnectionFactory(_) >>> [[], [entry]]
       // spying to verify the interactions
-      ConnectionFactoryProvider instance = Spy(ConnectionFactoryProvider, constructorArgs: [staleConnectionFactoryHandler, connectionFactoryFinder]) {
+      ConnectionFactoryProvider instance = Spy(ConnectionFactoryProvider, constructorArgs: [connectionFactoryFinder]) {
          2 * initialize()
       }
       // @PostConstruct

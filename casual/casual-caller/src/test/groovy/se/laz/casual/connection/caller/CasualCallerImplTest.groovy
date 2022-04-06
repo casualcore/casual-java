@@ -38,7 +38,15 @@ class CasualCallerImplTest extends Specification
             return serviceReturn
         }
         fallBackConnectionFactory.getConnection() >> fallbackConnection
-        fallBackEntry = ConnectionFactoryEntry.of('fallback-jndi', fallBackConnectionFactory)
+        def fallbackProducer = Mock(CasualConnectionFactoryProducer) {
+           getConnectionFactory() >> {
+              fallbackConnection
+           }
+           getJndiName() >> {
+              'fallback-jndi'
+           }
+        }
+        fallBackEntry = ConnectionFactoryEntry.of(fallbackProducer)
         lookup = Mock(ConnectionFactoryLookup)
         connectionFactoryProvider = Mock(ConnectionFactoryProvider)
         connectionFactoryProvider.get() >> {
@@ -68,7 +76,15 @@ class CasualCallerImplTest extends Specification
         connectionFactory.getConnection() >> {
             throw new EISSystemException("oopsie")
         }
-        def entries = [ConnectionFactoryEntry.of("someJndiName", connectionFactory)]
+        def producer = Mock(CasualConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              connectionFactory
+           }
+           getJndiName() >> {
+              'someJndiName'
+           }
+        }
+        def entries = [ConnectionFactoryEntry.of(producer)]
         lookup.get(serviceName) >> {
             entries
         }
@@ -106,7 +122,15 @@ class CasualCallerImplTest extends Specification
         connectionFactory.getConnection() >> {
             throw new EISSystemException("oopsie")
         }
-        def entries = [ConnectionFactoryEntry.of("someJndiName", connectionFactory)]
+        def producer = Mock(CasualConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              connectionFactory
+           }
+           getJndiName() >> {
+              'someJndiName'
+           }
+        }
+        def entries = [ConnectionFactoryEntry.of(producer)]
         lookup.get(serviceName) >> {
             entries
         }
@@ -127,7 +151,15 @@ class CasualCallerImplTest extends Specification
         connectionFactory.getConnection() >> {
             throw new EISSystemException("oopsie")
         }
-        def entries = [ConnectionFactoryEntry.of("someJndiName", connectionFactory)]
+        def producer = Mock(CasualConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              connectionFactory
+           }
+           getJndiName() >> {
+              'someJndiName'
+           }
+        }
+        def entries = [ConnectionFactoryEntry.of(producer)]
         lookup.get(queueInfo) >> {
             entries
         }
@@ -147,7 +179,15 @@ class CasualCallerImplTest extends Specification
         connectionFactory.getConnection() >> {
             throw new EISSystemException("oopsie")
         }
-        def entries = [ConnectionFactoryEntry.of("someJndiName", connectionFactory)]
+        def producer = Mock(CasualConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              connectionFactory
+           }
+           getJndiName() >> {
+              'someJndiName'
+           }
+        }
+        def entries = [ConnectionFactoryEntry.of(producer)]
         lookup.get(queueInfo) >> {
             entries
         }
@@ -171,7 +211,15 @@ class CasualCallerImplTest extends Specification
             1 * connection.tpcall(serviceName, callingBuffer, flags) >> serviceReturn
             return connection
         }
-        def entries = [ConnectionFactoryEntry.of("someJndiName", connectionFactory)]
+        def producer = Mock(CasualConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              connectionFactory
+           }
+           getJndiName() >> {
+              'someJndiName'
+           }
+        }
+        def entries = [ConnectionFactoryEntry.of(producer)]
         lookup.get(serviceName) >> {
             entries
         }
@@ -194,7 +242,15 @@ class CasualCallerImplTest extends Specification
             1 * connection.tpacall(serviceName, callingBuffer, flags) >> future
             return connection
         }
-        def entries = [ConnectionFactoryEntry.of("someJndiName", connectionFactory)]
+        def producer = Mock(CasualConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              connectionFactory
+           }
+           getJndiName() >> {
+              'someJndiName'
+           }
+        }
+        def entries = [ConnectionFactoryEntry.of(producer)]
         lookup.get(serviceName) >> {
             entries
         }
@@ -242,7 +298,15 @@ class CasualCallerImplTest extends Specification
             1 * connection.enqueue(queueInfo, queueMessage) >> uuid
             return connection
         }
-        def entries = [ConnectionFactoryEntry.of("someJndiName", connectionFactory)]
+        def producer = Mock(CasualConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              connectionFactory
+           }
+           getJndiName() >> {
+              'someJndiName'
+           }
+        }
+        def entries = [ConnectionFactoryEntry.of(producer)]
         lookup.get(queueInfo) >> {
             entries
         }
@@ -264,7 +328,15 @@ class CasualCallerImplTest extends Specification
             1 * connection.dequeue(queueInfo, messageSelector) >> queueMessage
             return connection
         }
-        def entries = [ConnectionFactoryEntry.of("someJndiName", connectionFactory)]
+        def producer = Mock(CasualConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              connectionFactory
+           }
+           getJndiName() >> {
+              'someJndiName'
+           }
+        }
+        def entries = [ConnectionFactoryEntry.of(producer)]
         lookup.get(queueInfo) >> {
             entries
         }
