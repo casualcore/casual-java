@@ -37,7 +37,7 @@ public class CasualConnectionFactoryProducer
         try
         {
             InitialContext context = new InitialContext();
-            return (CasualConnectionFactory)context.list(jndiName);
+            return (CasualConnectionFactory)context.lookup(jndiName);
         }
         catch (NamingException e)
         {

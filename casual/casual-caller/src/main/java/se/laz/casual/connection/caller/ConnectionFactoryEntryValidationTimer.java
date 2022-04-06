@@ -64,7 +64,16 @@ public class ConnectionFactoryEntryValidationTimer
         {
             connectionFactoryProvider.get().stream()
                                      .filter(ConnectionFactoryEntry::isInvalid)
-                                     .forEach(ConnectionFactoryEntry::validate);
+                                     .forEach(connectionFactoryEntry -> {
+                                             try
+                                             {
+                                                 connectionFactoryEntry.validate();
+                                             }
+                                             catch(Exception e)
+                                             {
+                                                 LOG.warning(() -> "Failed validating: " + connectionFactoryEntry + " -> " + e);
+                                             }
+                                     });
         }
         catch(Exception e)
         {
