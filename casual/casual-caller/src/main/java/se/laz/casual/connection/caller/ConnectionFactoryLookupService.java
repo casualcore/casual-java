@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
 {
     @Inject
-    private ConnectionFactoryProvider connectionFactoryProvider;
+    private ConnectionFactoryEntryStore connectionFactoryProvider;
     @Inject
     private Cache cache;
     @Inject
@@ -44,7 +44,6 @@ public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
     public List<ConnectionFactoryEntry> get(String serviceName)
     {
         Objects.requireNonNull(serviceName, "serviceName can not be null");
-        // call this here to force, possible, recreation of stale connection factories also in cache
         List<ConnectionFactoryEntry> possibleConnectionFactories = connectionFactoryProvider.get();
         ConnectionFactoriesByPriority cachedEntries = cache.get(serviceName);
         if (!cachedEntries.isEmpty() && cachedEntries.hasCheckedAllValid(possibleConnectionFactories))

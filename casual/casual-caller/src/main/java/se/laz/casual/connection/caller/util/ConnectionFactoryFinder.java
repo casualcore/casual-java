@@ -5,7 +5,7 @@
  */
 package se.laz.casual.connection.caller.util;
 
-import se.laz.casual.connection.caller.CasualConnectionFactoryProducer;
+import se.laz.casual.connection.caller.ConnectionFactoryProducer;
 import se.laz.casual.connection.caller.ConnectionFactoryEntry;
 import se.laz.casual.jca.CasualConnectionFactory;
 
@@ -58,7 +58,7 @@ public class ConnectionFactoryFinder
                 Object instance = context.lookup(jndiName);
                 if(instance instanceof CasualConnectionFactory)
                 {
-                    foundEntries.add(ConnectionFactoryEntry.of(CasualConnectionFactoryProducer.of(jndiName)));
+                    foundEntries.add(ConnectionFactoryEntry.of(ConnectionFactoryProducer.of(jndiName)));
                     log.info(() -> "found casual connection factory with JNDI-name: " + jndiName);
                 }
             }

@@ -29,7 +29,7 @@ public class ConnectionFactoryEntryValidationTimer
     private TimerService timerService;
 
     @Inject
-    private ConnectionFactoryProvider connectionFactoryProvider;
+    private ConnectionFactoryEntryStore connectionFactoryProvider;
 
     @PostConstruct
     private void setup()

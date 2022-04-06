@@ -17,22 +17,22 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 @ApplicationScoped
-public class ConnectionFactoryProvider
+public class ConnectionFactoryEntryStore
 {
-    private static final Logger LOG = Logger.getLogger(ConnectionFactoryProvider.class.getName());
+    private static final Logger LOG = Logger.getLogger(ConnectionFactoryEntryStore.class.getName());
     private static final String DEFAULT_JNDI_ROOT_ENV_NAME = "CASUAL_CALLER_CONNECTION_FACTORY_JNDI_SEARCH_ROOT";
     private static final String DEFAULT_JNDI_ROOT_ENV_VALUE = "eis";
     private final ConnectionFactoryFinder connectionFactoryFinder;
     private List<ConnectionFactoryEntry> connectionFactories;
 
-    public ConnectionFactoryProvider()
+    public ConnectionFactoryEntryStore()
     {
         // public NOP-constructor needed for wls-only
         connectionFactoryFinder = null;
     }
 
     @Inject
-    public ConnectionFactoryProvider(ConnectionFactoryFinder connectionFactoryFinder)
+    public ConnectionFactoryEntryStore(ConnectionFactoryFinder connectionFactoryFinder)
     {
         this.connectionFactoryFinder = connectionFactoryFinder;
     }

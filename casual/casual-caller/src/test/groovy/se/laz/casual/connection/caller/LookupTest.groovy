@@ -36,8 +36,8 @@ class LookupTest extends Specification
     @Shared
     def jndiNameTwo = 'eis/anotherCasualConnectionFactory'
     @Shared
-    CasualConnectionFactoryProducer producerOne = {
-       def mock = Mock(CasualConnectionFactoryProducer)
+    ConnectionFactoryProducer producerOne = {
+       def mock = Mock(ConnectionFactoryProducer)
        mock.getConnectionFactory() >> {
           conFac
        }
@@ -47,8 +47,8 @@ class LookupTest extends Specification
        return mock
     }()
    @Shared
-   CasualConnectionFactoryProducer producerTwo = {
-      def mock = Mock(CasualConnectionFactoryProducer)
+   ConnectionFactoryProducer producerTwo = {
+      def mock = Mock(ConnectionFactoryProducer)
       mock.getConnectionFactory() >> {
          conFacTwo
       }

@@ -17,7 +17,7 @@ class ConnectionFactoryProviderTest extends Specification
       ConnectionFactoryFinder connectionFactoryFinder = Mock(ConnectionFactoryFinder)
       connectionFactoryFinder.findConnectionFactory(_) >>> [[entry]]
       // spying to verify the interaction
-      ConnectionFactoryProvider instance = Spy(ConnectionFactoryProvider, constructorArgs: [connectionFactoryFinder]) {
+      ConnectionFactoryEntryStore instance = Spy(ConnectionFactoryEntryStore, constructorArgs: [connectionFactoryFinder]) {
          1 * initialize()
       }
       // @PostConstruct
@@ -35,7 +35,7 @@ class ConnectionFactoryProviderTest extends Specification
       ConnectionFactoryFinder connectionFactoryFinder = Mock(ConnectionFactoryFinder)
       connectionFactoryFinder.findConnectionFactory(_) >>> [[], [entry]]
       // spying to verify the interactions
-      ConnectionFactoryProvider instance = Spy(ConnectionFactoryProvider, constructorArgs: [connectionFactoryFinder]) {
+      ConnectionFactoryEntryStore instance = Spy(ConnectionFactoryEntryStore, constructorArgs: [connectionFactoryFinder]) {
          2 * initialize()
       }
       // @PostConstruct

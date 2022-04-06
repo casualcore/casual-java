@@ -36,12 +36,12 @@ class TpCallerFailoverTest extends Specification
     @Shared
     CasualConnection conLow
     @Shared
-    CasualConnectionFactoryProducer connectionFactoryProducerHigh
+    ConnectionFactoryProducer connectionFactoryProducerHigh
     @Shared
-    CasualConnectionFactoryProducer connectionFactoryProducerLow
+    ConnectionFactoryProducer connectionFactoryProducerLow
 
     TpCallerFailover tpCaller
-    ConnectionFactoryProvider connectionFactoryProvider
+    ConnectionFactoryEntryStore connectionFactoryProvider
     Cache cache
     Lookup lookup
 
@@ -63,7 +63,7 @@ class TpCallerFailoverTest extends Specification
         data = Mock(CasualBuffer)
         flags = Mock(Flag)
 
-        connectionFactoryProvider = Mock(ConnectionFactoryProvider)
+        connectionFactoryProvider = Mock(ConnectionFactoryEntryStore)
         cache =  new Cache()
         lookup = Mock(Lookup)
         lookupService = new ConnectionFactoryLookupService()
@@ -71,7 +71,7 @@ class TpCallerFailoverTest extends Specification
         lookupService.cache = cache
         lookupService.lookup = lookup
 
-       connectionFactoryProducerHigh = Mock(CasualConnectionFactoryProducer)
+       connectionFactoryProducerHigh = Mock(ConnectionFactoryProducer)
        connectionFactoryProducerHigh.getConnectionFactory() >> {
           conFacHigh
        }
@@ -79,7 +79,7 @@ class TpCallerFailoverTest extends Specification
           conFacHighJndi
        }
 
-       connectionFactoryProducerLow = Mock(CasualConnectionFactoryProducer)
+       connectionFactoryProducerLow = Mock(ConnectionFactoryProducer)
        connectionFactoryProducerLow.getConnectionFactory() >> {
           conFacLow
        }
@@ -145,7 +145,7 @@ class TpCallerFailoverTest extends Specification
             List<ConnectionFactoryEntry> listOfEntries = []
             for (int i = 0; i < entriesPerPriority; i++)
             {
-                CasualConnectionFactoryProducer producer = Mock(CasualConnectionFactoryProducer)
+                ConnectionFactoryProducer producer = Mock(ConnectionFactoryProducer)
                 producer.getConnectionFactory() >> {
                    conFacHigh
                 }
@@ -184,7 +184,7 @@ class TpCallerFailoverTest extends Specification
             List<ConnectionFactoryEntry> listOfEntries = []
             for (int i = 0; i < entriesPerPriority; i++)
             {
-               CasualConnectionFactoryProducer producer = Mock(CasualConnectionFactoryProducer)
+               ConnectionFactoryProducer producer = Mock(ConnectionFactoryProducer)
                producer.getConnectionFactory() >> {
                   conFacHigh
                }
@@ -200,7 +200,7 @@ class TpCallerFailoverTest extends Specification
         List<ConnectionFactoryEntry> listOfEntries = []
         for (int i = 0; i < entriesPerPriority; i++)
         {
-           CasualConnectionFactoryProducer producer = Mock(CasualConnectionFactoryProducer)
+           ConnectionFactoryProducer producer = Mock(ConnectionFactoryProducer)
            producer.getConnectionFactory() >> {
               conFacLow
            }

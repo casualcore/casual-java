@@ -12,19 +12,19 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.Objects;
 
-public class CasualConnectionFactoryProducer
+public class ConnectionFactoryProducer
 {
 
     private final String jndiName;
-    private CasualConnectionFactoryProducer(String jndiName)
+    private ConnectionFactoryProducer(String jndiName)
     {
         this.jndiName = jndiName;
     }
 
-    public static CasualConnectionFactoryProducer of(String jndiName)
+    public static ConnectionFactoryProducer of(String jndiName)
     {
         Objects.requireNonNull(jndiName, "jndiName can not be null");
-        return new CasualConnectionFactoryProducer(jndiName);
+        return new ConnectionFactoryProducer(jndiName);
     }
 
     public String getJndiName()
@@ -56,7 +56,7 @@ public class CasualConnectionFactoryProducer
         {
             return false;
         }
-        CasualConnectionFactoryProducer that = (CasualConnectionFactoryProducer) o;
+        ConnectionFactoryProducer that = (ConnectionFactoryProducer) o;
         return Objects.equals(jndiName, that.jndiName);
     }
 

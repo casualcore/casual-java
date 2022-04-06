@@ -24,8 +24,8 @@ class CacheTest extends Specification
     @Shared
     def jndiNameTwo = 'eis/AnotherCasualConnectionFactory'
     @Shared
-    CasualConnectionFactoryProducer producerOne = {
-      def mock = Mock(CasualConnectionFactoryProducer)
+    ConnectionFactoryProducer producerOne = {
+      def mock = Mock(ConnectionFactoryProducer)
       mock.getConnectionFactory() >> {
          connectionFactoryOne
       }
@@ -35,8 +35,8 @@ class CacheTest extends Specification
       return mock
     }()
     @Shared
-    CasualConnectionFactoryProducer producerTwo = {
-       def mock = Mock(CasualConnectionFactoryProducer)
+    ConnectionFactoryProducer producerTwo = {
+       def mock = Mock(ConnectionFactoryProducer)
        mock.getConnectionFactory() >> {
           connectionFactoryTwo
        }

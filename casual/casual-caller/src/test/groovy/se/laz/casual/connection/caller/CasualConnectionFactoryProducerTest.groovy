@@ -8,7 +8,7 @@ class CasualConnectionFactoryProducerTest extends Specification
    def 'failed construction'()
    {
       when:
-      CasualConnectionFactoryProducer.of(null)
+      ConnectionFactoryProducer.of(null)
       then:
       thrown(NullPointerException)
    }
@@ -18,7 +18,7 @@ class CasualConnectionFactoryProducerTest extends Specification
       given:
       def jndiName = 'foo'
       when:
-      def producer = CasualConnectionFactoryProducer.of(jndiName)
+      def producer = ConnectionFactoryProducer.of(jndiName)
       then:
       producer.getJndiName() == jndiName
    }

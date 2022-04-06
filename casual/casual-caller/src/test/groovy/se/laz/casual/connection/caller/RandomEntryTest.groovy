@@ -1,7 +1,6 @@
 package se.laz.casual.connection.caller
 
 import se.laz.casual.api.queue.QueueInfo
-import se.laz.casual.jca.CasualConnectionFactory
 import spock.lang.Specification
 
 class RandomEntryTest extends Specification
@@ -40,7 +39,7 @@ class RandomEntryTest extends Specification
     {
         given:
         def serviceName = 'echo'
-        def entries = [ConnectionFactoryEntry.of(Mock(CasualConnectionFactoryProducer))]
+        def entries = [ConnectionFactoryEntry.of(Mock(ConnectionFactoryProducer))]
         def lookup = Mock(ConnectionFactoryLookup)
         lookup.get(serviceName) >> {
             entries
@@ -55,7 +54,7 @@ class RandomEntryTest extends Specification
     {
         given:
         def queueInfo = QueueInfo.createBuilder().withQueueName('Battlestar.Galactica').build()
-        def entries = [ConnectionFactoryEntry.of(Mock(CasualConnectionFactoryProducer))]
+        def entries = [ConnectionFactoryEntry.of(Mock(ConnectionFactoryProducer))]
         def lookup = Mock(ConnectionFactoryLookup)
         lookup.get(queueInfo) >> {
             entries
@@ -69,9 +68,9 @@ class RandomEntryTest extends Specification
     def 'getEntry with more than 1 entry should get all entries eventually'()
     {
         given:
-        def entryOne = ConnectionFactoryEntry.of(Mock(CasualConnectionFactoryProducer))
-        def entryTwo = ConnectionFactoryEntry.of(Mock(CasualConnectionFactoryProducer))
-        def entryThree = ConnectionFactoryEntry.of(Mock(CasualConnectionFactoryProducer))
+        def entryOne = ConnectionFactoryEntry.of(Mock(ConnectionFactoryProducer))
+        def entryTwo = ConnectionFactoryEntry.of(Mock(ConnectionFactoryProducer))
+        def entryThree = ConnectionFactoryEntry.of(Mock(ConnectionFactoryProducer))
         def cachedEntries = [entryOne, entryTwo, entryThree]
         def possibleEntries = [entryOne, entryTwo, entryThree]
         when:

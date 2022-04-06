@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 public class ConnectionFactoryEntry
 {
     private static final Logger LOG = Logger.getLogger(ConnectionFactoryEntry.class.getName());
-    private final CasualConnectionFactoryProducer connectionFactoryProducer;
+    private final ConnectionFactoryProducer connectionFactoryProducer;
 
     /**
      * Connection factory entries should invalidate on connection errors and revalidate as soon as a new valid
@@ -24,12 +24,12 @@ public class ConnectionFactoryEntry
      */
     private boolean valid = true;
 
-    private ConnectionFactoryEntry(CasualConnectionFactoryProducer connectionFactoryProducer)
+    private ConnectionFactoryEntry(ConnectionFactoryProducer connectionFactoryProducer)
     {
         this.connectionFactoryProducer = connectionFactoryProducer;
     }
 
-    public static ConnectionFactoryEntry of(CasualConnectionFactoryProducer connectionFactoryProducer)
+    public static ConnectionFactoryEntry of(ConnectionFactoryProducer connectionFactoryProducer)
     {
         Objects.requireNonNull(connectionFactoryProducer, "CasualConnectionFactoryProducer can not be null");
         return new ConnectionFactoryEntry(connectionFactoryProducer);
