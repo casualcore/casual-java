@@ -29,7 +29,7 @@ public class ConnectionFactoryEntryValidationTimer
     private TimerService timerService;
 
     @Inject
-    private ConnectionFactoryEntryStore connectionFactoryProvider;
+    private ConnectionFactoryEntryStore connectionFactoryStore;
 
     @PostConstruct
     private void setup()
@@ -62,15 +62,15 @@ public class ConnectionFactoryEntryValidationTimer
         LOG.finest("Running ConnectionFactoryEntryValidationTimer");
         try
         {
-            connectionFactoryProvider.get().stream()
-                                     .filter(ConnectionFactoryEntry::isInvalid)
-                                     .forEach(connectionFactoryEntry -> {
+            connectionFactoryStore.get().stream()
+                                  .forEach(connectionFactoryEntry -> {
                                              try
                                              {
                                                  connectionFactoryEntry.validate();
                                              }
                                              catch(Exception e)
                                              {
+                                                 connectionFactoryEntry.invalidate();
                                                  LOG.warning(() -> "Failed validating: " + connectionFactoryEntry + " -> " + e);
                                              }
                                      });
