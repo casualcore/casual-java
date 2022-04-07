@@ -31,6 +31,7 @@ public class TpCallerFailover implements TpCaller
     private static final FailoverAlgorithm<ServiceReturn<CasualBuffer>> sync = new FailoverAlgorithm<>();
     private static final FailoverAlgorithm<CompletableFuture<ServiceReturn<CasualBuffer>>> async = new FailoverAlgorithm<>();
 
+    @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup)
     {
         return sync.callWithFailover(
@@ -43,6 +44,7 @@ public class TpCallerFailover implements TpCaller
         );
     }
 
+    @Override
     public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup)
     {
         return async.callWithFailover(
@@ -55,7 +57,7 @@ public class TpCallerFailover implements TpCaller
         );
     }
 
-    public ServiceReturn<CasualBuffer> tpenoentReply()
+    private ServiceReturn<CasualBuffer> tpenoentReply()
     {
         return new ServiceReturn<>(ServiceBuffer.empty(), ServiceReturnState.TPFAIL, ErrorState.TPENOENT, 0L);
     }
