@@ -17,26 +17,23 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 @ApplicationScoped
-public class ConnectionFactoryProvider
+public class ConnectionFactoryEntryStore
 {
-    private static final Logger LOG = Logger.getLogger(ConnectionFactoryProvider.class.getName());
+    private static final Logger LOG = Logger.getLogger(ConnectionFactoryEntryStore.class.getName());
     private static final String DEFAULT_JNDI_ROOT_ENV_NAME = "CASUAL_CALLER_CONNECTION_FACTORY_JNDI_SEARCH_ROOT";
     private static final String DEFAULT_JNDI_ROOT_ENV_VALUE = "eis";
-    private final StaleConnectionFactoryHandler staleConnectionFactoryHandler;
     private final ConnectionFactoryFinder connectionFactoryFinder;
     private List<ConnectionFactoryEntry> connectionFactories;
 
-    public ConnectionFactoryProvider()
+    public ConnectionFactoryEntryStore()
     {
         // public NOP-constructor needed for wls-only
-        staleConnectionFactoryHandler = null;
         connectionFactoryFinder = null;
     }
 
     @Inject
-    public ConnectionFactoryProvider(StaleConnectionFactoryHandler staleConnectionFactoryHandler, ConnectionFactoryFinder connectionFactoryFinder)
+    public ConnectionFactoryEntryStore(ConnectionFactoryFinder connectionFactoryFinder)
     {
-        this.staleConnectionFactoryHandler = staleConnectionFactoryHandler;
         this.connectionFactoryFinder = connectionFactoryFinder;
     }
 
@@ -50,7 +47,6 @@ public class ConnectionFactoryProvider
                 LOG.warning(() -> "could not find any connection factories, casual-caller will not work. Will retry on next access.\n Either your configuration is wrong or the entries do not yet exist in the JNDI-tree just yet.");
             }
         }
-        connectionFactories = staleConnectionFactoryHandler.revalidateConnectionFactories(connectionFactories);
         return Collections.unmodifiableList(connectionFactories);
     }
 

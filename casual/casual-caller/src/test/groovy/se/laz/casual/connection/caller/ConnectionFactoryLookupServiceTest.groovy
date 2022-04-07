@@ -23,7 +23,7 @@ class ConnectionFactoryLookupServiceTest extends Specification
     @Shared
     def serviceName = 'casual.echo'
     @Shared
-    ConnectionFactoryProvider connnectionFactoryProvider
+    ConnectionFactoryEntryStore connnectionFactoryProvider
     @Shared
     Cache cache
     @Shared
@@ -33,14 +33,34 @@ class ConnectionFactoryLookupServiceTest extends Specification
     @Shared
     CasualConnectionFactory conFacTwo
     @Shared
+    ConnectionFactoryProducer producerOne = {
+       def mock = Mock(ConnectionFactoryProducer)
+       mock.getConnectionFactory() >> {
+          conFac
+       }
+      mock.getJndiName() >> {
+         jndiNameConFactoryOne
+      }
+      return mock
+    }()
+    @Shared
+    ConnectionFactoryProducer producerTwo = {
+       def mock = Mock(ConnectionFactoryProducer)
+       mock.getConnectionFactory() >> {
+          conFacTwo
+       }
+       mock.getJndiName() >> {
+          jndiNameConFactoryTwo
+       }
+       return mock
+    }()
+
+    @Shared
     def env = new HashMap()
     @Shared
     ConnectionFactoryLookupService instance
     @Shared
     def priority = 3L
-
-
-
     @Shared
     def priorityHigh = 3L
     @Shared
@@ -69,7 +89,7 @@ class ConnectionFactoryLookupServiceTest extends Specification
 
         conFac = Mock(CasualConnectionFactory)
         conFacTwo = Mock(CasualConnectionFactory)
-        connnectionFactoryProvider = Mock(ConnectionFactoryProvider)
+        connnectionFactoryProvider = Mock(ConnectionFactoryEntryStore)
         cache =  new Cache()
         lookup = Mock(Lookup)
         instance = new ConnectionFactoryLookupService()
@@ -82,7 +102,7 @@ class ConnectionFactoryLookupServiceTest extends Specification
     {
         given:
         connnectionFactoryProvider.get() >> {
-            [ConnectionFactoryEntry.of(jndiNameConFactoryOne, conFac), ConnectionFactoryEntry.of(jndiNameConFactoryTwo, conFacTwo)] as List<ConnectionFactoryEntry>
+            [ConnectionFactoryEntry.of(producerOne), ConnectionFactoryEntry.of(producerTwo)] as List<ConnectionFactoryEntry>
         }
         expect:
         def entries = connnectionFactoryProvider.get()
@@ -95,7 +115,7 @@ class ConnectionFactoryLookupServiceTest extends Specification
     def 'qinfo get cached entry name, no cached entry'()
     {
         given:
-        ConnectionFactoryEntry entry = ConnectionFactoryEntry.of(jndiNameConFactoryTwo, conFacTwo)
+        ConnectionFactoryEntry entry = ConnectionFactoryEntry.of(producerTwo)
         lookup.find(qinfo, _) >> [entry]
         when:
         def entries = instance.get(qinfo)
@@ -117,7 +137,7 @@ class ConnectionFactoryLookupServiceTest extends Specification
     def 'qinfo get jndi name, cached entry'()
     {
         setup:
-        cache.store(qinfo, [ConnectionFactoryEntry.of(jndiNameConFactoryTwo, Mock(CasualConnectionFactory))])
+        cache.store(qinfo, [ConnectionFactoryEntry.of(producerTwo)])
         when:
         def entries = instance.get(qinfo)
         then:
@@ -129,7 +149,7 @@ class ConnectionFactoryLookupServiceTest extends Specification
     def 'service info get jndi name, no cached entry'()
     {
         setup:
-        ConnectionFactoryEntry entry = ConnectionFactoryEntry.of(jndiNameConFactoryTwo, conFacTwo)
+        ConnectionFactoryEntry entry = ConnectionFactoryEntry.of(producerTwo)
         connnectionFactoryProvider.get() >> [entry]
         lookup.find(serviceName, _) >> ConnectionFactoriesByPriority.of([(priority): [entry]])
         when:
@@ -153,7 +173,7 @@ class ConnectionFactoryLookupServiceTest extends Specification
     def 'service get jndi name, cached entry'()
     {
         setup:
-        ConnectionFactoryEntry entry = ConnectionFactoryEntry.of(jndiNameConFactoryTwo, conFacTwo)
+        ConnectionFactoryEntry entry = ConnectionFactoryEntry.of(producerTwo)
         connnectionFactoryProvider.get() >> [entry]
         cache.store(serviceName, ConnectionFactoriesByPriority.of([(priority): [entry]], [entry.getJndiName()]))
         when:
@@ -173,7 +193,15 @@ class ConnectionFactoryLookupServiceTest extends Specification
         List<ConnectionFactoryEntry> listOfEntries = []
         for (int i = 0; i < entriesPerPriority; i++)
         {
-            listOfEntries.add(ConnectionFactoryEntry.of("jndi_index_"+i, conFacHigh))
+            ConnectionFactoryProducer producer = Mock(ConnectionFactoryProducer){
+               getJndiName() >> {
+                  "jndi_index_"+i
+               }
+               getConnectionFactory() >> {
+                  conFacHigh
+               }
+            }
+            listOfEntries.add(ConnectionFactoryEntry.of(producer))
         }
         lookupMap.put(1L, listOfEntries)
 
@@ -206,10 +234,44 @@ class ConnectionFactoryLookupServiceTest extends Specification
         def conFac3Name = "name3"
         def conFac4Name = "name4"
 
-        def conFac1Entry = ConnectionFactoryEntry.of(conFac1Name, conFac1)
-        def conFac2Entry = ConnectionFactoryEntry.of(conFac2Name, conFac2)
-        def conFac3Entry = ConnectionFactoryEntry.of(conFac3Name, conFac3)
-        def conFac4Entry = ConnectionFactoryEntry.of(conFac4Name, conFac4)
+        def producerOneLocal = Mock(ConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              conFac1
+           }
+           getJndiName() >> {
+              conFac1Name
+           }
+        }
+        def producerTwoLocal = Mock(ConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              conFac2
+           }
+           getJndiName() >> {
+              conFac2Name
+           }
+        }
+        def producerThreeLocal = Mock(ConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              conFac3
+           }
+           getJndiName() >> {
+              conFac3Name
+           }
+        }
+        def producerFourLocal = Mock(ConnectionFactoryProducer){
+           getConnectionFactory() >> {
+              conFac4
+           }
+           getJndiName() >> {
+              conFac4Name
+           }
+        }
+
+
+        def conFac1Entry = ConnectionFactoryEntry.of(producerOneLocal)
+        def conFac2Entry = ConnectionFactoryEntry.of(producerTwoLocal)
+        def conFac3Entry = ConnectionFactoryEntry.of(producerThreeLocal)
+        def conFac4Entry = ConnectionFactoryEntry.of(producerFourLocal)
 
         connnectionFactoryProvider.get() >> [conFac1Entry, conFac2Entry, conFac3Entry, conFac4Entry]
         lookup.find(serviceName, _) >> ConnectionFactoriesByPriority.of([

@@ -24,9 +24,31 @@ class CacheTest extends Specification
     @Shared
     def jndiNameTwo = 'eis/AnotherCasualConnectionFactory'
     @Shared
-    def cacheEntryOne = ConnectionFactoryEntry.of(jndiNameOne, connectionFactoryOne)
+    ConnectionFactoryProducer producerOne = {
+      def mock = Mock(ConnectionFactoryProducer)
+      mock.getConnectionFactory() >> {
+         connectionFactoryOne
+      }
+      mock.getJndiName() >> {
+         jndiNameOne
+      }
+      return mock
+    }()
     @Shared
-    def cacheEntryTwo = ConnectionFactoryEntry.of(jndiNameTwo, connectionFactoryTwo)
+    ConnectionFactoryProducer producerTwo = {
+       def mock = Mock(ConnectionFactoryProducer)
+       mock.getConnectionFactory() >> {
+          connectionFactoryTwo
+       }
+       mock.getJndiName() >> {
+          jndiNameTwo
+       }
+       return mock
+    }()
+    @Shared
+    def cacheEntryOne = ConnectionFactoryEntry.of(producerOne)
+    @Shared
+    def cacheEntryTwo = ConnectionFactoryEntry.of(producerTwo)
     @Shared
     def serviceName = 'casual.test.echo'
     @Shared

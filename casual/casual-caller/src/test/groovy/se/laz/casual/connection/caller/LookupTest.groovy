@@ -6,6 +6,7 @@
 
 package se.laz.casual.connection.caller
 
+
 import se.laz.casual.api.queue.QueueInfo
 import se.laz.casual.api.service.ServiceDetails
 import se.laz.casual.jca.CasualConnection
@@ -35,7 +36,27 @@ class LookupTest extends Specification
     @Shared
     def jndiNameTwo = 'eis/anotherCasualConnectionFactory'
     @Shared
-    def cacheEntries = [ConnectionFactoryEntry.of(jndiNameOne, Mock(CasualConnectionFactory)), ConnectionFactoryEntry.of(jndiNameTwo, Mock(CasualConnectionFactory))]
+    ConnectionFactoryProducer producerOne = {
+       def mock = Mock(ConnectionFactoryProducer)
+       mock.getConnectionFactory() >> {
+          conFac
+       }
+       mock.getJndiName() >> {
+          jndiNameOne
+       }
+       return mock
+    }()
+   @Shared
+   ConnectionFactoryProducer producerTwo = {
+      def mock = Mock(ConnectionFactoryProducer)
+      mock.getConnectionFactory() >> {
+         conFacTwo
+      }
+      mock.getJndiName() >> {
+         jndiNameTwo
+      }
+      return mock
+   }()
     @Shared
     QueueInfo qinfo = QueueInfo.createBuilder().withQueueName('oddball.raccoon').build()
     @Shared
@@ -57,7 +78,7 @@ class LookupTest extends Specification
     def 'find CacheEntry using qinfo - should find it'()
     {
         setup:
-        def cacheEntries = [ConnectionFactoryEntry.of(jndiNameOne, conFac), ConnectionFactoryEntry.of(jndiNameTwo, conFacTwo)]
+        def cacheEntries = [ConnectionFactoryEntry.of(producerOne), ConnectionFactoryEntry.of(producerTwo)]
         con.queueExists(qinfo) >> false
         conTwo.queueExists(qinfo) >> true
         when:
@@ -71,7 +92,7 @@ class LookupTest extends Specification
     def 'find CacheEntry name using qinfo - should not find it'()
     {
         setup:
-        def cacheEntries = [ConnectionFactoryEntry.of(jndiNameOne, conFac), ConnectionFactoryEntry.of(jndiNameTwo, conFacTwo)]
+        def cacheEntries = [ConnectionFactoryEntry.of(producerOne), ConnectionFactoryEntry.of(producerTwo)]
         con.queueExists(qinfo) >> false
         conTwo.queueExists(qinfo) >> false
         when:
@@ -83,7 +104,7 @@ class LookupTest extends Specification
     def 'find jndi name using serviceinfo - should find it'()
     {
         setup:
-        def cacheEntries = [ConnectionFactoryEntry.of(jndiNameOne, conFac), ConnectionFactoryEntry.of(jndiNameTwo, conFacTwo)]
+        def cacheEntries = [ConnectionFactoryEntry.of(producerOne), ConnectionFactoryEntry.of(producerTwo)]
         con.serviceDetails(serviceName) >> []
         conTwo.serviceDetails(serviceName) >> [new ServiceDetails(serviceName, "", TransactionType.NONE, 0L, priority)]
         con.serviceExists(serviceName) >> false
@@ -98,7 +119,7 @@ class LookupTest extends Specification
     def 'find jndi name using serviceinfo - should not find it'()
     {
         setup:
-        def cacheEntries = [ConnectionFactoryEntry.of(jndiNameOne, conFac), ConnectionFactoryEntry.of(jndiNameTwo, conFacTwo)]
+        def cacheEntries = [ConnectionFactoryEntry.of(producerOne), ConnectionFactoryEntry.of(producerTwo)]
         con.serviceDetails(serviceName) >> []
         conTwo.serviceDetails(serviceName) >> []
         con.serviceExists(serviceName) >> false

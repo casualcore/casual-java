@@ -6,7 +6,6 @@
 
 package se.laz.casual.connection.caller;
 
-import javax.enterprise.event.Observes;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,13 +19,6 @@ public class ServiceCache
     public Set<String> getCachedServiceNames()
     {
         return cacheMap.keySet();
-    }
-
-    public void onEvent(@Observes ConnectionFactoryEntryChangedEvent entryChangedEvent)
-    {
-        cacheMap.values()
-                .stream()
-                .forEach(connectionFactoriesByPriority -> connectionFactoriesByPriority.replace(entryChangedEvent.getConnectionFactoryEntry()));
     }
 
     public ConnectionFactoriesByPriority getOrEmpty(String serviceName)

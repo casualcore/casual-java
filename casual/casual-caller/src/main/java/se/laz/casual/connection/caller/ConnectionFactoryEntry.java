@@ -16,9 +16,7 @@ import java.util.logging.Logger;
 public class ConnectionFactoryEntry
 {
     private static final Logger LOG = Logger.getLogger(ConnectionFactoryEntry.class.getName());
-
-    private final String jndiName;
-    private final CasualConnectionFactory connectionFactory;
+    private final ConnectionFactoryProducer connectionFactoryProducer;
 
     /**
      * Connection factory entries should invalidate on connection errors and revalidate as soon as a new valid
@@ -26,27 +24,25 @@ public class ConnectionFactoryEntry
      */
     private boolean valid = true;
 
-    private ConnectionFactoryEntry(String jndiName, CasualConnectionFactory connectionFactory)
+    private ConnectionFactoryEntry(ConnectionFactoryProducer connectionFactoryProducer)
     {
-        this.jndiName = jndiName;
-        this.connectionFactory = connectionFactory;
+        this.connectionFactoryProducer = connectionFactoryProducer;
     }
 
-    public static ConnectionFactoryEntry of(String jndiName, CasualConnectionFactory connectionFactory)
+    public static ConnectionFactoryEntry of(ConnectionFactoryProducer connectionFactoryProducer)
     {
-        Objects.requireNonNull(jndiName, "jndiName can not be null");
-        Objects.requireNonNull(connectionFactory, "connectionFactory can not be null");
-        return new ConnectionFactoryEntry(jndiName, connectionFactory);
+        Objects.requireNonNull(connectionFactoryProducer, "CasualConnectionFactoryProducer can not be null");
+        return new ConnectionFactoryEntry(connectionFactoryProducer);
     }
 
     public String getJndiName()
     {
-        return jndiName;
+        return connectionFactoryProducer.getJndiName();
     }
 
     public CasualConnectionFactory getConnectionFactory()
     {
-        return connectionFactory;
+        return connectionFactoryProducer.getConnectionFactory();
     }
 
     public boolean isValid()
@@ -62,31 +58,27 @@ public class ConnectionFactoryEntry
     public void invalidate()
     {
         valid = false;
-        LOG.finest(() -> "Invalidated CasualConnection with jndiName=" + jndiName);
+        LOG.finest(() -> "Invalidated CasualConnection with jndiName=" + connectionFactoryProducer.getJndiName());
     }
 
     //Note: due to try with resources usage where we never use the resource
     @SuppressWarnings("try")
     public void validate()
     {
-        try(CasualConnection con = connectionFactory.getConnection())
+        try(CasualConnection con = getConnectionFactory().getConnection())
         {
             // We just want to check that a connection could be established to check connectivity
             valid = true;
-            LOG.finest(() -> "Successfully validated CasualConnection with jndiName=" + jndiName);
+            LOG.finest(() -> "Successfully validated CasualConnection with jndiName=" + connectionFactoryProducer.getJndiName());
         }
         catch (ResourceException e)
         {
             // Failure to connect during validation should automatically invalidate ConnectionFactoryEntry
             valid = false;
-            LOG.log(Level.WARNING, e, ()->"Failed validation of CasualConnection with jndiName=" + jndiName + ", received error: " + e.getMessage());
+            LOG.log(Level.WARNING, e, ()->"Failed validation of CasualConnection with jndiName=" + connectionFactoryProducer.getJndiName() + ", received error: " + e.getMessage());
         }
     }
 
-
-    // Note:
-    // equals and hashCode on jndiname is enough since that is unique per connection factory
-    // so no need to also match on the connection factory
     @Override
     public boolean equals(Object o)
     {
@@ -98,21 +90,21 @@ public class ConnectionFactoryEntry
         {
             return false;
         }
-        ConnectionFactoryEntry entry = (ConnectionFactoryEntry) o;
-        return Objects.equals(jndiName, entry.jndiName);
+        ConnectionFactoryEntry that = (ConnectionFactoryEntry) o;
+        return isValid() == that.isValid() && connectionFactoryProducer.equals(that.connectionFactoryProducer);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(jndiName);
+        return Objects.hash(connectionFactoryProducer, isValid());
     }
 
     @Override
     public String toString()
     {
         return "ConnectionFactoryEntry{" +
-                "jndiName='" + jndiName + '\'' +
+                "connectionFactoryProducer=" + connectionFactoryProducer +
                 ", valid=" + valid +
                 '}';
     }

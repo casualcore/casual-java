@@ -35,9 +35,13 @@ class TpCallerFailoverTest extends Specification
     CasualConnection conHigh
     @Shared
     CasualConnection conLow
+    @Shared
+    ConnectionFactoryProducer connectionFactoryProducerHigh
+    @Shared
+    ConnectionFactoryProducer connectionFactoryProducerLow
 
     TpCallerFailover tpCaller
-    ConnectionFactoryProvider connectionFactoryProvider
+    ConnectionFactoryEntryStore connectionFactoryProvider
     Cache cache
     Lookup lookup
 
@@ -59,7 +63,7 @@ class TpCallerFailoverTest extends Specification
         data = Mock(CasualBuffer)
         flags = Mock(Flag)
 
-        connectionFactoryProvider = Mock(ConnectionFactoryProvider)
+        connectionFactoryProvider = Mock(ConnectionFactoryEntryStore)
         cache =  new Cache()
         lookup = Mock(Lookup)
         lookupService = new ConnectionFactoryLookupService()
@@ -67,9 +71,26 @@ class TpCallerFailoverTest extends Specification
         lookupService.cache = cache
         lookupService.lookup = lookup
 
+       connectionFactoryProducerHigh = Mock(ConnectionFactoryProducer)
+       connectionFactoryProducerHigh.getConnectionFactory() >> {
+          conFacHigh
+       }
+       connectionFactoryProducerHigh.getJndiName() >> {
+          conFacHighJndi
+       }
+
+       connectionFactoryProducerLow = Mock(ConnectionFactoryProducer)
+       connectionFactoryProducerLow.getConnectionFactory() >> {
+          conFacLow
+       }
+       connectionFactoryProducerLow.getJndiName() >> {
+          conFacLowJndi
+       }
+
+
         connectionFactoryProvider.get() >> [
-                ConnectionFactoryEntry.of(conFacHighJndi, conFacHigh),
-                ConnectionFactoryEntry.of(conFacLowJndi, conFacLow)
+                ConnectionFactoryEntry.of(connectionFactoryProducerHigh),
+                ConnectionFactoryEntry.of(connectionFactoryProducerLow)
         ]
     }
 
@@ -77,8 +98,8 @@ class TpCallerFailoverTest extends Specification
     {
         setup:
         lookup.find(serviceName, connectionFactoryProvider.get()) >> ConnectionFactoriesByPriority.of([
-                (priorityHigh): [ConnectionFactoryEntry.of(conFacHighJndi, conFacHigh)],
-                (priorityLow): [ConnectionFactoryEntry.of(conFacLowJndi, conFacLow)]
+                (priorityHigh): [ConnectionFactoryEntry.of(connectionFactoryProducerHigh)],
+                (priorityLow): [ConnectionFactoryEntry.of(connectionFactoryProducerLow)]
         ])
         def failMessage = 'Connection is fail'
 
@@ -98,7 +119,7 @@ class TpCallerFailoverTest extends Specification
     {
         setup:
         lookup.find(serviceName, connectionFactoryProvider.get()) >> ConnectionFactoriesByPriority.of([
-                (priorityHigh): [ConnectionFactoryEntry.of(conFacHighJndi, conFacHigh), ConnectionFactoryEntry.of(conFacLowJndi, conFacLow)]
+                (priorityHigh): [ConnectionFactoryEntry.of(connectionFactoryProducerHigh), ConnectionFactoryEntry.of(connectionFactoryProducerLow)]
         ])
         def failMessage = 'Connection is fail'
 
@@ -124,7 +145,14 @@ class TpCallerFailoverTest extends Specification
             List<ConnectionFactoryEntry> listOfEntries = []
             for (int i = 0; i < entriesPerPriority; i++)
             {
-                listOfEntries.add(ConnectionFactoryEntry.of(conFacHighJndi+prioIndex+":"+i, conFacHigh))
+                ConnectionFactoryProducer producer = Mock(ConnectionFactoryProducer)
+                producer.getConnectionFactory() >> {
+                   conFacHigh
+                }
+                producer.getJndiName() >> {
+                   conFacHighJndi+prioIndex+":"+i
+                }
+                listOfEntries.add(ConnectionFactoryEntry.of(producer))
             }
             cacheMap.put(prioIndex, listOfEntries)
         }
@@ -156,7 +184,14 @@ class TpCallerFailoverTest extends Specification
             List<ConnectionFactoryEntry> listOfEntries = []
             for (int i = 0; i < entriesPerPriority; i++)
             {
-                listOfEntries.add(ConnectionFactoryEntry.of(conFacHighJndi+prioIndex+":"+i, conFacHigh))
+               ConnectionFactoryProducer producer = Mock(ConnectionFactoryProducer)
+               producer.getConnectionFactory() >> {
+                  conFacHigh
+               }
+               producer.getJndiName() >> {
+                  conFacHighJndi+prioIndex+":"+i
+               }
+               listOfEntries.add(ConnectionFactoryEntry.of(producer))
             }
             cacheMap.put(prioIndex, listOfEntries)
         }
@@ -165,7 +200,14 @@ class TpCallerFailoverTest extends Specification
         List<ConnectionFactoryEntry> listOfEntries = []
         for (int i = 0; i < entriesPerPriority; i++)
         {
-            listOfEntries.add(ConnectionFactoryEntry.of(conFacHighJndi+(priorities+1L)+":"+i, conFacLow))
+           ConnectionFactoryProducer producer = Mock(ConnectionFactoryProducer)
+           producer.getConnectionFactory() >> {
+              conFacLow
+           }
+           producer.getJndiName() >> {
+              conFacHighJndi+(priorities+1L)+":"+i
+           }
+            listOfEntries.add(ConnectionFactoryEntry.of(producer))
         }
         cacheMap.put(priorities+1L, listOfEntries)
 

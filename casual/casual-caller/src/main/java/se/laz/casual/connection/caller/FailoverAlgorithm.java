@@ -70,7 +70,6 @@ public class FailoverAlgorithm<T>
                 thrownException = e;
             }
         }
-
         throw new CasualResourceException("Call failed to all " + validEntries.size() + " available casual connections connections.", thrownException);
     }
 

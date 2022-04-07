@@ -77,8 +77,7 @@ class ConnectionFactoryFinderTest extends Specification
         def result = ConnectionFactoryFinder.of().findConnectionFactory(root, context)
         then:
         !result.isEmpty()
-        result[0].jndiName == completeJndiName
-        result[0].connectionFactory instanceof CasualConnectionFactory
+        result[0].getJndiName() == completeJndiName
     }
 
 

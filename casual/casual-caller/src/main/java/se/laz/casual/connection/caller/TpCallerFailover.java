@@ -26,11 +26,12 @@ import java.util.concurrent.CompletableFuture;
  * - How does it return failed connection-factories to the pool? Manual attempts when none is available,
  */
 
-public class TpCallerFailover
+public class TpCallerFailover implements TpCaller
 {
     private static final FailoverAlgorithm<ServiceReturn<CasualBuffer>> sync = new FailoverAlgorithm<>();
     private static final FailoverAlgorithm<CompletableFuture<ServiceReturn<CasualBuffer>>> async = new FailoverAlgorithm<>();
 
+    @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup)
     {
         return sync.callWithFailover(
@@ -43,6 +44,7 @@ public class TpCallerFailover
         );
     }
 
+    @Override
     public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup)
     {
         return async.callWithFailover(
@@ -55,7 +57,7 @@ public class TpCallerFailover
         );
     }
 
-    public ServiceReturn<CasualBuffer> tpenoentReply()
+    private ServiceReturn<CasualBuffer> tpenoentReply()
     {
         return new ServiceReturn<>(ServiceBuffer.empty(), ServiceReturnState.TPFAIL, ErrorState.TPENOENT, 0L);
     }
