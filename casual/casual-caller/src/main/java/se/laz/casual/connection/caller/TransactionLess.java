@@ -37,7 +37,7 @@ public class TransactionLess
         {
             Optional<Transaction> currentTransaction = Optional.ofNullable(transactionManager.suspend());
             ServiceReturn<CasualBuffer> value = supplier.get();
-            currentTransaction.ifPresent(transaction -> resumeTransaction(transaction));
+            currentTransaction.ifPresent(this::resumeTransaction);
             return value;
         }
         catch (SystemException e)
@@ -52,7 +52,7 @@ public class TransactionLess
         {
             Optional<Transaction> currentTransaction = Optional.ofNullable(transactionManager.suspend());
             CompletableFuture<ServiceReturn<CasualBuffer>> value = supplier.get();
-            currentTransaction.ifPresent(transaction -> resumeTransaction(transaction));
+            currentTransaction.ifPresent(this::resumeTransaction);
             return value;
         }
         catch (SystemException e)
