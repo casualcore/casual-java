@@ -15,6 +15,7 @@ import spock.lang.Specification
 
 import javax.resource.ResourceException
 import javax.resource.spi.EISSystemException
+import javax.transaction.Transaction
 import javax.transaction.TransactionManager
 import java.util.concurrent.CompletableFuture
 
@@ -27,6 +28,7 @@ class CasualCallerImplTest extends Specification
     ConnectionFactoryEntry fallBackEntry
     TransactionManager transactionManager
     TransactionManagerProvider transactionManagerProvider
+    TransactionLess transactionLess
 
     def setup()
     {
@@ -54,7 +56,8 @@ class CasualCallerImplTest extends Specification
         }
         transactionManagerProvider = Mock(TransactionManagerProvider)
         transactionManagerProvider.getTransactionManager() >> { transactionManager }
-        instance = new CasualCallerImpl(lookup, connectionFactoryProvider, transactionManagerProvider)
+        transactionLess = new TransactionLess(transactionManagerProvider)
+        instance = new CasualCallerImpl(lookup, connectionFactoryProvider, transactionLess)
     }
 
     def 'construction, no entries found - should throw'()
@@ -63,7 +66,7 @@ class CasualCallerImplTest extends Specification
         ConnectionFactoryEntryStore provider = Mock(ConnectionFactoryEntryStore)
         provider.get() >> []
         when:
-        new CasualCallerImpl(lookup, provider, Mock(TransactionManagerProvider))
+        new CasualCallerImpl(lookup, provider, Mock(TransactionLess))
         then:
         thrown(CasualCallerException)
     }
@@ -260,12 +263,14 @@ class CasualCallerImplTest extends Specification
         actual == future
     }
 
-    def 'TPNOTRAN tpcall'()
+    def 'TPNOTRAN tpcall, in transaction'()
     {
        given:
-       def caller = new CasualCallerImpl(lookup, connectionFactoryProvider, transactionManagerProvider)
+       1 * transactionManager.suspend() >> {
+          Mock(Transaction)
+       }
+       def caller = new CasualCallerImpl(lookup, connectionFactoryProvider, new TransactionLess(transactionManagerProvider))
        caller.tpCaller = Mock(TpCallerFailover)
-       1 * transactionManager.suspend()
        1 * transactionManager.resume(_)
        when:
        caller.tpcall("foo", Mock(CasualBuffer), Flag.of(AtmiFlags.TPNOTRAN))
@@ -273,13 +278,46 @@ class CasualCallerImplTest extends Specification
        noExceptionThrown()
     }
 
-   def 'TPNOTRAN tpacall'()
+   def 'TPNOTRAN tpcall, no transaction'()
    {
       given:
-      def caller = new CasualCallerImpl(lookup, connectionFactoryProvider, transactionManagerProvider)
+      1 * transactionManager.suspend() >> {
+         null
+      }
+      def caller = new CasualCallerImpl(lookup, connectionFactoryProvider, new TransactionLess(transactionManagerProvider))
       caller.tpCaller = Mock(TpCallerFailover)
-      1 * transactionManager.suspend()
+      0 * transactionManager.resume(_)
+      when:
+      caller.tpcall("foo", Mock(CasualBuffer), Flag.of(AtmiFlags.TPNOTRAN))
+      then:
+      noExceptionThrown()
+   }
+
+
+   def 'TPNOTRAN tpacall in transaction'()
+   {
+      given:
+      1 * transactionManager.suspend() >> {
+         Mock(Transaction)
+      }
+      def caller = new CasualCallerImpl(lookup, connectionFactoryProvider, new TransactionLess(transactionManagerProvider))
+      caller.tpCaller = Mock(TpCallerFailover)
       1 * transactionManager.resume(_)
+      when:
+      caller.tpacall("foo", Mock(CasualBuffer), Flag.of(AtmiFlags.TPNOTRAN))
+      then:
+      noExceptionThrown()
+   }
+
+   def 'TPNOTRAN tpacall no transaction'()
+   {
+      given:
+      1 * transactionManager.suspend() >> {
+         null
+      }
+      def caller = new CasualCallerImpl(lookup, connectionFactoryProvider, new TransactionLess(transactionManagerProvider))
+      caller.tpCaller = Mock(TpCallerFailover)
+      0 * transactionManager.resume(_)
       when:
       caller.tpacall("foo", Mock(CasualBuffer), Flag.of(AtmiFlags.TPNOTRAN))
       then:
