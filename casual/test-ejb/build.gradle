@@ -12,6 +12,7 @@ plugins {
 
 dependencies {
     compileOnly 'javax:javaee-api:7.0'
+    compileOnly libs.microprofile_config
     compileOnly project( path: ':casual:test-api')
     compileOnly project( path: ':casual:casual-api')
     compileOnly project( path: ':casual:casual-caller-api')
@@ -19,6 +20,8 @@ dependencies {
     compileOnly project( path: ':casual:casual-fielded-annotations')
 
     testCompile 'javax:javaee-api:7.0'
+    testCompile project( path: ':casual:test-api')
+    testCompile project( path: ':casual:casual-inbound-handler-api')
     testCompile project( path: ':casual:casual-api')
     testCompile project( path: ':casual:casual-caller-api')
     // for spock

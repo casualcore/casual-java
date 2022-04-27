@@ -11,6 +11,7 @@ import se.laz.casual.api.buffer.type.OctetBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
+import se.laz.casual.api.qualifier.Casual;
 import se.laz.casual.connection.caller.CasualCaller;
 import se.laz.casual.test.service.remote.ServiceCallFailedException;
 
@@ -27,12 +28,11 @@ import javax.ws.rs.core.Response;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-
-
 @Stateless
 @Path("/echo")
 public class EchoService
 {
+    @Casual
     @Inject
     CasualCaller casualCaller;
 
@@ -55,7 +55,8 @@ public class EchoService
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             e.printStackTrace(pw);
-            if (!ctx.getRollbackOnly()) {
+            if (!ctx.getRollbackOnly())
+            {
                 ctx.setRollbackOnly();
             }
             return Response.serverError().entity(sw.toString()).build();

@@ -13,6 +13,7 @@ plugins {
 dependencies {
   provided project(":casual:casual-api")
   provided project(":casual:casual-jca")
+  provided 'javax:javaee-api:7.0'
 }
 
 jar{
