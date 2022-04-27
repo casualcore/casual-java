@@ -19,7 +19,6 @@ import javax.ejb.EJBContext;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -40,7 +39,7 @@ public class EchoService
     @GET
     @Consumes("application/casual-x-octet")
     @Path("{serviceName}/{data}")
-    public Response echoRequest(@PathParam("serviceName") @DefaultValue("casual%2Fexample%2Fecho") String serviceName, @PathParam("data") String data)
+    public Response echoRequest(@PathParam("serviceName") String serviceName, @PathParam("data") String data)
     {
         try
         {
