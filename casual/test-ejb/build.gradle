@@ -11,7 +11,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly 'javax:javaee-api:7.0'
+    compileOnly libs.javaee_api
     compileOnly libs.microprofile_config
     compileOnly project( path: ':casual:test-api')
     compileOnly project( path: ':casual:casual-api')
@@ -19,16 +19,16 @@ dependencies {
     compileOnly project( path: ':casual:casual-inbound-handler-api')
     compileOnly project( path: ':casual:casual-fielded-annotations')
 
-    testCompile 'javax:javaee-api:7.0'
+    testCompile libs.javaee_api
     testCompile project( path: ':casual:test-api')
     testCompile project( path: ':casual:casual-inbound-handler-api')
     testCompile project( path: ':casual:casual-api')
     testCompile project( path: ':casual:casual-caller-api')
     // for spock
-    testCompile 'org.codehaus.groovy:groovy-all:2.4.4+'
-    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-    testCompile 'cglib:cglib-nodep:3.2.4'
-    testCompile 'org.objenesis:objenesis:1.2'
+    testCompile libs.groovy_all
+    testCompile libs.spock_core
+    testCompile libs.cglib_nodep
+    testCompile libs.objenesis
 }
 
 jar{
