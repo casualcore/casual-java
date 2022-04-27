@@ -6,7 +6,7 @@
 package se.laz.casual.test.service.remote.producer;
 
 import se.laz.casual.connection.caller.CasualCaller;
-import se.laz.casual.connection.caller.CasualCallerException;
+import se.laz.casual.test.service.remote.MissingResourceException;
 
 import javax.enterprise.inject.Produces;
 import javax.naming.InitialContext;
@@ -24,7 +24,7 @@ public class CasualCallerProducer
         }
         catch (NamingException e)
         {
-            throw new CasualCallerException("Failed finding CasualCallerImpl, using CasualCaller will not work", e);
+            throw new MissingResourceException("Failed finding CasualCallerImpl, using CasualCaller will not work", e);
         }
     }
 }
