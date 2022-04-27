@@ -17,7 +17,7 @@ dependencies {
     compileOnly project( path: ':casual:casual-caller-api')
     compileOnly project( path: ':casual:casual-inbound-handler-api')
     compileOnly project( path: ':casual:casual-fielded-annotations')
-    compileOnly 'javax:javaee-api:7.0'
+    compileOnly libs.javaee_api
 }
 
 jar{
