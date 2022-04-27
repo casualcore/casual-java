@@ -10,7 +10,6 @@ import se.laz.casual.api.buffer.ServiceReturn;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
-import se.laz.casual.api.qualifier.Casual;
 import se.laz.casual.connection.caller.CasualCaller;
 
 import javax.inject.Inject;
@@ -20,7 +19,7 @@ public class TpCallerImpl implements TpCaller
     private CasualCaller casualCaller;
 
     @Inject
-    public TpCallerImpl(@Casual CasualCaller casualCaller)
+    public TpCallerImpl(CasualCaller casualCaller)
     {
         this.casualCaller = casualCaller;
     }
