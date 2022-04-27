@@ -18,5 +18,5 @@ dependencies {
 }
 
 war{
-    archiveName("caller-test-app-${casual_test_app_version}.war")
+    archiveName("casual-test-app-${casual_test_app_version}.war")
 }

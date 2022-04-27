@@ -11,7 +11,6 @@ import se.laz.casual.api.buffer.type.OctetBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
-import se.laz.casual.api.qualifier.Casual;
 import se.laz.casual.connection.caller.CasualCaller;
 import se.laz.casual.test.service.remote.ServiceCallFailedException;
 
@@ -32,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 @Path("/echo")
 public class EchoService
 {
-    @Casual
     @Inject
     CasualCaller casualCaller;
 

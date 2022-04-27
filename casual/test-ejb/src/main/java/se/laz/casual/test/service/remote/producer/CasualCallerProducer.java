@@ -3,9 +3,8 @@
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
-package se.laz.casual.connection.caller.producer;
+package se.laz.casual.test.service.remote.producer;
 
-import se.laz.casual.api.qualifier.Casual;
 import se.laz.casual.connection.caller.CasualCaller;
 import se.laz.casual.connection.caller.CasualCallerException;
 
@@ -15,7 +14,6 @@ import javax.naming.NamingException;
 
 public class CasualCallerProducer
 {
-    @Casual
     @Produces
     public CasualCaller get()
     {
