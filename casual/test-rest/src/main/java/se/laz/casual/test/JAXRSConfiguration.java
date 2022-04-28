@@ -8,6 +8,6 @@ package se.laz.casual.test;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
-@ApplicationPath("casual-test")
+@ApplicationPath("/")
 public class JAXRSConfiguration extends Application
 {}
