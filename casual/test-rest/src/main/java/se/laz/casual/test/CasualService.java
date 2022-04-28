@@ -5,6 +5,7 @@
  */
 package se.laz.casual.test;
 
+import org.apache.commons.io.IOUtils;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
 import se.laz.casual.api.buffer.type.OctetBuffer;
@@ -19,16 +20,16 @@ import javax.ejb.EJBContext;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
 @Stateless
-@Path("/echo")
-public class EchoService
+@Path("/casual")
+public class CasualService
 {
     @Inject
     CasualCaller casualCaller;
@@ -36,16 +37,17 @@ public class EchoService
     @Resource
     private EJBContext ctx;
 
-    @GET
+    @POST
     @Consumes("application/casual-x-octet")
-    @Path("{serviceName}/{data}")
-    public Response echoRequest(@PathParam("serviceName") String serviceName, @PathParam("data") String data)
+    @Path("{serviceName}")
+    public Response echoRequest(@PathParam("serviceName") String serviceName, InputStream inputStream)
     {
         try
         {
+            byte[] data = IOUtils.toByteArray(inputStream);
             Flag<AtmiFlags> flags = Flag.of(AtmiFlags.NOFLAG);
-            OctetBuffer buffer = OctetBuffer.of(data.getBytes(StandardCharsets.UTF_8));
-            return Response.ok().entity(new String(makeCasualCall(buffer, serviceName, flags).getBytes().get(0), StandardCharsets.UTF_8)).build();
+            OctetBuffer buffer = OctetBuffer.of(data);
+            return Response.ok().entity(makeCasualCall(buffer, serviceName, flags).getBytes().get(0)).build();
         }
         catch (Exception e)
         {
