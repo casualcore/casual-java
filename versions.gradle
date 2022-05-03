@@ -7,7 +7,7 @@
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '1.0.82-beta'
+version = '1.0.83-beta'
 
 ext.casual_caller_app_version = '1.2.8'
 ext.casual_test_app_version = '1.0.0'
