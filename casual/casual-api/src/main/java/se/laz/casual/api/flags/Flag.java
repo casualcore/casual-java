@@ -8,13 +8,15 @@ package se.laz.casual.api.flags;
 
 import se.laz.casual.api.flags.internal.CasualFlag;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * @author jone
  */
-public class Flag<T extends CasualFlag>
+public class Flag<T extends CasualFlag> implements Serializable
 {
+    private static final long serialVersionUID = 1L;
     private int flags;
 
     private Flag(int flags)
