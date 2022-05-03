@@ -10,5 +10,6 @@ Forwards the request to the service name specified by the environment variable `
 
 content-type: application/casual-x-octet
 
+POST
+```/casual/{serviceName}```
 
-```/echo/{serviceName}/{data}```
