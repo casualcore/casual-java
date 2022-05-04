@@ -56,6 +56,14 @@ public class ServiceCache
         mapForService.store(priority, entries);
     }
 
+    public void remove(ConnectionFactoryEntry connectionFactoryEntry)
+    {
+        for (Map.Entry<String, ConnectionFactoriesByPriority> cachedEntry : cacheMap.entrySet())
+        {
+            cachedEntry.getValue().remove(connectionFactoryEntry);
+        }
+    }
+
     public void clear()
     {
         cacheMap.clear();

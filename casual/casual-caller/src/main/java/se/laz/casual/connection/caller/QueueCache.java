@@ -77,6 +77,21 @@ public class QueueCache
         cacheMap.put(queueInfo.getQueueName(), entries);
     }
 
+    public void remove(ConnectionFactoryEntry connectionFactoryEntry)
+    {
+        for(Map.Entry<String, ConnectionFactoryEntry> entry : stickies.entrySet())
+        {
+            if(entry.getValue().getJndiName().equals(connectionFactoryEntry.getJndiName()))
+            {
+                stickies.remove(entry.getKey());
+            }
+        }
+        for(Map.Entry<String, List<ConnectionFactoryEntry>> entry : cacheMap.entrySet())
+        {
+            entry.getValue().removeIf(cachedEntry -> cachedEntry.getJndiName().equals(connectionFactoryEntry.getJndiName()));
+        }
+    }
+
     public void clear()
     {
         cacheMap.clear();

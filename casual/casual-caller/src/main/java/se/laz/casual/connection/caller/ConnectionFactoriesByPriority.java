@@ -76,7 +76,6 @@ public class ConnectionFactoriesByPriority
                     });
         }
     }
-
     public void store(Long priority, List<ConnectionFactoryEntry> entries)
     {
         // Ensure priority level exists
@@ -174,5 +173,15 @@ public class ConnectionFactoriesByPriority
     public static ConnectionFactoriesByPriority emptyInstance()
     {
         return new ConnectionFactoriesByPriority();
+    }
+
+    public void remove(ConnectionFactoryEntry connectionFactoryEntry)
+    {
+        foundConnectionFactories.remove(connectionFactoryEntry);
+        checkedConnectionFactories.remove(connectionFactoryEntry);
+        for(Map.Entry<Long, List<ConnectionFactoryEntry>> entry : mapping.entrySet())
+        {
+            entry.getValue().removeIf(cachedConnectionFactoryEntry -> cachedConnectionFactoryEntry.getJndiName().equals(connectionFactoryEntry.getJndiName()));
+        }
     }
 }
