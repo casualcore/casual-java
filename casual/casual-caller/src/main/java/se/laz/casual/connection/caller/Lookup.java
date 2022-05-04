@@ -48,7 +48,7 @@ public class Lookup
                 }
                 catch (ResourceException e)
                 {
-                    LOG.log(Level.WARNING, e, ()->"Skipping connection factory " + entry.getJndiName() + " for lookup, received error: " + e.getMessage());
+                    LOG.log(Level.WARNING, e, ()->"Skipping connection factory " + entry.getJndiName() + " for service lookup, received error: " + e.getMessage());
                 }
             }
         }
@@ -70,7 +70,7 @@ public class Lookup
             }
             catch (ResourceException e)
             {
-                throw new CasualResourceException(e);
+                LOG.log(Level.WARNING, e, ()->"Skipping connection factory " + entry.getJndiName() + " for queue lookup on, received error: " + e.getMessage());
             }
         }
         return foundEntries;

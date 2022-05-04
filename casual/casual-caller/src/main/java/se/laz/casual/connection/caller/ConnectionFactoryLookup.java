@@ -9,6 +9,7 @@ package se.laz.casual.connection.caller;
 import se.laz.casual.api.queue.QueueInfo;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Lookup CacheEntries that can serve the QueueInfo/ServiceInfo request
@@ -28,9 +29,9 @@ public interface ConnectionFactoryLookup
     /**
      *
      * @param qinfo
-     * @return a List of 0-n CacheEntries
+     * @return an optional CacheEntry that may be empty if no connection factory handles the requested queue
      */
-    List<ConnectionFactoryEntry> get(QueueInfo qinfo);
+    Optional<ConnectionFactoryEntry> get(QueueInfo qinfo);
 
 
     /**

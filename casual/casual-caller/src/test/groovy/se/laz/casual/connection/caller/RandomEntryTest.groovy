@@ -20,19 +20,19 @@ class RandomEntryTest extends Specification
         !entry.isPresent()
     }
 
-    def 'get queue with 0 entries, should throw'()
+    def 'get queue with 0 entries, should give TPENOENT'()
     {
         given:
         def queueInfo = QueueInfo.createBuilder().withQueueName('Battlestar.Galactica').build()
-        def entries = []
+        def entry = Optional.empty()
         def lookup = Mock(ConnectionFactoryLookup)
         lookup.get(queueInfo) >> {
-            entries
+            entry
         }
         when:
-        def entry = RandomEntry.getEntry(lookup.get(queueInfo))
+        def actual = lookup.get(queueInfo)
         then:
-        !entry.isPresent()
+        !actual.isPresent()
     }
 
     def 'get service with 1 entry, should return that entry'()
@@ -54,15 +54,15 @@ class RandomEntryTest extends Specification
     {
         given:
         def queueInfo = QueueInfo.createBuilder().withQueueName('Battlestar.Galactica').build()
-        def entries = [ConnectionFactoryEntry.of(Mock(ConnectionFactoryProducer))]
+        def entry = Optional.of(ConnectionFactoryEntry.of(Mock(ConnectionFactoryProducer)))
         def lookup = Mock(ConnectionFactoryLookup)
         lookup.get(queueInfo) >> {
-            entries
+            entry
         }
         when:
-        def actual = RandomEntry.getEntry(lookup.get(queueInfo))
+        def actual = lookup.get(queueInfo)
         then:
-        actual.get() == entries[0]
+        actual.get() == entry.get()
     }
 
     def 'getEntry with more than 1 entry should get all entries eventually'()

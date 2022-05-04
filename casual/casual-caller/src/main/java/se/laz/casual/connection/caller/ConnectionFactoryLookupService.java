@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
@@ -24,20 +25,20 @@ public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
     private Lookup lookup;
 
     @Override
-    public List<ConnectionFactoryEntry> get(QueueInfo qinfo)
+    public Optional<ConnectionFactoryEntry> get(QueueInfo qinfo)
     {
         Objects.requireNonNull(qinfo, "qinfo can not be null");
-        List<ConnectionFactoryEntry> cachedEntries = cache.get(qinfo);
-        if (!cachedEntries.isEmpty())
+        Optional<ConnectionFactoryEntry> cachedEntry = cache.getSingle(qinfo);
+        if (cachedEntry.isPresent())
         {
-            return cachedEntries;
+            return cachedEntry;
         }
         List<ConnectionFactoryEntry> newEntries = lookup.find(qinfo, connectionFactoryProvider.get());
         if (!newEntries.isEmpty())
         {
             cache.store(qinfo, newEntries);
         }
-        return newEntries;
+        return cache.getSingle(qinfo); // May be something or empty depending on if
     }
 
     @Override

@@ -7,6 +7,8 @@
 package se.laz.casual.jca.queue
 
 import se.laz.casual.api.buffer.type.JsonBuffer
+import se.laz.casual.api.queue.DequeueReturn
+import se.laz.casual.api.queue.EnqueueReturn
 import se.laz.casual.api.queue.MessageSelector
 import se.laz.casual.api.queue.QueueInfo
 import se.laz.casual.api.queue.QueueMessage
@@ -158,10 +160,10 @@ class CasualQueueCallerTest extends Specification
     def 'enqueue'()
     {
         when:
-        UUID msgId = instance.enqueue(queueInfo, QueueMessage.of(message))
+        EnqueueReturn msgId = instance.enqueue(queueInfo, QueueMessage.of(message))
         then:
         noExceptionThrown()
-        msgId == enqueueReplyId
+        msgId.getId().get() == enqueueReplyId
         1 * networkConnection.request( _ ) >> {
             CasualNWMessageImpl<CasualEnqueueRequestMessage> input ->
                 actualEnqueueRequest = input
@@ -173,7 +175,7 @@ class CasualQueueCallerTest extends Specification
     def 'enqueue goes big badda boom'()
     {
         when:
-        UUID msgId = instance.enqueue(queueInfo, QueueMessage.of(message))
+        EnqueueReturn msgId = instance.enqueue(queueInfo, QueueMessage.of(message))
         then:
         null == msgId
         thrown(CasualConnectionException)
@@ -186,7 +188,7 @@ class CasualQueueCallerTest extends Specification
     def 'dequeue goes big badda boom'()
     {
         when:
-        List<QueueMessage> messages = instance.dequeue(queueInfo, MessageSelector.of())
+        DequeueReturn messages = instance.dequeue(queueInfo, MessageSelector.of())
         then:
         messages == null
         thrown(CasualConnectionException)

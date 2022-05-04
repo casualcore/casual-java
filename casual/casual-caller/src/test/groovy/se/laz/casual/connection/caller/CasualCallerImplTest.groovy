@@ -6,6 +6,8 @@ import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.ServiceReturnState
+import se.laz.casual.api.queue.DequeueReturn
+import se.laz.casual.api.queue.EnqueueReturn
 import se.laz.casual.api.queue.MessageSelector
 import se.laz.casual.api.queue.QueueInfo
 import se.laz.casual.api.queue.QueueMessage
@@ -333,7 +335,7 @@ class CasualCallerImplTest extends Specification
         def uuid = UUID.randomUUID()
         connectionFactory.getConnection() >> {
             def connection = Mock(CasualConnection)
-            1 * connection.enqueue(queueInfo, queueMessage) >> uuid
+            1 * connection.enqueue(queueInfo, queueMessage) >> EnqueueReturn.createBuilder().withErrorState(ErrorState.OK).withId(uuid).build()
             return connection
         }
         def producer = Mock(ConnectionFactoryProducer){
@@ -349,9 +351,9 @@ class CasualCallerImplTest extends Specification
             entries
         }
         when:
-        def actual = instance.enqueue(queueInfo, queueMessage)
+        EnqueueReturn actual = instance.enqueue(queueInfo, queueMessage)
         then:
-        actual == uuid
+        actual == EnqueueReturn.createBuilder().withErrorState(ErrorState.OK).withId(uuid).build()
     }
 
     def 'dequeue ok'()
@@ -359,11 +361,11 @@ class CasualCallerImplTest extends Specification
         given:
         def queueInfo = QueueInfo.createBuilder().withQueueName("bar.foo").build()
         def messageSelector = MessageSelector.of()
-        def queueMessage = [QueueMessage.of(Mock(CasualBuffer))]
+        def queueMessage = QueueMessage.of(Mock(CasualBuffer))
         def connectionFactory = Mock(CasualConnectionFactory)
         connectionFactory.getConnection() >> {
             def connection = Mock(CasualConnection)
-            1 * connection.dequeue(queueInfo, messageSelector) >> queueMessage
+            1 * connection.dequeue(queueInfo, messageSelector) >> DequeueReturn.createBuilder().withErrorState(ErrorState.OK).withQueueMessage(queueMessage).build()
             return connection
         }
         def producer = Mock(ConnectionFactoryProducer){
@@ -381,7 +383,7 @@ class CasualCallerImplTest extends Specification
         when:
         def actual = instance.dequeue(queueInfo, messageSelector)
         then:
-        actual == queueMessage
+        actual == DequeueReturn.createBuilder().withErrorState(ErrorState.OK).withQueueMessage(queueMessage).build()
     }
 
     ServiceReturn<CasualBuffer> createServiceReturn(CasualBuffer casualBuffer)

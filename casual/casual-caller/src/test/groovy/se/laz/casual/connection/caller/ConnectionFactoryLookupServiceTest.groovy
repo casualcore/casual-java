@@ -118,10 +118,10 @@ class ConnectionFactoryLookupServiceTest extends Specification
         ConnectionFactoryEntry entry = ConnectionFactoryEntry.of(producerTwo)
         lookup.find(qinfo, _) >> [entry]
         when:
-        def entries = instance.get(qinfo)
+        def actual = instance.get(qinfo)
         then:
-        entries.size() == 1
-        entries[0] == entry
+        actual.isPresent()
+        actual.get() == entry
     }
 
     def 'qinfo get jndi name, no cached entry - not found'()
@@ -129,9 +129,9 @@ class ConnectionFactoryLookupServiceTest extends Specification
         setup:
         lookup.find(qinfo, _) >> []
         when:
-        def entries = instance.get(qinfo)
+        def entry = instance.get(qinfo)
         then:
-        entries.isEmpty()
+        !entry.isPresent()
     }
 
     def 'qinfo get jndi name, cached entry'()
@@ -139,10 +139,10 @@ class ConnectionFactoryLookupServiceTest extends Specification
         setup:
         cache.store(qinfo, [ConnectionFactoryEntry.of(producerTwo)])
         when:
-        def entries = instance.get(qinfo)
+        def entry = instance.get(qinfo)
         then:
-        entries.size() == 1
-        entries[0].jndiName == jndiNameConFactoryTwo
+        entry.isPresent()
+        entry.get().jndiName == jndiNameConFactoryTwo
         0 * lookup.find(qinfo, _)
     }
 

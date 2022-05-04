@@ -8,7 +8,10 @@ package se.laz.casual.connection.caller;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
 import se.laz.casual.api.flags.AtmiFlags;
+import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.Flag;
+import se.laz.casual.api.queue.DequeueReturn;
+import se.laz.casual.api.queue.EnqueueReturn;
 import se.laz.casual.api.queue.MessageSelector;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
@@ -22,7 +25,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.resource.ResourceException;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Remote(CasualCaller.class)
@@ -77,10 +80,16 @@ public class CasualCallerImpl implements CasualCaller
     }
 
     @Override
-    public UUID enqueue(QueueInfo qinfo, QueueMessage msg)
+    public EnqueueReturn enqueue(QueueInfo qinfo, QueueMessage msg)
     {
-        ConnectionFactoryEntry entry = RandomEntry.getEntry(lookup.get(qinfo)).orElse(RandomEntry.getRandomEntry(connectionFactoryProvider.get()));
-        try(CasualConnection connection = entry.getConnectionFactory().getConnection())
+        Optional<ConnectionFactoryEntry> entry = lookup.get(qinfo);
+
+        if (!entry.isPresent())
+        {
+            return EnqueueReturn.createBuilder().withErrorState(ErrorState.TPENOENT).build();
+        }
+
+        try(CasualConnection connection = entry.get().getConnectionFactory().getConnection())
         {
             return connection.enqueue(qinfo, msg);
         }
@@ -91,10 +100,16 @@ public class CasualCallerImpl implements CasualCaller
     }
 
     @Override
-    public List<QueueMessage> dequeue(QueueInfo qinfo, MessageSelector selector)
+    public DequeueReturn dequeue(QueueInfo qinfo, MessageSelector selector)
     {
-        ConnectionFactoryEntry entry = RandomEntry.getEntry(lookup.get(qinfo)).orElse(RandomEntry.getRandomEntry(connectionFactoryProvider.get()));
-        try(CasualConnection connection = entry.getConnectionFactory().getConnection())
+        Optional<ConnectionFactoryEntry> entry = lookup.get(qinfo);
+
+        if (!entry.isPresent())
+        {
+            return DequeueReturn.createBuilder().withErrorState(ErrorState.TPENOENT).build();
+        }
+
+        try(CasualConnection connection = entry.get().getConnectionFactory().getConnection())
         {
             return connection.dequeue(qinfo, selector);
         }
@@ -107,7 +122,7 @@ public class CasualCallerImpl implements CasualCaller
     @Override
     public boolean queueExists(QueueInfo qinfo)
     {
-        return !lookup.get(qinfo).isEmpty();
+        return lookup.get(qinfo).isPresent();
     }
 
 }

@@ -11,6 +11,8 @@ import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
+import se.laz.casual.api.queue.DequeueReturn;
+import se.laz.casual.api.queue.EnqueueReturn;
 import se.laz.casual.api.queue.MessageSelector;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
@@ -23,7 +25,6 @@ import se.laz.casual.network.connection.CasualConnectionException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -105,14 +106,14 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
-    public UUID enqueue(QueueInfo qinfo, QueueMessage msg)
+    public EnqueueReturn enqueue(QueueInfo qinfo, QueueMessage msg)
     {
         throwIfInvalidated();
         return getCasualQueueCaller().enqueue(qinfo, msg);
     }
 
     @Override
-    public List<QueueMessage> dequeue(QueueInfo qinfo, MessageSelector selector)
+    public DequeueReturn dequeue(QueueInfo qinfo, MessageSelector selector)
     {
         throwIfInvalidated();
         return getCasualQueueCaller().dequeue(qinfo, selector);

@@ -7,7 +7,6 @@
 package se.laz.casual.network.outbound
 
 import io.netty.channel.Channel
-import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import io.netty.channel.embedded.EmbeddedChannel
@@ -86,6 +85,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'send conversation request message, no message is stored'()
     {
        given:
+       conversationMessageStorage.clearAllConversations()
        CasualNWMessage<Request> requestMessage = CasualNWMessageImpl.of(UUID.randomUUID(), Request.createBuilder()
                .setExecution(UUID.randomUUID())
                .setDuplex(Duplex.RECEIVE)

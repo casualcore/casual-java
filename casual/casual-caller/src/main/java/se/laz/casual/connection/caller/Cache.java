@@ -10,17 +10,14 @@ import se.laz.casual.api.queue.QueueInfo;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @ApplicationScoped
 public class Cache
 {
-    private final Map<QueueInfo, List<ConnectionFactoryEntry>> queueCache = new ConcurrentHashMap<>();
+    private final QueueCache queueCache = new QueueCache();
     private final ServiceCache serviceCache = new ServiceCache();
 
     public ConnectionFactoriesByPriority get(String serviceName)
@@ -30,7 +27,12 @@ public class Cache
 
     public List<ConnectionFactoryEntry> get(QueueInfo qinfo)
     {
-        return queueCache.getOrDefault(qinfo, Collections.emptyList());
+        return queueCache.getAll(qinfo);
+    }
+
+    public Optional<ConnectionFactoryEntry> getSingle(QueueInfo qinfo)
+    {
+        return queueCache.getOrEmpty(qinfo);
     }
 
     public void store(String serviceName, ConnectionFactoriesByPriority entries)
@@ -45,7 +47,7 @@ public class Cache
     {
         Objects.requireNonNull(qinfo, "qinfo can not be null");
         Objects.requireNonNull(entries, "entry can not be null");
-        queueCache.put(qinfo, entries);
+        queueCache.store(qinfo, entries);
     }
 
     public void purgeServices()
@@ -65,6 +67,6 @@ public class Cache
 
     public List<String> getQueues()
     {
-        return queueCache.keySet().stream().map(QueueInfo::toString).collect(Collectors.toList());
+        return new ArrayList<>(queueCache.getCachedQueueNames());
     }
 }

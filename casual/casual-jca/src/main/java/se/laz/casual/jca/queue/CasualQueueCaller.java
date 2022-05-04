@@ -7,13 +7,16 @@
 package se.laz.casual.jca.queue;
 
 import se.laz.casual.api.CasualQueueApi;
+import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.api.queue.DequeueReturn;
+import se.laz.casual.api.queue.EnqueueReturn;
 import se.laz.casual.api.queue.MessageSelector;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.config.Domain;
+import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
@@ -47,11 +50,13 @@ public class CasualQueueCaller implements CasualQueueApi
     }
 
     @Override
-    public UUID enqueue(QueueInfo qinfo, QueueMessage msg)
+    public EnqueueReturn enqueue(QueueInfo qinfo, QueueMessage msg)
     {
         try
         {
-            return makeEnqueueCall(UUID.randomUUID(), qinfo, msg);
+            // Always setting error state OK for now. In the future when error state is handled in the casual queue
+            // protocol any error state supplied from casual should be used (same with dequeue)
+            return EnqueueReturn.createBuilder().withErrorState(ErrorState.OK).withId(makeEnqueueCall(UUID.randomUUID(), qinfo, msg)).build();
         }
         catch(Exception e)
         {
@@ -60,11 +65,13 @@ public class CasualQueueCaller implements CasualQueueApi
     }
 
     @Override
-    public List<QueueMessage> dequeue(QueueInfo qinfo, MessageSelector selector)
+    public DequeueReturn dequeue(QueueInfo qinfo, MessageSelector selector)
     {
         try
         {
-            return makeDequeueCall(UUID.randomUUID(), qinfo, selector);
+            // Always setting error state OK for now. In the future when error state is handled in the casual queue
+            // protocol any error state supplied from casual should be used (same with enqueue)
+            return DequeueReturn.createBuilder().withErrorState(ErrorState.OK).withQueueMessage(makeDequeueCall(UUID.randomUUID(), qinfo, selector)).build();
         }
         catch(Exception e)
         {
@@ -101,7 +108,7 @@ public class CasualQueueCaller implements CasualQueueApi
         return replyMessage.getId();
     }
 
-    private List<QueueMessage> makeDequeueCall(UUID corrid, QueueInfo qinfo, MessageSelector selector)
+    private QueueMessage makeDequeueCall(UUID corrid, QueueInfo qinfo, MessageSelector selector)
     {
         CasualDequeueRequestMessage requestMessage = CasualDequeueRequestMessage.createBuilder()
                                                                                 .withExecution(UUID.randomUUID())
@@ -116,7 +123,8 @@ public class CasualQueueCaller implements CasualQueueApi
 
         CasualNWMessage<CasualDequeueReplyMessage> networkReplyMessage = networkReplyMessageFuture.join();
         CasualDequeueReplyMessage replyMessage = networkReplyMessage.getMessage();
-        return Transformer.transform(replyMessage.getMessages());
+        List<QueueMessage> messages = Transformer.transform(replyMessage.getMessages());
+        return messages.isEmpty() ? null : messages.get(0);
     }
 
     private boolean queueExists( UUID corrid, String queueName)

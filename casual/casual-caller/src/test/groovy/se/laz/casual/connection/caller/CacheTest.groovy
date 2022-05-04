@@ -109,9 +109,9 @@ class CacheTest extends Specification
     {
         when:
         instance.store(qInfo, [cacheEntryOne])
-        def entries = instance.get(qInfo)
+        def entries = instance.getSingle(qInfo)
         then:
-        entries.size() == 1
+        entries.isPresent()
     }
 
     def 'get missing queue entry'()
@@ -119,9 +119,9 @@ class CacheTest extends Specification
         given:
         def qinfoNotStored = QueueInfo.createBuilder().withQueueName("abc.Ford Prefect").build()
         when:
-        def entries = instance.get(qinfoNotStored)
+        def entries = instance.getSingle(qinfoNotStored)
         then:
-        entries.isEmpty()
+        !entries.isPresent()
     }
 
 }
