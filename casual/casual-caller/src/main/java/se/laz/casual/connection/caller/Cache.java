@@ -6,10 +6,12 @@
 
 package se.laz.casual.connection.caller;
 
+import se.laz.casual.api.discovery.DiscoveryReturn;
 import se.laz.casual.api.queue.QueueInfo;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +75,20 @@ public class Cache
         entries.put(CacheType.SERVICE, getServices());
         entries.put(CacheType.QUEUE, getServices());
         return entries;
+    }
+    public void repopulate(DiscoveryReturn discoveryReturn, ConnectionFactoryEntry connectionFactoryEntry)
+    {
+        discoveryReturn.getServiceDetails().stream()
+                       .forEach(serviceDetails -> {
+                           ConnectionFactoriesByPriority connectionFactoriesByPriority = get(serviceDetails.getName());
+                           connectionFactoriesByPriority.store(Arrays.asList(serviceDetails), connectionFactoryEntry);
+                           store(serviceDetails.getName(), connectionFactoriesByPriority);
+                       });
+        discoveryReturn.getQueueDetails().stream()
+                       .forEach(queueDetails -> {
+                           store(QueueInfo.createBuilder()
+                                          .withQueueName(queueDetails.getName()).build(), Arrays.asList(connectionFactoryEntry));
+                       });
     }
 
     public List<String> getServices()

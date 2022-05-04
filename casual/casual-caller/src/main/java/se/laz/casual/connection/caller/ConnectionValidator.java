@@ -1,16 +1,13 @@
 package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.discovery.DiscoveryReturn;
-import se.laz.casual.api.queue.QueueInfo;
-import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.jca.CasualConnection;
 
 import javax.inject.Inject;
 import javax.resource.ResourceException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -38,7 +35,8 @@ public class ConnectionValidator
         {
             Map<CacheType, List<String>> cachedItems = cache.getAll();
             cache.purge(connectionFactoryEntry);
-            issueDiscovery(cachedItems, connectionFactoryEntry);
+            Optional<DiscoveryReturn> maybeDiscoveryReturn = issueDiscovery(cachedItems, connectionFactoryEntry);
+            maybeDiscoveryReturn.ifPresent(discoveryReturn ->  cache.repopulate(discoveryReturn, connectionFactoryEntry));
         }
     }
 
@@ -47,7 +45,7 @@ public class ConnectionValidator
         return invalidBeforeRevalidation && valid;
     }
 
-    private void issueDiscovery(Map<CacheType, List<String>> cachedItems, ConnectionFactoryEntry connectionFactoryEntry)
+    private Optional<DiscoveryReturn> issueDiscovery(Map<CacheType, List<String>> cachedItems, ConnectionFactoryEntry connectionFactoryEntry)
     {
         try(CasualConnection connection = connectionFactoryEntry.getConnectionFactory().getConnection())
         {
@@ -57,17 +55,7 @@ public class ConnectionValidator
                     cachedItems.get(CacheType.SERVICE),
                     cachedItems.get(CacheType.QUEUE));
             LOG.finest(() -> "discovery returned: " + discoveryReturn);
-            discoveryReturn.getServiceDetails().stream()
-                    .forEach(serviceDetails -> {
-                        ConnectionFactoriesByPriority connectionFactoriesByPriority = cache.get(serviceDetails.getName());
-                        connectionFactoriesByPriority.store(Arrays.asList(serviceDetails), connectionFactoryEntry);
-                        cache.store(serviceDetails.getName(), connectionFactoriesByPriority);
-                    });
-            discoveryReturn.getQueueDetails().stream()
-                    .forEach(queueDetails -> {
-                        cache.store(QueueInfo.createBuilder()
-                                             .withQueueName(queueDetails.getName()).build(), Arrays.asList(connectionFactoryEntry));
-                    });
+            return Optional.of(discoveryReturn);
         }
         catch (ResourceException e)
         {
@@ -75,6 +63,7 @@ public class ConnectionValidator
             LOG.warning(() -> "failed domain discovery for: " + connectionFactoryEntry + " -> " + e);
             LOG.warning(() -> "services: " + cachedItems.get(CacheType.SERVICE) + " queues: " + cachedItems.get(CacheType.QUEUE));
         }
+        return Optional.empty();
     }
 
 }
