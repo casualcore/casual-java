@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.discovery.DiscoveryReturn;
@@ -14,7 +20,6 @@ import java.util.logging.Logger;
 public class ConnectionValidator
 {
     private static final Logger LOG = Logger.getLogger(ConnectionValidator.class.getName());
-    @Inject
     Cache cache;
 
     // WLS - no arg constructor
@@ -29,9 +34,9 @@ public class ConnectionValidator
 
     public void validate(final ConnectionFactoryEntry connectionFactoryEntry)
     {
-        boolean invalidBeforeRevalidation = !connectionFactoryEntry.isValid();
+        boolean invalidBeforeValidation = !connectionFactoryEntry.isValid();
         connectionFactoryEntry.validate();
-        if(connectionReestablished(invalidBeforeRevalidation, connectionFactoryEntry.isValid()))
+        if(connectionReestablished(invalidBeforeValidation, connectionFactoryEntry.isValid()))
         {
             Map<CacheType, List<String>> cachedItems = cache.getAll();
             cache.purge(connectionFactoryEntry);

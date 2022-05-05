@@ -8,11 +8,14 @@ package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.queue.QueueInfo;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -88,7 +91,8 @@ public class QueueCache
         }
         for(Map.Entry<String, List<ConnectionFactoryEntry>> entry : cacheMap.entrySet())
         {
-            entry.getValue().removeIf(cachedEntry -> cachedEntry.getJndiName().equals(connectionFactoryEntry.getJndiName()));
+            List<ConnectionFactoryEntry> l = entry.getValue();
+            l.removeIf(cachedEntry -> Objects.equals(cachedEntry.getJndiName(), connectionFactoryEntry.getJndiName()));
         }
     }
 

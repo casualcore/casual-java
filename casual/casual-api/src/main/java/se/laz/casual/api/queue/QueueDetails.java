@@ -28,4 +28,14 @@ public class QueueDetails
     {
         return retries;
     }
+
+    @Override
+    public String toString()
+    {
+        return "QueueDetails{" +
+                "name='" + name + '\'' +
+                ", retries=" + retries +
+                '}';
+    }
+
 }

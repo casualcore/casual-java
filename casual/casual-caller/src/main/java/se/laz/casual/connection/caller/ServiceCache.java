@@ -61,6 +61,10 @@ public class ServiceCache
         for (Map.Entry<String, ConnectionFactoriesByPriority> cachedEntry : cacheMap.entrySet())
         {
             cachedEntry.getValue().remove(connectionFactoryEntry);
+            if(cachedEntry.getValue().isEmpty())
+            {
+                cacheMap.remove(cachedEntry.getKey());
+            }
         }
     }
 

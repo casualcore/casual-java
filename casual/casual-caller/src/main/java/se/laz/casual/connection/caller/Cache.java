@@ -12,7 +12,7 @@ import se.laz.casual.api.queue.QueueInfo;
 import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,7 +71,7 @@ public class Cache
     }
     public Map<CacheType, List<String>> getAll()
     {
-        Map<CacheType, List<String>> entries = new HashMap<>();
+        Map<CacheType, List<String>> entries = new EnumMap<>(CacheType.class);
         entries.put(CacheType.SERVICE, getServices());
         entries.put(CacheType.QUEUE, getServices());
         return entries;
@@ -85,10 +85,10 @@ public class Cache
                            store(serviceDetails.getName(), connectionFactoriesByPriority);
                        });
         discoveryReturn.getQueueDetails().stream()
-                       .forEach(queueDetails -> {
+                       .forEach(queueDetails ->
                            store(QueueInfo.createBuilder()
-                                          .withQueueName(queueDetails.getName()).build(), Arrays.asList(connectionFactoryEntry));
-                       });
+                                          .withQueueName(queueDetails.getName()).build(), Arrays.asList(connectionFactoryEntry))
+                       );
     }
 
     public List<String> getServices()
