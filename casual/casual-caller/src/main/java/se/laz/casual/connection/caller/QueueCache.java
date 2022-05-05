@@ -91,6 +91,10 @@ public class QueueCache
         {
             List<ConnectionFactoryEntry> l = entry.getValue();
             l.removeIf(cachedEntry -> Objects.equals(cachedEntry.getJndiName(), connectionFactoryEntry.getJndiName()));
+            if(l.isEmpty())
+            {
+                cacheMap.remove(entry.getKey());
+            }
         }
     }
 

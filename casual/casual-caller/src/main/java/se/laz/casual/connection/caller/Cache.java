@@ -12,6 +12,7 @@ import se.laz.casual.api.queue.QueueInfo;
 import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,7 @@ public class Cache
 
     public List<ConnectionFactoryEntry> get(QueueInfo qinfo)
     {
-        return queueCache.getAll(qinfo);
+        return Optional.ofNullable(queueCache.getAll(qinfo)).orElseGet(() -> (Collections.emptyList()));
     }
 
     public Optional<ConnectionFactoryEntry> getSingle(QueueInfo qinfo)
