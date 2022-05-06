@@ -32,7 +32,7 @@ public class Cache
 
     public List<ConnectionFactoryEntry> get(QueueInfo qinfo)
     {
-        return Optional.ofNullable(queueCache.getAll(qinfo)).orElseGet(() -> (Collections.emptyList()));
+        return Optional.ofNullable(queueCache.getAll(qinfo)).orElseGet(Collections::emptyList);
     }
 
     public Optional<ConnectionFactoryEntry> getSingle(QueueInfo qinfo)
@@ -79,17 +79,17 @@ public class Cache
     }
     public void repopulate(DiscoveryReturn discoveryReturn, ConnectionFactoryEntry connectionFactoryEntry)
     {
-        discoveryReturn.getServiceDetails().stream()
-                       .forEach(serviceDetails -> {
-                           ConnectionFactoriesByPriority connectionFactoriesByPriority = get(serviceDetails.getName());
-                           connectionFactoriesByPriority.store(Arrays.asList(serviceDetails), connectionFactoryEntry);
-                           store(serviceDetails.getName(), connectionFactoriesByPriority);
-                       });
-        discoveryReturn.getQueueDetails().stream()
-                       .forEach(queueDetails ->
-                           store(QueueInfo.createBuilder()
-                                          .withQueueName(queueDetails.getName()).build(), Arrays.asList(connectionFactoryEntry))
-                       );
+        discoveryReturn.getServiceDetails().forEach(
+                serviceDetails -> {
+                    ConnectionFactoriesByPriority connectionFactoriesByPriority = get(serviceDetails.getName());
+                    connectionFactoriesByPriority.store(Arrays.asList(serviceDetails), connectionFactoryEntry);
+                    store(serviceDetails.getName(), connectionFactoriesByPriority);
+                });
+        discoveryReturn.getQueueDetails().forEach(
+                queueDetails ->
+                        store(QueueInfo.createBuilder()
+                                       .withQueueName(queueDetails.getName()).build(), Arrays.asList(connectionFactoryEntry))
+        );
     }
 
     public List<String> getServices()
