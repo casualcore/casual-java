@@ -7,6 +7,7 @@
 package se.laz.casual.jca;
 
 import se.laz.casual.api.CasualConversationAPI;
+import se.laz.casual.api.CasualDiscoveryApi;
 import se.laz.casual.api.CasualQueueApi;
 import se.laz.casual.api.CasualServiceApi;
 
@@ -15,7 +16,7 @@ import se.laz.casual.api.CasualServiceApi;
  *
  * @version $Revision: $
  */
-public interface CasualConnection extends CasualServiceApi, CasualQueueApi, CasualConversationAPI, AutoCloseable
+public interface CasualConnection extends CasualServiceApi, CasualQueueApi, CasualConversationAPI, CasualDiscoveryApi, AutoCloseable
 {
     /**
      * Clean up the connection handle and close.

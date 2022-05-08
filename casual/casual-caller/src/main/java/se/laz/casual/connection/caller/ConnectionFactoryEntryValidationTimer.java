@@ -31,6 +31,9 @@ public class ConnectionFactoryEntryValidationTimer
     @Inject
     private ConnectionFactoryEntryStore connectionFactoryStore;
 
+    @Inject
+    ConnectionValidator connectionValidator;
+
     @PostConstruct
     private void setup()
     {
@@ -63,10 +66,10 @@ public class ConnectionFactoryEntryValidationTimer
         try
         {
             connectionFactoryStore.get().stream()
-                                  .forEach(connectionFactoryEntry -> {
+                                  .forEach( connectionFactoryEntry -> {
                                              try
                                              {
-                                                 connectionFactoryEntry.validate();
+                                                 connectionValidator.validate(connectionFactoryEntry);
                                              }
                                              catch(Exception e)
                                              {

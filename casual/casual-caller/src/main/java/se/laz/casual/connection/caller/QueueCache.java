@@ -10,6 +10,7 @@ import se.laz.casual.api.queue.QueueInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -75,6 +76,26 @@ public class QueueCache
     public void store(QueueInfo queueInfo, List<ConnectionFactoryEntry> entries)
     {
         cacheMap.put(queueInfo.getQueueName(), entries);
+    }
+
+    public void remove(ConnectionFactoryEntry connectionFactoryEntry)
+    {
+        for(Map.Entry<String, ConnectionFactoryEntry> entry : stickies.entrySet())
+        {
+            if(entry.getValue().getJndiName().equals(connectionFactoryEntry.getJndiName()))
+            {
+                stickies.remove(entry.getKey());
+            }
+        }
+        for(Map.Entry<String, List<ConnectionFactoryEntry>> entry : cacheMap.entrySet())
+        {
+            List<ConnectionFactoryEntry> l = entry.getValue();
+            l.removeIf(cachedEntry -> Objects.equals(cachedEntry.getJndiName(), connectionFactoryEntry.getJndiName()));
+            if(l.isEmpty())
+            {
+                cacheMap.remove(entry.getKey());
+            }
+        }
     }
 
     public void clear()

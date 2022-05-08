@@ -6,11 +6,16 @@
 
 package se.laz.casual.connection.caller;
 
+import se.laz.casual.api.discovery.DiscoveryReturn;
 import se.laz.casual.api.queue.QueueInfo;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -27,7 +32,7 @@ public class Cache
 
     public List<ConnectionFactoryEntry> get(QueueInfo qinfo)
     {
-        return queueCache.getAll(qinfo);
+        return Optional.ofNullable(queueCache.getAll(qinfo)).orElseGet(Collections::emptyList);
     }
 
     public Optional<ConnectionFactoryEntry> getSingle(QueueInfo qinfo)
@@ -58,6 +63,33 @@ public class Cache
     public void purgeQueues()
     {
         queueCache.clear();
+    }
+
+    public void purge(ConnectionFactoryEntry connectionFactoryEntry)
+    {
+        serviceCache.remove(connectionFactoryEntry);
+        queueCache.remove(connectionFactoryEntry);
+    }
+    public Map<CacheType, List<String>> getAll()
+    {
+        Map<CacheType, List<String>> entries = new EnumMap<>(CacheType.class);
+        entries.put(CacheType.SERVICE, getServices());
+        entries.put(CacheType.QUEUE, getServices());
+        return entries;
+    }
+    public void repopulate(DiscoveryReturn discoveryReturn, ConnectionFactoryEntry connectionFactoryEntry)
+    {
+        discoveryReturn.getServiceDetails().forEach(
+                serviceDetails -> {
+                    ConnectionFactoriesByPriority connectionFactoriesByPriority = get(serviceDetails.getName());
+                    connectionFactoriesByPriority.store(Arrays.asList(serviceDetails), connectionFactoryEntry);
+                    store(serviceDetails.getName(), connectionFactoriesByPriority);
+                });
+        discoveryReturn.getQueueDetails().forEach(
+                queueDetails ->
+                        store(QueueInfo.createBuilder()
+                                       .withQueueName(queueDetails.getName()).build(), Arrays.asList(connectionFactoryEntry))
+        );
     }
 
     public List<String> getServices()

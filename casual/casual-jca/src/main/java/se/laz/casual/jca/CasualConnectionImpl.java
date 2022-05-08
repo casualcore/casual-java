@@ -9,6 +9,7 @@ package se.laz.casual.jca;
 import se.laz.casual.api.Conversation;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
+import se.laz.casual.api.discovery.DiscoveryReturn;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.queue.DequeueReturn;
@@ -18,6 +19,7 @@ import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.jca.conversation.ConversationConnectCaller;
+import se.laz.casual.jca.discovery.CasualDiscoveryCaller;
 import se.laz.casual.jca.queue.CasualQueueCaller;
 import se.laz.casual.jca.service.CasualServiceCaller;
 import se.laz.casual.network.connection.CasualConnectionException;
@@ -25,6 +27,7 @@ import se.laz.casual.network.connection.CasualConnectionException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -38,6 +41,7 @@ public class CasualConnectionImpl implements CasualConnection
     private CasualServiceCaller serviceCaller;
     private CasualQueueCaller queueCaller;
     private ConversationConnectCaller conversationConnectCaller;
+    private CasualDiscoveryCaller discoveryCaller;
     private CasualManagedConnection managedConnection;
 
     /**
@@ -163,6 +167,12 @@ public class CasualConnectionImpl implements CasualConnection
         return getConversationConnectCaller().tpconnect(serviceName, data, flags);
     }
 
+    @Override
+    public DiscoveryReturn discover(UUID corrid, List<String> serviceNames, List<String> queueNames)
+    {
+        return getCasualDiscoveryCaller().discover(corrid, serviceNames, queueNames);
+    }
+
     private ConversationConnectCaller getConversationConnectCaller()
     {
         if ( conversationConnectCaller == null )
@@ -192,7 +202,14 @@ public class CasualConnectionImpl implements CasualConnection
         this.serviceCaller  = serviceCaller;
     }
 
-
+    private CasualDiscoveryCaller getCasualDiscoveryCaller()
+    {
+        if(null == discoveryCaller)
+        {
+            discoveryCaller = CasualDiscoveryCaller.of(getManagedConnection());
+        }
+        return discoveryCaller;
+    }
 
     @Override
     public String toString()
@@ -201,5 +218,6 @@ public class CasualConnectionImpl implements CasualConnection
                 "managedConnection=" + managedConnection +
                 '}';
     }
+
 
 }
