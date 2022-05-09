@@ -1,0 +1,26 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
+//-*- coding: utf-8 -*-
+
+plugins {
+    id 'java'
+}
+
+dependencies {
+    compileOnly project( ':casual:test-ejb' )
+    compileOnly project( ':casual:test-api' )
+    compileOnly project( path: ':casual:casual-api')
+    compileOnly project( path: ':casual:casual-caller-api')
+    compileOnly project( path: ':casual:casual-inbound-handler-api')
+    compileOnly project( path: ':casual:casual-fielded-annotations')
+    compileOnly libs.javaee_api
+    implementation libs.commons_io
+}
+
+jar{
+    archiveName("test-rest-${casual_test_app_version}.jar")
+}

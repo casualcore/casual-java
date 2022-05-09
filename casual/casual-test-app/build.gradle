@@ -1,0 +1,22 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
+//-*- coding: utf-8 -*-
+
+plugins {
+    id 'war'
+}
+
+dependencies {
+    implementation project( ':casual:test-api' )
+    implementation project( ':casual:test-ejb' )
+    implementation project( ':casual:test-rest' )
+    implementation project( ':casual:casual-caller-api' )
+}
+
+war{
+    archiveName("casual-test-app-${casual_test_app_version}.war")
+}

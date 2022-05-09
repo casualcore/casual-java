@@ -1,0 +1,26 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+//-*- coding: utf-8 -*-
+plugins {
+    id 'java'
+    id 'groovy'
+}
+
+dependencies{
+    compileOnly libs.javaee_api
+    compileOnly project( path: ':casual:casual-api')
+    compileOnly project( path: ':casual:casual-caller-api')
+    compileOnly project( path: ':casual:casual-inbound-handler-api')
+    compileOnly project( path: ':casual:casual-fielded-annotations')
+
+    // for spock
+    testCompile libs.groovy_all
+    testCompile libs.spock_core
+}
+
+jar{
+    archiveName("test-api-${casual_test_app_version}.jar")
+}
