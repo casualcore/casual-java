@@ -130,7 +130,7 @@ class TpCallerFailoverTest extends Specification
         1 * conFacHigh.getConnection() >> {throw new javax.resource.ResourceException(failMessage)}
         1 * conFacLow.getConnection() >> {throw new javax.resource.ResourceException(failMessage)}
         def e = thrown(CasualResourceException)
-        e.message == 'Call failed to all 2 available casual connections connections.'
+        e.message == 'Call failed to all 2 available casual connections.'
         result == null
     }
 
@@ -166,7 +166,7 @@ class TpCallerFailoverTest extends Specification
         then:
         (priorities*entriesPerPriority) * conFacHigh.getConnection() >> {throw new javax.resource.ResourceException(failMessage)}
         def e = thrown(CasualResourceException)
-        e.message == 'Call failed to all 64 available casual connections connections.'
+        e.message == 'Call failed to all 64 available casual connections.'
         result == null
     }
 

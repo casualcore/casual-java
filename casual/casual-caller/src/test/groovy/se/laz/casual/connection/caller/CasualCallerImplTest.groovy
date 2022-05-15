@@ -146,6 +146,24 @@ class CasualCallerImplTest extends Specification
         e.getCause() instanceof ResourceException
     }
 
+    def 'tpcall cache has service, but its connection factory is currently invalid'()
+    {
+        given:
+        def serviceName = 'someservice'
+        def connectionFactoryEntry = Mock(ConnectionFactoryEntry)
+        connectionFactoryEntry.isValid() >> false
+        connectionFactoryEntry.isInvalid() >> true
+        def entries = [connectionFactoryEntry]
+        lookup.get(serviceName) >> {
+            entries
+        }
+        when:
+        def reply = instance.tpcall(serviceName, Mock(CasualBuffer), Flag.of(AtmiFlags.NOFLAG))
+        then:
+        reply.getServiceReturnState() == ServiceReturnState.TPFAIL
+        reply.getErrorState() == ErrorState.TPENOENT
+    }
+
 
     def 'dequeue fail getting connection from connection factory'()
     {
@@ -239,7 +257,7 @@ class CasualCallerImplTest extends Specification
         given:
         def serviceName = 'echo'
         def connectionFactory = Mock(CasualConnectionFactory)
-        def future = new CompletableFuture();
+        def future = new CompletableFuture()
         def callingBuffer = Mock(CasualBuffer)
         def flags = Flag.of(AtmiFlags.NOFLAG)
         connectionFactory.getConnection() >> {

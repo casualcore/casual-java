@@ -58,7 +58,7 @@ public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
                 .stream()
                 .filter(entry -> !cache.get(serviceName).isResolved(entry.getJndiName()))
                 .collect(Collectors.toList()));
-        if (!newEntries.isEmpty())
+        if (!newEntries.isEmpty() || newEntries.containsCheckedConnectionFactories())
         {
             cache.store(serviceName, newEntries);
             return cache.get(serviceName).randomizeWithPriority();

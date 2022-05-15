@@ -49,6 +49,11 @@ public class ConnectionFactoriesByPriority
         checkedConnectionFactories.addAll(resolvedNames);
     }
 
+    public boolean containsCheckedConnectionFactories()
+    {
+        return !checkedConnectionFactories.isEmpty();
+    }
+
     public Set<String> getCheckedFactoriesForService()
     {
         return Collections.unmodifiableSet(checkedConnectionFactories);
@@ -58,6 +63,7 @@ public class ConnectionFactoriesByPriority
     {
         if (!serviceDetails.isEmpty())
         {
+            checkedConnectionFactories.add(entry.getJndiName());
             foundConnectionFactories.add(entry.getJndiName());
             serviceDetails
                     .forEach(discoveryDetails ->

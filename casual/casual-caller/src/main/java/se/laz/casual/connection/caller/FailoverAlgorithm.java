@@ -31,7 +31,7 @@ public class FailoverAlgorithm<T>
         // Service not found
         if (prioritySortedFactories.isEmpty())
         {
-            LOG.warning("No priority or service targets at all");
+            LOG.warning(() -> "No priority or service targets at all for service " + serviceName);
             return doTpenoent.apply();
         }
 
@@ -42,7 +42,8 @@ public class FailoverAlgorithm<T>
         // No valid casual server found (revalidation is on a timer in ConnectionFactoryEntryValidationTimer)
         if (validEntries.isEmpty())
         {
-            throw new CasualResourceException("Received a set of ConnectionFactoryEntries, but not one was valid");
+            LOG.warning(() -> "Received a set of ConnectionFactoryEntries, but not one was valid for service " + serviceName);
+            return doTpenoent.apply();
         }
 
         for (ConnectionFactoryEntry connectionFactoryEntry : validEntries)
@@ -70,7 +71,7 @@ public class FailoverAlgorithm<T>
                 thrownException = e;
             }
         }
-        throw new CasualResourceException("Call failed to all " + validEntries.size() + " available casual connections connections.", thrownException);
+        throw new CasualResourceException("Call failed to all " + validEntries.size() + " available casual connections.", thrownException);
     }
 
     public interface FunctionNoArg<R>

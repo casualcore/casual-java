@@ -40,7 +40,12 @@ public class ServiceCache
             storeServiceWithPriority(serviceName, priority, entries.getForPriority(priority));
         }
 
-        cacheMap.get(serviceName).addResolvedFactories(entries.getCheckedFactoriesForService());
+        // Guard against service lookups that only contain checked services list for a service that is unknown
+        // We do not want to store unknown services
+        if (cacheMap.containsKey(serviceName))
+        {
+            cacheMap.get(serviceName).addResolvedFactories(entries.getCheckedFactoriesForService());
+        }
     }
 
     private void storeServiceWithPriority(String serviceName, Long priority, List<ConnectionFactoryEntry> entries)
