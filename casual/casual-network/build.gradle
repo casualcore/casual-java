@@ -14,13 +14,14 @@ plugins {
 defaultTasks 'build'
 
 dependencies {
-  implementation project(':casual:casual-api')
+  compileOnly project(':casual:casual-api')
   implementation project(':casual:casual-inbound-api')
   implementation project(':casual:casual-internal')
   implementation project(':casual:casual-network-protocol')
   compileOnly libs.netty
   compileOnly libs.javaee_api
 
+  testImplementation project(':casual:casual-api')
   testImplementation libs.netty
   testImplementation libs.javaee_api
   testImplementation libs.system_lambda

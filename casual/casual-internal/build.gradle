@@ -13,10 +13,12 @@ plugins {
 defaultTasks 'build'
 
 dependencies {
-    implementation project(':casual:casual-api')
-    implementation project(':casual:casual-network-protocol')
+    compileOnly project(':casual:casual-api')
+    compileOnly project(':casual:casual-network-protocol')
     compileOnly libs.javaee_api
 
+    testImplementation project(':casual:casual-api')
+    testImplementation project(':casual:casual-network-protocol')
     testImplementation libs.javaee_api
     // for spock
     testImplementation libs.groovy_all

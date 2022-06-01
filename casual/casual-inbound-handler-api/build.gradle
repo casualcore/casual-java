@@ -13,9 +13,10 @@ plugins {
 dependencies {
 
   compileOnly libs.javaee_api
-  implementation project(':casual:casual-api')
+  compileOnly project(':casual:casual-api')
 
   testImplementation libs.javaee_api
+  testImplementation project(':casual:casual-api')
   testImplementation project(':casual:casual-network-protocol')
   // for spock
   testImplementation libs.groovy_all

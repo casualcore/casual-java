@@ -21,13 +21,13 @@ configurations {
 }
 
 dependencies {
-    implementation project(':casual:casual-api')
-    implementation project(':casual:casual-service-discovery-extension')
-    implementation project(':casual:casual-inbound-api')
-    implementation project(':casual:casual-internal')
-    implementation project(':casual:casual-network')
-    implementation project(':casual:casual-network-protocol')
-    implementation project(':casual:casual-inbound')
+    compileOnly project(':casual:casual-api')
+    compileOnly project(':casual:casual-service-discovery-extension')
+    compileOnly project(':casual:casual-inbound-api')
+    compileOnly project(':casual:casual-internal')
+    compileOnly project(':casual:casual-network')
+    compileOnly project(':casual:casual-network-protocol')
+    compileOnly project(':casual:casual-inbound')
     compileOnly libs.netty
     compileOnly libs.javaee_api
     resourceAdapter project(':casual:casual-internal')
@@ -35,6 +35,15 @@ dependencies {
     resourceAdapter project(':casual:casual-network-protocol')
     resourceAdapter project(':casual:casual-inbound-api')
     resourceAdapterLib libs.netty
+
+
+    testImplementation project(':casual:casual-api')
+    testImplementation project(':casual:casual-service-discovery-extension')
+    testImplementation project(':casual:casual-inbound-api')
+    testImplementation project(':casual:casual-internal')
+    testImplementation project(':casual:casual-network')
+    testImplementation project(':casual:casual-network-protocol')
+    testImplementation project(':casual:casual-inbound')
 
     testImplementation libs.javaee_api
     testImplementation libs.netty

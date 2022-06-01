@@ -16,10 +16,11 @@ defaultTasks 'build'
 dependencies {
   compileOnly libs.javaee_api
   compileOnly libs.netty
-  implementation project(':casual:casual-api')
+  compileOnly project(':casual:casual-api')
 
   testImplementation libs.javaee_api
   testImplementation libs.netty
+  testImplementation project(':casual:casual-api')
   // for spock
   testImplementation libs.groovy_all
   testImplementation libs.spock_core

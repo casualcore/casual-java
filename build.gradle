@@ -17,9 +17,6 @@ plugins {
 
 apply from: 'testsourcesets.gradle'
 
-allprojects{
-}
-
 defaultTasks 'build'
 
 sonarqube {
@@ -29,10 +26,6 @@ sonarqube {
         properties['sonar.java.source'] = 8
     }
 }
-
-
-
-
 
 allprojects{
   tasks.withType(JavaCompile) { 
@@ -50,9 +43,9 @@ subprojects{
 }
 
 
-task dist(type: Copy, dependsOn: getTasksByName("build", false)) {
-    subprojects.each { subproject ->
-            from "$subproject.buildDir/libs"
-            into "$rootProject.projectDir/dist"
+task dist(type: Sync) {
+    allprojects { p ->
+        from p.tasks.withType(Jar)
     }
+    into "$rootProject.projectDir/dist"
 }

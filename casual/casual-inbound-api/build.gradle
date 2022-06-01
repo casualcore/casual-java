@@ -11,14 +11,16 @@ plugins {
 }
 
 dependencies {
-  implementation project(':casual:casual-api')
-  implementation project(':casual:casual-inbound-handler-api')
+  compileOnly project(':casual:casual-api')
+  compileOnly project(':casual:casual-inbound-handler-api')
   implementation project(":casual:casual-internal")
   implementation project(":casual:casual-network-protocol")
 
   compileOnly libs.javaee_api
   compileOnly libs.netty
 
+  testImplementation project(':casual:casual-api')
+  testImplementation project(':casual:casual-inbound-handler-api')
   testImplementation libs.javaee_api
   testImplementation libs.gson
   // for spock
