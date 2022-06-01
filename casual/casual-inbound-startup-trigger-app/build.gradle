@@ -22,5 +22,5 @@ ear{
     displayName = "Casual Inbound Startup Trigger App"
     description = "Casual application to be deployed after all inbound services are deployed to trigger inbound startup"
   }
-  archiveName = "casual-inbound-startup-trigger-app-" + appVersion + ".ear"
+  archiveFileName = "casual-inbound-startup-trigger-app-" + appVersion + ".ear"
 }

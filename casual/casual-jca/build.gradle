@@ -21,35 +21,37 @@ configurations {
 }
 
 dependencies {
-    provided project(':casual:casual-api')
-    provided project(':casual:casual-service-discovery-extension')
+    implementation project(':casual:casual-api')
+    implementation project(':casual:casual-service-discovery-extension')
     implementation project(':casual:casual-inbound-api')
     implementation project(':casual:casual-internal')
     implementation project(':casual:casual-network')
     implementation project(':casual:casual-network-protocol')
     implementation project(':casual:casual-inbound')
-    provided libs.netty
-    provided libs.javaee_api
+    compileOnly libs.netty
+    compileOnly libs.javaee_api
     resourceAdapter project(':casual:casual-internal')
     resourceAdapter project(':casual:casual-network')
     resourceAdapter project(':casual:casual-network-protocol')
     resourceAdapter project(':casual:casual-inbound-api')
     resourceAdapterLib libs.netty
 
-    testCompile libs.hamcrest_all
+    testImplementation libs.javaee_api
+    testImplementation libs.netty
+    testImplementation libs.hamcrest_all
     // for spock
-    testCompile libs.groovy_all
-    testCompile libs.spock_core
-    testCompile libs.cglib_nodep
-    testCompile libs.objenesis
+    testImplementation libs.groovy_all
+    testImplementation libs.spock_core
+    testImplementation libs.cglib_nodep
+    testImplementation libs.objenesis
 }
 
 task rar(type: Jar) {
-    archiveName = "casual-jca.rar"
+    archiveFileName = "casual-jca.rar"
     manifest {
         attributes 'Implementation-Title': 'Casual Resource Adapter with XA', 'Implementation-Version': '1.0', 'Specification-Version': '1.0'
     }
-    extension = 'rar'
+    archiveExtension = 'rar'
     from(configurations.resourceAdapterLib){
 	into('lib')
     }

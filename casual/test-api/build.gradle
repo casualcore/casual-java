@@ -17,10 +17,10 @@ dependencies{
     compileOnly project( path: ':casual:casual-fielded-annotations')
 
     // for spock
-    testCompile libs.groovy_all
-    testCompile libs.spock_core
+    testImplementation libs.groovy_all
+    testImplementation libs.spock_core
 }
 
 jar{
-    archiveName("test-api-${casual_test_app_version}.jar")
+    archiveFileName = "test-api-${casual_test_app_version}.jar"
 }

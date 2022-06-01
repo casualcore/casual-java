@@ -22,5 +22,5 @@ dependencies {
 }
 
 jar{
-    archiveName("test-rest-${casual_test_app_version}.jar")
+    archiveFileName = "test-rest-${casual_test_app_version}.jar"
 }

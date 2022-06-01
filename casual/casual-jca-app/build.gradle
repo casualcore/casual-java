@@ -28,5 +28,5 @@ ear{
     description = "Casual implementation of JCA with outbound and inbound implementations."
     module( "casual-jca.rar", "connector")
   }
-  archiveName = "casual-jca-app-${casualJCAVersion}.ear"
+  archiveFileName = "casual-jca-app-${casualJCAVersion}.ear"
 }

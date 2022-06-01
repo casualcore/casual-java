@@ -13,14 +13,15 @@ plugins {
 defaultTasks 'build'
 
 dependencies {
-  provided project(":casual:casual-fielded-annotations")
-  provided libs.javaee_api
-  provided libs.gson
+  implementation project(":casual:casual-fielded-annotations")
+  compileOnly libs.javaee_api
+  compileOnly libs.gson
 
-  testCompile libs.system_lambda
+  testImplementation libs.gson
+  testImplementation libs.system_lambda
     
   // for spock
-  testCompile libs.groovy_all
-  testCompile libs.spock_core
-  testCompile libs.cglib_nodep
+  testImplementation libs.groovy_all
+  testImplementation libs.spock_core
+  testImplementation libs.cglib_nodep
 }

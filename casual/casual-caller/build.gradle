@@ -12,19 +12,20 @@ plugins {
 }
 
 dependencies {
-  provided project(":casual:casual-caller-api")
-  provided project(":casual:casual-api")
-  provided project(":casual:casual-jca")
-  provided libs.javaee_api
+  implementation project(":casual:casual-caller-api")
+  implementation project(":casual:casual-api")
+  implementation project(":casual:casual-jca")
+  compileOnly libs.javaee_api
 
-  testCompile libs.system_lambda
+  testImplementation libs.javaee_api
+  testImplementation libs.system_lambda
   // for spock
-  testCompile libs.groovy_all
-  testCompile libs.spock_core
-  testCompile libs.cglib_nodep
-  testCompile libs.objenesis
+  testImplementation libs.groovy_all
+  testImplementation libs.spock_core
+  testImplementation libs.cglib_nodep
+  testImplementation libs.objenesis
 }
 
 jar{
-  archiveName('casual-caller.jar')
+  archiveFileName = 'casual-caller.jar'
 }

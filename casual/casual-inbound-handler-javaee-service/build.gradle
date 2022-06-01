@@ -11,18 +11,18 @@ plugins {
 }
 
 dependencies {
-  provided project( ":casual:casual-api" )
+  implementation project( ":casual:casual-api" )
   implementation project( ":casual:casual-internal" )
   implementation project(":casual:casual-inbound-handler-api")
   implementation project(':casual:casual-network-protocol')
-  provided libs.javaee_api
+  compileOnly libs.javaee_api
 
-  testCompile libs.gson
+  testImplementation libs.gson
   // for spock
-  testCompile libs.groovy_all
-  testCompile libs.spock_core
-  testCompile libs.cglib_nodep
-  testCompile libs.objenesis
+  testImplementation libs.groovy_all
+  testImplementation libs.spock_core
+  testImplementation libs.cglib_nodep
+  testImplementation libs.objenesis
 
-  testRuntime project(":casual:casual-inbound-handler-jscd-buffer" )
+  testRuntimeOnly project(":casual:casual-inbound-handler-jscd-buffer" )
 }

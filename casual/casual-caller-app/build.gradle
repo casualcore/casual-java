@@ -19,5 +19,5 @@ ear{
     displayName = "Casual Caller App"
     description = "Casual application that provides an abstraction layer on top of n # of CasualConnectionFactories"
   }
-  archiveName("casual-caller-app-${casual_caller_app_version}.ear")
+  archiveFileName = "casual-caller-app-${casual_caller_app_version}.ear"
 }

@@ -11,10 +11,10 @@ plugins {
 }
 
 dependencies {
-  provided project(":casual:casual-api")
-  provided project(":casual:casual-jca")
+  implementation project(":casual:casual-api")
+  implementation project(":casual:casual-jca")
 }
 
 jar{
-  archiveName("casual-caller-api-${casual_caller_app_version}.jar")
+  archiveFileName = "casual-caller-api-${casual_caller_app_version}.jar"
 }

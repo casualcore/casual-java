@@ -9,9 +9,6 @@ buildscript {
     repositories {
         maven { url 'https://repo.spring.io/plugins-release' }
     }
-    dependencies {
-        classpath 'io.spring.gradle:propdeps-plugin:0.0.9.RELEASE'
-    }
 }
 
 plugins {
@@ -21,10 +18,6 @@ plugins {
 apply from: 'testsourcesets.gradle'
 
 allprojects{
-    apply plugin: 'propdeps'
-    apply plugin: 'propdeps-maven'
-    apply plugin: 'propdeps-idea'
-    apply plugin: 'propdeps-eclipse'
 }
 
 defaultTasks 'build'
