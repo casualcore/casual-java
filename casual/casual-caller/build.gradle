@@ -12,11 +12,14 @@ plugins {
 }
 
 dependencies {
-  implementation project(":casual:casual-caller-api")
-  implementation project(":casual:casual-api")
-  implementation project(":casual:casual-jca")
+  compileOnly project(":casual:casual-caller-api")
+  compileOnly project(":casual:casual-api")
+  compileOnly project(":casual:casual-jca")
   compileOnly libs.javaee_api
 
+  testImplementation project(":casual:casual-caller-api")
+  testImplementation project(":casual:casual-api")
+  testImplementation project(":casual:casual-jca")
   testImplementation libs.javaee_api
   testImplementation libs.system_lambda
   // for spock

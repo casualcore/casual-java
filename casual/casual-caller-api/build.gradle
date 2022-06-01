@@ -11,8 +11,11 @@ plugins {
 }
 
 dependencies {
-  implementation project(":casual:casual-api")
-  implementation project(":casual:casual-jca")
+  compileOnly project(":casual:casual-api")
+  compileOnly project(":casual:casual-jca")
+
+  testImplementation project(":casual:casual-api")
+  testImplementation project(":casual:casual-jca")
 }
 
 jar{
