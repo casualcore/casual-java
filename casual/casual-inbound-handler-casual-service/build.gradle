@@ -11,20 +11,21 @@ plugins {
 }
 
 dependencies {
-  provided project(':casual:casual-api')
+  implementation project(':casual:casual-api')
   implementation project(":casual:casual-internal")
   implementation project(':casual:casual-network-protocol')
 
-  provided project(":casual:casual-fielded-annotations")
+  implementation project(":casual:casual-fielded-annotations")
   implementation project(":casual:casual-inbound-handler-api")
-  provided project(":casual:casual-service-discovery-extension")
-  provided libs.javaee_api
+  implementation project(":casual:casual-service-discovery-extension")
+  compileOnly libs.javaee_api
 
-  testCompile libs.gson
+  testImplementation libs.javaee_api
+  testImplementation libs.gson
   // for spock
-  testCompile libs.groovy_all
-  testCompile libs.spock_core
-  testCompile libs.cglib_nodep
-  testCompile libs.objenesis
-  testRuntime project(":casual:casual-inbound-handler-fielded-buffer" )
+  testImplementation libs.groovy_all
+  testImplementation libs.spock_core
+  testImplementation libs.cglib_nodep
+  testImplementation libs.objenesis
+  testRuntimeOnly project(":casual:casual-inbound-handler-fielded-buffer" )
 }

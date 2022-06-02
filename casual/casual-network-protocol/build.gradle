@@ -14,12 +14,16 @@ plugins {
 defaultTasks 'build'
 
 dependencies {
-  provided libs.javaee_api
-  provided libs.netty
-  provided project(':casual:casual-api')
+  compileOnly libs.javaee_api
+  compileOnly libs.netty
+  compileOnly project(':casual:casual-api')
+
+  testImplementation libs.javaee_api
+  testImplementation libs.netty
+  testImplementation project(':casual:casual-api')
   // for spock
-  testCompile libs.groovy_all
-  testCompile libs.spock_core
-  testCompile libs.cglib_nodep
-  testCompile libs.objenesis
+  testImplementation libs.groovy_all
+  testImplementation libs.spock_core
+  testImplementation libs.cglib_nodep
+  testImplementation libs.objenesis
 }

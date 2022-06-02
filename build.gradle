@@ -9,9 +9,6 @@ buildscript {
     repositories {
         maven { url 'https://repo.spring.io/plugins-release' }
     }
-    dependencies {
-        classpath 'io.spring.gradle:propdeps-plugin:0.0.9.RELEASE'
-    }
 }
 
 plugins {
@@ -19,13 +16,6 @@ plugins {
 }
 
 apply from: 'testsourcesets.gradle'
-
-allprojects{
-    apply plugin: 'propdeps'
-    apply plugin: 'propdeps-maven'
-    apply plugin: 'propdeps-idea'
-    apply plugin: 'propdeps-eclipse'
-}
 
 defaultTasks 'build'
 
@@ -36,10 +26,6 @@ sonarqube {
         properties['sonar.java.source'] = 8
     }
 }
-
-
-
-
 
 allprojects{
   tasks.withType(JavaCompile) { 
@@ -57,9 +43,9 @@ subprojects{
 }
 
 
-task dist(type: Copy, dependsOn: getTasksByName("build", false)) {
-    subprojects.each { subproject ->
-            from "$subproject.buildDir/libs"
-            into "$rootProject.projectDir/dist"
+task dist(type: Sync) {
+    allprojects { p ->
+        from p.tasks.withType(Jar)
     }
+    into "$rootProject.projectDir/dist"
 }

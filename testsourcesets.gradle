@@ -22,8 +22,8 @@ allprojects {
            testClassesDirs = sourceSets.integration.output.classesDirs
            classpath += sourceSets.integration.compileClasspath
            classpath += sourceSets.integration.runtimeClasspath           
-           reports.html.destination = file("$reports.html.destination/../integration")
-           reports.junitXml.destination = file("$reports.junitXml.destination/../integration")
+           reports.html.outputLocation = file("$reports.html.outputLocation/../integration")
+           reports.junitXml.outputLocation = file("$reports.junitXml.outputLocation/../integration")
         }
         
     }
