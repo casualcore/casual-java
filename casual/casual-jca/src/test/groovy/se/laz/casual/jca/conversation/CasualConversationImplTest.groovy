@@ -120,13 +120,13 @@ class CasualConversationImplTest extends Specification
          CasualNWMessageImpl<Request> input ->
             actualSendRequest = input
       }
-      instance.tpsend(message, false, Optional.empty())
+      instance.tpsend(message, false)
       then:
       JsonBuffer.of(expectedSendRequest.getMessage().getServiceBuffer().getPayload()) == JsonBuffer.of(actualSendRequest.getMessage().getServiceBuffer().getPayload())
       !instance.isDirectionSwitched()
       instance.isSending()
       when:
-      instance.tpsend(message, true, Optional.empty())
+      instance.tpsend(message, true)
       then:
       JsonBuffer.of(expectedSendRequest.getMessage().getServiceBuffer().getPayload()) == JsonBuffer.of(actualSendRequest.getMessage().getServiceBuffer().getPayload())
       instance.isReceiving()

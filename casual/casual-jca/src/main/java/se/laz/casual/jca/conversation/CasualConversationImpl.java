@@ -85,7 +85,13 @@ public class CasualConversationImpl implements Conversation
     }
 
     @Override
-    public void tpsend(CasualBuffer data, boolean handOverControl, Optional<Long> userCode)
+    public void tpsend(CasualBuffer data, boolean handOverControl)
+    {
+        tpsend(data, handOverControl, Request.RequestBuilder.NO_RESULT_CODE);
+    }
+
+    @Override
+    public void tpsend(CasualBuffer data, boolean handOverControl, long userCode)
     {
         Objects.requireNonNull(data, "data can not be null");
         if(conversationDirection.isReceive())
@@ -97,12 +103,12 @@ public class CasualConversationImpl implements Conversation
         {
             switchConversationDirection();
         }
-        Request.RequestBuilder requestBuilder =  Request.createBuilder()
-                                                        .setExecution(execution)
-                                                        .setDuplex(conversationDirection.isReceive() ? Duplex.SEND : Duplex.RECEIVE)
-                                                        .setServiceBuffer(ServiceBuffer.of(data));
-        userCode.ifPresent(requestBuilder::setUserCode);
-        Request request = requestBuilder.build();
+        Request request =  Request.createBuilder()
+                                  .setExecution(execution)
+                                  .setDuplex(conversationDirection.isReceive() ? Duplex.SEND : Duplex.RECEIVE)
+                                  .setServiceBuffer(ServiceBuffer.of(data))
+                                  .setUserCode(userCode)
+                                  .build();
         CasualNWMessage<Request> envelope = CasualNWMessageImpl.of(corrId, request);
         managedConnection.getNetworkConnection().send(envelope);
     }

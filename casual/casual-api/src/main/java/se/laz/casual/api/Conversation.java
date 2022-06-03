@@ -78,7 +78,8 @@ public interface Conversation extends AutoCloseable
      * @param data
      * @param handOverControl - true if you are in control but want to hand over control and start receiving
      */
-    void tpsend(CasualBuffer data, boolean handOverControl, Optional<Long> userCode);
+    void tpsend(CasualBuffer data, boolean handOverControl);
+    void tpsend(CasualBuffer data, boolean handOverControl, long userCode);
 
     /**
      * When receiving the direction can be switched by the party in control, if so - the direction is switched
