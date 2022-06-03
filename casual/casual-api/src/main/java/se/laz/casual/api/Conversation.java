@@ -8,8 +8,6 @@ package se.laz.casual.api;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ConversationReturn;
 
-import java.util.Optional;
-
 /**
  *  API to hold a conversation
  *

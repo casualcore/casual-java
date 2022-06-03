@@ -10,8 +10,6 @@ import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 
-import java.util.Optional;
-
 /**
  * API to start a {@link Conversation}
  */

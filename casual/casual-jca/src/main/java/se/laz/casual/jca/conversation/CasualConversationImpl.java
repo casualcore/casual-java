@@ -19,7 +19,6 @@ import se.laz.casual.network.protocol.messages.conversation.Disconnect;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 public class CasualConversationImpl implements Conversation
@@ -136,7 +135,7 @@ public class CasualConversationImpl implements Conversation
 
     private ConversationReturn<CasualBuffer> createConversationReturn(Request conversationReplyMessage)
     {
-        Optional<ErrorState> maybeErrorState = conversationReplyMessage.getResultCode() == RESULT_CODE_UNKNOWN ? Optional.empty() : Optional.of(ErrorState.unmarshal(conversationReplyMessage.getResultCode()));
+        ErrorState maybeErrorState = conversationReplyMessage.getResultCode() == RESULT_CODE_UNKNOWN ? null : ErrorState.unmarshal(conversationReplyMessage.getResultCode());
         return ConversationReturn.of(conversationReplyMessage.getServiceBuffer(), maybeErrorState, conversationReplyMessage.getUserCode(), conversationReplyMessage.getDuplex());
     }
 

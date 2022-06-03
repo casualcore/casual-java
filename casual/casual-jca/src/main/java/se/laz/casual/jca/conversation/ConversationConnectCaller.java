@@ -24,7 +24,6 @@ import se.laz.casual.network.protocol.messages.conversation.ConnectRequest;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;

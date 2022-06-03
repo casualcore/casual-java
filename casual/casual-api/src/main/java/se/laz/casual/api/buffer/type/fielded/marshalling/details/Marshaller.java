@@ -204,7 +204,7 @@ public final class Marshaller
         return (Object[]) array;
     }
 
-    public static void writeListType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final List<?> l, FieldedTypeBufferProcessorMode mode, Optional<Function<Object, ?>> mapper)
+    private static void writeListType(final FieldedTypeBuffer b, final CasualFieldElement annotation, final List<?> l, FieldedTypeBufferProcessorMode mode, Optional<Function<Object, ?>> mapper)
     {
         String listLengthName = CommonDetails.getListLengthName(annotation).orElse(null);
         if(null != listLengthName)
