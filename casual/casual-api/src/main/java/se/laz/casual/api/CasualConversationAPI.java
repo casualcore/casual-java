@@ -30,5 +30,6 @@ public interface CasualConversationAPI
      * @param flags
      * @return A conversation handle
      */
-    Conversation tpconnect(String serviceName, Optional<CasualBuffer> data, Flag<AtmiFlags> flags);
+    Conversation tpconnect(String serviceName, Flag<AtmiFlags> flags);
+    Conversation tpconnect(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
 }
