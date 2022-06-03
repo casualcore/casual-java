@@ -34,8 +34,7 @@ public enum MessageHeaderSizes
     }
 
     /**
-     * Complete header byte size
-     * @return
+     * @return Complete header byte size
      */
     public static int getHeaderNetworkSize()
     {

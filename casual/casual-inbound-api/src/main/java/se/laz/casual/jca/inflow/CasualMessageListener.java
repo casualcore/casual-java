@@ -72,9 +72,9 @@ public interface CasualMessageListener
    /**
     * Process the transaction Rollbacak request utilising the providded {@link XATerminator}.
     *
-    * @param message
-    * @param channel
-    * @param xaTerminator
+    * @param message received.
+    * @param channel for the response.
+    * @param xaTerminator for controlling transaction.
     */
    void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator);
 }

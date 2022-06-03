@@ -165,7 +165,7 @@ public final class CasualServiceMetaData
 
         /**
          * The implementation class from the annotated type found during discovery.
-         * @param implementationClass
+         * @param implementationClass the implementation class.
          * @return builder
          */
         public CasualServiceMetaDataBuilder implementationClass( Class<?> implementationClass )
@@ -176,7 +176,7 @@ public final class CasualServiceMetaData
 
         /**
          * The interface value of the {@link javax.ejb.Remote} annotation if present.
-         * @param interfaceClass
+         * @param interfaceClass the interface class
          * @return builder
          */
         public CasualServiceMetaDataBuilder interfaceClass( Class<?> interfaceClass )
@@ -221,7 +221,7 @@ public final class CasualServiceMetaData
 
         /**
          * The declared ejb name if present during discovery.
-         * @param ejbName
+         * @param ejbName ejb name.
          * @return builder
          */
         public CasualServiceMetaDataBuilder ejbName( String ejbName )
@@ -232,7 +232,7 @@ public final class CasualServiceMetaData
 
         /**
          * Generate a {@link CasualServiceMetaData} instance from the supplied
-         * argumetns.
+         * arguments.
          * @return new meta data object.
          */
         public CasualServiceMetaData build()

@@ -42,7 +42,7 @@ public final class Service
     /**
      * We assume that everything for a Service fits into Integer.MAX_VALUE
      * If not, we throw a CasualProtocolException
-     * @return
+     * @return  the network bytes.
      */
     public List<byte[]> toNetworkBytes()
     {
@@ -96,9 +96,10 @@ public final class Service
     }
 
     /**
-     * Value in microseconds
-     * @param timeout
-     * @return
+     * Set timeout in microseconds.
+     *
+     * @param timeout value in microseconds
+     * @return updated service object.
      */
     public Service setTimeout(long timeout)
     {
@@ -128,8 +129,7 @@ public final class Service
     }
 
     /**
-     * Value in microseconds
-     * @return
+     * @return Timeout in microseconds
      */
     public long getTimeout()
     {

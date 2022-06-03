@@ -48,7 +48,7 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
 
     /**
      * May return several chunks since domainName, serviceNames and queueNames may all be of size Integer.MAX_VALUE
-     * @return
+     * @return message as a list of byte[]
      */
     @Override
     public List<byte[]> toNetworkBytes()
@@ -198,6 +198,8 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
         /**
          * Only used for testing purposes
          * Max message size is default Integer.MAX_VALUE
+         * @param maxMessageSize max message size.
+         * @return updated object.
          */
         public CasualDomainDiscoveryRequestMessageBuilder setMaxMessageSize(int maxMessageSize)
         {

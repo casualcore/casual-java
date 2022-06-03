@@ -46,7 +46,7 @@ public final class CasualMessageDecoder
     /**
      * Number of maximum bytes before any chunk reading takes place
      * Defaults to Integer.MAX_VALUE
-     * @return
+     * @return maximum number of bytes for a single buffer payload.
      */
     public static int getMaxSingleBufferByteSize()
     {

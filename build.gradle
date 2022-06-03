@@ -7,12 +7,15 @@
 //-*- coding: utf-8 -*-
 buildscript {
     repositories {
+        mavenCentral()
         maven { url 'https://repo.spring.io/plugins-release' }
     }
 }
 
 plugins {
     id 'org.sonarqube' version '2.7'
+    id 'signing'
+    id 'maven-publish'
 }
 
 apply from: 'testsourcesets.gradle'
@@ -40,6 +43,50 @@ allprojects{
 
 subprojects{
   apply from: "$rootProject.projectDir/versions.gradle"
+  apply plugin: 'java'
+  apply plugin: 'signing'
+  apply plugin: 'maven-publish'
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    publishing {
+        publications {
+            mavenJava( MavenPublication ) {
+                from components.java
+                versionMapping {
+                    usage( 'java-api' ) {
+                        fromResolutionOf( 'runtimeClasspath' )
+                    }
+                    usage( 'java-runtime' ) {
+                        fromResolutionResult()
+                    }
+                }
+                pom {
+                    name = 'My Library'
+                    description = 'A description of my library'
+                }
+            }
+        }
+    }
+    repositories{
+        maven {
+            // change URLs to point to your repos, e.g. http://my.org/repo
+            def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
+            def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }
+    signing {
+        sign publishing.publications.mavenJava
+    }
+    javadoc {
+        if(JavaVersion.current().isJava9Compatible()) {
+            options.addBooleanOption('html5', true)
+        }
+    }
 }
 
 

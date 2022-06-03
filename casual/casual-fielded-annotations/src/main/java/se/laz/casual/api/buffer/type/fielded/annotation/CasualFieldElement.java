@@ -19,104 +19,96 @@ import java.lang.annotation.Target;
  * Note, the name is from fielded json so it has to exist there
  *
  * Usage:
- * <pre>
- * @<code>
+ * <pre>{@code
  * class X
  * {
- *     @CasualFieldElement(name = 'my-name')
+ *     {@literal @}CasualFieldElement(name = 'my-name')
  *     private String city;
  * }
- * </code>
- * </pre>
+ * }</pre>
  *
  * or
  *
- * <pre>
- * @<code>
+ * <pre>{@code
  * class X
  * {
  *     private String city;
  *
- *     @CasualFieldElement(name = 'my-name')
+ *     {@literal @}CasualFieldElement(name = 'my-name')
  *     public String getCity()
  *     {
  *         return city;
  *     }
- *     public void setCity(@CasualFieldElement(name = 'my-name') city)
+ *     public void setCity({@literal @}CasualFieldElement(name = 'my-name') city)
  *     {
  *         this.city = city;
  *     }
  * }
- * </code>
- * </pre>
+ * }</pre>
  * Instead of just a String, which is a fielded value, you could use a List of Strings ( or any other fielded type)
  *
  *
  * With X defined as either one above you can do:
- * <pre>
- * @<code>
+ * <pre>{@code
  * class Y
  * {
- *     @CasualFieldElement(lengthName ="FLD_LONG1")
+ *     {@literal @}CasualFieldElement(lengthName ="FLD_LONG1")
  *     List<X> theXs;
  * }
- *</code>
- * </pre>
+ * }</pre>
  *
  * or
  *
- *<pre>
- * @<code>
+ *<pre>{@code
  * class Y
  * {
  *     private List<X> theXs;
  *
- *     @CasualFieldElement(lengthName ="FLD_LONG1")
+ *     {@literal @}CasualFieldElement(lengthName ="FLD_LONG1")
  *     public List<X> getTheXs()
  *     {
  *        return theXs;
  *     }
  *
- *     public void setTheXs( @CasualFieldElement(lengthName ="FLD_LONG1") List<X> theXs)
+ *     public void setTheXs( {@literal @}CasualFieldElement(lengthName ="FLD_LONG1") List<X> theXs)
  *     {
  *        this.theXs = theXs;
  *     }
  * }
- *</code>
- * </pre>
+ * }</pre>
  * You could also do:
+ * <pre>{@code
  * class Y
  * {
- *     @CasualFieldElement
+ *     {@literal @}CasualFieldElement
  *     private X theX;
  * }
+ * }</pre>
  *
  * or
  *
- * <pre>
- * @<code>
+ * <pre>{@code
  * class Y
  * {
  *     private X theX;
  *
- *     @CasualFieldElement
+ *     {@literal @}CasualFieldElement
  *     public X getTheX()
  *     {
  *         return theX;
  *     }
  *
- *     public setTheX(@CasualFieldElement X theX)
+ *     public setTheX( {@literal @}CasualFieldElement X theX)
  *     {
  *         this.theX = theX;
  *     }
  * }
- *</code>
- * </pre>
+ * }</pre>
  * Notice that with wrapped POJOs you do not need to supply a name
  * If they are in an array/list you do still do need to supply a lengthName
  *
  * Regarding lists:
- * Interface type should be List<Type> and you can not make any assumptions of what the actual list type is after unmarshalling
+ * Interface type should be {@code List<Type>} and you can not make any assumptions of what the actual list type is after unmarshalling
  *
  * For arrays and lists you need to supply a lengthName that will be used for the number of items
  * in the list/array.
@@ -129,21 +121,21 @@ public @interface CasualFieldElement
      * A name from your fielded json
      * Note that for int/Integer types you should use a name that maps to long
      * as int/Integer are transported as longs
-     * @return
+     * @return name.
      */
     String name() default "";
 
     /**
      * If the annotation annotates an array or a list
      * The name should be a name from your fielded json
-     * @return
+     * @return lengthName.
      */
     String lengthName() default "";
 
     /**
      * Default pass through mapper
      * That is, if no other mapper is supplied - no mapping will take place
-     * @return
+     * @return mapper.
      */
     Class<? extends CasualObjectMapper<? extends Object, ? extends Object>> mapper() default PassThroughMapper.class;
 

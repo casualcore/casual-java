@@ -76,7 +76,7 @@ public abstract class AbstractCasualTransactionMessage implements CasualNetworkT
 
     /**
      * These are always tiny, you will only ever get one byte[]
-     * @return
+     * @return a list with a single byte[] containing the entire message.
      */
     @Override
     public List<byte[]> toNetworkBytes()

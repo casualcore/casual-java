@@ -31,30 +31,32 @@ public class JndiUtil
      * Retrieve all the Global JNDI proxies from the provided {@link Context} - depth first search.
      * <p>
      * https://stackoverflow.com/questions/48867612/determine-jndi-portable-name-within-an-javax-enterprise-inject-spi-extension/50195996#50195996
-     * <p>
+     * </p>
      *
      * Example result for 2 deployed applications with 2 global proxies each would appear as follows:
      *
      * <pre>
      * java:global/casual-test-app-custom-2
-     *      -> java:global/casual-test-app-custom-2/test-ejb2/SimpleServiceNoViewEjb!se.laz.casual.example.serviceSimpleServiceNoViewEjb
-     *          -> ProxyObj1
-     *      -> java:global/casual-test-app-custom-2/test-ejb2/SimpleService2!se.laz.casual.example.service.ISimpleService2
-     *          -> ProxyObj2
+     *      - java:global/casual-test-app-custom-2/test-ejb2/SimpleServiceNoViewEjb!se.laz.casual.example.serviceSimpleServiceNoViewEjb
+     *          - ProxyObj1
+     *      - java:global/casual-test-app-custom-2/test-ejb2/SimpleService2!se.laz.casual.example.service.ISimpleService2
+     *          - ProxyObj2
      * java:global/casual-java-testapp
-     *      -> java:global/casual-java-testapp/CasualOrderService!se.laz.casual.example.service.order.ICasualOrderServiceRemote
-     *          -> ProxyObj3
-     *      -> java:global/casual-java-testapp/CasualOrderService!se.laz.casual.example.service.order.ICasualOrderService
-     *          -> ProxyObj4
+     *      - java:global/casual-java-testapp/CasualOrderService!se.laz.casual.example.service.order.ICasualOrderServiceRemote
+     *          - ProxyObj3
+     *      - java:global/casual-java-testapp/CasualOrderService!se.laz.casual.example.service.order.ICasualOrderService
+     *          - ProxyObj4
      * </pre>
      *
-     * The first "applications" map has a key for each application mapping to a map of the application's contained proxies. <br/>
-     * The second "proxies" map has a key for each proxy's fully qualified JNDI name mapping to the proxy object itself.<br/>
-     * If there are no global proxies in the application, the second map will be an empty map.
+     * <p>The first "applications" map has a key for each application mapping to a map of the application's contained proxies.</p>
+     *
+     * <p>The second "proxies" map has a key for each proxy's fully qualified JNDI name mapping to the proxy object itself.</p>
+     *
+     * <p>If there are no global proxies in the application, the second map will be an empty map.</p>
      *
      * @param ctx to search
      * @return Map of each deployed applications global proxies found in JNDI (See example above).
-     * @throws NamingException
+     * @throws NamingException if an error occurs iterating over the Java Global Context.
      */
     public static Map<String,Map<String,Proxy>> findAllGlobalJndiProxies( Context ctx ) throws NamingException
     {
