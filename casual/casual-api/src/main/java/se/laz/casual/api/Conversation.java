@@ -18,12 +18,12 @@ import se.laz.casual.api.buffer.ConversationReturn;
  *      try(CasualConnection connection = connectionFactory.getConnection())
  *      {
  *          OctetBuffer buffer = OctetBuffer.of("Initial payload\n".getBytes(StandardCharsets.UTF_8));
- *          try(Conversation conversation = connection.tpconnect("some_service", Optional.of(buffer), Flag.of(AtmiFlags.TPSENDONLY)))
+ *          try(Conversation conversation = connection.tpconnect("some_service", buffer, Flag.of(AtmiFlags.TPSENDONLY)))
  *          {
  *              StringBuilder b = new StringBuilder("Payload:\n");
  *              buffer = OctetBuffer.of("Extra, extra, read all about it!\n".getBytes(StandardCharsets.UTF_8));
  *              // send buffer and hand over control
- *              conversation.tpsend(buffer,true, Optional.empty());
+ *              conversation.tpsend(buffer,true);
  *              ErrorState errorState = ErrorState.OK;
  *              while(conversation.isReceiving() && errorState == ErrorState.OK)
  *              {

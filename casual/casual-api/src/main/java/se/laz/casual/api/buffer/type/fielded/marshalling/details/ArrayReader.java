@@ -25,7 +25,7 @@ public final class ArrayReader
     private ArrayReader()
     {}
 
-    static void readValue(UnmarshallerContext<?> context, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, Optional<Function<Object, ?>> mapper)
+    static void readValue(UnmarshallerContext<?> context, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, Function<Object, ?> mapper)
     {
         String listLengthName = CommonDetails.getListLengthName(annotation).orElse(null);
         if(null != listLengthName)
@@ -36,7 +36,7 @@ public final class ArrayReader
         readUnbounded(context, annotation, consumer, type, mapper);
     }
 
-    private static void readBounded(UnmarshallerContext<?> context, String listLengthName, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, Optional<Function<Object,?>> mapper)
+    private static void readBounded(UnmarshallerContext<?> context, String listLengthName, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, Function<Object,?> mapper)
     {
         int arraySize =  (int) toObject(context.getBuffer().read(listLengthName, 0, true), true);
         if (0 == arraySize)
@@ -65,7 +65,7 @@ public final class ArrayReader
         consumer.accept(array);
     }
 
-    private static void readUnbounded(UnmarshallerContext<?> context, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, Optional<Function<Object,?>> mapper)
+    private static void readUnbounded(UnmarshallerContext<?> context, CasualFieldElement annotation, Consumer<Object> consumer, Class<?> type, Function<Object,?> mapper)
     {
         Class<?> componentType = CommonDetails.wrapIfPrimitive(type.getComponentType());
         boolean castToInt = componentType.equals(Integer.class);
@@ -82,17 +82,18 @@ public final class ArrayReader
         consumer.accept(objectsToArray(result, type.getComponentType()));
     }
 
-    private static void readObjectValues(UnmarshallerContext<?> context, String name, List<Object> result, boolean castToInt, Class<?> componentType, Optional<Function<Object, ?>> mapper)
+    private static void readObjectValues(UnmarshallerContext<?> context, String name, List<Object> result, boolean castToInt, Class<?> componentType, Function<Object, ?> mapper)
     {
         AtomicBoolean hasMoreObjects = new AtomicBoolean(true);
         while (hasMoreObjects.get())
         {
-            mapper.ifPresent(m -> {
+            if(null != mapper)
+            {
                 Optional<FieldedData<?>> v = readAccordingToMode(context.getBuffer(), context.getMode(), name);
-                v.ifPresent(value -> result.add(m.apply(toObject(value, castToInt))));
+                v.ifPresent(value -> result.add(mapper.apply(toObject(value, castToInt))));
                 hasMoreObjects.set(v.isPresent());
-            });
-            if(!mapper.isPresent())
+            }
+            else
             {
                 UnmarshallerContext<?> newContext = UnmarshallerContextImpl.of(context,componentType, 0);
                 Optional<?> object = createObject(newContext);
@@ -127,13 +128,14 @@ public final class ArrayReader
         return objectArray;
     }
 
-    private static void readPOJO(UnmarshallerContext<?> context, final Object array, final Class<?> componentType, final Optional<Function<Object, ?>> mapper, String name, boolean castToInt)
+    private static void readPOJO(UnmarshallerContext<?> context, final Object array, final Class<?> componentType, final Function<Object, ?> mapper, String name, boolean castToInt)
     {
-        mapper.ifPresent(m -> {
+        if(null != mapper)
+        {
             Optional<FieldedData<?>> v = readAccordingToMode(context.getBuffer(), context.getMode(), name);
-            v.ifPresent(value -> Array.set(array, context.getIndex(), m.apply(toObject(value, castToInt))));
-        });
-        if(!mapper.isPresent())
+            v.ifPresent(value -> Array.set(array, context.getIndex(), mapper.apply(toObject(value, castToInt))));
+        }
+        else
         {
             Array.set(array, context.getIndex(), createObject(context.getBuffer(), componentType, context.getMode()));
         }
