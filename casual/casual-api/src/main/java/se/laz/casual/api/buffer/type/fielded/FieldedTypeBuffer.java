@@ -581,7 +581,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
 
     /**
      * Creates a {@code Supplier<CasualFieldedLookupException>}
-     * with the message that the {@code name} is missing at {@code Optional<Integer>} index
+     * with the message that the {@code name} is missing at {@code Integer} index
      * Index is 0 if not supplied
      * @param name the name
      * @param index the index
@@ -599,7 +599,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
 
     /**
      * Creates a {@code Supplier<CasualFieldedLookupException>}
-     * with the message that {@code Optional<Integer>} index is out of bounds for  {@code name}
+     * with the message that {@code Integer} index is out of bounds for  {@code name}
      * @param name the name
      * @param index the index
      * @return a supplier of CasualFieldedLookupException
