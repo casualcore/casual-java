@@ -120,7 +120,7 @@ public class Request implements CasualNetworkTransmittable
 
     public static final class RequestBuilder
     {
-        private static final int NO_RESULT_CODE = -1;
+        public static final int NO_RESULT_CODE = -1;
         private UUID execution;
         private Duplex duplex;
         private int resultCode = NO_RESULT_CODE;

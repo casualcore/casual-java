@@ -8,8 +8,6 @@ package se.laz.casual.api;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ConversationReturn;
 
-import java.util.Optional;
-
 /**
  *  API to hold a conversation
  *
@@ -20,12 +18,12 @@ import java.util.Optional;
  *      try(CasualConnection connection = connectionFactory.getConnection())
  *      {
  *          OctetBuffer buffer = OctetBuffer.of("Initial payload\n".getBytes(StandardCharsets.UTF_8));
- *          try(Conversation conversation = connection.tpconnect("some_service", Optional.of(buffer), Flag.of(AtmiFlags.TPSENDONLY)))
+ *          try(Conversation conversation = connection.tpconnect("some_service", buffer, Flag.of(AtmiFlags.TPSENDONLY)))
  *          {
  *              StringBuilder b = new StringBuilder("Payload:\n");
  *              buffer = OctetBuffer.of("Extra, extra, read all about it!\n".getBytes(StandardCharsets.UTF_8));
  *              // send buffer and hand over control
- *              conversation.tpsend(buffer,true, Optional.empty());
+ *              conversation.tpsend(buffer,true);
  *              ErrorState errorState = ErrorState.OK;
  *              while(conversation.isReceiving() && errorState == ErrorState.OK)
  *              {
@@ -78,7 +76,8 @@ public interface Conversation extends AutoCloseable
      * @param data
      * @param handOverControl - true if you are in control but want to hand over control and start receiving
      */
-    void tpsend(CasualBuffer data, boolean handOverControl, Optional<Long> userCode);
+    void tpsend(CasualBuffer data, boolean handOverControl);
+    void tpsend(CasualBuffer data, boolean handOverControl, long userCode);
 
     /**
      * When receiving the direction can be switched by the party in control, if so - the direction is switched

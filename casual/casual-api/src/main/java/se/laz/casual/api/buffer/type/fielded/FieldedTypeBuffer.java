@@ -274,7 +274,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
         {
             return remove(name, index);
         }
-        return d.orElseThrow(createNameMissingException(name, Optional.of(index)));
+        return d.orElseThrow(createNameMissingException(name, index));
     }
 
     /**
@@ -289,7 +289,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
         List<FieldedData<?>> l = m.get(name);
         if(null == l)
         {
-            throw createNameMissingException(name, Optional.of(index)).get();
+            throw createNameMissingException(name, index).get();
         }
         if(index >= l.size())
         {
@@ -386,7 +386,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
 
     private <T> FieldedTypeBuffer writeListItem(final String name, final T value)
     {
-        final CasualField f = CasualFieldedLookup.forName(name).orElseThrow(createNameMissingException(name, Optional.empty()));
+        final CasualField f = CasualFieldedLookup.forName(name).orElseThrow(createNameMissingException(name));
         final Class<?> clazz = f.getType().getClazz();
         Class<?> valueClazz = value.getClass();
         if(!clazz.equals(valueClazz))
@@ -412,47 +412,47 @@ public final class FieldedTypeBuffer implements CasualBuffer
 
     public FieldedTypeBuffer write(final String name, final Object value)
     {
-        return writeMaybeAllowNull(name, value, Optional.of(value.getClass()));
+        return writeMaybeAllowNull(name, value, value.getClass());
     }
 
     public FieldedTypeBuffer write(final String name, final Integer value)
     {
-        return writeMaybeAllowNull(name, value, Optional.of(Integer.class));
+        return writeMaybeAllowNull(name, value, Integer.class);
     }
 
     public FieldedTypeBuffer write(final String name, final Long value)
     {
-        return writeMaybeAllowNull(name, value, Optional.of(Long.class));
+        return writeMaybeAllowNull(name, value, Long.class);
     }
 
     public FieldedTypeBuffer write(final String name, final Short value)
     {
-        return writeMaybeAllowNull(name, value, Optional.of(Short.class));
+        return writeMaybeAllowNull(name, value, Short.class);
     }
 
     public FieldedTypeBuffer write(final String name, final Character value)
     {
-        return writeMaybeAllowNull(name, value, Optional.of(Character.class));
+        return writeMaybeAllowNull(name, value, Character.class);
     }
 
     public FieldedTypeBuffer write(final String name, final byte[] value)
     {
-        return writeMaybeAllowNull(name, value, Optional.of(byte[].class));
+        return writeMaybeAllowNull(name, value, byte[].class);
     }
 
     public FieldedTypeBuffer write(final String name, final Float value)
     {
-        return writeMaybeAllowNull(name, value, Optional.of(Float.class));
+        return writeMaybeAllowNull(name, value, Float.class);
     }
 
     public FieldedTypeBuffer write(final String name, final Double value)
     {
-        return writeMaybeAllowNull(name, value, Optional.of(Double.class));
+        return writeMaybeAllowNull(name, value, Double.class);
     }
 
     public FieldedTypeBuffer write(final String name, final String value)
     {
-        return writeMaybeAllowNull(name, value, Optional.of(String.class));
+        return writeMaybeAllowNull(name, value, String.class);
     }
 
     /**
@@ -464,14 +464,15 @@ public final class FieldedTypeBuffer implements CasualBuffer
      * @param <T> the type of the value
      * @return this buffer
      */
-    private <T> FieldedTypeBuffer writeMaybeAllowNull(final String name, final T value, Optional<Class<?>> providedValueClazz)
+    private <T> FieldedTypeBuffer writeMaybeAllowNull(final String name, final T value, Class<?> providedValueClazz)
     {
         T localValue = value;
-        final CasualField f = CasualFieldedLookup.forName(name).orElseThrow(createNameMissingException(name, Optional.empty()));
+        final CasualField f = CasualFieldedLookup.forName(name).orElseThrow(createNameMissingException(name));
         final Class<?> clazz = f.getType().getClazz();
         // We really want lazy evaluation here since value can be null
         @SuppressWarnings("squid:S1612")
-        final Class<?> valueClazz = providedValueClazz.orElseGet(() -> value.getClass());
+        final Supplier<Class<?>> valueLambda = () -> value.getClass();
+        final Class<?> valueClazz = null != providedValueClazz ? providedValueClazz : valueLambda.get();
         final boolean isIntegerValue = valueClazz.equals(Integer.class);
         final FieldType fieldType = FieldType.unmarshall((isIntegerValue) ? Long.class : valueClazz);
         localValue = maybeDefaultValue(isIntegerValue, localValue, fieldType);
@@ -484,7 +485,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
                 {
                     throw new NullPointerException("value is not allowed to be null");
                 }
-                return writeMaybeAllowNull(name, ((Integer)localValue).longValue(), Optional.empty());
+                return writeMaybeAllowNull(name, ((Integer)localValue).longValue(), null);
             }
             else
             {
@@ -572,27 +573,33 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return encode();
     }
 
+
+    public static Supplier<CasualFieldedLookupException> createNameMissingException(String name)
+    {
+        return createNameMissingException(name, null);
+    }
+
     /**
      * Creates a {@code Supplier<CasualFieldedLookupException>}
-     * with the message that the {@code name} is missing at {@code Optional<Integer>} index
+     * with the message that the {@code name} is missing at {@code Integer} index
      * Index is 0 if not supplied
      * @param name the name
      * @param index the index
      * @return a supplier of CasualFieldedLookupException
      */
-    public static Supplier<CasualFieldedLookupException> createNameMissingException(String name, Optional<Integer> index)
+    public static Supplier<CasualFieldedLookupException> createNameMissingException(String name, Integer index)
     {
         StringBuilder b = new StringBuilder();
         b.append("name: ");
         b.append(name);
         b.append(" does not exist with index: ");
-        b.append(index.orElse(0));
+        b.append(null != index ? index : 0);
         return () -> new CasualFieldedLookupException(b.toString());
     }
 
     /**
      * Creates a {@code Supplier<CasualFieldedLookupException>}
-     * with the message that {@code Optional<Integer>} index is out of bounds for  {@code name}
+     * with the message that {@code Integer} index is out of bounds for  {@code name}
      * @param name the name
      * @param index the index
      * @return a supplier of CasualFieldedLookupException

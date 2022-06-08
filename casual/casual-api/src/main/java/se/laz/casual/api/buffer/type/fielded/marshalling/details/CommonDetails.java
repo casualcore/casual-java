@@ -127,7 +127,7 @@ public final class CommonDetails
             if(a.isPresent())
             {
                 boolean isParameterizedType = genericParameterTypes.get(i) instanceof ParameterizedType;
-                parameterInfo.add(AnnotatedParameterInfo.of(a.get(), p.getType(), isParameterizedType ? Optional.of((ParameterizedType)genericParameterTypes.get(i)) : Optional.empty()));
+                parameterInfo.add(AnnotatedParameterInfo.of(a.get(), p.getType(), isParameterizedType ? (ParameterizedType)genericParameterTypes.get(i) : null));
             }
             else
             {

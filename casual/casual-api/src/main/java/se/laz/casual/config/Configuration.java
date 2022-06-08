@@ -7,7 +7,6 @@
 package se.laz.casual.config;
 
 import java.util.Objects;
-import java.util.Optional;
 
 public class Configuration
 {
@@ -33,7 +32,7 @@ public class Configuration
 
     public Outbound getOutbound()
     {
-        return outbound == null ? Outbound.of(Optional.empty(), Optional.empty()) : outbound;
+        return outbound == null ? Outbound.of(null, null) : outbound;
     }
 
     @Override

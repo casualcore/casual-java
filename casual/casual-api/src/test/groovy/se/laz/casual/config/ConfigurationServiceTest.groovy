@@ -68,7 +68,7 @@ class ConfigurationServiceTest extends Specification
     {
         given:
         Configuration expected = Configuration.newBuilder()
-                .withOutbound(Outbound.of(Optional.ofNullable(executorName), Optional.ofNullable(numberOfThreads), Optional.of(unmanaged)))
+                .withOutbound(Outbound.of(executorName, numberOfThreads, unmanaged))
                 .build()
 
         when:
@@ -94,7 +94,7 @@ class ConfigurationServiceTest extends Specification
     {
         given:
         Configuration expected = Configuration.newBuilder()
-                .withOutbound(Outbound.of(Optional.ofNullable('java:comp/DefaultManagedExecutorService'), Optional.ofNullable(0)))
+                .withOutbound(Outbound.of('java:comp/DefaultManagedExecutorService', 0))
                 .build()
         when:
         Configuration actual = ConfigurationService.getInstance().getConfiguration()

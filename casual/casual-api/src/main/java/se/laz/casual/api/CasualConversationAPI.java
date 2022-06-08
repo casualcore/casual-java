@@ -10,8 +10,6 @@ import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 
-import java.util.Optional;
-
 /**
  * API to start a {@link Conversation}
  */
@@ -30,5 +28,6 @@ public interface CasualConversationAPI
      * @param flags
      * @return A conversation handle
      */
-    Conversation tpconnect(String serviceName, Optional<CasualBuffer> data, Flag<AtmiFlags> flags);
+    Conversation tpconnect(String serviceName, Flag<AtmiFlags> flags);
+    Conversation tpconnect(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
 }

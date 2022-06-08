@@ -6,7 +6,6 @@
 package se.laz.casual.config;
 
 import java.util.Objects;
-import java.util.Optional;
 
 public final class Outbound
 {
@@ -27,25 +26,21 @@ public final class Outbound
         this.unmanaged = unmanaged;
     }
 
-    public static Outbound of(Optional<Boolean> unmanaged)
+    public static Outbound of(Boolean unmanaged)
     {
-        Objects.requireNonNull(unmanaged, "unmanaged can not be null");
-        return new Outbound(DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME, DEFAULT_NUMBER_OF_THREADS, unmanaged.orElse(DEFAULT_UNMANAGED));
+        return new Outbound(DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME, DEFAULT_NUMBER_OF_THREADS, null == unmanaged ? DEFAULT_UNMANAGED : unmanaged);
     }
 
-    public static Outbound of(Optional<String> managedExecutorServiceName, Optional<Integer> numberOfThreads)
+    public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads)
     {
-        return of(managedExecutorServiceName, numberOfThreads, Optional.of(DEFAULT_UNMANAGED));
+        return of(managedExecutorServiceName, numberOfThreads, DEFAULT_UNMANAGED);
     }
 
-    public static Outbound of(Optional<String> managedExecutorServiceName, Optional<Integer> numberOfThreads, Optional<Boolean> unmanaged)
+    public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads, Boolean unmanaged)
     {
-        Objects.requireNonNull(managedExecutorServiceName, "managedExecutorServiceName can not be null");
-        Objects.requireNonNull(numberOfThreads, "numberOfThreads can not be null");
-        Objects.requireNonNull(unmanaged, "unmanaged can not be null");
-        return new Outbound(managedExecutorServiceName.orElse(DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME),
-                            numberOfThreads.orElse(DEFAULT_NUMBER_OF_THREADS),
-                            unmanaged.orElse(DEFAULT_UNMANAGED));
+        return new Outbound(null == managedExecutorServiceName ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME :  managedExecutorServiceName,
+                            null == numberOfThreads ? DEFAULT_NUMBER_OF_THREADS : numberOfThreads,
+                            null == unmanaged ? DEFAULT_UNMANAGED : unmanaged);
     }
 
     public String getManagedExecutorServiceName()

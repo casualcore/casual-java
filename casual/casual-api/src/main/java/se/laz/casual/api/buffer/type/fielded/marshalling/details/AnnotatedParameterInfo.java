@@ -21,8 +21,8 @@ import java.util.Optional;
 public final class AnnotatedParameterInfo extends ParameterInfo
 {
     private final CasualFieldElement annotation;
-    private final Optional<ParameterizedType> parameterizedType;
-    private AnnotatedParameterInfo(final CasualFieldElement annotation, final Class<?> type, final Optional<ParameterizedType> parameterizedType)
+    private final ParameterizedType parameterizedType;
+    private AnnotatedParameterInfo(final CasualFieldElement annotation, final Class<?> type, final ParameterizedType parameterizedType)
     {
         super(type);
         this.annotation = annotation;
@@ -36,10 +36,9 @@ public final class AnnotatedParameterInfo extends ParameterInfo
      * @param parameterizedType the parameterized type - if any
      * @return a new instance
      */
-    public static ParameterInfo of(final Annotation annotation, final Class<?> type, final Optional<ParameterizedType> parameterizedType)
+    public static ParameterInfo of(final Annotation annotation, final Class<?> type, final ParameterizedType parameterizedType)
     {
         Objects.requireNonNull(annotation, "annotation can not be null");
-        Objects.requireNonNull(type, "type can not be null");
         if(!(annotation instanceof CasualFieldElement))
         {
             throw new FieldedUnmarshallingException("expected @CasualFieldElement, not : " + annotation);
@@ -63,7 +62,7 @@ public final class AnnotatedParameterInfo extends ParameterInfo
      */
     public ParameterizedType getParameterizedType()
     {
-        return parameterizedType.orElseThrow(() -> new FieldedUnmarshallingException("missing parameterized type!"));
+        return Optional.ofNullable(parameterizedType).orElseThrow(() -> new FieldedUnmarshallingException("missing parameterized type!"));
     }
 
 

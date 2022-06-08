@@ -16,7 +16,7 @@ class TestServiceImplTest extends Specification
    def 'no JAVA_FORWARD_SERVICE_NAME, throws'()
    {
       given:
-      TestServiceImpl instance = new TestServiceImpl(Mock(TpCaller), Optional.empty())
+      TestServiceImpl instance = new TestServiceImpl(Mock(TpCaller), null)
       when:
       instance.forward(Mock(InboundRequest))
       then:
@@ -40,7 +40,7 @@ class TestServiceImplTest extends Specification
             returnBuffer
          }
       }
-      def instance = new TestServiceImpl(tpCaller, Optional.of(javaForwardServiceName))
+      def instance = new TestServiceImpl(tpCaller, javaForwardServiceName)
       when:
       def actual = instance.forward(inboundRequest)
       then:
