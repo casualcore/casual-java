@@ -63,7 +63,7 @@ public class CasualServiceDiscovery implements Extension
         }
         catch( NamingException e )
         {
-            LOG.log(Level.WARNING, e, ()-> "Error retrieving app name." );
+            LOG.log(Level.FINEST, e, ()-> "Error retrieving app name." );
         }
 
         try
@@ -72,7 +72,7 @@ public class CasualServiceDiscovery implements Extension
         }
         catch( NamingException e )
         {
-            LOG.log(Level.WARNING, e, ()-> "Error retrieving module name." );
+            LOG.log(Level.FINEST, e, ()-> "Error retrieving module name." );
         }
 
         CasualServiceMetaData.CasualServiceMetaDataBuilder b = CasualServiceMetaData.newBuilder()
