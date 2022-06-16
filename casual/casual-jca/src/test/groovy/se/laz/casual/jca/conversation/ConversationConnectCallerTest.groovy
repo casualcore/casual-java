@@ -118,7 +118,7 @@ class ConversationConnectCallerTest extends Specification
             return new CompletableFuture<>(connectReplyOK)
       }
       when:
-      Conversation conversation = instance.tpconnect(serviceName, Optional.of(message), Flag.of(AtmiFlags.TPSENDONLY))
+      Conversation conversation = instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPSENDONLY))
       then:
       conversation != null
       conversation.isSending()
@@ -139,7 +139,7 @@ class ConversationConnectCallerTest extends Specification
             return new CompletableFuture<>(connectReplyOKUserCodeMissing)
       }
       when:
-      Conversation conversation = instance.tpconnect(serviceName, Optional.of(message), Flag.of(AtmiFlags.TPSENDONLY))
+      Conversation conversation = instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPSENDONLY))
       then:
       conversation != null
       conversation.isSending()
@@ -159,7 +159,7 @@ class ConversationConnectCallerTest extends Specification
             throw new CasualConnectionException("network gone")
       }
       when:
-      instance.tpconnect(serviceName, Optional.of(message), Flag.of(AtmiFlags.TPRECVONLY))
+      instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPRECVONLY))
       then:
       thrown(CasualConnectionException)
    }

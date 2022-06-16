@@ -35,7 +35,6 @@ public class CasualCallerImpl implements CasualCaller
 {
     private TpCaller tpCaller = new TpCallerFailover();
     private ConnectionFactoryLookup lookup;
-    private ConnectionFactoryEntryStore connectionFactoryProvider;
     private TransactionLess transactionLess;
 
     // NOP constructor needed for WLS
@@ -46,7 +45,6 @@ public class CasualCallerImpl implements CasualCaller
     public CasualCallerImpl(ConnectionFactoryLookup lookup, ConnectionFactoryEntryStore connectionFactoryProvider, TransactionLess transactionLess)
     {
         this.lookup = lookup;
-        this.connectionFactoryProvider = connectionFactoryProvider;
         this.transactionLess = transactionLess;
         List<ConnectionFactoryEntry> possibleEntries = connectionFactoryProvider.get();
         if(possibleEntries.isEmpty())

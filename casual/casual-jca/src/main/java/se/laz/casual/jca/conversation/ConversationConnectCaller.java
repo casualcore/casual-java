@@ -24,7 +24,6 @@ import se.laz.casual.network.protocol.messages.conversation.ConnectRequest;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
@@ -47,10 +46,15 @@ public class ConversationConnectCaller implements CasualConversationAPI
     }
 
     @Override
-    public Conversation tpconnect(String serviceName, Optional<CasualBuffer> data, Flag<AtmiFlags> flags)
+    public Conversation tpconnect(String serviceName, Flag<AtmiFlags> flags)
+    {
+        return tpconnect(serviceName, null, flags);
+    }
+
+    @Override
+    public Conversation tpconnect(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         Objects.requireNonNull(serviceName, "serviceName can not be null");
-        Objects.requireNonNull(data, "data can not be null");
         Objects.requireNonNull(flags, "flags can not be null");
         ConversationDirection conversationDirection = getDirection(flags);
         Duration timeout = Duration.of(managedConnection.getTransactionTimeout(), ChronoUnit.SECONDS);
@@ -60,7 +64,10 @@ public class ConversationConnectCaller implements CasualConversationAPI
                 .setServiceName(serviceName)
                 .setTimeout(timeout.toNanos())
                 .setXid(managedConnection.getCurrentXid()).setDuplex(conversationDirection.isReceive() ? Duplex.SEND : Duplex.RECEIVE);
-        data.ifPresent( buffer -> connectRequestBuilder.setServiceBuffer(ServiceBuffer.of(buffer)));
+        if(null != data)
+        {
+            connectRequestBuilder.setServiceBuffer(ServiceBuffer.of(data));
+        }
         ConnectRequest connectRequest = connectRequestBuilder.build();
         final UUID corrId = UUID.randomUUID();
         CasualNWMessage<ConnectRequest> connectNetworkMessage = CasualNWMessageImpl.of(corrId, connectRequest);

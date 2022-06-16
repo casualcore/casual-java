@@ -23,10 +23,10 @@ import java.util.Optional;
 public class TestServiceImpl implements TestService
 {
     private TpCaller tpCaller;
-    private Optional<String> javaForwardName;
+    private String javaForwardName;
 
     @Inject
-    public TestServiceImpl(TpCaller tpCaller, @ConfigProperty(name="JAVA_FORWARD_SERVICE_NAME") Optional<String> javaForwardName)
+    public TestServiceImpl(TpCaller tpCaller, @ConfigProperty(name="JAVA_FORWARD_SERVICE_NAME") String javaForwardName)
     {
         this.tpCaller = tpCaller;
         this.javaForwardName = javaForwardName;
@@ -45,7 +45,7 @@ public class TestServiceImpl implements TestService
     @Override
     public InboundResponse forward(InboundRequest buffer)
     {
-        String forwardName = javaForwardName.orElseThrow(() -> new ForwardDefinitionMissingException("env var JAVA_FORWARD_SERVICE_NAME undefined, forward will not work ( does not know where to forward to)"));
+        String forwardName = Optional.ofNullable(javaForwardName).orElseThrow(() -> new ForwardDefinitionMissingException("env var JAVA_FORWARD_SERVICE_NAME undefined, forward will not work ( does not know where to forward to)"));
         CasualBuffer returnBuffer = tpCaller.makeTpCall(forwardName, buffer.getBuffer(), Flag.of(AtmiFlags.NOFLAG));
         return InboundResponse.createBuilder().buffer( returnBuffer).build();
     }

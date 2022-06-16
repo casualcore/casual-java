@@ -151,11 +151,11 @@ public final class Unmarshaller
         Class<?> wrappedType = CommonDetails.wrapIfPrimitive(type);
         if(CommonDetails.isListType(wrappedType))
         {
-            ListReader.read(context, annotation, consumer, listComponentType, mapper);
+            ListReader.read(context, annotation, consumer, listComponentType, mapper.orElse(null));
         }
         else if(CommonDetails.isArrayType(wrappedType))
         {
-            ArrayReader.readValue(context, annotation, consumer, type, mapper);
+            ArrayReader.readValue(context, annotation, consumer, type, mapper.orElse(null));
         }
         else if(CommonDetails.isFieldedType(wrappedType) || wrappedType.equals(Integer.class))
         {

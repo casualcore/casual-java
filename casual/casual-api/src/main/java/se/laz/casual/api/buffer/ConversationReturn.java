@@ -24,20 +24,24 @@ public final class ConversationReturn<X extends CasualBuffer>
     private final long userCode;
     private final Duplex duplex;
 
-    private ConversationReturn(X replyBuffer, Optional<ErrorState> errorState, long userCode, Duplex duplex)
+    private ConversationReturn(X replyBuffer, ErrorState errorState, long userCode, Duplex duplex)
     {
         this.replyBuffer = replyBuffer;
-        this.errorState = errorState.orElse(null);
+        this.errorState = errorState;
         this.userCode = userCode;
         this.duplex = duplex;
     }
 
-    public static <X extends CasualBuffer> ConversationReturn<X> of(X replyBuffer, Optional<ErrorState> errorState, long userCode, Duplex duplex)
+    public static <X extends CasualBuffer> ConversationReturn<X> of(X replyBuffer, ErrorState errorState, long userCode, Duplex duplex)
     {
         Objects.requireNonNull(replyBuffer, "replyBuffer can not be null");
-        Objects.requireNonNull(errorState, "errorState can not be null");
         Objects.requireNonNull(duplex, "duplex can not be null");
         return new ConversationReturn<>(replyBuffer, errorState, userCode, duplex);
+    }
+
+    public static <X extends CasualBuffer> ConversationReturn<X> of(X replyBuffer, long userCode, Duplex duplex)
+    {
+        return of(replyBuffer, null, userCode, duplex);
     }
 
     /**

@@ -28,7 +28,7 @@ public final class ListReader
     private ListReader()
     {}
 
-    static void read(UnmarshallerContext<?> context, CasualFieldElement annotation, Consumer<Object> consumer, Supplier<Type> listComponentType, Optional<Function<Object, ?>> mapper)
+    static void read(UnmarshallerContext<?> context, CasualFieldElement annotation, Consumer<Object> consumer, Supplier<Type> listComponentType, Function<Object, ?> mapper)
     {
         Type listType = listComponentType.get();
         if(!(listType instanceof ParameterizedType))
@@ -44,7 +44,7 @@ public final class ListReader
         readUnbounded(context , listType, annotation, consumer, mapper);
     }
 
-    private static void readUnbounded(UnmarshallerContext<?> context, Type listType, CasualFieldElement annotation, Consumer<Object> consumer, Optional<Function<Object,?>> mapper)
+    private static void readUnbounded(UnmarshallerContext<?> context, Type listType, CasualFieldElement annotation, Consumer<Object> consumer, Function<Object,?> mapper)
     {
         ParameterizedType parameterizedType = (ParameterizedType)listType;
         Type elementType = parameterizedType.getActualTypeArguments()[0];
@@ -72,7 +72,7 @@ public final class ListReader
         consumer.accept(l);
     }
 
-    private static void readBounded(UnmarshallerContext<?> context, Type listType, String listLengthName, CasualFieldElement annotation, Consumer<Object> consumer, Optional<Function<Object,?>> mapper)
+    private static void readBounded(UnmarshallerContext<?> context, Type listType, String listLengthName, CasualFieldElement annotation, Consumer<Object> consumer, Function<Object,?> mapper)
     {
         ParameterizedType parameterizedType = (ParameterizedType)listType;
         Type elementType = parameterizedType.getActualTypeArguments()[0];
@@ -110,15 +110,16 @@ public final class ListReader
         }
     }
 
-    private static boolean readPojo(final UnmarshallerContext<?> context, String name, List<Object> l, Optional<Function<Object, ?>> mapper, Class<?> elementClass, boolean castToInt)
+    private static boolean readPojo(final UnmarshallerContext<?> context, String name, List<Object> l, Function<Object, ?> mapper, Class<?> elementClass, boolean castToInt)
     {
         AtomicBoolean didRead = new AtomicBoolean(false);
-        mapper.ifPresent(m -> {
+        if(null != mapper)
+        {
             Optional<FieldedData<?>> v = readAccordingToMode(context.getBuffer(), context.getMode(), name);
-            v.ifPresent(value -> l.add(m.apply(toObject(value, castToInt))));
+            v.ifPresent(value -> l.add(mapper.apply(toObject(value, castToInt))));
             didRead.set(v.isPresent());
-        });
-        if(!mapper.isPresent())
+        }
+        else
         {
             UnmarshallerContext<?> newContext = UnmarshallerContextImpl.of(context, elementClass, 0);
             Object v = createObject(newContext).orElseGet(() -> null);
