@@ -15,7 +15,8 @@ import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.inbound.CasualServer;
 import se.laz.casual.network.inbound.ConnectionInformation;
 import se.laz.casual.network.inbound.reverse.ReverseInboundConnectionInformation;
-import se.laz.casual.network.inbound.reverse.Server;
+import se.laz.casual.network.inbound.reverse.ReverseInboundServerImpl;
+import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
 import javax.resource.ResourceException;
@@ -53,7 +54,7 @@ import java.util.logging.Logger;
         version = "1.0",
         transactionSupport = TransactionSupport.TransactionSupportLevel.XATransaction
 )
-public class CasualResourceAdapter implements ResourceAdapter
+public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundListener
 {
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
     private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
@@ -117,7 +118,7 @@ public class CasualResourceAdapter implements ResourceAdapter
     private void startReverseInbound(ReverseInboundConnectionInformation connectionInformation )
     {
         Consumer<ReverseInboundServer> consumer = (ReverseInboundServer server) -> reverseInbounds.add(server);
-        Supplier<ReverseInboundServer> supplier = () -> Server.of(connectionInformation);
+        Supplier<ReverseInboundServer> supplier = () -> ReverseInboundServerImpl.of(connectionInformation, this);
         Supplier<String> logMsg = () -> "Casual reverse inbound connected to: " + connectionInformation.getAddress();
         Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier);
         startWork(work);
@@ -213,6 +214,18 @@ public class CasualResourceAdapter implements ResourceAdapter
     }
 
     @Override
+    public void disconnected(ReverseInboundServer server)
+    {
+        reverseInbounds.remove(server);
+    }
+
+    @Override
+    public void connected(ReverseInboundServer server)
+    {
+        reverseInbounds.add(server);
+    }
+
+    @Override
     public boolean equals(Object o)
     {
         if (this == o)
@@ -241,4 +254,5 @@ public class CasualResourceAdapter implements ResourceAdapter
                 ", xaTerminator=" + xaTerminator +
                 '}';
     }
+
 }

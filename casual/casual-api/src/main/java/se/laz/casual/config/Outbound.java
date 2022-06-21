@@ -11,7 +11,9 @@ import java.util.Optional;
 public final class Outbound
 {
     private static final String DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME = "java:comp/DefaultManagedExecutorService";
-    private static final String DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME = "java:comp/DefaultManagedScheduledExecutorService";
+    //private static final String DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME = "java:comp/DefaultManagedScheduledExecutorService";
+    // TODO: Symbol above is not found in wildfly
+    private static final String DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME = "java:jboss/ee/concurrency/scheduler/default";
     // In netty number of threads == 0 is interpreted as:
     // Math.max(1, SystemPropertyUtil.getInt( "io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2))
     // for the EventLoopGroup

@@ -14,40 +14,49 @@ import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.inbound.CasualMessageHandler;
 import se.laz.casual.network.inbound.ExceptionHandler;
 import se.laz.casual.network.outbound.EventLoopFactory;
+import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
 import java.net.InetSocketAddress;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
  * Inbound server that connects and then acts exactly like {@link  se.laz.casual.network.inbound.CasualServer}
+ * Note that we connect and then casual issues the domain connect request after which we act as if we were inbound all along.
  */
-public class Server implements ReverseInboundServer
+public class ReverseInboundServerImpl implements ReverseInboundServer
 {
-    private static final Logger LOG = Logger.getLogger(Server.class.getName());
+    private static final Logger LOG = Logger.getLogger(ReverseInboundServerImpl.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
     private final Channel channel;
 
-    private Server(Channel channel)
+    private ReverseInboundServerImpl(Channel channel)
     {
         this.channel = channel;
     }
 
-    public static Server of(ReverseInboundConnectionInformation reverseInboundConnectionInformation)
+    public static ReverseInboundServer of(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener)
     {
         Objects.requireNonNull(reverseInboundConnectionInformation, "connectionInformation can not be null");
         EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         CasualMessageHandler messageHandler = CasualMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager());
         Channel ch = init(reverseInboundConnectionInformation.getAddress(), workerGroup, messageHandler, ExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled());
-        ch.closeFuture().addListener(f -> onClose(reverseInboundConnectionInformation));
-        return new Server(ch);
+        ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch);
+        ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
+        return server;
     }
 
-    private static void onClose(ReverseInboundConnectionInformation reverseInboundConnectionInformation)
+    private void onClose(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener)
     {
         // connection gone, need to reconnect while backing off, so we don't spam
-        //new AutoReconnect();
+        eventListener.disconnected(this);
+        StaggeredOptions staggeredOptions = StaggeredOptions.of(Duration.of(100, ChronoUnit.MILLIS),
+                Duration.of(100, ChronoUnit.MILLIS),
+                Duration.of(2000, ChronoUnit.MILLIS), 2);
+        AutoReconnect.of(reverseInboundConnectionInformation, eventListener, staggeredOptions);
     }
 
     private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)
@@ -73,4 +82,32 @@ public class Server implements ReverseInboundServer
         return b.connect(address).syncUninterruptibly().channel();
     }
 
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        ReverseInboundServerImpl server = (ReverseInboundServerImpl) o;
+        return Objects.equals(channel, server.channel);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(channel);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Server{" +
+                "channel=" + channel +
+                '}';
+    }
 }
