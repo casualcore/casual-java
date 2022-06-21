@@ -9,17 +9,12 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Outbound;
-import se.laz.casual.jca.CasualResourceAdapterException;
 
-import javax.enterprise.concurrent.ManagedExecutorService;
-import javax.enterprise.concurrent.ManagedScheduledExecutorService;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.util.logging.Logger;
 
 public final class EventLoopFactory
 {
-    private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
+    private static final Logger LOG = Logger.getLogger(EventLoopFactory.class.getName());
     private static final EventLoopGroup INSTANCE = createEventLoopGroup();
     private EventLoopFactory()
     {}
@@ -36,39 +31,6 @@ public final class EventLoopFactory
             LOG.info(() -> "outbound not using any ManagedExecutorService, running unmanaged");
             return new NioEventLoopGroup(outbound.getNumberOfThreads());
         }
-        return new NioEventLoopGroup(outbound.getNumberOfThreads(), getManagedExecutorService());
+        return new NioEventLoopGroup(outbound.getNumberOfThreads(), ManagedExecutorServiceFactory.getManagedExecutorService());
     }
-
-    public static ManagedExecutorService getManagedExecutorService()
-    {
-        Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
-        String name = outbound.getManagedExecutorServiceName();
-        try
-        {
-            LOG.info(() -> "using ManagedExecutorService: " + name);
-            InitialContext ctx = new InitialContext();
-            return (ManagedExecutorService) ctx.lookup(name);
-        }
-        catch (NamingException e)
-        {
-            throw new CasualResourceAdapterException("failed lookup for: " + name + "\n outbound will not function!", e);
-        }
-    }
-
-    public static ManagedScheduledExecutorService getManagedScheduledExecutorService()
-    {
-        Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
-        String name = outbound.ManagedScheduledExecutorServiceName();
-        try
-        {
-            LOG.info(() -> "using ManagedScheduledExecutorService: " + name);
-            InitialContext ctx = new InitialContext();
-            return (ManagedScheduledExecutorService) ctx.lookup(name);
-        }
-        catch (NamingException e)
-        {
-            throw new CasualResourceAdapterException("failed lookup for: " + name + "\n outbound will not function!", e);
-        }
-    }
-
 }
