@@ -16,6 +16,7 @@ import se.laz.casual.network.inbound.CasualServer;
 import se.laz.casual.network.inbound.ConnectionInformation;
 import se.laz.casual.network.inbound.reverse.ReverseInboundConnectionInformation;
 import se.laz.casual.network.inbound.reverse.Server;
+import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ActivationSpec;
@@ -56,7 +57,7 @@ public class CasualResourceAdapter implements ResourceAdapter
 {
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
     private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
-    private List<Server> reverseInbounds = new ArrayList<>();
+    private List<ReverseInboundServer> reverseInbounds = new ArrayList<>();
 
     private WorkManager workManager;
     private XATerminator xaTerminator;
@@ -115,8 +116,8 @@ public class CasualResourceAdapter implements ResourceAdapter
 
     private void startReverseInbound(ReverseInboundConnectionInformation connectionInformation )
     {
-        Consumer<Server> consumer = (Server server) -> reverseInbounds.add(server);
-        Supplier<Server> supplier = () -> Server.of(connectionInformation);
+        Consumer<ReverseInboundServer> consumer = (ReverseInboundServer server) -> reverseInbounds.add(server);
+        Supplier<ReverseInboundServer> supplier = () -> Server.of(connectionInformation);
         Supplier<String> logMsg = () -> "Casual reverse inbound connected to: " + connectionInformation.getAddress();
         Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier);
         startWork(work);

@@ -13,6 +13,7 @@ import se.laz.casual.config.Outbound;
 import se.laz.casual.jca.CasualResourceAdapterException;
 
 import javax.enterprise.concurrent.ManagedExecutorService;
+import javax.enterprise.concurrent.ManagedScheduledExecutorService;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.logging.Logger;
@@ -38,9 +39,25 @@ public final class EventLoopFactory
         String name = outbound.getManagedExecutorServiceName();
         try
         {
-            LOG.info(() -> "outbound using ManagedExecutorService: " + name);
+            LOG.info(() -> "using ManagedExecutorService: " + name);
             InitialContext ctx = new InitialContext();
             return (ManagedExecutorService) ctx.lookup(name);
+        }
+        catch (NamingException e)
+        {
+            throw new CasualResourceAdapterException("failed lookup for: " + name + "\n outbound will not function!", e);
+        }
+    }
+
+    public static ManagedScheduledExecutorService getManagedScheduledExecutorService()
+    {
+        Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
+        String name = outbound.getManagedScheduledExecutorServiceName();
+        try
+        {
+            LOG.info(() -> "using ManagedScheduledExecutorService: " + name);
+            InitialContext ctx = new InitialContext();
+            return (ManagedScheduledExecutorService) ctx.lookup(name);
         }
         catch (NamingException e)
         {
@@ -72,7 +89,7 @@ public final class EventLoopFactory
 
     private static EventLoopGroup getManagedEventLoopGroup(boolean useEpoll, int numberOfThreads)
     {
-        if(useEpoll)
+        if (useEpoll)
         {
             LOG.info(() -> "using EpollEventLoopGroup");
             return new EpollEventLoopGroup(numberOfThreads, getManagedExecutorService());
@@ -80,5 +97,6 @@ public final class EventLoopFactory
         LOG.info(() -> "using NioEventLoopGroup");
         return new NioEventLoopGroup(numberOfThreads, getManagedExecutorService());
     }
+
 
 }

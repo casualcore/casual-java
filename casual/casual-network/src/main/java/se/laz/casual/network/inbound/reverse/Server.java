@@ -14,6 +14,7 @@ import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.inbound.CasualMessageHandler;
 import se.laz.casual.network.inbound.ExceptionHandler;
 import se.laz.casual.network.outbound.EventLoopFactory;
+import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -22,7 +23,7 @@ import java.util.logging.Logger;
 /**
  * Inbound server that connects and then acts exactly like {@link  se.laz.casual.network.inbound.CasualServer}
  */
-public class Server
+public class Server implements ReverseInboundServer
 {
     private static final Logger LOG = Logger.getLogger(Server.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
@@ -39,7 +40,14 @@ public class Server
         EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         CasualMessageHandler messageHandler = CasualMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager());
         Channel ch = init(reverseInboundConnectionInformation.getAddress(), workerGroup, messageHandler, ExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled());
+        ch.closeFuture().addListener(f -> onClose(reverseInboundConnectionInformation));
         return new Server(ch);
+    }
+
+    private static void onClose(ReverseInboundConnectionInformation reverseInboundConnectionInformation)
+    {
+        // connection gone, need to reconnect while backing off, so we don't spam
+        //new AutoReconnect();
     }
 
     private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)
