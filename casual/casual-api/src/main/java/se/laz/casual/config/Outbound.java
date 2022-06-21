@@ -10,14 +10,18 @@ import java.util.Objects;
 public final class Outbound
 {
     private static final String DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME = "java:comp/DefaultManagedExecutorService";
+    private static final String DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME = "java:comp/DefaultManagedScheduledExecutorService";
     // In netty number of threads == 0 is interpreted as:
     // Math.max(1, SystemPropertyUtil.getInt( "io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2))
     // for the EventLoopGroup
     private static final int DEFAULT_NUMBER_OF_THREADS = 0;
     private static final boolean DEFAULT_UNMANAGED = false;
+
     private final String managedExecutorServiceName;
+    private String managedScheduledExecutorServiceName;
     private int numberOfThreads;
     private boolean unmanaged;
+
 
     private Outbound(String managedExecutorServiceName, int numberOfThreads, boolean unmanaged)
     {
@@ -46,6 +50,11 @@ public final class Outbound
     public String getManagedExecutorServiceName()
     {
         return managedExecutorServiceName == null ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME : managedExecutorServiceName;
+    }
+
+    public String ManagedScheduledExecutorServiceName()
+    {
+        return managedScheduledExecutorServiceName == null ? DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME : managedScheduledExecutorServiceName;
     }
 
     public int getNumberOfThreads()
@@ -88,4 +97,6 @@ public final class Outbound
                 ", unmanaged=" + unmanaged +
                 '}';
     }
+
+
 }
