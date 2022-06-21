@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.inbound.handler.service.casual;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,11 +78,23 @@ public final class CasualServiceRegistry
         return serviceMetaData.values().stream().filter(CasualServiceMetaData::isUnresolved).collect(Collectors.toList());
     }
 
+    public Map<String,CasualServiceEntry> getServiceEntries()
+    {
+        return Collections.unmodifiableMap(serviceEntries);
+    }
+
+    public List<String> getServices()
+    {
+        return getServiceEntries().keySet().stream()
+                                  .collect(Collectors.toList());
+    }
+
     public void clear()
     {
         this.serviceMetaData.clear();
         this.serviceEntries.clear();
     }
+
 
 
 }

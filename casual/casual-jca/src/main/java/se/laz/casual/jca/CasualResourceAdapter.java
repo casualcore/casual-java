@@ -6,12 +6,16 @@
 package se.laz.casual.jca;
 
 import se.laz.casual.config.ConfigurationService;
+import se.laz.casual.config.ReverseInbound;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
 import se.laz.casual.jca.jmx.JMXStartup;
 import se.laz.casual.jca.work.StartInboundServerListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.inbound.CasualServer;
 import se.laz.casual.network.inbound.ConnectionInformation;
+import se.laz.casual.network.inbound.reverse.ReverseInboundConnectionInformation;
+import se.laz.casual.network.inbound.reverse.Server;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ActivationSpec;
@@ -27,10 +31,13 @@ import javax.resource.spi.work.Work;
 import javax.resource.spi.work.WorkException;
 import javax.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAResource;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
@@ -49,6 +56,7 @@ public class CasualResourceAdapter implements ResourceAdapter
 {
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
     private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
+    private List<Server> reverseInbounds = new ArrayList<>();
 
     private WorkManager workManager;
     private XATerminator xaTerminator;
@@ -84,14 +92,42 @@ public class CasualResourceAdapter implements ResourceAdapter
         activations.put(as.getPort(), as);
         log.info(() -> "start casual inbound server" );
         startInboundServer( ci );
+        maybeStartReverseInbound( ConfigurationService.getInstance().getConfiguration().getReverseInbound(), endpointFactory, workManager, xaTerminator);
         log.finest(() -> "end endpointActivation()");
 
+    }
+
+    private void maybeStartReverseInbound(List<ReverseInbound> reverseInbound, MessageEndpointFactory endpointFactory, WorkManager workManager, XATerminator xaTerminator)
+    {
+        for(ReverseInbound instance : reverseInbound)
+        {
+            startReverseInbound(ReverseInboundConnectionInformation.createBuilder()
+                                                                   .withAddress(new InetSocketAddress(instance.getAddress().getHost(), instance.getAddress().getPort()))
+                                                                   .withDomainId(configurationService.getConfiguration().getDomain().getId())
+                                                                   .withDomainName(configurationService.getConfiguration().getDomain().getName())
+                                                                   .withFactory(endpointFactory)
+                                                                   .withWorkManager(workManager)
+                                                                   .withXaTerminator(xaTerminator)
+                                                                   .withProtocolVersion(ProtocolVersion.VERSION_1_0)
+                                                                   .build());
+        }
+    }
+
+    private void startReverseInbound(ReverseInboundConnectionInformation connectionInformation )
+    {
+        Consumer<Server> consumer = (Server server) -> reverseInbounds.add(server);
+        Supplier<Server> supplier = () -> Server.of(connectionInformation);
+        Supplier<String> logMsg = () -> "Casual reverse inbound connected to: " + connectionInformation.getAddress();
+        Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier);
+        startWork(work);
     }
 
     private void startInboundServer( ConnectionInformation connectionInformation )
     {
         Consumer<CasualServer> consumer = (CasualServer runningServer) -> server = runningServer;
-        Work work = StartInboundServerWork.of( getInboundStartupServices(), connectionInformation, consumer);
+        Supplier<CasualServer> supplier = () -> CasualServer.of(connectionInformation);
+        Supplier<String> logMsg = () -> "Casual inbound server bound to port: " + connectionInformation.getPort();
+        Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier);
         startWork(work);
     }
 
