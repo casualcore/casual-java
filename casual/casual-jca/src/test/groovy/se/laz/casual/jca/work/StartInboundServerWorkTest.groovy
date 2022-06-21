@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+
 class StartInboundServerWorkTest extends Specification
 {
 
@@ -71,7 +72,7 @@ class StartInboundServerWorkTest extends Specification
     def "Start service with no startup services"()
     {
         given:
-        instance = StartInboundServerWork.of( [], ci, {s->server = s} )
+        instance = StartInboundServerWork.of( [], {"inbound started"},{s -> server = s}, {CasualServer.of(ci)} )
 
         when:
         completionService.submit( { instance.run(  ) } )
@@ -87,7 +88,7 @@ class StartInboundServerWorkTest extends Specification
         String serviceName1 = Mode.Constants.TRIGGER_SERVICE
         CasualServiceEntry entry = prepareRegistry( serviceName1 )
 
-        instance = StartInboundServerWork.of( [serviceName1], ci, {s->server = s} )
+        instance = StartInboundServerWork.of( [serviceName1], {"inbound started"},{s -> server = s}, {CasualServer.of(ci)})
 
         when:
         completionService.submit( { instance.run(  ) } )
@@ -108,7 +109,7 @@ class StartInboundServerWorkTest extends Specification
         String serviceName1 = Mode.Constants.TRIGGER_SERVICE
         prepareRegistry( serviceName1 )
 
-        instance = StartInboundServerWork.of( [serviceName1], ci, {s->server = s} )
+        instance = StartInboundServerWork.of( [serviceName1], {"inbound started"}, {s -> server = s}, {CasualServer.of(ci)} )
 
         when:
         completionService.submit( { instance.run(  ) } )
@@ -137,7 +138,7 @@ class StartInboundServerWorkTest extends Specification
             entries.add( prepareRegistry( serviceName ) )
         }
 
-        instance = StartInboundServerWork.of( serviceNames, ci, {s->server = s} )
+        instance = StartInboundServerWork.of( serviceNames, {"inbound started"},{s -> server = s}, {CasualServer.of(ci)})
 
         when:
         completionService.submit( { instance.run(  ) } )

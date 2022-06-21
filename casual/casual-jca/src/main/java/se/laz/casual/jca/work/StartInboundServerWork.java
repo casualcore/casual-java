@@ -8,8 +8,6 @@ package se.laz.casual.jca.work;
 
 import se.laz.casual.jca.InboundStartupException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
-import se.laz.casual.network.inbound.CasualServer;
-import se.laz.casual.network.inbound.ConnectionInformation;
 
 import javax.resource.spi.work.Work;
 import java.util.HashSet;
@@ -18,32 +16,37 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
  * Work instance for delaying start of inbound server until all startup services have been registered
  */
-public final class StartInboundServerWork implements Work
+public final class StartInboundServerWork<T> implements Work
 {
     private static Logger log = Logger.getLogger( StartInboundServerWork.class.getName());
     private final List<String> startupServices;
-    private final ConnectionInformation connectionInformation;
-    private final Consumer<CasualServer> consumer;
+    private final Consumer<T> consumer;
+    private final Supplier<T> supplier;
+    private final Supplier<String> logMessage;
 
-    private StartInboundServerWork( List<String> startupServices, ConnectionInformation connectionInformation, Consumer<CasualServer> consumer )
+    private StartInboundServerWork( List<String> startupServices, Supplier<String> logMessage, Consumer<T> consumer, Supplier<T> supplier)
     {
         this.startupServices = startupServices;
-        this.connectionInformation = connectionInformation;
         this.consumer = consumer;
+        this.supplier = supplier;
+        this.logMessage = logMessage;
     }
 
-    public static Work of(List<String> startupServices, ConnectionInformation connectionInformation, Consumer<CasualServer> consumer )
+    public static <T> Work of(List<String> startupServices, Supplier<String> logMessage, Consumer<T> consumer, Supplier<T> supplier )
     {
         Objects.requireNonNull(startupServices, "Startup Services is null.");
-        Objects.requireNonNull(connectionInformation, "Connection Information is null.");
         Objects.requireNonNull(consumer, "Consumer is null.");
-        return new StartInboundServerWork(startupServices, connectionInformation, consumer);
+        Objects.requireNonNull(supplier, "supplier is null");
+        // note: only needed to make the compiler, java 8, not spew out warnings
+        StartInboundServerWork<T> work = new StartInboundServerWork<>(startupServices, logMessage, consumer, supplier);
+        return work;
     }
 
     @Override
@@ -63,7 +66,7 @@ public final class StartInboundServerWork implements Work
 
     private void waitForInboundStartupServices()
     {
-        log.info(() -> "Waiting for " + startupServices.size() + " startup services to be registered before inbound starts.");
+        log.finest(() -> "Waiting for " + startupServices.size() + " startup services to be registered before inbound starts.");
         Set<String> remaining = checkRemainingServices( new HashSet<>( this.startupServices ) );
         while(!remaining.isEmpty())
         {
@@ -78,7 +81,16 @@ public final class StartInboundServerWork implements Work
                 throw new InboundStartupException( "Interrupted waiting for inbound startup services registration.", e );
             }
         }
-        log.info(() -> "All startup services registered.");
+        log.finest(() -> "All startup services registered.");
+        log.finest(() -> "Services: " + getServices());
+    }
+
+    private String getServices()
+    {
+        return CasualServiceRegistry.getInstance()
+                                    .getServices()
+                                    .stream()
+                                    .collect(Collectors.joining(","));
     }
 
     private Set<String> checkRemainingServices( Set<String> remaining )
@@ -88,17 +100,16 @@ public final class StartInboundServerWork implements Work
                 .collect( Collectors.partitioningBy( registry::hasServiceEntry, Collectors.toSet() ) );
         for( String foundService: found.get( true ) )
         {
-            log.info( ()-> "Startup service registered: " + foundService );
+            log.finest( ()-> "Startup service registered: " + foundService );
         }
         return found.get( false );
     }
 
     private void startInboundServer()
     {
-        log.info(() -> "About to create casual inbound server");
-        CasualServer server = CasualServer.of(connectionInformation);
-        consumer.accept(server);
-        log.info(() -> "Casual inbound server bound to port: " + connectionInformation.getPort());
+        log.finest(() -> "About to create casual inbound server");
+        consumer.accept(supplier.get());
+        log.finest(() -> logMessage.get());
     }
 
 }
