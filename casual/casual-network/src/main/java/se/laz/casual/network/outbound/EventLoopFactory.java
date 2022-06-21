@@ -98,5 +98,4 @@ public final class EventLoopFactory
         return new NioEventLoopGroup(numberOfThreads, getManagedExecutorService());
     }
 
-
 }
