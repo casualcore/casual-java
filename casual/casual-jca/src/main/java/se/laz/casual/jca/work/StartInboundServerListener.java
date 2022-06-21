@@ -50,12 +50,6 @@ public class StartInboundServerListener implements WorkListener
         if(null != e.getException())
         {
             log.warning(() -> "workCompleted with exception: " + e.getException());
-            log.warning(() -> "->: " + e.getException().getStackTrace());
-            if(null != e.getException().getCause())
-            {
-                log.warning(() -> "->: " + e.getException().getCause());
-                log.warning(() -> "->: " + e.getException().getCause().getStackTrace());
-            }
             log.warning(() -> "Inbound may not have started!!!");
         }
     }
