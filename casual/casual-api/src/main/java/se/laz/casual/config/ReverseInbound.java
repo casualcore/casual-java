@@ -4,22 +4,35 @@ import java.util.Objects;
 
 public final class ReverseInbound
 {
+    private static int DEFAULT_SIZE = 1;
     private final Address address;
+    private Integer size;
 
-    private ReverseInbound(Address address)
+    private ReverseInbound(Address address, int size)
     {
         this.address = address;
+        this.size = size;
+    }
+
+    public static ReverseInbound of(Address address, int size)
+    {
+        Objects.requireNonNull(address, "address can not be null");
+        return new ReverseInbound(address, size);
     }
 
     public static ReverseInbound of(Address address)
     {
-        Objects.requireNonNull(address, "address can not be null");
-        return new ReverseInbound(address);
+        return of(address, DEFAULT_SIZE);
     }
 
     public Address getAddress()
     {
         return address;
+    }
+
+    public int getSize()
+    {
+        return null == size ? DEFAULT_SIZE : size;
     }
 
     @Override
@@ -34,13 +47,13 @@ public final class ReverseInbound
             return false;
         }
         ReverseInbound that = (ReverseInbound) o;
-        return Objects.equals(getAddress(), that.getAddress());
+        return getSize() == that.getSize() && Objects.equals(getAddress(), that.getAddress());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getAddress());
+        return Objects.hash(getAddress(), getSize());
     }
 
     @Override
@@ -48,6 +61,7 @@ public final class ReverseInbound
     {
         return "ReverseInbound{" +
                 "address=" + address +
+                ", size=" + size +
                 '}';
     }
 }
