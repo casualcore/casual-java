@@ -111,17 +111,20 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                                                                    .withWorkManager(workManager)
                                                                    .withXaTerminator(xaTerminator)
                                                                    .withProtocolVersion(ProtocolVersion.VERSION_1_0)
-                                                                   .build());
+                                                                   .build(), instance.getSize());
         }
     }
 
-    private void startReverseInbound(ReverseInboundConnectionInformation connectionInformation )
+    private void startReverseInbound(ReverseInboundConnectionInformation connectionInformation, int numberOfInstances )
     {
-        Consumer<ReverseInboundServer> consumer = (ReverseInboundServer server) -> reverseInbounds.add(server);
-        Supplier<ReverseInboundServer> supplier = () -> ReverseInboundServerImpl.of(connectionInformation, this);
-        Supplier<String> logMsg = () -> "Casual reverse inbound connected to: " + connectionInformation.getAddress();
-        Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier);
-        startWork(work);
+        for(int i = 0; i < numberOfInstances; ++i)
+        {
+            Consumer<ReverseInboundServer> consumer = (ReverseInboundServer server) -> reverseInbounds.add(server);
+            Supplier<ReverseInboundServer> supplier = () -> ReverseInboundServerImpl.of(connectionInformation, this);
+            Supplier<String> logMsg = () -> "casual reverse inbound connected to: " + connectionInformation.getAddress();
+            Work work = StartInboundServerWork.of(getInboundStartupServices(), logMsg, consumer, supplier);
+            startWork(work);
+        }
     }
 
     private void startInboundServer( ConnectionInformation connectionInformation )

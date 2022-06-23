@@ -180,11 +180,11 @@ class ConfigurationServiceTest extends Specification
     }
 
    @Unroll
-   def "reverse inbound config #host, #port"()
+   def "reverse inbound config #host, #port, #size"()
    {
       given:
       Configuration expected = Configuration.newBuilder()
-              .withReverseInbound(ReverseInbound.of(Address.of(host, port)))
+              .withReverseInbound(ReverseInbound.of(Address.of(host, port), size))
               .build()
 
       when:
@@ -199,8 +199,9 @@ class ConfigurationServiceTest extends Specification
       actual == expected
 
       where:
-      file                                 || host              || port
-      'casual-config-reverse-inbound.json' || '10.96.186.114'   || 7771
+      file                                                       || host              || port || size
+      'casual-config-reverse-inbound.json'                       || '10.96.186.114'   || 7771 || 1
+      'casual-config-reverse-inbound-with-size.json'             || '10.96.186.114'   || 7771 || 42
    }
 
 }

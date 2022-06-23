@@ -57,13 +57,16 @@ public class Configuration
             return false;
         }
         Configuration that = (Configuration) o;
-        return Objects.equals(getInbound(), that.getInbound()) && Objects.equals(getDomain(), that.getDomain()) && Objects.equals(getOutbound(), that.getOutbound());
+        return Objects.equals(getInbound(), that.getInbound()) &&
+                Objects.equals(getDomain(), that.getDomain()) &&
+                Objects.equals(getOutbound(), that.getOutbound()) &&
+                Objects.equals(getReverseInbound(), that.getReverseInbound());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getInbound(), getDomain(), getOutbound());
+        return Objects.hash(getInbound(), getDomain(), getOutbound(), getReverseInbound());
     }
 
     @Override
