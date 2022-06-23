@@ -11,6 +11,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Outbound;
 import se.laz.casual.jca.CasualResourceAdapterException;
+import se.laz.casual.network.JEEConcurrencyFactory;
 
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.concurrent.ManagedScheduledExecutorService;
@@ -95,7 +96,7 @@ public final class EventLoopFactory
             return new EpollEventLoopGroup(numberOfThreads, getManagedExecutorService());
         }
         LOG.info(() -> "using NioEventLoopGroup");
-        return new NioEventLoopGroup(numberOfThreads, getManagedExecutorService());
+        return new NioEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService());
     }
 
 }

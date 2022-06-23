@@ -1,4 +1,9 @@
-package se.laz.casual.network.outbound;
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+package se.laz.casual.network;
 
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Outbound;
@@ -10,11 +15,11 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.logging.Logger;
 
-public class ManagedExecutorServiceFactory
+public class JEEConcurrencyFactory
 {
-    private static final Logger LOG = Logger.getLogger(ManagedExecutorServiceFactory.class.getName());
+    private static final Logger LOG = Logger.getLogger(JEEConcurrencyFactory.class.getName());
     private static final String DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_JBOSS_ALTERNATIVE = "java:jboss/ee/concurrency/scheduler/default";
-    private ManagedExecutorServiceFactory()
+    private JEEConcurrencyFactory()
     {}
 
     public static ManagedExecutorService getManagedExecutorService()
