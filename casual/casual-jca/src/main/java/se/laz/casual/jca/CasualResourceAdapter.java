@@ -219,12 +219,14 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     @Override
     public void disconnected(ReverseInboundServer server)
     {
+        log.info(() -> "ReverseInbound: " + server.getAddress() + " disconnected");
         reverseInbounds.remove(server);
     }
 
     @Override
     public void connected(ReverseInboundServer server)
     {
+        log.info(() -> "ReverseInbound: " + server.getAddress() + " connection resumed");
         reverseInbounds.add(server);
     }
 

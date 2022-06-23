@@ -37,11 +37,17 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
 {
     private static final Logger LOG = Logger.getLogger(ReverseInboundServerImpl.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
+    private static final Duration INITIAL_DURATION = Duration.of(100, ChronoUnit.MILLIS);
+    private static final Duration SUBSEQUENT_DURATION = Duration.of(100, ChronoUnit.MILLIS);
+    private static final Duration MAX_DURATION = Duration.of(5000, ChronoUnit.MILLIS);
+    private static final int STAGGER_FACTOR = 2;
     private final Channel channel;
+    private final InetSocketAddress address;
 
-    private ReverseInboundServerImpl(Channel channel)
+    private ReverseInboundServerImpl(Channel channel, InetSocketAddress address)
     {
         this.channel = channel;
+        this.address = address;
     }
 
     public static ReverseInboundServer of(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener)
@@ -50,7 +56,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         CasualMessageHandler messageHandler = CasualMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager());
         Channel ch = init(reverseInboundConnectionInformation.getAddress(), workerGroup, messageHandler, ExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled());
-        ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch);
+        ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress());
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
         return server;
     }
@@ -59,9 +65,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     {
         // connection gone, need to reconnect while backing off, so we don't spam
         eventListener.disconnected(this);
-        StaggeredOptions staggeredOptions = StaggeredOptions.of(Duration.of(100, ChronoUnit.MILLIS),
-                Duration.of(100, ChronoUnit.MILLIS),
-                Duration.of(2000, ChronoUnit.MILLIS), 2);
+        StaggeredOptions staggeredOptions = StaggeredOptions.of(INITIAL_DURATION, SUBSEQUENT_DURATION, MAX_DURATION, STAGGER_FACTOR);
         AutoReconnect.of(reverseInboundConnectionInformation, eventListener, staggeredOptions);
     }
 
@@ -86,6 +90,12 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
                 });
         LOG.info(() -> "reverse inbound about to connect to: " + address);
         return b.connect(address).syncUninterruptibly().channel();
+    }
+
+    @Override
+    public InetSocketAddress getAddress()
+    {
+        return address;
     }
 
     @Override
@@ -116,4 +126,6 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
                 "channel=" + channel +
                 '}';
     }
+
+
 }
