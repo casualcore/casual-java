@@ -9,6 +9,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Outbound;
+import se.laz.casual.network.JEEConcurrencyFactory;
 
 import java.util.logging.Logger;
 
@@ -31,6 +32,6 @@ public final class EventLoopFactory
             LOG.info(() -> "outbound not using any ManagedExecutorService, running unmanaged");
             return new NioEventLoopGroup(outbound.getNumberOfThreads());
         }
-        return new NioEventLoopGroup(outbound.getNumberOfThreads(), ManagedExecutorServiceFactory.getManagedExecutorService());
+        return new NioEventLoopGroup(outbound.getNumberOfThreads(), JEEConcurrencyFactory.getManagedExecutorService());
     }
 }

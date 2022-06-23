@@ -1,7 +1,12 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network.inbound.reverse;
 
-import se.laz.casual.network.outbound.EventLoopFactory;
-import se.laz.casual.network.outbound.ManagedExecutorServiceFactory;
+import se.laz.casual.network.JEEConcurrencyFactory;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
@@ -21,7 +26,7 @@ public class AutoReconnect implements Runnable
         this.reverseInboundConnectionInformation = reverseInboundConnectionInformation;
         this.eventListener = eventListener;
         this.staggeredOptions = staggeredOptions;
-        ManagedExecutorServiceFactory.getManagedScheduledExecutorService().schedule(this, staggeredOptions.getNext().toMillis(), TimeUnit.MILLISECONDS);
+        JEEConcurrencyFactory.getManagedScheduledExecutorService().schedule(this, staggeredOptions.getNext().toMillis(), TimeUnit.MILLISECONDS);
     }
 
     public static AutoReconnect of(ReverseInboundConnectionInformation reverseInboundConnectionInformation,
@@ -44,7 +49,7 @@ public class AutoReconnect implements Runnable
         }
         catch(Exception e)
         {
-            ManagedExecutorServiceFactory.getManagedScheduledExecutorService().schedule(this, staggeredOptions.getNext().toMillis(), TimeUnit.MILLISECONDS);
+            JEEConcurrencyFactory.getManagedScheduledExecutorService().schedule(this, staggeredOptions.getNext().toMillis(), TimeUnit.MILLISECONDS);
         }
     }
 }
