@@ -14,6 +14,8 @@ import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.conversation.Duplex
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
+import se.laz.casual.jca.ConnectionObserver
+import se.laz.casual.jca.DomainId
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.ProtocolVersion
@@ -37,6 +39,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     @Shared Correlator correlator
     @Shared ConversationMessageStorage conversationMessageStorage
     @Shared EmbeddedChannel channel
+    @Shared DomainId casualDomainId = DomainId.of(UUID.randomUUID())
     private boolean casualDisconnected = false;
 
     def setup()
@@ -54,6 +57,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         def conversationMessageHandler = ConversationMessageHandler.of(conversationMessageStorage)
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, Mock(OnNetworkError)))
         instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, testExecutorService)
+        instance.setDomainId(casualDomainId)
     }
 
     def 'Of with a null connection info throws NullPointerException.'()
@@ -136,6 +140,11 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         def channel = Mock(Channel)
         1 * channel.close()
         instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, Mock(ManagedExecutorService))
+        instance.setDomainId(casualDomainId)
+        def observer = Mock(ConnectionObserver){
+           1 * connectionGone(casualDomainId)
+        }
+        instance.addConnectionObserver(observer)
         when:
         instance.close()
         then:
@@ -147,8 +156,13 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     {
         given:
         def channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator, Mock(OnNetworkError)))
-        def newInstance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, Mock(ManagedExecutorService))
-        def future = channel.closeFuture().addListener({ f -> se.laz.casual.network.outbound.NettyNetworkConnection.handleClose(newInstance, this) })
+        instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, Mock(ManagedExecutorService))
+        instance.setDomainId(casualDomainId)
+        def observer = Mock(ConnectionObserver){
+           1 * connectionGone(casualDomainId)
+        }
+        instance.addConnectionObserver(observer)
+        def future = channel.closeFuture().addListener({ f -> se.laz.casual.network.outbound.NettyNetworkConnection.handleClose(instance, this) })
         when:
         future.channel().disconnect()
         then:
@@ -226,7 +240,9 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     @Override
     void disconnected()
     {
-        casualDisconnected = true;
+        casualDisconnected = true
+        // Note: this is what the appserver would do
+        instance.close()
     }
 
    class TestExecutorService implements ManagedExecutorService
