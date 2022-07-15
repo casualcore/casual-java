@@ -23,4 +23,20 @@ public interface CasualConnection extends CasualServiceApi, CasualQueueApi, Casu
      */
     @Override
     void close();
+
+    /**
+     * Get the current domain id for this connection
+     * @return the current domain id for this connection
+     */
+    DomainId getDomainID();
+
+    /**
+     * If a connection is gone, for whatever reason - it is just not usable anymore.
+     *
+     * When this happens, {@link ConnectionObserver#connectionGone(DomainId)} is called with the same domain id
+     * that can be retrieved via {@link CasualConnection#getDomainID()}
+     * @param observer - the observer that will be notified
+     */
+    void addConnectionObserver(ConnectionObserver observer);
+
 }

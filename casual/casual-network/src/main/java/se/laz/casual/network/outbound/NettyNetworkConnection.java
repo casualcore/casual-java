@@ -19,6 +19,8 @@ import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.internal.network.NetworkConnection;
+import se.laz.casual.jca.ConnectionObserver;
+import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.connection.CasualConnectionException;
@@ -31,6 +33,7 @@ import javax.enterprise.concurrent.ManagedExecutorService;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,8 +52,14 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     private final Channel channel;
     private final AtomicBoolean connected = new AtomicBoolean(true);
     private final ManagedExecutorService managedExecutorService;
+    private final List<ConnectionObserver> connectionObservers = Collections.synchronizedList(new ArrayList<>());
+    private DomainId domainId;
 
-    private NettyNetworkConnection(BaseConnectionInformation ci, Correlator correlator, Channel channel, ConversationMessageStorage conversationMessageStorage, ManagedExecutorService managedExecutorService)
+    private NettyNetworkConnection(BaseConnectionInformation ci,
+                                   Correlator correlator,
+                                   Channel channel,
+                                   ConversationMessageStorage conversationMessageStorage,
+                                   ManagedExecutorService managedExecutorService)
     {
         this.ci = ci;
         this.correlator = correlator;
@@ -72,9 +81,12 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, EventLoopFactory.getManagedExecutorService());
         LOG.finest(() -> networkConnection + " connected to: " + ci.getAddress());
         ch.closeFuture().addListener(f -> handleClose(networkConnection, networkListener));
-        networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
+        DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
+        networkConnection.setDomainId(id);
         return networkConnection;
     }
+
+
 
     private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)
     {
@@ -99,13 +111,13 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         return b.connect(address).syncUninterruptibly().channel();
     }
 
-    private static void handleClose(final NettyNetworkConnection c, NetworkListener networkListener)
+    private static void handleClose(final NettyNetworkConnection connection, NetworkListener networkListener)
     {
         // always complete any outstanding requests exceptionally
         // both when the casual domain goes away or when the owner of the network connection
         // closes us, the client, directly
-        c.correlator.completeAllExceptionally(new CasualConnectionException("network connection is gone"));
-        if(c.connected.get())
+        connection.correlator.completeAllExceptionally(new CasualConnectionException("network connection is gone"));
+        if(connection.connected.get())
         {
             // only inform on casual disconnect
             // will result in a close call on the ManagedConnection ( by the application server)
@@ -176,6 +188,7 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         connected.set(false);
         LOG.finest(() -> this + " network connection close called by appserver, closing");
         channel.close();
+        notifyObservers();
     }
 
     @Override
@@ -184,7 +197,29 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         return channel.isActive();
     }
 
-    private void throwIfProtocolVersionNotSupportedByEIS(long version, final UUID domainId, final String domainName)
+    @Override
+    public DomainId getDomainId()
+    {
+        return domainId;
+    }
+
+    @Override
+    public void addConnectionObserver(ConnectionObserver observer)
+    {
+        connectionObservers.add(observer);
+    }
+
+    private void setDomainId(DomainId domainId)
+    {
+        this.domainId = domainId;
+    }
+
+    private void notifyObservers()
+    {
+        connectionObservers.forEach(connectionObserver -> connectionObserver.connectionGone(domainId));
+    }
+
+    private DomainId throwIfProtocolVersionNotSupportedByEIS(long version, final UUID domainId, final String domainName)
     {
         CasualDomainConnectRequestMessage requestMessage = CasualDomainConnectRequestMessage.createBuilder()
                                                                                             .withExecution(UUID.randomUUID())
@@ -203,6 +238,7 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
             LOG.warning(() -> "protocol version mismatch, requesting:  " + version + " reply version: " + replyEnvelope.getMessage().getProtocolVersion());
             throw new CasualConnectionException("wanted protocol version " + version + " is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion());
         }
+        return DomainId.of(replyEnvelope.getMessage().getDomainId());
     }
 
     @Override
