@@ -286,6 +286,11 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         connectionEventHandler.sendEvent(event);
     }
 
+    public DomainId getDomainId()
+    {
+        return getNetworkConnection().getDomainId();
+    }
+
     public void setTransactionTimeout(int timeout)
     {
         this.timeout = timeout;
