@@ -34,6 +34,7 @@ public class ConnectionValidator
 
     public void validate(final ConnectionFactoryEntry connectionFactoryEntry)
     {
+        /*
         boolean invalidBeforeValidation = !connectionFactoryEntry.isValid();
         connectionFactoryEntry.validate();
         if(connectionReestablished(invalidBeforeValidation, connectionFactoryEntry.isValid()))
@@ -42,7 +43,7 @@ public class ConnectionValidator
             cache.purge(connectionFactoryEntry);
             Optional<DiscoveryReturn> maybeDiscoveryReturn = issueDiscovery(cachedItems, connectionFactoryEntry);
             maybeDiscoveryReturn.ifPresent(discoveryReturn ->  cache.repopulate(discoveryReturn, connectionFactoryEntry));
-        }
+        }*/
     }
 
     private boolean connectionReestablished(boolean invalidBeforeRevalidation, boolean valid)

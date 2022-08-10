@@ -33,19 +33,20 @@ import java.util.concurrent.CompletableFuture;
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
 public class CasualCallerImpl implements CasualCaller
 {
-    private TpCaller tpCaller = new TpCallerFailover();
     private ConnectionFactoryLookup lookup;
     private TransactionLess transactionLess;
+    private TpCallerSimple tpCaller;
 
     // NOP constructor needed for WLS
     public CasualCallerImpl()
     {}
 
     @Inject
-    public CasualCallerImpl(ConnectionFactoryLookup lookup, ConnectionFactoryEntryStore connectionFactoryProvider, TransactionLess transactionLess)
+    public CasualCallerImpl(ConnectionFactoryLookup lookup, ConnectionFactoryEntryStore connectionFactoryProvider, TransactionLess transactionLess, TpCallerSimple tpCaller)
     {
         this.lookup = lookup;
         this.transactionLess = transactionLess;
+        this.tpCaller = tpCaller;
         List<ConnectionFactoryEntry> possibleEntries = connectionFactoryProvider.get();
         if(possibleEntries.isEmpty())
         {

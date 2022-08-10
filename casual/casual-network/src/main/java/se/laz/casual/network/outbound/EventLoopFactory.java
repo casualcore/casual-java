@@ -41,6 +41,10 @@ public final class EventLoopFactory
     public static ManagedExecutorService getManagedExecutorService()
     {
         Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
+        if(outbound.getUnmanaged())
+        {
+            return null;
+        }
         String name = outbound.getManagedExecutorServiceName();
         try
         {

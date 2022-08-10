@@ -18,9 +18,9 @@ import java.util.stream.Collectors;
 public class CasualRequestInfo implements ConnectionRequestInfo
 {
     private final DomainId domainId;
-    private final List<ServiceInfo> services;
-    private final List<QueueInfo> queues;
-    private CasualRequestInfo(DomainId domainId, List<ServiceInfo> services, List<QueueInfo> queues)
+    private final List<String> services;
+    private final List<String> queues;
+    private CasualRequestInfo(DomainId domainId, List<String> services, List<String> queues)
     {
         this.domainId = domainId;
         this.services = services;
@@ -33,9 +33,15 @@ public class CasualRequestInfo implements ConnectionRequestInfo
         return new CasualRequestInfo(domainId, null, null);
     }
 
-    public static ConnectionRequestInfo of(List<ServiceInfo> services, List<QueueInfo> queues)
+    public static CasualRequestInfo of(List<ServiceInfo> services, List<QueueInfo> queues)
     {
-        return new CasualRequestInfo(null, services, queues);
+        List<String> serviceNames = null == services ? null : services.stream()
+                                                                      .map(s -> s.getServiceName())
+                                                                      .collect(Collectors.toList());
+        List<String> queueNames = null == queues ? null : queues.stream()
+                                                                .map(q -> q.getQueueName())
+                                                                .collect(Collectors.toList());
+        return new CasualRequestInfo(null, serviceNames, queueNames);
     }
 
     public Optional<DomainId> getDomainId()
@@ -45,16 +51,17 @@ public class CasualRequestInfo implements ConnectionRequestInfo
 
     public List<String> getServices()
     {
-        return null == services ? Collections.emptyList() : services.stream()
-                                                                    .map(s -> s.getServiceName())
-                                                                    .collect(Collectors.toList());
+        return null == services ? Collections.emptyList() : Collections.unmodifiableList(services);
     }
 
     public List<String> getQueues()
     {
-        return null == queues ? Collections.emptyList() : queues.stream()
-                                                                .map(q -> q.getQueueName())
-                                                                .collect(Collectors.toList());
+        return null == queues ? Collections.emptyList() : Collections.unmodifiableList(queues);
+    }
+
+    public CasualRequestInfo addDomainId(DomainId domainId)
+    {
+        return new CasualRequestInfo(domainId, getServices(), getQueues());
     }
 
     @Override
@@ -87,4 +94,6 @@ public class CasualRequestInfo implements ConnectionRequestInfo
                 ", queues=" + queues +
                 '}';
     }
+
+
 }

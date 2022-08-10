@@ -7,8 +7,11 @@ package se.laz.casual.connection.caller;
 
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualConnectionFactory;
+import se.laz.casual.jca.CasualRequestInfo;
+import se.laz.casual.jca.DomainId;
 
 import javax.resource.ResourceException;
+import javax.resource.spi.ConnectionRequestInfo;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,7 +66,7 @@ public class ConnectionFactoryEntry
 
     //Note: due to try with resources usage where we never use the resource
     @SuppressWarnings("try")
-    public void validate()
+    public boolean validate()
     {
         try(CasualConnection con = getConnectionFactory().getConnection())
         {
@@ -77,6 +80,25 @@ public class ConnectionFactoryEntry
             valid = false;
             LOG.log(Level.WARNING, e, ()->"Failed validation of CasualConnection with jndiName=" + connectionFactoryProducer.getJndiName() + ", received error: " + e.getMessage());
         }
+        return isValid();
+    }
+
+    public boolean validate(DomainId domainId)
+    {
+        ConnectionRequestInfo requestInfo = CasualRequestInfo.of(domainId);
+        try(CasualConnection con = getConnectionFactory().getConnection(requestInfo))
+        {
+            // We just want to check that a connection could be established to check connectivity
+            valid = true;
+            LOG.finest(() -> "Successfully validated CasualConnection ( " + con + " ) with jndiName=" + connectionFactoryProducer.getJndiName() + "\nDomainId: " + domainId);
+        }
+        catch (ResourceException e)
+        {
+            // Failure to connect during validation should automatically invalidate ConnectionFactoryEntry
+            valid = false;
+            LOG.log(Level.WARNING, e, ()->"Failed validation of CasualConnection with jndiName=" + connectionFactoryProducer.getJndiName() + ", received error: " + e.getMessage());
+        }
+        return isValid();
     }
 
     @Override
@@ -91,13 +113,13 @@ public class ConnectionFactoryEntry
             return false;
         }
         ConnectionFactoryEntry that = (ConnectionFactoryEntry) o;
-        return isValid() == that.isValid() && connectionFactoryProducer.equals(that.connectionFactoryProducer);
+        return connectionFactoryProducer.equals(that.connectionFactoryProducer);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(connectionFactoryProducer, isValid());
+        return Objects.hash(connectionFactoryProducer);
     }
 
     @Override

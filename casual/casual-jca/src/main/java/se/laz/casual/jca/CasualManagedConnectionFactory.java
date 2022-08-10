@@ -19,10 +19,14 @@ import javax.resource.spi.ResourceAdapterAssociation;
 import javax.security.auth.Subject;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -44,6 +48,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    private String hostName;
    private Integer portNumber;
    private Long casualProtocolVersion = 1000L;
+   private Map<DomainId, Boolean> domainIds = new ConcurrentHashMap<>();
    private final int resourceId = CasualResourceManager.getInstance().getNextId();
 
    public String getHostName()
@@ -96,7 +101,11 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
          ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
       log.finest("createManagedConnection()");
-      return new CasualManagedConnection(this);
+      CasualManagedConnection managedConnection = new CasualManagedConnection(this);
+      DomainId domainId = managedConnection.getDomainId();
+      log.warning(() -> "Adding domainId: " + domainId);
+      domainIds.put(domainId, true);
+      return managedConnection;
    }
 
    @Override
@@ -128,21 +137,32 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
               .orElse( null );
    }
 
+   public List<DomainId> getPoolDomainIds()
+   {
+       return domainIds.keySet().stream().collect(Collectors.toList());
+   }
+
+   public void removeDomainId(DomainId domainId)
+   {
+       log.warning(() -> "Removing domainId: " + domainId);
+       domainIds.remove(domainId);
+   }
+
     private ManagedConnection matchManagedConnections(List<CasualManagedConnection> connections, CasualRequestInfo requestInfo)
     {
         DomainId domainId = requestInfo.getDomainId().orElse(null);
         if(null != domainId)
         {
-            return connections.stream()
-                              .filter(connection -> connection.getDomainId().equals(domainId))
-                              .findFirst()
-                              .orElse(null);
+            connections = connections.stream()
+                                     .filter(connection -> connection.getDomainId().equals(domainId))
+                                     .collect(Collectors.toList());
+            if(requestInfo.getServices().isEmpty() && requestInfo.getQueues().isEmpty())
+            {
+                return connections.stream()
+                                  .findFirst()
+                                  .orElse(null);
+            }
         }
-        return matchManagedConnectionsUsingDomainDiscovery(connections, requestInfo);
-    }
-
-    private ManagedConnection matchManagedConnectionsUsingDomainDiscovery(List<CasualManagedConnection> connections, CasualRequestInfo requestInfo)
-    {
         if(requestInfo.getServices().isEmpty() && requestInfo.getQueues().isEmpty())
         {
             return null;

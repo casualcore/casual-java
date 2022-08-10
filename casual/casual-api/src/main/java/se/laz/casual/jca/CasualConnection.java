@@ -11,6 +11,8 @@ import se.laz.casual.api.CasualDiscoveryApi;
 import se.laz.casual.api.CasualQueueApi;
 import se.laz.casual.api.CasualServiceApi;
 
+import java.util.List;
+
 /**
  * NetworkConnection handle used in the application to call Casual Services.
  *
@@ -29,6 +31,12 @@ public interface CasualConnection extends CasualServiceApi, CasualQueueApi, Casu
      * @return the current domain id for this connection
      */
     DomainId getDomainID();
+
+    /**
+     * Get all known domain ids for this pool
+     * @return
+     */
+    List<DomainId> getPoolDomainIds();
 
     /**
      * If a connection is gone, for whatever reason - it is just not usable anymore.

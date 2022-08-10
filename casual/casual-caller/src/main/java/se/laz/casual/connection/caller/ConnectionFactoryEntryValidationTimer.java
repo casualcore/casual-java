@@ -34,6 +34,7 @@ public class ConnectionFactoryEntryValidationTimer
     @Inject
     ConnectionValidator connectionValidator;
 
+    /*
     @PostConstruct
     private void setup()
     {
@@ -83,4 +84,5 @@ public class ConnectionFactoryEntryValidationTimer
             LOG.warning(() -> "failed validating connection factories: " + e);
         }
     }
+     */
 }

@@ -17,12 +17,23 @@ import java.util.stream.Collectors;
 
 public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
 {
-    @Inject
     private ConnectionFactoryEntryStore connectionFactoryProvider;
-    @Inject
     private Cache cache;
-    @Inject
     private Lookup lookup;
+
+    //Needed for wls
+    public ConnectionFactoryLookupService()
+    {}
+
+    @Inject
+    public ConnectionFactoryLookupService(ConnectionFactoryEntryStore connectionFactoryProvider,
+                                          Cache cache,
+                                          Lookup lookup)
+    {
+        this.connectionFactoryProvider = connectionFactoryProvider;
+        this.cache = cache;
+        this.lookup = lookup;
+    }
 
     @Override
     public Optional<ConnectionFactoryEntry> get(QueueInfo qinfo)
