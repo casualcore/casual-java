@@ -11,6 +11,7 @@ import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.connection.caller.logic.ConnectionFactoryMatcher;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualRequestInfo;
+import se.laz.casual.jca.ConnectionObserver;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.connection.CasualConnectionException;
 
@@ -63,26 +64,31 @@ public class TpCallerSimple implements TpCaller
 
     private <R> R doCall(String serviceName,  Function<CasualConnection, R> callFunction, Supplier<R> tpenoentSupplier)
     {
-        // TODO:
-        // For caching, if there, for a pool, are new domain ids available
-        // we need to issue lookup for the service name for those domain ids
-        // For domain ids that are not currently available currently, we will remove them
-        // For domain discovery for the newly available domain id(s) we can issue a discovery of the whole set of known services/queues + this serviceName
-        Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds = getPoolDomainIds(connectionFactoryProvider.get());
+        Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds = getCurrentPoolDomainIds();
         ServiceInfo serviceInfo = ServiceInfo.of(serviceName);
         List<MatchingEntry> matchingEntries = simpleCache.get(serviceInfo);
-        boolean emptyBeforeMatching = matchingEntries.isEmpty();
-        if(emptyBeforeMatching)
+        if(matchingEntries.isEmpty())
         {
             matchingEntries = connectionFactoryMatcher.matchService(serviceInfo, connectionFactoryProvider.get(), poolDomainIds);
             simpleCache.store(serviceInfo, matchingEntries);
         }
         if(matchingEntries.isEmpty())
         {
-            // TODO: nothing supports service - TPENOENT or should we throw?
             return tpenoentSupplier.get();
         }
         return makeServiceCall(matchingEntries, serviceName, callFunction);
+    }
+
+    private Map<ConnectionFactoryEntry, List<DomainId>> getCurrentPoolDomainIds()
+    {
+        Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds = simpleCache.handleLostDomains((factories, observer) -> getPoolDomainIds(factories, observer));
+        if(poolDomainIds.isEmpty())
+        {
+            // initial
+            poolDomainIds = getPoolDomainIds(connectionFactoryProvider.get(), simpleCache);
+            simpleCache.store(poolDomainIds);
+        }
+        return poolDomainIds;
     }
 
     private <R> R makeServiceCall(List<MatchingEntry> matchingEntries, String serviceName, Function<CasualConnection, R> function)
@@ -118,22 +124,23 @@ public class TpCallerSimple implements TpCaller
         return new ServiceReturn<>(ServiceBuffer.empty(), ServiceReturnState.TPFAIL, ErrorState.TPENOENT, 0L);
     }
 
-    private Map<ConnectionFactoryEntry, List<DomainId>> getPoolDomainIds(List<ConnectionFactoryEntry> connectionFactoryEntries)
+    private Map<ConnectionFactoryEntry, List<DomainId>> getPoolDomainIds(List<ConnectionFactoryEntry> connectionFactoryEntries, ConnectionObserver connectionObserver)
     {
         Map<ConnectionFactoryEntry, List<DomainId>> result = new HashMap<>();
         for(ConnectionFactoryEntry connectionFactoryEntry : connectionFactoryEntries)
         {
-            List<DomainId> entries = getPoolDomainIds(connectionFactoryEntry);
+            List<DomainId> entries = getPoolDomainIds(connectionFactoryEntry, connectionObserver);
             result.putIfAbsent(connectionFactoryEntry, new ArrayList<>());
             result.get(connectionFactoryEntry).addAll(entries);
         }
         return result;
     }
 
-    private List<DomainId> getPoolDomainIds(ConnectionFactoryEntry connectionFactoryEntry)
+    private List<DomainId> getPoolDomainIds(ConnectionFactoryEntry connectionFactoryEntry, ConnectionObserver connectionObserver)
     {
         try(CasualConnection connection = connectionFactoryEntry.getConnectionFactory().getConnection())
         {
+            connection.addConnectionObserver(connectionObserver);
             return connection.getPoolDomainIds();
         }
         catch (ResourceException e)

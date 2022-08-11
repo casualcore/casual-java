@@ -9,6 +9,7 @@ import se.laz.casual.jca.CasualRequestInfo;
 import se.laz.casual.jca.DomainId;
 
 import javax.resource.ResourceException;
+import javax.resource.spi.ConnectionRequestInfo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,10 +63,12 @@ public class ConnectionFactoryMatcher
         List<MatchingEntry> entries = new ArrayList<>();
         for(DomainId domainId : poolDomainIds)
         {
-            CasualRequestInfo addendum = requestInfo.addDomainId(domainId);
-            try(CasualConnection connection = connectionFactoryEntry.getConnectionFactory().getConnection(addendum))
+            ConnectionRequestInfo domainIdRequestInfo = CasualRequestInfo.of(domainId);
+            try(CasualConnection connection = connectionFactoryEntry.getConnectionFactory().getConnection(domainIdRequestInfo))
             {
-                entries.add(MatchingEntry.of(connectionFactoryEntry, domainId));
+                //entries.add(MatchingEntry.of(connectionFactoryEntry, domainId));
+                // TODO: Issue domain discovery
+                //
             }
             catch (ResourceException resourceException)
             {
