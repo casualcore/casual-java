@@ -1,5 +1,6 @@
 package se.laz.casual.connection.caller.logic;
 
+import se.laz.casual.api.discovery.DiscoveryReturn;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.connection.caller.ConnectionFactoryEntry;
@@ -15,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -22,33 +24,24 @@ public class ConnectionFactoryMatcher
 {
     private static final Logger LOG = Logger.getLogger(ConnectionFactoryMatcher.class.getName());
 
-    public List<MatchingEntry> matchService(ServiceInfo serviceInfo, List<ConnectionFactoryEntry> connectionFactoryEntries, Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds)
+    public List<MatchingEntry> matchService(ServiceInfo serviceInfo, Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds)
     {
-        return match(Arrays.asList(serviceInfo.getServiceName()), Collections.emptyList(), connectionFactoryEntries, poolDomainIds);
+        return match(Arrays.asList(serviceInfo), Collections.emptyList(), poolDomainIds);
     }
 
-    public List<MatchingEntry> matchQueue(QueueInfo queueInfo, List<ConnectionFactoryEntry> connectionFactoryEntries, Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds)
+    public List<MatchingEntry> matchQueue(QueueInfo queueInfo, Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds)
     {
-        return match(Collections.emptyList(), Arrays.asList(queueInfo.getQueueName()), connectionFactoryEntries, poolDomainIds);
+        return match(Collections.emptyList(), Arrays.asList(queueInfo), poolDomainIds);
     }
 
-    public List<MatchingEntry> match(List<String> services, List<String> queues, List<ConnectionFactoryEntry> connectionFactoryEntries, Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds)
+    public List<MatchingEntry> match(List<ServiceInfo> services, List<QueueInfo> queues,  Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds)
     {
         List<MatchingEntry> matchingEntries = new ArrayList<>();
-        List<ServiceInfo> serviceInfo = services.stream()
-                                                .map(name -> ServiceInfo.of(name))
-                                                .collect(Collectors.toList());
-        List<QueueInfo> queueInfo = queues.stream()
-                                          .map(name -> QueueInfo.createBuilder()
-                                                                .withQueueName(name)
-                                                                .build())
-                                          .collect(Collectors.toList());
-        CasualRequestInfo requestInfo = CasualRequestInfo.of(serviceInfo, queueInfo);
-        for(ConnectionFactoryEntry entry : connectionFactoryEntries)
-        {
-            List<MatchingEntry> maybeMatching = matches(requestInfo, entry, poolDomainIds.get(entry));
+        CasualRequestInfo requestInfo = CasualRequestInfo.of(services, queues);
+        poolDomainIds.forEach((connectionFactoryEntry, domainIds) -> {
+            List<MatchingEntry> maybeMatching = matches(requestInfo, connectionFactoryEntry, domainIds);
             matchingEntries.addAll(maybeMatching);
-        }
+        });
         String entriesString = matchingEntries.stream()
                                               .map(v -> v.toString())
                                               .collect(Collectors.joining(","));
@@ -66,9 +59,8 @@ public class ConnectionFactoryMatcher
             ConnectionRequestInfo domainIdRequestInfo = CasualRequestInfo.of(domainId);
             try(CasualConnection connection = connectionFactoryEntry.getConnectionFactory().getConnection(domainIdRequestInfo))
             {
-                //entries.add(MatchingEntry.of(connectionFactoryEntry, domainId));
-                // TODO: Issue domain discovery
-                //
+                DiscoveryReturn discoveryReturn = connection.discover(UUID.randomUUID(), requestInfo.getServices(), requestInfo.getQueues());
+                entries.add(MatchingEntry.of(connectionFactoryEntry, domainId, discoveryReturn.getServiceDetails(), discoveryReturn.getQueueDetails()));
             }
             catch (ResourceException resourceException)
             {

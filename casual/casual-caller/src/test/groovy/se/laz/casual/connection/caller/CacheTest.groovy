@@ -62,9 +62,9 @@ class CacheTest extends Specification
    @Shared
    def queueNameOnlyFromConnectionFactoryOne = 'nifty.queue'
    @Shared
-   def qInfo = QueueInfo.createBuilder().withQueueName('space1.agrajag').build()
+   def qInfo = QueueInfo.of('space1.agrajag')
    @Shared
-   def qInfoList = [QueueInfo.createBuilder().withQueueName('hairy.otter').build(), QueueInfo.createBuilder().withQueueName('drunken.monkey').build()]
+   def qInfoList = [QueueInfo.of('hairy.otter'), QueueInfo.of('drunken.monkey')]
    @Shared
    def serviceNames = ['casual.rollback', 'casually.casual']
    @Shared
@@ -130,7 +130,7 @@ class CacheTest extends Specification
    def 'get missing queue entry'()
    {
       given:
-      def qinfoNotStored = QueueInfo.createBuilder().withQueueName("abc.Ford Prefect").build()
+      def qinfoNotStored = QueueInfo.of("abc.Ford Prefect")
       when:
       def entries = instance.getSingle(qinfoNotStored)
       then:
@@ -192,7 +192,7 @@ class CacheTest extends Specification
       }
       println "queue details: ${discoveryReturn.getQueueDetails()}"
       println "first qname: ${qInfoList.get(0)}"
-      def queueInfoOnlyConnectionOne = QueueInfo.createBuilder().withQueueName(queueNameOnlyFromConnectionFactoryOne).build()
+      def queueInfoOnlyConnectionOne = QueueInfo.of(queueNameOnlyFromConnectionFactoryOne)
       instance.store(queueInfoOnlyConnectionOne, [cacheEntryOne])
       when:
       def beforePurge = instance.get(queueInfoOnlyConnectionOne)

@@ -69,8 +69,8 @@ public class TpCallerSimple implements TpCaller
         List<MatchingEntry> matchingEntries = simpleCache.get(serviceInfo);
         if(matchingEntries.isEmpty())
         {
-            matchingEntries = connectionFactoryMatcher.matchService(serviceInfo, connectionFactoryProvider.get(), poolDomainIds);
-            simpleCache.store(serviceInfo, matchingEntries);
+            matchingEntries = connectionFactoryMatcher.matchService(serviceInfo, poolDomainIds);
+            simpleCache.store(matchingEntries);
         }
         if(matchingEntries.isEmpty())
         {
@@ -84,7 +84,7 @@ public class TpCallerSimple implements TpCaller
         Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds = simpleCache.handleLostDomains((factories, observer) -> getPoolDomainIds(factories, observer));
         if(poolDomainIds.isEmpty())
         {
-            // initial
+            // initial lookup
             poolDomainIds = getPoolDomainIds(connectionFactoryProvider.get(), simpleCache);
             simpleCache.store(poolDomainIds);
         }

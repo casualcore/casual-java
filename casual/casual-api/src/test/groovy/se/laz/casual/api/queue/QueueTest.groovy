@@ -10,9 +10,7 @@ class QueueTest extends Specification
     def 'with default options'()
     {
         when:
-        def info = QueueInfo.createBuilder()
-                            .withQueueName(qname)
-                            .build()
+        def info = QueueInfo.of(qname)
         then:
         info.getQueueName() == qname
         info.getOptions() != null
@@ -22,12 +20,10 @@ class QueueTest extends Specification
     def 'blocking'()
     {
         when:
-        def info = QueueInfo.createBuilder()
-                .withQueueName(qname)
-                .withOptions(QueueOptions.createBuilder()
-                        .withBlock(true)
-                        .build())
-                .build()
+        def info = QueueInfo.of(qname, QueueOptions.createBuilder()
+                .withBlock(true)
+                .build())
+
         then:
         info.getQueueName() == qname
         info.getOptions() != null

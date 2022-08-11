@@ -10,10 +10,9 @@ import java.util.Map;
 
 public interface SimpleCache extends ConnectionObserver
 {
-    void store(ServiceInfo serviceName, List<MatchingEntry> matchingEntries);
-    List<MatchingEntry> get(ServiceInfo serviceName);
-    void store(QueueInfo serviceName, List<MatchingEntry> matchingEntries);
-    List<MatchingEntry> get(QueueInfo serviceName);
+    void store(List<MatchingEntry> matchingEntries);
+    List<MatchingEntry> get(ServiceInfo serviceInfo);
+    List<MatchingEntry> get(QueueInfo queueInfo);
     void store(Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds);
     List<ConnectionFactoryEntry> getConnectionFactoryEntriesForLostDomain();
     Map<ConnectionFactoryEntry, List<DomainId>> getCurrentDomainIds();

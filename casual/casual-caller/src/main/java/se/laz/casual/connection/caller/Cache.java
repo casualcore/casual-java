@@ -87,8 +87,7 @@ public class Cache
                 });
         discoveryReturn.getQueueDetails().forEach(
                 queueDetails ->
-                        store(QueueInfo.createBuilder()
-                                       .withQueueName(queueDetails.getName()).build(), Arrays.asList(connectionFactoryEntry))
+                        store(QueueInfo.of(queueDetails.getName()), Arrays.asList(connectionFactoryEntry))
         );
     }
 

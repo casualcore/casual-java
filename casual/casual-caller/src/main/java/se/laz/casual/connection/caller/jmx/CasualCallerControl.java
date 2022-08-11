@@ -96,7 +96,7 @@ public class CasualCallerControl implements CasualCallerControlMBean
     public List<String> queueInPools(String queueName)
     {
         return cache
-                .get(QueueInfo.createBuilder().withQueueName(queueName).build())
+                .get(QueueInfo.of(queueName))
                 .stream()
                 .map(ConnectionFactoryEntry::getJndiName)
                 .sorted()
@@ -106,7 +106,7 @@ public class CasualCallerControl implements CasualCallerControlMBean
     @Override
     public String getQueueStickiedPool(String queueName)
     {
-        Optional<ConnectionFactoryEntry> queueEntry = cache.getSingle(QueueInfo.createBuilder().withQueueName(queueName).build());
+        Optional<ConnectionFactoryEntry> queueEntry = cache.getSingle(QueueInfo.of(queueName));
         return queueEntry.map(ConnectionFactoryEntry::getJndiName).orElse(null);
     }
 }
