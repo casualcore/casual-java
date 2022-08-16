@@ -1,16 +1,14 @@
 package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.queue.QueueDetails;
-import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.service.ServiceDetails;
-import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.jca.DomainId;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class MatchingEntry
+public class MatchingEntry implements Comparable<MatchingEntry>
 {
     private final ConnectionFactoryEntry connectionFactoryEntry;
     private final DomainId domainId;
@@ -94,5 +92,11 @@ public class MatchingEntry
                 ", services=" + services +
                 ", queues=" + queues +
                 '}';
+    }
+
+    @Override
+    public int compareTo(MatchingEntry matchingEntry)
+    {
+        return matchingEntry.getDomainId().getId().compareTo(getDomainId().getId());
     }
 }

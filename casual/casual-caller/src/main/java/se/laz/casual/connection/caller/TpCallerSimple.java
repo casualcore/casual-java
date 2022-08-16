@@ -8,21 +8,16 @@ import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
 import se.laz.casual.api.service.ServiceInfo;
-import se.laz.casual.connection.caller.logic.ConnectionFactoryMatcher;
+import se.laz.casual.connection.caller.logic.PoolMatcher;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualRequestInfo;
-import se.laz.casual.jca.ConnectionObserver;
-import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.connection.CasualConnectionException;
 
 import javax.inject.Inject;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -32,20 +27,20 @@ import java.util.stream.Collectors;
 public class TpCallerSimple implements TpCaller
 {
     private static final Logger LOG = Logger.getLogger(TpCallerSimple.class.getName());
-    private ConnectionFactoryEntryStore connectionFactoryProvider;
     private SimpleCache simpleCache;
-    private ConnectionFactoryMatcher connectionFactoryMatcher;
+    private PoolMatcher poolMatcher;
+    private PoolManager poolManager;
 
     // for wls
     public TpCallerSimple()
     {}
 
     @Inject
-    public TpCallerSimple(ConnectionFactoryEntryStore connectionFactoryProvider, SimpleCache simpleCache, ConnectionFactoryMatcher connectionFactoryMatcher)
+    public TpCallerSimple(PoolMatcher poolMatcher, SimpleCache simpleCache, PoolManager poolManager)
     {
-        this.connectionFactoryProvider = connectionFactoryProvider;
         this.simpleCache = simpleCache;
-        this.connectionFactoryMatcher = connectionFactoryMatcher;
+        this.poolMatcher = poolMatcher;
+        this.poolManager = poolManager;
     }
 
     @Override
@@ -64,12 +59,11 @@ public class TpCallerSimple implements TpCaller
 
     private <R> R doCall(String serviceName,  Function<CasualConnection, R> callFunction, Supplier<R> tpenoentSupplier)
     {
-        Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds = getCurrentPoolDomainIds();
         ServiceInfo serviceInfo = ServiceInfo.of(serviceName);
         List<MatchingEntry> matchingEntries = simpleCache.get(serviceInfo);
         if(matchingEntries.isEmpty())
         {
-            matchingEntries = connectionFactoryMatcher.matchService(serviceInfo, poolDomainIds);
+            matchingEntries = poolMatcher.match(serviceInfo, poolManager.getPools());
             simpleCache.store(matchingEntries);
         }
         if(matchingEntries.isEmpty())
@@ -79,26 +73,17 @@ public class TpCallerSimple implements TpCaller
         return makeServiceCall(matchingEntries, serviceName, callFunction);
     }
 
-    private Map<ConnectionFactoryEntry, List<DomainId>> getCurrentPoolDomainIds()
-    {
-        Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds = simpleCache.handleLostDomains((factories, observer) -> getPoolDomainIds(factories, observer));
-        if(poolDomainIds.isEmpty())
-        {
-            // initial lookup
-            poolDomainIds = getPoolDomainIds(connectionFactoryProvider.get(), simpleCache);
-            simpleCache.store(poolDomainIds);
-        }
-        return poolDomainIds;
-    }
-
     private <R> R makeServiceCall(List<MatchingEntry> matchingEntries, String serviceName, Function<CasualConnection, R> function)
     {
+        List<MatchingEntry> entries = matchingEntries.stream().collect(Collectors.toList());
         Exception thrownException = null;
-        for(MatchingEntry entry : matchingEntries)
+        Collections.shuffle(entries);
+        for(MatchingEntry entry : entries)
         {
             ConnectionRequestInfo requestInfo = CasualRequestInfo.of(entry.getDomainId());
             try(CasualConnection connection = entry.getConnectionFactoryEntry().getConnectionFactory().getConnection(requestInfo))
             {
+                LOG.warning(() -> "service call using: " + entry);
                 return function.apply(connection);
             }
             catch (CasualConnectionException e)
@@ -113,9 +98,9 @@ public class TpCallerSimple implements TpCaller
                 thrownException = e;
             }
         }
-        String matchingEntriesAsText = matchingEntries.stream()
-                                                      .map(entry -> entry.toString())
-                                                      .collect(Collectors.joining(","));
+        String matchingEntriesAsText = entries.stream()
+                                              .map(entry -> entry.toString())
+                                              .collect(Collectors.joining(","));
         throw new CasualResourceException("Call failed to all " + matchingEntries.size() + " matching casual connections.\n" + matchingEntriesAsText, thrownException);
     }
 
@@ -124,30 +109,4 @@ public class TpCallerSimple implements TpCaller
         return new ServiceReturn<>(ServiceBuffer.empty(), ServiceReturnState.TPFAIL, ErrorState.TPENOENT, 0L);
     }
 
-    private Map<ConnectionFactoryEntry, List<DomainId>> getPoolDomainIds(List<ConnectionFactoryEntry> connectionFactoryEntries, ConnectionObserver connectionObserver)
-    {
-        Map<ConnectionFactoryEntry, List<DomainId>> result = new HashMap<>();
-        for(ConnectionFactoryEntry connectionFactoryEntry : connectionFactoryEntries)
-        {
-            List<DomainId> entries = getPoolDomainIds(connectionFactoryEntry, connectionObserver);
-            result.putIfAbsent(connectionFactoryEntry, new ArrayList<>());
-            result.get(connectionFactoryEntry).addAll(entries);
-        }
-        return result;
-    }
-
-    private List<DomainId> getPoolDomainIds(ConnectionFactoryEntry connectionFactoryEntry, ConnectionObserver connectionObserver)
-    {
-        try(CasualConnection connection = connectionFactoryEntry.getConnectionFactory().getConnection())
-        {
-            connection.addConnectionObserver(connectionObserver);
-            return connection.getPoolDomainIds();
-        }
-        catch (ResourceException e)
-        {
-            // NOP
-        }
-        // we ignore this since it may be that the pool is currently unavailable
-        return Collections.emptyList();
-    }
 }

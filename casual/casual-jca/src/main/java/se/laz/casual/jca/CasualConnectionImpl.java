@@ -103,9 +103,15 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
-    public void addConnectionObserver(ConnectionObserver observer)
+    public void addConnectionListener(CasualConnectionListener listener)
     {
-        managedConnection.getNetworkConnection().addConnectionObserver(observer);
+        managedConnection.addConnectionListener(listener);
+    }
+
+    @Override
+    public void removeConnectionListener(CasualConnectionListener listener)
+    {
+        managedConnection.removeConnectionListener(listener);
     }
 
     @Override

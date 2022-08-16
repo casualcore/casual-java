@@ -2,13 +2,13 @@ package se.laz.casual.connection.caller.logic;
 
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.service.ServiceInfo;
-import se.laz.casual.connection.caller.CasualCallerException;
-import se.laz.casual.connection.caller.ConnectionFactoryEntry;
+import se.laz.casual.connection.caller.DomainGoneEvent;
 import se.laz.casual.connection.caller.MatchingEntry;
-import se.laz.casual.connection.caller.PoolDomainIdGenerator;
+import se.laz.casual.connection.caller.NewDomainEvent;
+import se.laz.casual.connection.caller.Pool;
 import se.laz.casual.connection.caller.SimpleCache;
-import se.laz.casual.jca.DomainId;
 
+import javax.enterprise.event.Observes;
 import javax.faces.bean.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -23,154 +23,103 @@ import java.util.stream.Collectors;
 public class SimpleCacheImpl implements SimpleCache
 {
     private static final Logger LOG = Logger.getLogger(SimpleCacheImpl.class.getName());
-    private final Map<ServiceInfo, List<MatchingEntry>> matchedEntriesPerService = new ConcurrentHashMap<>();
-    private final Map<QueueInfo, List<MatchingEntry>> matchedEntriesPerQueue = new ConcurrentHashMap<>();
+    private final Map<ServiceInfo, List<MatchingEntry>> services = new ConcurrentHashMap<>();
+    private final Map<QueueInfo, List<MatchingEntry>> queues = new ConcurrentHashMap<>();
 
-    private final Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIdsByConnectionFactoryEntry = new ConcurrentHashMap<>();
-    private final Map<DomainId, ConnectionFactoryEntry> connectionFactoryEntryByDomainId = new ConcurrentHashMap<>();
-
-    private final Map<MatchingEntry, Boolean> lostDomains = new ConcurrentHashMap<>();
-    private ConnectionFactoryMatcher connectionFactoryMatcher;
+    // We keep a state of the seen world since services and queues can come and go
+    // This is so that once we see a new domain we can issue a total domain discovery in one go
+    private final Map<ServiceInfo, Boolean> allSeenServiceNames = new ConcurrentHashMap<>();
+    private final Map<QueueInfo, Boolean> allSeenQueueNames = new ConcurrentHashMap<>();
+    private PoolMatcher poolMatcher;
 
     // for wls
     public SimpleCacheImpl()
     {}
 
+
     @Inject
-    public SimpleCacheImpl(ConnectionFactoryMatcher connectionFactoryMatcher)
+    public SimpleCacheImpl(PoolMatcher poolMatcher)
     {
-        this.connectionFactoryMatcher = connectionFactoryMatcher;
+        this.poolMatcher = poolMatcher;
+    }
+
+    public void onNewDomain(@Observes NewDomainEvent newDomainEvent)
+    {
+        LOG.warning(() -> "onNewDomain: " + newDomainEvent);
+        List<Pool> pools = new ArrayList<>();
+        pools.add(newDomainEvent.getPool());
+        List<MatchingEntry> matchingEntries = poolMatcher.match(getAllSeenServices(), getAllSeenQueues(), pools);
+        store(matchingEntries);
+        LOG.warning(() -> "onNewDomain done:" + newDomainEvent);
+    }
+
+    public void onDomainGone(@Observes DomainGoneEvent event)
+    {
+        LOG.warning(() -> "onDomainGone: " + event);
+        services.entrySet().removeIf(entry -> {
+            entry.getValue().removeIf(matchingEntry -> matchingEntry.getDomainId().equals(event.getDomainId()));
+            return entry.getValue().isEmpty();
+        });
+        queues.entrySet().removeIf(entry -> {
+            entry.getValue().removeIf(matchingEntry -> matchingEntry.getDomainId().equals(event.getDomainId()));
+            return entry.getValue().isEmpty();
+        });
+        LOG.warning(() -> "onDomainGone done: " + event);
     }
 
     @Override
     public void store(List<MatchingEntry> matchingEntries)
     {
-        String entriesInfo = matchingEntries.stream()
-                                            .map(entry -> entry.toString())
-                                            .collect(Collectors.joining(","));
-        LOG.warning(() -> "will cache:" + entriesInfo);
-        matchingEntries.forEach(matchingEntry ->
+        List<MatchingEntry> uniqueEntries = matchingEntries.stream()
+                                                           .distinct()
+                                                           .collect(Collectors.toList());
+        LOG.warning(() -> "will cache:" + uniqueEntries);
+        uniqueEntries.forEach(matchingEntry ->
                 matchingEntry.getServices().
                              forEach(serviceDetails ->
                              {
                                  ServiceInfo key = ServiceInfo.of(serviceDetails.getName());
-                                 matchedEntriesPerService.putIfAbsent(key, new ArrayList<>());
-                                 matchedEntriesPerService.get(key).add(matchingEntry);
+                                 services.putIfAbsent(key, new ArrayList<>());
+                                 if(!services.get(key).contains(matchingEntry))
+                                 {
+                                     services.get(key).add(matchingEntry);
+                                 }
+                                 allSeenServiceNames.putIfAbsent(ServiceInfo.of(serviceDetails.getName()), true);
                              }));
-        matchingEntries.forEach(matchingEntry ->
+        uniqueEntries.forEach(matchingEntry ->
                 matchingEntry.getQueues().
                              forEach(queueDetails ->
                              {
                                  QueueInfo key = QueueInfo.of(queueDetails.getName());
-                                 matchedEntriesPerQueue.putIfAbsent(key, new ArrayList<>());
-                                 matchedEntriesPerQueue.get(key).add(matchingEntry);
+                                 queues.putIfAbsent(key, new ArrayList<>());
+                                 if(!queues.get(key).contains(matchingEntry))
+                                 {
+                                     queues.get(key).add(matchingEntry);
+                                 }
+                                 allSeenQueueNames.putIfAbsent(QueueInfo.of(queueDetails.getName()), true);
                              }));
-        storeConnectionFactoryEntryByDomainId(matchingEntries);
+
     }
 
     @Override
     public List<MatchingEntry> get(ServiceInfo serviceInfo)
     {
-        return matchedEntriesPerService.getOrDefault(serviceInfo, Collections.emptyList());
+        return Collections.unmodifiableList(services.getOrDefault(serviceInfo, Collections.emptyList()));
     }
 
     @Override
     public List<MatchingEntry> get(QueueInfo queueInfo)
     {
-        return matchedEntriesPerQueue.getOrDefault(queueInfo, Collections.emptyList());
+        return Collections.unmodifiableList(queues.getOrDefault(queueInfo, Collections.emptyList()));
     }
 
-    @Override
-    public void store(Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds)
+    private List<ServiceInfo> getAllSeenServices()
     {
-        poolDomainIds.putAll(poolDomainIds);
+        return Collections.unmodifiableList(allSeenServiceNames.keySet().stream().collect(Collectors.toList()));
     }
 
-    @Override
-    public Map<ConnectionFactoryEntry, List<DomainId>> getCurrentDomainIds()
+    private List<QueueInfo> getAllSeenQueues()
     {
-        return Collections.unmodifiableMap(poolDomainIdsByConnectionFactoryEntry);
-    }
-
-    @Override
-    public List<ConnectionFactoryEntry> getConnectionFactoryEntriesForLostDomain()
-    {
-        return lostDomains.keySet()
-                          .stream()
-                          .map( entry -> entry.getConnectionFactoryEntry())
-                          .collect(Collectors.toList());
-    }
-
-    @Override
-    public synchronized Map<ConnectionFactoryEntry, List<DomainId>> handleLostDomains(PoolDomainIdGenerator generator)
-    {
-        List<ConnectionFactoryEntry> lost = getConnectionFactoryEntriesForLostDomain();
-        if(!lost.isEmpty())
-        {
-            List<DomainId> knownIds = connectionFactoryEntryByDomainId.keySet().stream().collect(Collectors.toList());
-            Map<ConnectionFactoryEntry, List<DomainId>> newPoolDomainIds = generator.apply(lost, this);
-            newPoolDomainIds.entrySet().removeIf(entry -> {
-                entry.getValue().removeIf(value -> knownIds.contains(value));
-                return entry.getValue().isEmpty();
-            });
-            for(ConnectionFactoryEntry key: newPoolDomainIds.keySet())
-            {
-                lostDomains.entrySet().removeIf(entry -> entry.getKey().getConnectionFactoryEntry().equals(key));
-            }
-            discoverTheWorld(newPoolDomainIds);
-            poolDomainIdsByConnectionFactoryEntry.putAll(newPoolDomainIds);
-        }
-        return getCurrentDomainIds();
-    }
-
-    private void discoverTheWorld(Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds)
-    {
-        List<ServiceInfo> knownServices = matchedEntriesPerService.keySet().stream().collect(Collectors.toList());
-        List<QueueInfo> knownQueues = matchedEntriesPerQueue.keySet().stream().collect(Collectors.toList());
-
-        List<MatchingEntry> matchingEntries = connectionFactoryMatcher.match(knownServices, knownQueues, poolDomainIds);
-        for(MatchingEntry matchingEntry : matchingEntries)
-        {
-
-        }
-    }
-
-    @Override
-    public void connectionGone(DomainId domainId)
-    {
-        ConnectionFactoryEntry connectionFactoryEntry = connectionFactoryEntryByDomainId.get(domainId);
-        if(null == connectionFactoryEntry)
-        {
-            throw new CasualCallerException("No known connection factory for domainid: " + domainId);
-        }
-        lostDomains.put(MatchingEntry.of(connectionFactoryEntry, domainId),true);
-        clearOnConnectionGone(domainId, connectionFactoryEntry);
-    }
-
-    private void storeConnectionFactoryEntryByDomainId(List<MatchingEntry> matchingEntries)
-    {
-        for(MatchingEntry matchingEntry : matchingEntries)
-        {
-            connectionFactoryEntryByDomainId.put(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry());
-        }
-    }
-
-    private void clearOnConnectionGone(DomainId domainId, ConnectionFactoryEntry connectionFactoryEntry)
-    {
-        for(Map.Entry<ServiceInfo, List<MatchingEntry>> entrySet : matchedEntriesPerService.entrySet())
-        {
-            entrySet.getValue().removeIf(matchingEntry -> matchingEntry.equals(MatchingEntry.of(connectionFactoryEntry, domainId)));
-            matchedEntriesPerService.entrySet().removeIf(set -> set.getValue().isEmpty());
-        }
-        for(Map.Entry<QueueInfo, List<MatchingEntry>> entrySet : matchedEntriesPerQueue.entrySet())
-        {
-            entrySet.getValue().removeIf(matchingEntry -> matchingEntry.equals(MatchingEntry.of(connectionFactoryEntry, domainId)));
-            matchedEntriesPerService.entrySet().removeIf(set -> set.getValue().isEmpty());
-        }
-        for(ConnectionFactoryEntry key : poolDomainIdsByConnectionFactoryEntry.keySet())
-        {
-            poolDomainIdsByConnectionFactoryEntry.get(key).remove(domainId);
-        }
-        connectionFactoryEntryByDomainId.remove(domainId);
+        return Collections.unmodifiableList(allSeenQueueNames.keySet().stream().collect(Collectors.toList()));
     }
 }

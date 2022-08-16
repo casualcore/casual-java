@@ -33,5 +33,4 @@ public interface CasualConnectionFactory extends Serializable, Referenceable
      * @exception ResourceException Thrown if a connection can't be obtained
      */
     CasualConnection getConnection(ConnectionRequestInfo connectionRequestInfo) throws ResourceException;
-
 }

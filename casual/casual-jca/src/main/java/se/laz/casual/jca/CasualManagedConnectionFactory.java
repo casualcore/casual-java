@@ -16,17 +16,19 @@ import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.resource.spi.ResourceAdapter;
 import javax.resource.spi.ResourceAdapterAssociation;
+import javax.resource.spi.ResourceAllocationException;
 import javax.security.auth.Subject;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Deque;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -37,19 +39,32 @@ import java.util.stream.Collectors;
  */
 //Non serialisable or transient for ResourceAdapter and PrintWriter - this is as shown in Iron Jacamar so ignoring.
 @SuppressWarnings("squid:S1948")
-public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation
+ public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation
 {
 
    private static final long serialVersionUID = 1L;
    private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
+   private DomainHandler domainHandler;
    private ResourceAdapter ra;
    private PrintWriter logwriter;
 
    private String hostName;
    private Integer portNumber;
    private Long casualProtocolVersion = 1000L;
-   private Map<DomainId, Boolean> domainIds = new ConcurrentHashMap<>();
+   private Map<DomainId, AtomicInteger> domainIds = new ConcurrentHashMap<>();
+   private Map<CasualConnectionListener, Boolean> connectionListeners = new ConcurrentHashMap<>();
    private final int resourceId = CasualResourceManager.getInstance().getNextId();
+
+   // For wls
+    public CasualManagedConnectionFactory()
+    {}
+
+    /*
+    @Inject
+    public CasualManagedConnectionFactory(DomainHandler domainHandler)
+    {
+        this.domainHandler = domainHandler;
+    }*/
 
    public String getHostName()
    {
@@ -100,15 +115,39 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    public ManagedConnection createManagedConnection(Subject subject,
          ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
-      log.finest("createManagedConnection()");
-      CasualManagedConnection managedConnection = new CasualManagedConnection(this);
-      DomainId domainId = managedConnection.getDomainId();
-      log.warning(() -> "Adding domainId: " + domainId);
-      domainIds.put(domainId, true);
-      return managedConnection;
+       try
+       {
+           log.warning("createManagedConnection()");
+           CasualManagedConnection managedConnection = new CasualManagedConnection(this);
+           log.warning("created");
+           DomainId domainId = managedConnection.getDomainId();
+           log.warning("domainId: " + domainId);
+           if (addDomainId(domainId))
+           {
+               log.warning("domainId added: " + domainId);
+               handleNewConnection(domainId);
+               log.warning("new connection handled: " + domainId);
+           }
+           return managedConnection;
+       }catch(Exception e)
+       {
+           StringWriter writer = new StringWriter();
+           PrintWriter printWriter = new PrintWriter( writer );
+           e.printStackTrace(printWriter);
+           printWriter.flush();
+           log.warning(() -> "createManagedConnection failed: " + writer);
+           throw new ResourceAllocationException(e);
+       }
    }
 
-   @Override
+    private boolean addDomainId(DomainId domainId)
+    {
+        log.warning(() -> "Adding domainId: " + domainId);
+        domainIds.putIfAbsent(domainId, new AtomicInteger(0));
+        return domainIds.get(domainId).incrementAndGet() == 1;
+    }
+
+    @Override
    @SuppressWarnings({"rawtypes","unchecked"})
    public ManagedConnection matchManagedConnections(Set connectionSet,
          Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException
@@ -139,13 +178,17 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
 
    public List<DomainId> getPoolDomainIds()
    {
-       return domainIds.keySet().stream().collect(Collectors.toList());
+       return Collections.unmodifiableList(domainIds.keySet().stream().collect(Collectors.toList()));
    }
 
-   public void removeDomainId(DomainId domainId)
+   public void domainDisconnect(DomainId domainId)
    {
-       log.warning(() -> "Removing domainId: " + domainId);
-       domainIds.remove(domainId);
+       if(0 == domainIds.get(domainId).decrementAndGet())
+       {
+           log.warning(() -> "Removing domainId: " + domainId);
+           domainIds.remove(domainId);
+           handleConnectionGone(domainId);
+       }
    }
 
     private ManagedConnection matchManagedConnections(List<CasualManagedConnection> connections, CasualRequestInfo requestInfo)
@@ -181,13 +224,17 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     {
         CasualDiscoveryCaller discoveryCaller = CasualDiscoveryCaller.of(connection);
         DiscoveryReturn discoveryReturn = discoveryCaller.discover(UUID.randomUUID(), requestInfo.getServices(), requestInfo.getQueues());
-        int numberOfServicesFound =  discoveryReturn.getServiceDetails().stream()
+        List<String> servicesFound = discoveryReturn.getServiceDetails()
+                                                    .stream()
                                                     .map(entry -> entry.getName())
-                                                    .collect(Collectors.toList()).size();
-        int numberOfQueuesFound =  discoveryReturn.getQueueDetails().stream()
-                                                    .map(entry -> entry.getName())
-                                                    .collect(Collectors.toList()).size();
-        return requestInfo.getServices().size() == numberOfServicesFound  && requestInfo.getQueues().size() == numberOfQueuesFound;
+                                                    .collect(Collectors.toList());
+        List<String> queuesFound = discoveryReturn.getQueueDetails().stream()
+                                                  .map(entry -> entry.getName())
+                                                  .collect(Collectors.toList());
+        int numberOfServicesFound  = requestInfo.getServices().stream().filter(service -> servicesFound.contains(service)).collect(Collectors.toList()).size();
+        int numberOfQueuesFound = requestInfo.getQueues().stream().filter(queue -> queuesFound.contains(queue)).collect(Collectors.toList()).size();
+
+        return numberOfServicesFound == requestInfo.getServices().size()  && numberOfQueuesFound == requestInfo.getQueues().size();
     }
 
     @Override
@@ -254,4 +301,25 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    {
       return resourceId;
    }
+
+   public void addConnectionListener(CasualConnectionListener listener)
+   {
+       connectionListeners.putIfAbsent(listener, true);
+   }
+
+   public void removeConnectionListener(CasualConnectionListener listener)
+   {
+       connectionListeners.remove(listener);
+   }
+
+   private void handleNewConnection(DomainId domainId)
+   {
+       connectionListeners.forEach((listener, aBoolean) -> listener.newConnection(domainId));
+   }
+
+   private void handleConnectionGone(DomainId domainId)
+   {
+       connectionListeners.forEach((listener, aBoolean) -> listener.connectionGone(domainId));
+   }
+
 }

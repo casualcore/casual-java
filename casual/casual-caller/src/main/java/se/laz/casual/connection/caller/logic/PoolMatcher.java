@@ -5,6 +5,7 @@ import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.connection.caller.ConnectionFactoryEntry;
 import se.laz.casual.connection.caller.MatchingEntry;
+import se.laz.casual.connection.caller.Pool;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualRequestInfo;
 import se.laz.casual.jca.DomainId;
@@ -15,31 +16,31 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class ConnectionFactoryMatcher
+public class PoolMatcher
 {
-    private static final Logger LOG = Logger.getLogger(ConnectionFactoryMatcher.class.getName());
+    private static final Logger LOG = Logger.getLogger(PoolMatcher.class.getName());
 
-    public List<MatchingEntry> matchService(ServiceInfo serviceInfo, Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds)
+    public List<MatchingEntry> match(ServiceInfo serviceInfo, List<Pool> pools)
     {
-        return match(Arrays.asList(serviceInfo), Collections.emptyList(), poolDomainIds);
+        return match(Arrays.asList(serviceInfo), Collections.emptyList(), pools);
     }
 
-    public List<MatchingEntry> matchQueue(QueueInfo queueInfo, Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds)
+    public List<MatchingEntry> match(QueueInfo queueInfo, List<Pool> pools)
     {
-        return match(Collections.emptyList(), Arrays.asList(queueInfo), poolDomainIds);
+        return match(Collections.emptyList(), Arrays.asList(queueInfo), pools);
     }
 
-    public List<MatchingEntry> match(List<ServiceInfo> services, List<QueueInfo> queues,  Map<ConnectionFactoryEntry, List<DomainId>> poolDomainIds)
+    public List<MatchingEntry> match(List<ServiceInfo> services, List<QueueInfo> queues,  List<Pool> pools)
     {
         List<MatchingEntry> matchingEntries = new ArrayList<>();
         CasualRequestInfo requestInfo = CasualRequestInfo.of(services, queues);
-        poolDomainIds.forEach((connectionFactoryEntry, domainIds) -> {
-            List<MatchingEntry> maybeMatching = matches(requestInfo, connectionFactoryEntry, domainIds);
+        LOG.warning(() -> "requestinfo: " + requestInfo);
+        pools.forEach(pool -> {
+            List<MatchingEntry> maybeMatching = matches(requestInfo, pool.getConnectionFactoryEntry(), pool.getDomainIds());
             matchingEntries.addAll(maybeMatching);
         });
         String entriesString = matchingEntries.stream()
@@ -60,6 +61,7 @@ public class ConnectionFactoryMatcher
             try(CasualConnection connection = connectionFactoryEntry.getConnectionFactory().getConnection(domainIdRequestInfo))
             {
                 DiscoveryReturn discoveryReturn = connection.discover(UUID.randomUUID(), requestInfo.getServices(), requestInfo.getQueues());
+                LOG.warning(() -> "discoveryReturn:" + discoveryReturn);
                 entries.add(MatchingEntry.of(connectionFactoryEntry, domainId, discoveryReturn.getServiceDetails(), discoveryReturn.getQueueDetails()));
             }
             catch (ResourceException resourceException)

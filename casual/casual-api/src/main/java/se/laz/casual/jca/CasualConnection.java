@@ -38,13 +38,7 @@ public interface CasualConnection extends CasualServiceApi, CasualQueueApi, Casu
      */
     List<DomainId> getPoolDomainIds();
 
-    /**
-     * If a connection is gone, for whatever reason - it is just not usable anymore.
-     *
-     * When this happens, {@link ConnectionObserver#connectionGone(DomainId)} is called with the same domain id
-     * that can be retrieved via {@link CasualConnection#getDomainID()}
-     * @param observer - the observer that will be notified
-     */
-    void addConnectionObserver(ConnectionObserver observer);
+    void addConnectionListener(CasualConnectionListener listener);
+    void removeConnectionListener(CasualConnectionListener listener);
 
 }
