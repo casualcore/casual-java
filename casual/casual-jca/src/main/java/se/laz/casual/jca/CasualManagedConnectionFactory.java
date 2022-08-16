@@ -9,6 +9,8 @@ import se.laz.casual.api.discovery.DiscoveryReturn;
 import se.laz.casual.jca.discovery.CasualDiscoveryCaller;
 import se.laz.casual.network.ProtocolVersion;
 
+import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
@@ -23,12 +25,9 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -39,20 +38,31 @@ import java.util.stream.Collectors;
  */
 //Non serialisable or transient for ResourceAdapter and PrintWriter - this is as shown in Iron Jacamar so ignoring.
 @SuppressWarnings("squid:S1948")
- public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation
+@Stateless
+public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation
 {
-
-   private static final long serialVersionUID = 1L;
-   private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
-   private ResourceAdapter ra;
-   private PrintWriter logwriter;
+    private static final long serialVersionUID = 1L;
+    private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
+    private  DomainHandler domainHandler;
+    private ResourceAdapter ra;
+    private PrintWriter logwriter;
 
    private String hostName;
    private Integer portNumber;
    private Long casualProtocolVersion = 1000L;
-   private Map<DomainId, AtomicInteger> domainIds = new ConcurrentHashMap<>();
-   private Map<CasualConnectionListener, Boolean> connectionListeners = new ConcurrentHashMap<>();
+   //private Map<DomainId, AtomicInteger> domainIds = new ConcurrentHashMap<>();
+   //private Map<CasualConnectionListener, Boolean> connectionListeners = new ConcurrentHashMap<>();
    private final int resourceId = CasualResourceManager.getInstance().getNextId();
+
+   // for wls
+   public CasualManagedConnectionFactory()
+   {}
+
+   @Inject
+   public CasualManagedConnectionFactory(DomainHandler domainHandler)
+   {
+       this.domainHandler = domainHandler;
+   }
 
    public String getHostName()
    {
@@ -110,7 +120,7 @@ import java.util.stream.Collectors;
            log.warning("created");
            DomainId domainId = managedConnection.getDomainId();
            log.warning("domainId: " + domainId);
-           if (addDomainId(domainId))
+           if (domainHandler.addDomainId(getAddress(), domainId))
            {
                log.warning("domainId added: " + domainId);
                handleNewConnection(domainId);
@@ -127,13 +137,6 @@ import java.util.stream.Collectors;
            throw new ResourceAllocationException(e);
        }
    }
-
-    private boolean addDomainId(DomainId domainId)
-    {
-        log.warning(() -> "Adding domainId: " + domainId);
-        domainIds.putIfAbsent(domainId, new AtomicInteger(0));
-        return domainIds.get(domainId).incrementAndGet() == 1;
-    }
 
     @Override
    @SuppressWarnings({"rawtypes","unchecked"})
@@ -166,17 +169,12 @@ import java.util.stream.Collectors;
 
    public List<DomainId> getPoolDomainIds()
    {
-       return Collections.unmodifiableList(domainIds.keySet().stream().collect(Collectors.toList()));
+       return Collections.unmodifiableList(domainHandler.getDomainIds(getAddress()));
    }
 
    public void domainDisconnect(DomainId domainId)
    {
-       if(0 == domainIds.get(domainId).decrementAndGet())
-       {
-           log.warning(() -> "Removing domainId: " + domainId);
-           domainIds.remove(domainId);
-           handleConnectionGone(domainId);
-       }
+       domainHandler.domainDisconnect(getAddress(), domainId);
    }
 
     private ManagedConnection matchManagedConnections(List<CasualManagedConnection> connections, CasualRequestInfo requestInfo)
@@ -292,22 +290,21 @@ import java.util.stream.Collectors;
 
    public void addConnectionListener(CasualConnectionListener listener)
    {
-       connectionListeners.putIfAbsent(listener, true);
+       domainHandler.addConnectionListener(getAddress(), listener);
    }
 
    public void removeConnectionListener(CasualConnectionListener listener)
    {
-       connectionListeners.remove(listener);
+       domainHandler.removeConnectionListener(getAddress(), listener);
    }
 
    private void handleNewConnection(DomainId domainId)
    {
-       connectionListeners.forEach((listener, aBoolean) -> listener.newConnection(domainId));
+       domainHandler.handleNewConnection(getAddress(), domainId);
    }
 
-   private void handleConnectionGone(DomainId domainId)
-   {
-       connectionListeners.forEach((listener, aBoolean) -> listener.connectionGone(domainId));
-   }
-
+   private Address getAddress()
+    {
+        return Address.of(getHostName(), getPortNumber());
+    }
 }
