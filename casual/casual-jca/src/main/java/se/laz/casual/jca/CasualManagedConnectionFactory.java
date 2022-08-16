@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 
    private static final long serialVersionUID = 1L;
    private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
-   private DomainHandler domainHandler;
    private ResourceAdapter ra;
    private PrintWriter logwriter;
 
@@ -54,17 +53,6 @@ import java.util.stream.Collectors;
    private Map<DomainId, AtomicInteger> domainIds = new ConcurrentHashMap<>();
    private Map<CasualConnectionListener, Boolean> connectionListeners = new ConcurrentHashMap<>();
    private final int resourceId = CasualResourceManager.getInstance().getNextId();
-
-   // For wls
-    public CasualManagedConnectionFactory()
-    {}
-
-    /*
-    @Inject
-    public CasualManagedConnectionFactory(DomainHandler domainHandler)
-    {
-        this.domainHandler = domainHandler;
-    }*/
 
    public String getHostName()
    {
