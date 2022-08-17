@@ -152,7 +152,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     @Override
     public void destroy() throws ResourceException
     {
-        log.warning(() -> "destroy()" + this);
+        log.finest(() -> "destroy()" + this);
         Optional<DomainId> domainId = Optional.ofNullable( null == networkConnection ? null : networkConnection.getDomainId());
         domainId.ifPresent(id -> mcf.domainDisconnect(id));
         closeNetworkConnection();

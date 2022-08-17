@@ -46,14 +46,14 @@ public class TpCallerImpl implements TpCaller
     @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        LOG.warning(() -> "tpcall<" + serviceName + ">");
+        LOG.finest(() -> "tpcall<" + serviceName + ">");
         return doCall(serviceName, connection -> connection.tpcall(serviceName, data, flags), () -> tpenoentReply());
     }
 
     @Override
     public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        LOG.warning(() -> "tpacall<" + serviceName + ">");
+        LOG.finest(() -> "tpacall<" + serviceName + ">");
         return doCall(serviceName, connection -> connection.tpacall(serviceName, data, flags), () -> CompletableFuture.supplyAsync(this::tpenoentReply));
     }
 
@@ -83,7 +83,7 @@ public class TpCallerImpl implements TpCaller
             ConnectionRequestInfo requestInfo = CasualRequestInfo.of(entry.getDomainId());
             try(CasualConnection connection = entry.getConnectionFactoryEntry().getConnectionFactory().getConnection(requestInfo))
             {
-                LOG.warning(() -> "service call using: " + entry);
+                LOG.finest(() -> "service call using: " + entry);
                 return function.apply(connection);
             }
             catch (CasualConnectionException e)

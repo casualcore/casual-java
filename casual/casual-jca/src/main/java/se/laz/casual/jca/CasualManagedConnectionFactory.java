@@ -115,19 +115,12 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    {
        try
        {
-           log.warning("createManagedConnection()");
            CasualManagedConnection managedConnection = new CasualManagedConnection(this);
-           log.warning("created");
            DomainId domainId = managedConnection.getDomainId();
-           log.warning("domainId: " + domainId);
-           if (domainHandler.addDomainId(getAddress(), domainId))
-           {
-               log.warning("domainId added: " + domainId);
-               handleNewConnection(domainId);
-               log.warning("new connection handled: " + domainId);
-           }
+           domainHandler.addDomainId(getAddress(), domainId);
            return managedConnection;
-       }catch(Exception e)
+       }
+       catch(Exception e)
        {
            StringWriter writer = new StringWriter();
            PrintWriter printWriter = new PrintWriter( writer );
@@ -296,11 +289,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    public void removeConnectionListener(CasualConnectionListener listener)
    {
        domainHandler.removeConnectionListener(getAddress(), listener);
-   }
-
-   private void handleNewConnection(DomainId domainId)
-   {
-       domainHandler.handleNewConnection(getAddress(), domainId);
    }
 
    private Address getAddress()

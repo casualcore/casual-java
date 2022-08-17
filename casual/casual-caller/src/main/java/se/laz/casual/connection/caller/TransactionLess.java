@@ -146,7 +146,7 @@ public class TransactionLess
         {
             List<MatchingEntry> matchingEntries = new ArrayList<>();
             CasualRequestInfo requestInfo = CasualRequestInfo.of(services, queues);
-            LOG.warning(() -> "requestinfo: " + requestInfo);
+            LOG.finest(() -> "requestinfo: " + requestInfo);
             pools.forEach(pool -> {
                 List<MatchingEntry> maybeMatching = matches(requestInfo, pool.getConnectionFactoryEntry(), pool.getDomainIds());
                 matchingEntries.addAll(maybeMatching);
@@ -154,12 +154,10 @@ public class TransactionLess
             String entriesString = matchingEntries.stream()
                                                   .map(v -> v.toString())
                                                   .collect(Collectors.joining(","));
-            LOG.warning(() -> "# of matching entries: " + matchingEntries.size() + "\n values: " + entriesString);
+            LOG.finest(() -> "# of matching entries: " + matchingEntries.size() + "\n values: " + entriesString);
             return matchingEntries;
         }
 
-        //Note: due to try with resources usage where we never use the resource
-        @SuppressWarnings("try")
         private List<MatchingEntry> matches(CasualRequestInfo requestInfo, ConnectionFactoryEntry connectionFactoryEntry, List<DomainId> poolDomainIds)
         {
             List<MatchingEntry> entries = new ArrayList<>();
@@ -169,7 +167,7 @@ public class TransactionLess
                 try(CasualConnection connection = connectionFactoryEntry.getConnectionFactory().getConnection(domainIdRequestInfo))
                 {
                     DiscoveryReturn discoveryReturn = connection.discover(UUID.randomUUID(), requestInfo.getServices(), requestInfo.getQueues());
-                    LOG.warning(() -> "discoveryReturn:" + discoveryReturn);
+                    LOG.finest(() -> "discoveryReturn:" + discoveryReturn);
                     entries.add(MatchingEntry.of(connectionFactoryEntry, domainId, discoveryReturn.getServiceDetails(), discoveryReturn.getQueueDetails()));
                 }
                 catch (ResourceException resourceException)
@@ -179,7 +177,5 @@ public class TransactionLess
             }
             return entries;
         }
-
-
     }
 }

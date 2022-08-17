@@ -44,17 +44,16 @@ public class CacheImpl implements Cache
 
     public void onNewDomain(@Observes NewDomain event)
     {
-        LOG.warning(() -> "onNewDomain: " + event);
+        LOG.finest(() -> "onNewDomain: " + event);
         List<Pool> pools = new ArrayList<>();
         pools.add(event.getPool());
         List<MatchingEntry> matchingEntries = poolMatcher.match(getAllSeenServices(), getAllSeenQueues(), pools);
         store(matchingEntries);
-        LOG.warning(() -> "onNewDomain done:" + event);
     }
 
     public void onDomainGone(@Observes DomainGone event)
     {
-        LOG.warning(() -> "onDomainGone: " + event);
+        LOG.finest(() -> "onDomainGone: " + event);
         services.entrySet().removeIf(entry -> {
             entry.getValue().removeIf(matchingEntry -> matchingEntry.getDomainId().equals(event.getDomainId()));
             return entry.getValue().isEmpty();
@@ -63,7 +62,7 @@ public class CacheImpl implements Cache
             entry.getValue().removeIf(matchingEntry -> matchingEntry.getDomainId().equals(event.getDomainId()));
             return entry.getValue().isEmpty();
         });
-        LOG.warning(() -> "onDomainGone done: " + event);
+        LOG.finest(() -> "onDomainGone done: " + event);
     }
 
     @Override
@@ -72,7 +71,7 @@ public class CacheImpl implements Cache
         List<MatchingEntry> uniqueEntries = matchingEntries.stream()
                                                            .distinct()
                                                            .collect(Collectors.toList());
-        LOG.warning(() -> "will cache:" + uniqueEntries);
+        LOG.finest(() -> "will cache:" + uniqueEntries);
         uniqueEntries.forEach(matchingEntry ->
                 matchingEntry.getServices().
                              forEach(serviceDetails ->

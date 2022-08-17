@@ -24,6 +24,7 @@ public class PoolManager implements CasualConnectionListener
     private Event<NewDomain> newDomain;
     private Event<DomainGone> domainGone;
     private List<Pool> pools;
+    private Object poolLock = new Object();
 
     // for wls
     public PoolManager()
@@ -47,39 +48,44 @@ public class PoolManager implements CasualConnectionListener
     @Override
     public void newConnection(DomainId domainId)
     {
-        LOG.warning(() -> "start handling new connection: " + domainId);
-        boolean alreadyHandled = pools.stream()
-                                      .filter(pool -> pool.getDomainIds().contains(domainId))
-                                      .collect(Collectors.counting()) != 0;
-        if (!alreadyHandled)
+        synchronized (poolLock)
         {
-            LOG.warning(() -> "handling new connection: " + domainId);
-            Pool matchingPool = updatePools().stream()
-                                             .filter(pool -> pool.getDomainIds().contains(domainId))
-                                             .findFirst()
-                                             .orElseThrow(() -> new CasualCallerException("Expected domainId: " + domainId + " missing"));
-            List<DomainId> domainIds = new ArrayList<>();
-            domainIds.add(domainId);
-            newDomain.fire(NewDomain.of(Pool.of(matchingPool.getConnectionFactoryEntry(), domainIds)));
+            LOG.finest(() -> "start handling new connection: " + domainId);
+            boolean alreadyHandled = pools.stream()
+                                          .filter(pool -> pool.getDomainIds().contains(domainId))
+                                          .collect(Collectors.counting()) != 0;
+            if (!alreadyHandled)
+            {
+                LOG.finest(() -> "new connection: " + domainId);
+                Pool matchingPool = updatePools().stream()
+                                                 .filter(pool -> pool.getDomainIds().contains(domainId))
+                                                 .findFirst()
+                                                 .orElseThrow(() -> new CasualCallerException("Expected domainId: " + domainId + " missing"));
+                List<DomainId> domainIds = new ArrayList<>();
+                domainIds.add(domainId);
+                newDomain.fire(NewDomain.of(Pool.of(matchingPool.getConnectionFactoryEntry(), domainIds)));
+            }
         }
     }
-
     @Override
     public void connectionGone(DomainId domainId)
     {
-        Pool matchingPool = pools.stream()
-                                 .filter(pool -> pool.getDomainIds().contains(domainId))
-                                 .findFirst()
-                                 .orElse(null);
-        if(null != matchingPool)
+        synchronized (poolLock)
         {
-            LOG.warning(() -> "handling connection gone: " + domainId);
-            updatePools();
-            domainGone.fire(DomainGone.of(matchingPool.getConnectionFactoryEntry(), domainId));
+            Pool matchingPool = pools.stream()
+                                     .filter(pool -> pool.getDomainIds().contains(domainId))
+                                     .findFirst()
+                                     .orElse(null);
+            if (null != matchingPool)
+            {
+                LOG.finest(() -> "connectionGone: " + domainId);
+                updatePools();
+                domainGone.fire(DomainGone.of(matchingPool.getConnectionFactoryEntry(), domainId));
+            }
         }
     }
 
-    private synchronized List<Pool> updatePools()
+    private List<Pool> updatePools()
     {
         pools = poolDataRetriever.get(connectionFactoryEntryStore.get(), this);
         return getPools();
