@@ -47,8 +47,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    private String hostName;
    private Integer portNumber;
    private Long casualProtocolVersion = 1000L;
-   //private Map<DomainId, AtomicInteger> domainIds = new ConcurrentHashMap<>();
-   //private Map<CasualConnectionListener, Boolean> connectionListeners = new ConcurrentHashMap<>();
    private final int resourceId = CasualResourceManager.getInstance().getNextId();
 
    // for wls
