@@ -31,17 +31,22 @@ import java.util.concurrent.CompletableFuture;
 public class CasualCallerImpl implements CasualCaller
 {
     private TransactionLess transactionLess;
-    private TpCallerImpl tpCaller;
+    private TpCaller tpCaller;
+    private QueueCaller queueCaller;
 
     // NOP constructor needed for WLS
     public CasualCallerImpl()
     {}
 
     @Inject
-    public CasualCallerImpl(ConnectionFactoryEntryStore connectionFactoryProvider, TransactionLess transactionLess, TpCallerImpl tpCaller)
+    public CasualCallerImpl(ConnectionFactoryEntryStore connectionFactoryProvider,
+                            TransactionLess transactionLess,
+                            TpCallerImpl tpCaller,
+                            QueueCaller queueCaller)
     {
         this.transactionLess = transactionLess;
         this.tpCaller = tpCaller;
+        this.queueCaller = queueCaller;
         List<ConnectionFactoryEntry> possibleEntries = connectionFactoryProvider.get();
         if(possibleEntries.isEmpty())
         {
@@ -78,45 +83,13 @@ public class CasualCallerImpl implements CasualCaller
     @Override
     public EnqueueReturn enqueue(QueueInfo qinfo, QueueMessage msg)
     {
-        return null;
-        /*
-        Optional<ConnectionFactoryEntry> entry = lookup.get(qinfo);
-
-        if (!entry.isPresent())
-        {
-            return EnqueueReturn.createBuilder().withErrorState(ErrorState.TPENOENT).build();
-        }
-
-        try(CasualConnection connection = entry.get().getConnectionFactory().getConnection())
-        {
-            return connection.enqueue(qinfo, msg);
-        }
-        catch (ResourceException e)
-        {
-            throw new CasualResourceException(e);
-        }*/
+        return queueCaller.enqueue(qinfo, msg);
     }
 
     @Override
     public DequeueReturn dequeue(QueueInfo qinfo, MessageSelector selector)
     {
-        return null;
-        /*
-        Optional<ConnectionFactoryEntry> entry = lookup.get(qinfo);
-
-        if (!entry.isPresent())
-        {
-            return DequeueReturn.createBuilder().withErrorState(ErrorState.TPENOENT).build();
-        }
-
-        try(CasualConnection connection = entry.get().getConnectionFactory().getConnection())
-        {
-            return connection.dequeue(qinfo, selector);
-        }
-        catch (ResourceException e)
-        {
-            throw new CasualResourceException(e);
-        }*/
+        return queueCaller.dequeue(qinfo, selector);
     }
 
     @Override

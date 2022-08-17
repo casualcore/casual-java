@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -22,9 +23,11 @@ import java.util.stream.Collectors;
 public class CacheImpl implements Cache
 {
     private static final Logger LOG = Logger.getLogger(CacheImpl.class.getName());
+    // Please note that for queues we only ever cache one thing, queues should be unique across pools
+    // if not, we'll just keep using the one we got while also warning when adding subsequent entries
     // The current state of the world
     private final Map<ServiceInfo, List<MatchingEntry>> services = new ConcurrentHashMap<>();
-    private final Map<QueueInfo, List<MatchingEntry>> queues = new ConcurrentHashMap<>();
+    private final Map<QueueInfo, MatchingEntry> queues = new ConcurrentHashMap<>();
 
     // We keep a state of the seen world since services and queues can come and go
     // This is so that once we see a new domain we can issue a total domain discovery in one go
@@ -58,11 +61,7 @@ public class CacheImpl implements Cache
             entry.getValue().removeIf(matchingEntry -> matchingEntry.getDomainId().equals(event.getDomainId()));
             return entry.getValue().isEmpty();
         });
-        queues.entrySet().removeIf(entry -> {
-            entry.getValue().removeIf(matchingEntry -> matchingEntry.getDomainId().equals(event.getDomainId()));
-            return entry.getValue().isEmpty();
-        });
-        LOG.finest(() -> "onDomainGone done: " + event);
+        queues.entrySet().removeIf(entry -> entry.getValue().getDomainId().equals(event.getDomainId()));
     }
 
     @Override
@@ -89,10 +88,9 @@ public class CacheImpl implements Cache
                              forEach(queueDetails ->
                              {
                                  QueueInfo key = QueueInfo.of(queueDetails.getName());
-                                 queues.putIfAbsent(key, new ArrayList<>());
-                                 if(!queues.get(key).contains(matchingEntry))
+                                 if(null != queues.putIfAbsent(key, matchingEntry))
                                  {
-                                     queues.get(key).add(matchingEntry);
+                                     LOG.warning(() -> "More than one queue with the name: " + queueDetails.getName() + "\nNot storing entry: " + matchingEntry);
                                  }
                                  allSeenQueueNames.putIfAbsent(QueueInfo.of(queueDetails.getName()), true);
                              }));
@@ -106,9 +104,9 @@ public class CacheImpl implements Cache
     }
 
     @Override
-    public List<MatchingEntry> get(QueueInfo queueInfo)
+    public Optional<MatchingEntry> get(QueueInfo queueInfo)
     {
-        return Collections.unmodifiableList(queues.getOrDefault(queueInfo, Collections.emptyList()));
+        return Optional.ofNullable(queues.get(queueInfo));
     }
 
     private List<ServiceInfo> getAllSeenServices()
