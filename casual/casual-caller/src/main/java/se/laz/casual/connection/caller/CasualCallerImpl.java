@@ -15,6 +15,7 @@ import se.laz.casual.api.queue.MessageSelector;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.api.service.ServiceDetails;
+import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
 
 import javax.ejb.Remote;
@@ -67,11 +68,9 @@ public class CasualCallerImpl implements CasualCaller
     }
 
     @Override
-    public boolean serviceExists(String serviceName)
+    public boolean serviceExists( String serviceName)
     {
-        //return !lookup.get(serviceName).isEmpty();
-        // TODO: some specific implementation for this
-        return false;
+        return tpCaller.serviceExist(ServiceInfo.of(serviceName));
     }
 
     @Override
@@ -95,9 +94,7 @@ public class CasualCallerImpl implements CasualCaller
     @Override
     public boolean queueExists(QueueInfo qinfo)
     {
-        //return lookup.get(qinfo).isPresent();
-        //TODO: Some impl for this needed
-        return false;
+        return queueCaller.queueExists(qinfo);
     }
 
 }

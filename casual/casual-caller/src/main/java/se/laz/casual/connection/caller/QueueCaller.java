@@ -10,4 +10,5 @@ public interface QueueCaller
 {
     EnqueueReturn enqueue(QueueInfo qinfo, QueueMessage msg);
     DequeueReturn dequeue(QueueInfo qinfo, MessageSelector selector);
+    boolean queueExists(QueueInfo qinfo);
 }

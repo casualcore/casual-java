@@ -10,12 +10,13 @@ import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
+import se.laz.casual.api.service.ServiceInfo;
 
 import java.util.concurrent.CompletableFuture;
 
 public interface TpCaller
 {
     ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
-
     CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
+    boolean serviceExist(ServiceInfo serviceName);
 }

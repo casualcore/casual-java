@@ -57,6 +57,12 @@ public class TpCallerImpl implements TpCaller
         return doCall(serviceName, connection -> connection.tpacall(serviceName, data, flags), () -> CompletableFuture.supplyAsync(this::tpenoentReply));
     }
 
+    @Override
+    public boolean serviceExist(ServiceInfo serviceInfo)
+    {
+        return !poolMatcher.match(serviceInfo, poolManager.getPools()).isEmpty();
+    }
+
     private <R> R doCall(String serviceName,  Function<CasualConnection, R> callFunction, Supplier<R> tpenoentSupplier)
     {
         ServiceInfo serviceInfo = ServiceInfo.of(serviceName);

@@ -67,6 +67,12 @@ public class QueueCallerImpl implements QueueCaller
         return doCall(qinfo, entry, connection -> connection.dequeue(qinfo, selector), "dequeue");
     }
 
+    @Override
+    public boolean queueExists(QueueInfo qinfo)
+    {
+        return !poolMatcher.match(qinfo, poolManager.getPools()).isEmpty();
+    }
+
     private <R> R doCall(QueueInfo queueInfo, MatchingEntry entry, Function<CasualConnection, R> function, String callName)
     {
         ConnectionRequestInfo requestInfo = CasualRequestInfo.of(entry.getDomainId());
