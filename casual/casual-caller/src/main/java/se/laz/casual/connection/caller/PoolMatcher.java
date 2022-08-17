@@ -37,10 +37,8 @@ public class PoolMatcher
     public List<MatchingEntry> match(List<ServiceInfo> services, List<QueueInfo> queues,  List<Pool> pools)
     {
         List<MatchingEntry> matchingEntries = new ArrayList<>();
-        CasualRequestInfo requestInfo = CasualRequestInfo.of(services, queues);
-        LOG.finest(() -> "requestinfo: " + requestInfo);
         pools.forEach(pool -> {
-            List<MatchingEntry> maybeMatching = matches(requestInfo, pool.getConnectionFactoryEntry(), pool.getDomainIds());
+            List<MatchingEntry> maybeMatching = matches(services, queues, pool.getConnectionFactoryEntry(), pool.getDomainIds());
             matchingEntries.addAll(maybeMatching);
         });
         String entriesString = matchingEntries.stream()
@@ -50,7 +48,7 @@ public class PoolMatcher
         return matchingEntries;
     }
 
-    private List<MatchingEntry> matches(CasualRequestInfo requestInfo, ConnectionFactoryEntry connectionFactoryEntry, List<DomainId> poolDomainIds)
+    private List<MatchingEntry> matches(List<ServiceInfo> services, List<QueueInfo> queues, ConnectionFactoryEntry connectionFactoryEntry, List<DomainId> poolDomainIds)
     {
         List<MatchingEntry> entries = new ArrayList<>();
         for(DomainId domainId : poolDomainIds)
@@ -58,7 +56,14 @@ public class PoolMatcher
             ConnectionRequestInfo domainIdRequestInfo = CasualRequestInfo.of(domainId);
             try(CasualConnection connection = connectionFactoryEntry.getConnectionFactory().getConnection(domainIdRequestInfo))
             {
-                DiscoveryReturn discoveryReturn = connection.discover(UUID.randomUUID(), requestInfo.getServices(), requestInfo.getQueues());
+                DiscoveryReturn discoveryReturn = connection.discover(
+                        UUID.randomUUID(),
+                        services.stream()
+                                .map(serviceInfo -> serviceInfo.getServiceName())
+                                .collect(Collectors.toList()),
+                        queues.stream()
+                              .map(queueInfo -> queueInfo.getQueueName())
+                              .collect(Collectors.toList()));
                 LOG.finest(() -> "discoveryReturn:" + discoveryReturn);
                 entries.add(MatchingEntry.of(connectionFactoryEntry, domainId, discoveryReturn.getServiceDetails(), discoveryReturn.getQueueDetails()));
             }

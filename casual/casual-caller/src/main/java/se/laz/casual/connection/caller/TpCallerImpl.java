@@ -89,7 +89,7 @@ public class TpCallerImpl implements TpCaller
             ConnectionRequestInfo requestInfo = CasualRequestInfo.of(entry.getDomainId());
             try(CasualConnection connection = entry.getConnectionFactoryEntry().getConnectionFactory().getConnection(requestInfo))
             {
-                LOG.finest(() -> "service call using: " + entry);
+                LOG.finest(() -> "service call to: " + serviceName + " using: " + entry);
                 return function.apply(connection);
             }
             catch (CasualConnectionException e)

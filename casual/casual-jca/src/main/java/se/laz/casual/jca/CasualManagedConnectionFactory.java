@@ -5,8 +5,6 @@
  */
 package se.laz.casual.jca;
 
-import se.laz.casual.api.discovery.DiscoveryReturn;
-import se.laz.casual.jca.discovery.CasualDiscoveryCaller;
 import se.laz.casual.network.ProtocolVersion;
 
 import javax.ejb.Stateless;
@@ -27,7 +25,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -143,7 +140,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
           // TODO: Why do we need to do this, streaming the Set and collecting returns not a List of objects but an Object???
           List<Object> wrapper = new ArrayList<>();
           wrapper.addAll(connectionSet);
-
           List<CasualManagedConnection> managedConnections = wrapper.stream()
                                                                     .filter(CasualManagedConnection.class::isInstance)
                                                                     .map(CasualManagedConnection.class::cast)
@@ -151,7 +147,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
           ManagedConnection managedConnection = matchManagedConnections( managedConnections, requestInfo);
           if(null != managedConnection)
           {
-              return null;
+              return managedConnection;
           }
       }
       return (ManagedConnection)connectionSet.stream()
@@ -175,45 +171,14 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
         DomainId domainId = requestInfo.getDomainId().orElse(null);
         if(null != domainId)
         {
-            connections = connections.stream()
-                                     .filter(connection -> connection.getDomainId().equals(domainId))
-                                     .collect(Collectors.toList());
-            if(requestInfo.getServices().isEmpty() && requestInfo.getQueues().isEmpty())
-            {
-                return connections.stream()
-                                  .findFirst()
-                                  .orElse(null);
-            }
-        }
-        if(requestInfo.getServices().isEmpty() && requestInfo.getQueues().isEmpty())
-        {
-            return null;
-        }
-        for(CasualManagedConnection connection : connections)
-        {
-            if(successfulDomainDiscovery(connection, requestInfo))
-            {
-                return connection;
-            }
+            ManagedConnection matchedConnection =  connections.stream()
+                                                              .filter(connection -> connection.getDomainId().equals(domainId))
+                                                              .findFirst()
+                                                              .orElse(null);
+            log.finest(() -> null != matchedConnection ? "matchManagedConnections: " + domainId : "matchManagedConnections no match for: :" + domainId);
+            return matchedConnection;
         }
         return null;
-    }
-
-    private boolean successfulDomainDiscovery(CasualManagedConnection connection, CasualRequestInfo requestInfo)
-    {
-        CasualDiscoveryCaller discoveryCaller = CasualDiscoveryCaller.of(connection);
-        DiscoveryReturn discoveryReturn = discoveryCaller.discover(UUID.randomUUID(), requestInfo.getServices(), requestInfo.getQueues());
-        List<String> servicesFound = discoveryReturn.getServiceDetails()
-                                                    .stream()
-                                                    .map(entry -> entry.getName())
-                                                    .collect(Collectors.toList());
-        List<String> queuesFound = discoveryReturn.getQueueDetails().stream()
-                                                  .map(entry -> entry.getName())
-                                                  .collect(Collectors.toList());
-        int numberOfServicesFound  = requestInfo.getServices().stream().filter(service -> servicesFound.contains(service)).collect(Collectors.toList()).size();
-        int numberOfQueuesFound = requestInfo.getQueues().stream().filter(queue -> queuesFound.contains(queue)).collect(Collectors.toList()).size();
-
-        return numberOfServicesFound == requestInfo.getServices().size()  && numberOfQueuesFound == requestInfo.getQueues().size();
     }
 
     @Override

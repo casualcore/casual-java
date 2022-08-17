@@ -26,7 +26,6 @@ public class DomainHandler
     {
         synchronized (domainLock)
         {
-            log.info(() -> "Adding domainId: " + domainId);
             domainIds.putIfAbsent(address, new ArrayList<>());
             List<DomainIdReferenceCounted> items = domainIds.get(address);
             DomainIdReferenceCounted domainIdReferenceCounted = items.stream()
@@ -35,6 +34,7 @@ public class DomainHandler
                                                                      .orElse(null);
             if (null == domainIdReferenceCounted)
             {
+                log.info(() -> "Adding domainId: " + domainId);
                 domainIdReferenceCounted = DomainIdReferenceCounted.of(domainId);
                 items.add(domainIdReferenceCounted);
             }
