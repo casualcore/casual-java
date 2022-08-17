@@ -1,4 +1,4 @@
-package se.laz.casual.connection.caller;
+package se.laz.casual.connection.caller.entities;
 
 import se.laz.casual.api.queue.QueueDetails;
 import se.laz.casual.api.service.ServiceDetails;

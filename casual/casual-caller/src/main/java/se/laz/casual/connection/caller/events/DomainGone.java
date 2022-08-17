@@ -1,25 +1,26 @@
-package se.laz.casual.connection.caller;
+package se.laz.casual.connection.caller.events;
 
+import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
 import se.laz.casual.jca.DomainId;
 
 import java.util.Objects;
 
-public class DomainGoneEvent
+public class DomainGone
 {
     private final ConnectionFactoryEntry connectionFactoryEntry;
     private final DomainId domainId;
 
-    private DomainGoneEvent(ConnectionFactoryEntry connectionFactoryEntry, DomainId domainId)
+    private DomainGone(ConnectionFactoryEntry connectionFactoryEntry, DomainId domainId)
     {
         this.connectionFactoryEntry = connectionFactoryEntry;
         this.domainId = domainId;
     }
 
-    public static DomainGoneEvent of(ConnectionFactoryEntry connectionFactoryEntry, DomainId domainId)
+    public static DomainGone of(ConnectionFactoryEntry connectionFactoryEntry, DomainId domainId)
     {
         Objects.requireNonNull(connectionFactoryEntry, "connectionFactoryEntry can not be null");
         Objects.requireNonNull(domainId, "domainId can not be null");
-        return new DomainGoneEvent(connectionFactoryEntry, domainId);
+        return new DomainGone(connectionFactoryEntry, domainId);
     }
 
     public ConnectionFactoryEntry getConnectionFactoryEntry()
@@ -43,7 +44,7 @@ public class DomainGoneEvent
         {
             return false;
         }
-        DomainGoneEvent that = (DomainGoneEvent) o;
+        DomainGone that = (DomainGone) o;
         return getConnectionFactoryEntry().equals(that.getConnectionFactoryEntry()) && getDomainId().equals(that.getDomainId());
     }
 

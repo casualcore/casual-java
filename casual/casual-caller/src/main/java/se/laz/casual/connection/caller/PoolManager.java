@@ -1,6 +1,8 @@
 package se.laz.casual.connection.caller;
 
-import se.laz.casual.connection.caller.logic.PoolDataRetriever;
+import se.laz.casual.connection.caller.events.DomainGone;
+import se.laz.casual.connection.caller.events.NewDomain;
+import se.laz.casual.connection.caller.entities.Pool;
 import se.laz.casual.jca.CasualConnectionListener;
 import se.laz.casual.jca.DomainId;
 
@@ -18,9 +20,9 @@ public class PoolManager implements CasualConnectionListener
 {
     private static final Logger LOG = Logger.getLogger(PoolManager.class.getName());
     private ConnectionFactoryEntryStore connectionFactoryEntryStore;
-    private PoolDataRetriever poolDataRetriever;
-    private Event<NewDomainEvent> newDomain;
-    private Event<DomainGoneEvent> domainGone;
+    private TransactionLess.PoolDataRetriever poolDataRetriever;
+    private Event<NewDomain> newDomain;
+    private Event<DomainGone> domainGone;
     private List<Pool> pools;
 
     // for wls
@@ -28,7 +30,7 @@ public class PoolManager implements CasualConnectionListener
     {}
 
     @Inject
-    public PoolManager(ConnectionFactoryEntryStore connectionFactoryEntryStore, PoolDataRetriever poolDataRetriever, Event<NewDomainEvent> newDomain, Event<DomainGoneEvent> domainGone)
+    public PoolManager(ConnectionFactoryEntryStore connectionFactoryEntryStore, TransactionLess.PoolDataRetriever poolDataRetriever, Event<NewDomain> newDomain, Event<DomainGone> domainGone)
     {
         this.connectionFactoryEntryStore = connectionFactoryEntryStore;
         this.poolDataRetriever = poolDataRetriever;
@@ -58,7 +60,7 @@ public class PoolManager implements CasualConnectionListener
                                              .orElseThrow(() -> new CasualCallerException("Expected domainId: " + domainId + " missing"));
             List<DomainId> domainIds = new ArrayList<>();
             domainIds.add(domainId);
-            newDomain.fire(NewDomainEvent.of(Pool.of(matchingPool.getConnectionFactoryEntry(), domainIds)));
+            newDomain.fire(NewDomain.of(Pool.of(matchingPool.getConnectionFactoryEntry(), domainIds)));
         }
     }
 
@@ -73,7 +75,7 @@ public class PoolManager implements CasualConnectionListener
         {
             LOG.warning(() -> "handling connection gone: " + domainId);
             updatePools();
-            domainGone.fire(DomainGoneEvent.of(matchingPool.getConnectionFactoryEntry(), domainId));
+            domainGone.fire(DomainGone.of(matchingPool.getConnectionFactoryEntry(), domainId));
         }
     }
 

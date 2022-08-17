@@ -3,7 +3,7 @@
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
-package se.laz.casual.connection.caller;
+package se.laz.casual.connection.caller.entities;
 
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualConnectionFactory;

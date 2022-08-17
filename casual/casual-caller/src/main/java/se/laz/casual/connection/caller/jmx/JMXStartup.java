@@ -7,7 +7,6 @@
 package se.laz.casual.connection.caller.jmx;
 
 import se.laz.casual.api.CasualRuntimeException;
-import se.laz.casual.connection.caller.Cache;
 import se.laz.casual.connection.caller.ConnectionFactoryEntryStore;
 
 import javax.annotation.PostConstruct;
@@ -33,9 +32,6 @@ public class JMXStartup
     private static final String NAME = "se.laz.casual.caller:type=CasualCallerControl";
 
     @Inject
-    Cache cache;
-
-    @Inject
     ConnectionFactoryEntryStore connectionFactoryEntryStore;
 
     @PostConstruct
@@ -45,7 +41,7 @@ public class JMXStartup
 
         try {
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            CasualCallerControl ccc = new CasualCallerControl(cache, connectionFactoryEntryStore);
+            CasualCallerControl ccc = CasualCallerControl.of();
 
             ObjectName objectName = new ObjectName(NAME);
 

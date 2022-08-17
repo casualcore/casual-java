@@ -8,7 +8,7 @@ import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
 import se.laz.casual.api.service.ServiceInfo;
-import se.laz.casual.connection.caller.logic.PoolMatcher;
+import se.laz.casual.connection.caller.entities.MatchingEntry;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualRequestInfo;
 import se.laz.casual.network.connection.CasualConnectionException;
@@ -24,34 +24,34 @@ import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class TpCallerSimple implements TpCaller
+public class TpCallerImpl implements TpCaller
 {
-    private static final Logger LOG = Logger.getLogger(TpCallerSimple.class.getName());
-    private SimpleCache simpleCache;
-    private PoolMatcher poolMatcher;
+    private static final Logger LOG = Logger.getLogger(TpCallerImpl.class.getName());
+    private Cache cache;
+    private TransactionLess.PoolMatcher poolMatcher;
     private PoolManager poolManager;
 
     // for wls
-    public TpCallerSimple()
+    public TpCallerImpl()
     {}
 
     @Inject
-    public TpCallerSimple(PoolMatcher poolMatcher, SimpleCache simpleCache, PoolManager poolManager)
+    public TpCallerImpl(TransactionLess.PoolMatcher poolMatcher, Cache cache, PoolManager poolManager)
     {
-        this.simpleCache = simpleCache;
+        this.cache = cache;
         this.poolMatcher = poolMatcher;
         this.poolManager = poolManager;
     }
 
     @Override
-    public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup)
+    public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         LOG.warning(() -> "tpcall<" + serviceName + ">");
         return doCall(serviceName, connection -> connection.tpcall(serviceName, data, flags), () -> tpenoentReply());
     }
 
     @Override
-    public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup)
+    public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         LOG.warning(() -> "tpacall<" + serviceName + ">");
         return doCall(serviceName, connection -> connection.tpacall(serviceName, data, flags), () -> CompletableFuture.supplyAsync(this::tpenoentReply));
@@ -60,11 +60,11 @@ public class TpCallerSimple implements TpCaller
     private <R> R doCall(String serviceName,  Function<CasualConnection, R> callFunction, Supplier<R> tpenoentSupplier)
     {
         ServiceInfo serviceInfo = ServiceInfo.of(serviceName);
-        List<MatchingEntry> matchingEntries = simpleCache.get(serviceInfo);
+        List<MatchingEntry> matchingEntries = cache.get(serviceInfo);
         if(matchingEntries.isEmpty())
         {
             matchingEntries = poolMatcher.match(serviceInfo, poolManager.getPools());
-            simpleCache.store(matchingEntries);
+            cache.store(matchingEntries);
         }
         if(matchingEntries.isEmpty())
         {

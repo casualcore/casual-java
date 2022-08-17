@@ -1,15 +1,14 @@
-package se.laz.casual.connection.caller.logic;
+package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.service.ServiceInfo;
-import se.laz.casual.connection.caller.DomainGoneEvent;
-import se.laz.casual.connection.caller.MatchingEntry;
-import se.laz.casual.connection.caller.NewDomainEvent;
-import se.laz.casual.connection.caller.Pool;
-import se.laz.casual.connection.caller.SimpleCache;
+import se.laz.casual.connection.caller.events.DomainGone;
+import se.laz.casual.connection.caller.entities.MatchingEntry;
+import se.laz.casual.connection.caller.events.NewDomain;
+import se.laz.casual.connection.caller.entities.Pool;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
-import javax.faces.bean.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,9 +19,10 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
-public class SimpleCacheImpl implements SimpleCache
+public class CacheImpl implements Cache
 {
-    private static final Logger LOG = Logger.getLogger(SimpleCacheImpl.class.getName());
+    private static final Logger LOG = Logger.getLogger(CacheImpl.class.getName());
+    // The current state of the world
     private final Map<ServiceInfo, List<MatchingEntry>> services = new ConcurrentHashMap<>();
     private final Map<QueueInfo, List<MatchingEntry>> queues = new ConcurrentHashMap<>();
 
@@ -30,30 +30,29 @@ public class SimpleCacheImpl implements SimpleCache
     // This is so that once we see a new domain we can issue a total domain discovery in one go
     private final Map<ServiceInfo, Boolean> allSeenServiceNames = new ConcurrentHashMap<>();
     private final Map<QueueInfo, Boolean> allSeenQueueNames = new ConcurrentHashMap<>();
-    private PoolMatcher poolMatcher;
+    private TransactionLess.PoolMatcher poolMatcher;
 
     // for wls
-    public SimpleCacheImpl()
+    public CacheImpl()
     {}
 
-
     @Inject
-    public SimpleCacheImpl(PoolMatcher poolMatcher)
+    public CacheImpl(TransactionLess.PoolMatcher poolMatcher)
     {
         this.poolMatcher = poolMatcher;
     }
 
-    public void onNewDomain(@Observes NewDomainEvent newDomainEvent)
+    public void onNewDomain(@Observes NewDomain event)
     {
-        LOG.warning(() -> "onNewDomain: " + newDomainEvent);
+        LOG.warning(() -> "onNewDomain: " + event);
         List<Pool> pools = new ArrayList<>();
-        pools.add(newDomainEvent.getPool());
+        pools.add(event.getPool());
         List<MatchingEntry> matchingEntries = poolMatcher.match(getAllSeenServices(), getAllSeenQueues(), pools);
         store(matchingEntries);
-        LOG.warning(() -> "onNewDomain done:" + newDomainEvent);
+        LOG.warning(() -> "onNewDomain done:" + event);
     }
 
-    public void onDomainGone(@Observes DomainGoneEvent event)
+    public void onDomainGone(@Observes DomainGone event)
     {
         LOG.warning(() -> "onDomainGone: " + event);
         services.entrySet().removeIf(entry -> {
@@ -123,3 +122,4 @@ public class SimpleCacheImpl implements SimpleCache
         return Collections.unmodifiableList(allSeenQueueNames.keySet().stream().collect(Collectors.toList()));
     }
 }
+

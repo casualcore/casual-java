@@ -1,6 +1,6 @@
 package se.laz.casual.connection.caller
 
-
+import se.laz.casual.connection.caller.entities.ConnectionFactoryProducer
 import spock.lang.Specification
 
 class CasualConnectionFactoryProducerTest extends Specification
