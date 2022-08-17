@@ -2,10 +2,10 @@ package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.service.ServiceInfo;
-import se.laz.casual.connection.caller.events.DomainGone;
 import se.laz.casual.connection.caller.entities.MatchingEntry;
-import se.laz.casual.connection.caller.events.NewDomain;
 import se.laz.casual.connection.caller.entities.Pool;
+import se.laz.casual.connection.caller.events.DomainGone;
+import se.laz.casual.connection.caller.events.NewDomain;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -30,14 +30,14 @@ public class CacheImpl implements Cache
     // This is so that once we see a new domain we can issue a total domain discovery in one go
     private final Map<ServiceInfo, Boolean> allSeenServiceNames = new ConcurrentHashMap<>();
     private final Map<QueueInfo, Boolean> allSeenQueueNames = new ConcurrentHashMap<>();
-    private TransactionLess.PoolMatcher poolMatcher;
+    private PoolMatcher poolMatcher;
 
     // for wls
     public CacheImpl()
     {}
 
     @Inject
-    public CacheImpl(TransactionLess.PoolMatcher poolMatcher)
+    public CacheImpl(PoolMatcher poolMatcher)
     {
         this.poolMatcher = poolMatcher;
     }

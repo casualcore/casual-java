@@ -28,7 +28,7 @@ public class TpCallerImpl implements TpCaller
 {
     private static final Logger LOG = Logger.getLogger(TpCallerImpl.class.getName());
     private Cache cache;
-    private TransactionLess.PoolMatcher poolMatcher;
+    private PoolMatcher poolMatcher;
     private PoolManager poolManager;
 
     // for wls
@@ -36,7 +36,7 @@ public class TpCallerImpl implements TpCaller
     {}
 
     @Inject
-    public TpCallerImpl(TransactionLess.PoolMatcher poolMatcher, Cache cache, PoolManager poolManager)
+    public TpCallerImpl(PoolMatcher poolMatcher, Cache cache, PoolManager poolManager)
     {
         this.cache = cache;
         this.poolMatcher = poolMatcher;
