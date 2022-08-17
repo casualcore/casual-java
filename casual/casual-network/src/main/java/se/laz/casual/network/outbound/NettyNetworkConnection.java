@@ -19,7 +19,6 @@ import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.internal.network.NetworkConnection;
-import se.laz.casual.jca.ConnectionObserver;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
@@ -33,7 +32,6 @@ import javax.enterprise.concurrent.ManagedExecutorService;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -52,7 +50,6 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     private final Channel channel;
     private final AtomicBoolean connected = new AtomicBoolean(true);
     private final ManagedExecutorService managedExecutorService;
-    private final List<ConnectionObserver> connectionObservers = Collections.synchronizedList(new ArrayList<>());
     private DomainId domainId;
 
     private NettyNetworkConnection(BaseConnectionInformation ci,
@@ -188,7 +185,6 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         connected.set(false);
         LOG.finest(() -> this + " network connection close called by appserver, closing");
         channel.close();
-        notifyObservers();
     }
 
     @Override
@@ -203,20 +199,9 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         return domainId;
     }
 
-    @Override
-    public void addConnectionObserver(ConnectionObserver observer)
-    {
-        connectionObservers.add(observer);
-    }
-
     private void setDomainId(DomainId domainId)
     {
         this.domainId = domainId;
-    }
-
-    private void notifyObservers()
-    {
-        connectionObservers.forEach(connectionObserver -> connectionObserver.connectionGone(domainId));
     }
 
     private DomainId throwIfProtocolVersionNotSupportedByEIS(long version, final UUID domainId, final String domainName)

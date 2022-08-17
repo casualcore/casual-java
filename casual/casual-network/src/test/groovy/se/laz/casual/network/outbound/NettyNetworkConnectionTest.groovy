@@ -14,7 +14,6 @@ import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.conversation.Duplex
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
-import se.laz.casual.jca.ConnectionObserver
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
@@ -141,10 +140,6 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         1 * channel.close()
         instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, Mock(ManagedExecutorService))
         instance.setDomainId(casualDomainId)
-        def observer = Mock(ConnectionObserver){
-           1 * connectionGone(casualDomainId)
-        }
-        instance.addConnectionObserver(observer)
         when:
         instance.close()
         then:
@@ -158,10 +153,6 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         def channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator, Mock(OnNetworkError)))
         instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, Mock(ManagedExecutorService))
         instance.setDomainId(casualDomainId)
-        def observer = Mock(ConnectionObserver){
-           1 * connectionGone(casualDomainId)
-        }
-        instance.addConnectionObserver(observer)
         def future = channel.closeFuture().addListener({ f -> se.laz.casual.network.outbound.NettyNetworkConnection.handleClose(instance, this) })
         when:
         future.channel().disconnect()
