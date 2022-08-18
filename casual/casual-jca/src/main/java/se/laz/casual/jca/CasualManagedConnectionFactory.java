@@ -41,6 +41,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     private static final long serialVersionUID = 1L;
     private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
     private  DomainHandler domainHandler;
+    private  CasualManagedConnectionProducer casualManagedConnectionProducer;
     private ResourceAdapter ra;
     private PrintWriter logwriter;
 
@@ -54,9 +55,10 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    {}
 
    @Inject
-   public CasualManagedConnectionFactory(DomainHandler domainHandler)
+   public CasualManagedConnectionFactory(DomainHandler domainHandler, CasualManagedConnectionProducer casualManagedConnectionProducer)
    {
        this.domainHandler = domainHandler;
+       this.casualManagedConnectionProducer = casualManagedConnectionProducer;
    }
 
    public String getHostName()
@@ -110,7 +112,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    {
        try
        {
-           CasualManagedConnection managedConnection = new CasualManagedConnection(this);
+           CasualManagedConnection managedConnection = casualManagedConnectionProducer.createManagedConnection(this);
            DomainId domainId = managedConnection.getDomainId();
            domainHandler.addDomainId(getAddress(), domainId);
            return managedConnection;
@@ -258,4 +260,5 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     {
         return Address.of(getHostName(), getPortNumber());
     }
+
 }

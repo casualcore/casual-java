@@ -22,10 +22,23 @@ class CasualManagedConnectionFactoryTest extends Specification
     @Shared CasualManagedConnectionFactory instance
     @Shared ResourceAdapter ra1 = Mock(ResourceAdapter)
     @Shared ResourceAdapter ra2 = Mock(ResourceAdapter)
+    @Shared String hostName = 'morpheus'
+    @Shared int portNumber = 65738
 
     def setup()
     {
-        instance = new CasualManagedConnectionFactory( )
+        DomainId domainId = DomainId.of(UUID.randomUUID())
+        CasualManagedConnectionProducer producer = Stub(CasualManagedConnectionProducer){
+           createManagedConnection(_) >>{
+              def managedConnection = Stub(CasualManagedConnection){
+                 getDomainId() >> {
+                    domainId
+                 }
+              }
+              return managedConnection
+           }
+        }
+        instance = new CasualManagedConnectionFactory(Mock(DomainHandler),  producer)
     }
 
     def "GetHostName returns null if not set."()
@@ -90,7 +103,8 @@ class CasualManagedConnectionFactoryTest extends Specification
         setup:
         Subject s = new Subject()
         ConnectionRequestInfo cri = Mock(ConnectionRequestInfo)
-
+        instance.setHostName(hostName)
+        instance.setPortNumber( portNumber)
         when:
         ManagedConnection m = instance.createManagedConnection( s, cri )
 
@@ -170,7 +184,7 @@ class CasualManagedConnectionFactoryTest extends Specification
         instance.setHostName( host1 )
         instance.setPortNumber( port1 )
 
-        CasualManagedConnectionFactory instance2 = new CasualManagedConnectionFactory()
+        CasualManagedConnectionFactory instance2 = new CasualManagedConnectionFactory(Mock(DomainHandler), Mock(CasualManagedConnectionProducer))
         instance2.setResourceAdapter( res2 )
         instance2.setHostName( host2 )
         instance2.setPortNumber( port2 )
