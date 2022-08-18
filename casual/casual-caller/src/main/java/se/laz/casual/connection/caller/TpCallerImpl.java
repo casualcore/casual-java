@@ -66,25 +66,26 @@ public class TpCallerImpl implements TpCaller
     private <R> R doCall(String serviceName,  Function<CasualConnection, R> callFunction, Supplier<R> tpenoentSupplier)
     {
         ServiceInfo serviceInfo = ServiceInfo.of(serviceName);
-        List<MatchingEntry> matchingEntries = cache.get(serviceInfo);
-        if(matchingEntries.isEmpty())
+        List<CacheEntry> cacheEntries = cache.get(serviceInfo);
+        if(cacheEntries.isEmpty())
         {
-            matchingEntries = poolMatcher.match(serviceInfo, poolManager.getPools());
+            List<MatchingEntry> matchingEntries = poolMatcher.match(serviceInfo, poolManager.getPools());
             cache.store(matchingEntries);
+            cacheEntries = cache.get(serviceInfo);
+            if(cacheEntries.isEmpty())
+            {
+                return tpenoentSupplier.get();
+            }
         }
-        if(matchingEntries.isEmpty())
-        {
-            return tpenoentSupplier.get();
-        }
-        return makeServiceCall(matchingEntries, serviceName, callFunction);
+        return makeServiceCall(cacheEntries, serviceName, callFunction);
     }
 
-    private <R> R makeServiceCall(List<MatchingEntry> matchingEntries, String serviceName, Function<CasualConnection, R> function)
+    private <R> R makeServiceCall(List<CacheEntry> matchingEntries, String serviceName, Function<CasualConnection, R> function)
     {
-        List<MatchingEntry> entries = matchingEntries.stream().collect(Collectors.toList());
+        List<CacheEntry> entries = matchingEntries.stream().collect(Collectors.toList());
         Exception thrownException = null;
         Collections.shuffle(entries);
-        for(MatchingEntry entry : entries)
+        for(CacheEntry entry : entries)
         {
             ConnectionRequestInfo requestInfo = CasualRequestInfo.of(entry.getDomainId());
             try(CasualConnection connection = entry.getConnectionFactoryEntry().getConnectionFactory().getConnection(requestInfo))

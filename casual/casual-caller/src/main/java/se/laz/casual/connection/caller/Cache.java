@@ -10,6 +10,6 @@ import java.util.Optional;
 public interface Cache
 {
     void store(List<MatchingEntry> matchingEntries);
-    List<MatchingEntry> get(ServiceInfo serviceInfo);
-    Optional<MatchingEntry> get(QueueInfo queueInfo);
+    List<CacheEntry> get(ServiceInfo serviceInfo);
+    Optional<CacheEntry> get(QueueInfo queueInfo);
 }

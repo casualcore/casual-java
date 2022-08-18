@@ -36,7 +36,7 @@ public class QueueCallerImpl implements QueueCaller
     @Override
     public EnqueueReturn enqueue(QueueInfo qinfo, QueueMessage msg)
     {
-        MatchingEntry entry = cache.get(qinfo).orElse(null);
+        CacheEntry entry = cache.get(qinfo).orElse(null);
         if(null == entry)
         {
             List<MatchingEntry> matchingEntries = poolMatcher.match(qinfo, poolManager.getPools());
@@ -53,7 +53,7 @@ public class QueueCallerImpl implements QueueCaller
     @Override
     public DequeueReturn dequeue(QueueInfo qinfo, MessageSelector selector)
     {
-        MatchingEntry entry = cache.get(qinfo).orElse(null);
+        CacheEntry entry = cache.get(qinfo).orElse(null);
         if(null == entry)
         {
             List<MatchingEntry> matchingEntries = poolMatcher.match(qinfo, poolManager.getPools());
@@ -73,7 +73,7 @@ public class QueueCallerImpl implements QueueCaller
         return !poolMatcher.match(qinfo, poolManager.getPools()).isEmpty();
     }
 
-    private <R> R doCall(QueueInfo queueInfo, MatchingEntry entry, Function<CasualConnection, R> function, String callName)
+    private <R> R doCall(QueueInfo queueInfo, CacheEntry entry, Function<CasualConnection, R> function, String callName)
     {
         ConnectionRequestInfo requestInfo = CasualRequestInfo.of(entry.getDomainId());
         try(CasualConnection connection = entry.getConnectionFactoryEntry().getConnectionFactory().getConnection(requestInfo))

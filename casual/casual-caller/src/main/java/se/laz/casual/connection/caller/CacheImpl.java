@@ -26,9 +26,8 @@ public class CacheImpl implements Cache
     // Please note that for queues we only ever cache one thing, queues should be unique across pools
     // if not, we'll just keep using the one we got while also warning when adding subsequent entries
     // The current state of the world
-    private final Map<ServiceInfo, List<MatchingEntry>> services = new ConcurrentHashMap<>();
-    private final Map<QueueInfo, MatchingEntry> queues = new ConcurrentHashMap<>();
-
+    private final Map<ServiceInfo, List<CacheEntry>> services = new ConcurrentHashMap<>();
+    private final Map<QueueInfo, CacheEntry> queues = new ConcurrentHashMap<>();
     // We keep a state of the seen world since services and queues can come and go
     // This is so that once we see a new domain we can issue a total domain discovery in one go
     private final Map<ServiceInfo, Boolean> allSeenServiceNames = new ConcurrentHashMap<>();
@@ -79,7 +78,7 @@ public class CacheImpl implements Cache
                                  services.putIfAbsent(key, new ArrayList<>());
                                  if(!services.get(key).contains(matchingEntry))
                                  {
-                                     services.get(key).add(matchingEntry);
+                                     services.get(key).add(createCacheEntry(matchingEntry));
                                  }
                                  allSeenServiceNames.putIfAbsent(ServiceInfo.of(serviceDetails.getName()), true);
                              }));
@@ -88,7 +87,7 @@ public class CacheImpl implements Cache
                              forEach(queueDetails ->
                              {
                                  QueueInfo key = QueueInfo.of(queueDetails.getName());
-                                 if(null != queues.putIfAbsent(key, matchingEntry))
+                                 if(null != queues.putIfAbsent(key, createCacheEntry(matchingEntry)))
                                  {
                                      LOG.warning(() -> "More than one queue with the name: " + queueDetails.getName() + "\nNot storing entry: " + matchingEntry);
                                  }
@@ -98,13 +97,13 @@ public class CacheImpl implements Cache
     }
 
     @Override
-    public List<MatchingEntry> get(ServiceInfo serviceInfo)
+    public List<CacheEntry> get(ServiceInfo serviceInfo)
     {
         return Collections.unmodifiableList(services.getOrDefault(serviceInfo, Collections.emptyList()));
     }
 
     @Override
-    public Optional<MatchingEntry> get(QueueInfo queueInfo)
+    public Optional<CacheEntry> get(QueueInfo queueInfo)
     {
         return Optional.ofNullable(queues.get(queueInfo));
     }
@@ -117,6 +116,11 @@ public class CacheImpl implements Cache
     private List<QueueInfo> getAllSeenQueues()
     {
         return Collections.unmodifiableList(allSeenQueueNames.keySet().stream().collect(Collectors.toList()));
+    }
+
+    private CacheEntry createCacheEntry(MatchingEntry matchingEntry)
+    {
+        return CacheEntry.of(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry());
     }
 }
 
