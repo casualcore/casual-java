@@ -42,7 +42,7 @@ public class CasualCallerImpl implements CasualCaller
     @Inject
     public CasualCallerImpl(ConnectionFactoryEntryStore connectionFactoryProvider,
                             TransactionLess transactionLess,
-                            TpCallerImpl tpCaller,
+                            TpCaller tpCaller,
                             QueueCaller queueCaller)
     {
         this.transactionLess = transactionLess;
