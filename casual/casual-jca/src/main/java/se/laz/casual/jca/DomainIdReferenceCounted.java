@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
 package se.laz.casual.jca;
 
 import java.util.Objects;
@@ -46,7 +51,7 @@ public class DomainIdReferenceCounted
             return false;
         }
         DomainIdReferenceCounted that = (DomainIdReferenceCounted) o;
-        return getDomainId().equals(that.getDomainId()) && referenceCount.equals(that.referenceCount);
+        return getDomainId().equals(that.getDomainId()) && referenceCount.get() == that.referenceCount.get();
     }
 
     @Override
