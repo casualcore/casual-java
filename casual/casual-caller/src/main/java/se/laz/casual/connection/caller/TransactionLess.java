@@ -105,7 +105,7 @@ public class TransactionLess
                 {
                     connection.addConnectionListener(connectionListener);
                 }
-                return  Optional.of(Pool.of(connectionFactoryEntry, connection.getPoolDomainIds()));
+                return Optional.of(Pool.of(connectionFactoryEntry, connection.getPoolDomainIds()));
             }
             catch (ResourceException e)
             {

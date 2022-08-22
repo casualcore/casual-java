@@ -39,7 +39,7 @@ public class DomainHandler
                                                                      .orElse(null);
             if (null == domainIdReferenceCounted)
             {
-                log.info(() -> "Adding domainId: " + domainId);
+                log.info(() -> "adding new domainId: " + domainId);
                 domainIdReferenceCounted = DomainIdReferenceCounted.of(domainId);
                 items.add(domainIdReferenceCounted);
             }
@@ -53,14 +53,17 @@ public class DomainHandler
 
     public List<DomainId> getDomainIds(Address address)
     {
-        List<DomainIdReferenceCounted> values = domainIds.get(address);
-        if(null != values)
+        synchronized (domainLock)
         {
-            return values.stream()
-                         .map(value -> value.getDomainId())
-                         .collect(Collectors.toList());
+            List<DomainIdReferenceCounted> values = domainIds.get(address);
+            if (null != values)
+            {
+                return values.stream()
+                             .map(value -> value.getDomainId())
+                             .collect(Collectors.toList());
+            }
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
     }
 
     public void addConnectionListener(Address address, CasualConnectionListener listener)
@@ -91,15 +94,6 @@ public class DomainHandler
         }
     }
 
-    public void handleNewConnection(Address address, DomainId domainId)
-    {
-        List<CasualConnectionListener> listeners = connectionListeners.get(address);
-        if(null != listeners)
-        {
-            listeners.forEach(listener -> listener.newConnection(domainId));
-        }
-    }
-
     public void domainDisconnect(Address address, DomainId domainId)
     {
         synchronized (domainLock)
@@ -117,11 +111,20 @@ public class DomainHandler
                 }
                 if (domainIdReferenceCounted.decrementAndGet() == 0)
                 {
-                    log.info(() -> "domain id gone: " + domainId);
+                    log.info(() -> "domain id gone - removing: " + domainId);
                     domainIds.remove(domainIdReferenceCounted);
                     handleConnectionGone(address, domainId);
                 }
             }
+        }
+    }
+
+    private void handleNewConnection(Address address, DomainId domainId)
+    {
+        List<CasualConnectionListener> listeners = connectionListeners.get(address);
+        if(null != listeners)
+        {
+            listeners.forEach(listener -> listener.newConnection(domainId));
         }
     }
 

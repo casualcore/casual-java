@@ -88,6 +88,14 @@ public class PoolManager implements CasualConnectionListener
     private List<Pool> updatePools()
     {
         pools = poolDataRetriever.get(connectionFactoryEntryStore.get(), this);
+        LOG.finest(() -> logPools());
         return getPools();
+    }
+
+    private String logPools()
+    {
+        StringBuilder builder = new StringBuilder("currently known pools: ");
+        getPools().forEach(pool -> builder.append(pool));
+        return builder.toString();
     }
 }
