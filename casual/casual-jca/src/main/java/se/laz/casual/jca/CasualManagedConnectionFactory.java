@@ -144,10 +144,10 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
                                                                     .filter(CasualManagedConnection.class::isInstance)
                                                                     .map(CasualManagedConnection.class::cast)
                                                                     .collect(Collectors.toList());
-          ManagedConnection managedConnection = matchManagedConnections( managedConnections, requestInfo);
-          if(null != managedConnection)
+          DomainId domainId = requestInfo.getDomainId().orElse(null);
+          if(null != domainId)
           {
-              return managedConnection;
+              return matchManagedConnections(managedConnections, domainId);
           }
       }
       return (ManagedConnection)connectionSet.stream()
@@ -166,19 +166,14 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
        domainHandler.domainDisconnect(getAddress(), domainId);
    }
 
-    private ManagedConnection matchManagedConnections(List<CasualManagedConnection> connections, CasualRequestInfo requestInfo)
+    private ManagedConnection matchManagedConnections(List<CasualManagedConnection> connections, DomainId domainId)
     {
-        DomainId domainId = requestInfo.getDomainId().orElse(null);
-        if(null != domainId)
-        {
-            ManagedConnection matchedConnection =  connections.stream()
-                                                              .filter(connection -> connection.getDomainId().equals(domainId))
-                                                              .findFirst()
-                                                              .orElse(null);
-            log.finest(() -> null != matchedConnection ? "matchManagedConnections: " + domainId : "matchManagedConnections no match for: :" + domainId);
-            return matchedConnection;
-        }
-        return null;
+        ManagedConnection matchedConnection =  connections.stream()
+                                                          .filter(connection -> connection.getDomainId().equals(domainId))
+                                                          .findFirst()
+                                                          .orElse(null);
+        log.finest(() -> null != matchedConnection ? "matching domain id " + domainId + " using: " + this : "matchManagedConnections no match for " + domainId + " using " + this);
+        return matchedConnection;
     }
 
     @Override
