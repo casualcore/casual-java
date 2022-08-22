@@ -229,12 +229,11 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder("NettyNetworkConnection{");
-        sb.append("ci=").append(ci);
-        sb.append(", correlator=").append(correlator);
-        sb.append(", channel=").append(channel);
-        sb.append('}');
-        return sb.toString();
+        return "NettyNetworkConnection{" +
+                "correlator=" + correlator +
+                ", channel=" + channel +
+                ", domainId=" + domainId +
+                '}';
     }
 
     @Override
