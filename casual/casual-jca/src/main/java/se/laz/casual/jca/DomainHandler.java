@@ -53,17 +53,14 @@ public class DomainHandler
 
     public List<DomainId> getDomainIds(Address address)
     {
-        synchronized (domainLock)
+        List<DomainIdReferenceCounted> values = domainIds.get(address);
+        if (null != values)
         {
-            List<DomainIdReferenceCounted> values = domainIds.get(address);
-            if (null != values)
-            {
-                return values.stream()
-                             .map(value -> value.getDomainId())
-                             .collect(Collectors.toList());
-            }
-            return Collections.emptyList();
+            return values.stream()
+                         .map(value -> value.getDomainId())
+                         .collect(Collectors.toList());
         }
+        return Collections.emptyList();
     }
 
     public void addConnectionListener(Address address, CasualConnectionListener listener)
@@ -112,7 +109,11 @@ public class DomainHandler
                 if (domainIdReferenceCounted.decrementAndGet() == 0)
                 {
                     log.info(() -> "domain id gone - removing: " + domainId);
-                    domainIds.remove(domainIdReferenceCounted);
+                    domainIdsPerAddress.remove(domainIdReferenceCounted);
+                    if(domainIdsPerAddress.isEmpty())
+                    {
+                        domainIds.remove(address);
+                    }
                     handleConnectionGone(address, domainId);
                 }
             }
