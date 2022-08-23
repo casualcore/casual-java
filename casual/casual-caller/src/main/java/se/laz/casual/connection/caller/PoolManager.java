@@ -60,7 +60,7 @@ public class PoolManager implements CasualConnectionListener
                 Pool matchingPool = updatePools().stream()
                                                  .filter(pool -> pool.getDomainIds().contains(domainId))
                                                  .findFirst()
-                                                 .orElseThrow(() -> new CasualCallerException("Expected domainId: " + domainId + " missing"));
+                                                 .orElseThrow(() -> new CasualCallerException("Expected domainId: " + domainId + " missing\n" + logPools()));
                 List<DomainId> domainIds = new ArrayList<>();
                 domainIds.add(domainId);
                 newDomain.fire(NewDomain.of(Pool.of(matchingPool.getConnectionFactoryEntry(), domainIds)));
