@@ -1,8 +1,8 @@
 package se.laz.casual.connection.caller;
 
+import se.laz.casual.connection.caller.entities.Pool;
 import se.laz.casual.connection.caller.events.DomainGone;
 import se.laz.casual.connection.caller.events.NewDomain;
-import se.laz.casual.connection.caller.entities.Pool;
 import se.laz.casual.jca.CasualConnectionListener;
 import se.laz.casual.jca.DomainId;
 
@@ -20,7 +20,7 @@ public class PoolManager implements CasualConnectionListener
 {
     private static final Logger LOG = Logger.getLogger(PoolManager.class.getName());
     private ConnectionFactoryEntryStore connectionFactoryEntryStore;
-    private TransactionLess.PoolDataRetriever poolDataRetriever;
+    private PoolDataRetriever poolDataRetriever;
     private Event<NewDomain> newDomain;
     private Event<DomainGone> domainGone;
     private List<Pool> pools;
@@ -31,7 +31,7 @@ public class PoolManager implements CasualConnectionListener
     {}
 
     @Inject
-    public PoolManager(ConnectionFactoryEntryStore connectionFactoryEntryStore, TransactionLess.PoolDataRetriever poolDataRetriever, Event<NewDomain> newDomain, Event<DomainGone> domainGone)
+    public PoolManager(ConnectionFactoryEntryStore connectionFactoryEntryStore, PoolDataRetriever poolDataRetriever, Event<NewDomain> newDomain, Event<DomainGone> domainGone)
     {
         this.connectionFactoryEntryStore = connectionFactoryEntryStore;
         this.poolDataRetriever = poolDataRetriever;
