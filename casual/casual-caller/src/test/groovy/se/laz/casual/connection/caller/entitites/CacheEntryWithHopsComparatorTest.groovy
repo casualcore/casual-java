@@ -1,4 +1,4 @@
-package se.laz.casual.connection.caller
+package se.laz.casual.connection.caller.entitites
 
 import se.laz.casual.connection.caller.entities.CacheEntry
 import se.laz.casual.connection.caller.entities.CacheEntryWithHops

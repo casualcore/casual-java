@@ -4,7 +4,6 @@ import se.laz.casual.api.queue.QueueDetails;
 import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.jca.DomainId;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,17 +14,12 @@ public class MatchingEntry implements Comparable<MatchingEntry>
     private final List<ServiceDetails> services;
     private final List<QueueDetails> queues;
 
-    public MatchingEntry(ConnectionFactoryEntry connectionFactoryEntry, DomainId domainId, List<ServiceDetails> services, List<QueueDetails> queues)
+    private MatchingEntry(ConnectionFactoryEntry connectionFactoryEntry, DomainId domainId, List<ServiceDetails> services, List<QueueDetails> queues)
     {
         this.connectionFactoryEntry = connectionFactoryEntry;
         this.domainId = domainId;
         this.services = services;
         this.queues = queues;
-    }
-
-    public static MatchingEntry of(ConnectionFactoryEntry connectionFactoryEntry, DomainId domainId)
-    {
-        return of(connectionFactoryEntry, domainId, Collections.emptyList(), Collections.emptyList());
     }
 
     public static MatchingEntry of(ConnectionFactoryEntry connectionFactoryEntry, DomainId domainId, List<ServiceDetails> services, List<QueueDetails> queues)

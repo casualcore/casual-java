@@ -75,43 +75,30 @@ public class CacheImpl implements Cache
                                                            .distinct()
                                                            .collect(Collectors.toList());
         LOG.finest(() -> "will cache:" + uniqueEntries);
-        uniqueEntries.forEach(matchingEntry ->
-                matchingEntry.getServices().
-                             forEach(serviceDetails ->
+        uniqueEntries.forEach(matchingEntry -> {
+            matchingEntry.getServices().
+                         forEach(serviceDetails ->
+                         {
+                             ServiceInfo key = ServiceInfo.of(serviceDetails.getName());
+                             services.putIfAbsent(key, new ArrayList<>());
+                             CacheEntryWithHops cacheEntry = createServiceCacheEntry(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry(), serviceDetails.getHops());
+                             if (!services.get(key).contains(cacheEntry))
                              {
-                                 ServiceInfo key = ServiceInfo.of(serviceDetails.getName());
-                                 services.putIfAbsent(key, new ArrayList<>());
-                                 CacheEntryWithHops cacheEntry = createServiceCacheEntry(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry(), serviceDetails.getHops());
-                                 if(!services.get(key).contains(cacheEntry))
-                                 {
-                                     services.get(key).add(cacheEntry);
-                                 }
-                                 allSeenServiceNames.putIfAbsent(ServiceInfo.of(serviceDetails.getName()), true);
-                             }));
-        uniqueEntries.forEach(matchingEntry ->
-                matchingEntry.getQueues().
-                             forEach(queueDetails ->
+                                 services.get(key).add(cacheEntry);
+                             }
+                             allSeenServiceNames.putIfAbsent(ServiceInfo.of(serviceDetails.getName()), true);
+                         });
+            matchingEntry.getQueues().
+                         forEach(queueDetails ->
+                         {
+                             QueueInfo key = QueueInfo.of(queueDetails.getName());
+                             if(null != queues.putIfAbsent(key, createQueueCacheEntry(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry())))
                              {
-                                 QueueInfo key = QueueInfo.of(queueDetails.getName());
-                                 if(null != queues.putIfAbsent(key, createQueueCacheEntry(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry())))
-                                 {
-                                     LOG.warning(() -> "More than one queue with the name: " + queueDetails.getName() + "\nNot storing entry: " + matchingEntry);
-                                 }
-                                 allSeenQueueNames.putIfAbsent(QueueInfo.of(queueDetails.getName()), true);
-                             }));
-
-    }
-
-
-    private CacheEntry createQueueCacheEntry(DomainId domainId, ConnectionFactoryEntry connectionFactoryEntry)
-    {
-        return CacheEntry.of(domainId, connectionFactoryEntry);
-    }
-
-    private CacheEntryWithHops createServiceCacheEntry(DomainId domainId, ConnectionFactoryEntry connectionFactoryEntry, long hops)
-    {
-        CacheEntry cacheEntry = CacheEntry.of(domainId, connectionFactoryEntry);
-        return CacheEntryWithHops.of(cacheEntry, hops);
+                                 LOG.warning(() -> "More than one queue with the name: " + queueDetails.getName() + "\nNot storing entry: " + matchingEntry);
+                             }
+                             allSeenQueueNames.putIfAbsent(QueueInfo.of(queueDetails.getName()), true);
+                         });
+                });
     }
 
     @Override
@@ -130,6 +117,17 @@ public class CacheImpl implements Cache
         return Optional.ofNullable(queues.get(queueInfo));
     }
 
+    private CacheEntry createQueueCacheEntry(DomainId domainId, ConnectionFactoryEntry connectionFactoryEntry)
+    {
+        return CacheEntry.of(domainId, connectionFactoryEntry);
+    }
+
+    private CacheEntryWithHops createServiceCacheEntry(DomainId domainId, ConnectionFactoryEntry connectionFactoryEntry, long hops)
+    {
+        CacheEntry cacheEntry = CacheEntry.of(domainId, connectionFactoryEntry);
+        return CacheEntryWithHops.of(cacheEntry, hops);
+    }
+
     private List<ServiceInfo> getAllSeenServices()
     {
         return Collections.unmodifiableList(allSeenServiceNames.keySet().stream().collect(Collectors.toList()));
@@ -139,7 +137,6 @@ public class CacheImpl implements Cache
     {
         return Collections.unmodifiableList(allSeenQueueNames.keySet().stream().collect(Collectors.toList()));
     }
-
 
 }
 
