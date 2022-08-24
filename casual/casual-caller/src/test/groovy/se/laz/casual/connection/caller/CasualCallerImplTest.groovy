@@ -7,6 +7,7 @@ import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.ServiceReturnState
 import se.laz.casual.api.queue.*
+import se.laz.casual.connection.caller.entities.CacheEntry
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry
 import se.laz.casual.connection.caller.entities.ConnectionFactoryProducer
 import se.laz.casual.jca.CasualConnection

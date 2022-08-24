@@ -6,6 +6,7 @@ import se.laz.casual.api.queue.EnqueueReturn;
 import se.laz.casual.api.queue.MessageSelector;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
+import se.laz.casual.connection.caller.entities.CacheEntry;
 import se.laz.casual.connection.caller.entities.MatchingEntry;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualRequestInfo;

@@ -8,6 +8,7 @@ import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
 import se.laz.casual.api.service.ServiceInfo;
+import se.laz.casual.connection.caller.entities.CacheEntry;
 import se.laz.casual.connection.caller.entities.MatchingEntry;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualRequestInfo;

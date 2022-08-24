@@ -2,10 +2,15 @@ package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.service.ServiceInfo;
+import se.laz.casual.connection.caller.entities.CacheEntry;
+import se.laz.casual.connection.caller.entities.CacheEntryWithHops;
+import se.laz.casual.connection.caller.entities.CacheEntryWithHopsComparator;
+import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
 import se.laz.casual.connection.caller.entities.MatchingEntry;
 import se.laz.casual.connection.caller.entities.Pool;
 import se.laz.casual.connection.caller.events.DomainGone;
 import se.laz.casual.connection.caller.events.NewDomain;
+import se.laz.casual.jca.DomainId;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -26,7 +31,7 @@ public class CacheImpl implements Cache
     // Please note that for queues we only ever cache one thing, queues should be unique across pools
     // if not, we'll just keep using the one we got while also warning when adding subsequent entries
     // The current state of the world
-    private final Map<ServiceInfo, List<CacheEntry>> services = new ConcurrentHashMap<>();
+    private final Map<ServiceInfo, List<CacheEntryWithHops>> services = new ConcurrentHashMap<>();
     private final Map<QueueInfo, CacheEntry> queues = new ConcurrentHashMap<>();
     // We keep a state of the seen world since services and queues can come and go
     // This is so that once we see a new domain we can issue a total domain discovery in one go
@@ -57,7 +62,7 @@ public class CacheImpl implements Cache
     {
         LOG.finest(() -> "onDomainGone: " + event);
         services.entrySet().removeIf(entry -> {
-            entry.getValue().removeIf(matchingEntry -> matchingEntry.getDomainId().equals(event.getDomainId()));
+            entry.getValue().removeIf(matchingEntry -> matchingEntry.getCacheEntry().getDomainId().equals(event.getDomainId()));
             return entry.getValue().isEmpty();
         });
         queues.entrySet().removeIf(entry -> entry.getValue().getDomainId().equals(event.getDomainId()));
@@ -76,9 +81,10 @@ public class CacheImpl implements Cache
                              {
                                  ServiceInfo key = ServiceInfo.of(serviceDetails.getName());
                                  services.putIfAbsent(key, new ArrayList<>());
-                                 if(!services.get(key).contains(matchingEntry))
+                                 CacheEntryWithHops cacheEntry = createServiceCacheEntry(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry(), serviceDetails.getHops());
+                                 if(!services.get(key).contains(cacheEntry))
                                  {
-                                     services.get(key).add(createCacheEntry(matchingEntry));
+                                     services.get(key).add(cacheEntry);
                                  }
                                  allSeenServiceNames.putIfAbsent(ServiceInfo.of(serviceDetails.getName()), true);
                              }));
@@ -87,7 +93,7 @@ public class CacheImpl implements Cache
                              forEach(queueDetails ->
                              {
                                  QueueInfo key = QueueInfo.of(queueDetails.getName());
-                                 if(null != queues.putIfAbsent(key, createCacheEntry(matchingEntry)))
+                                 if(null != queues.putIfAbsent(key, createQueueCacheEntry(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry())))
                                  {
                                      LOG.warning(() -> "More than one queue with the name: " + queueDetails.getName() + "\nNot storing entry: " + matchingEntry);
                                  }
@@ -96,10 +102,26 @@ public class CacheImpl implements Cache
 
     }
 
+
+    private CacheEntry createQueueCacheEntry(DomainId domainId, ConnectionFactoryEntry connectionFactoryEntry)
+    {
+        return CacheEntry.of(domainId, connectionFactoryEntry);
+    }
+
+    private CacheEntryWithHops createServiceCacheEntry(DomainId domainId, ConnectionFactoryEntry connectionFactoryEntry, long hops)
+    {
+        CacheEntry cacheEntry = CacheEntry.of(domainId, connectionFactoryEntry);
+        return CacheEntryWithHops.of(cacheEntry, hops);
+    }
+
     @Override
     public List<CacheEntry> get(ServiceInfo serviceInfo)
     {
-        return Collections.unmodifiableList(services.getOrDefault(serviceInfo, Collections.emptyList()));
+        List<CacheEntryWithHops> matches = services.getOrDefault(serviceInfo, Collections.emptyList());
+        Collections.sort(matches, CacheEntryWithHopsComparator.of());
+        return matches.stream()
+                      .map(match -> match.getCacheEntry())
+                      .collect(Collectors.toList());
     }
 
     @Override
@@ -118,9 +140,6 @@ public class CacheImpl implements Cache
         return Collections.unmodifiableList(allSeenQueueNames.keySet().stream().collect(Collectors.toList()));
     }
 
-    private CacheEntry createCacheEntry(MatchingEntry matchingEntry)
-    {
-        return CacheEntry.of(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry());
-    }
+
 }
 

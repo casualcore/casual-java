@@ -2,6 +2,7 @@ package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.service.ServiceInfo;
+import se.laz.casual.connection.caller.entities.CacheEntry;
 import se.laz.casual.connection.caller.entities.MatchingEntry;
 
 import java.util.List;

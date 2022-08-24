@@ -1,6 +1,5 @@
-package se.laz.casual.connection.caller;
+package se.laz.casual.connection.caller.entities;
 
-import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
 import se.laz.casual.jca.DomainId;
 
 import java.util.Objects;
