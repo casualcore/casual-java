@@ -2,6 +2,7 @@ package se.laz.casual.connection.caller
 
 import se.laz.casual.api.discovery.DiscoveryReturn
 import se.laz.casual.api.queue.QueueDetails
+import se.laz.casual.api.queue.QueueInfo
 import se.laz.casual.api.service.ServiceDetails
 import se.laz.casual.api.service.ServiceInfo
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry
@@ -56,16 +57,26 @@ class PoolMatcherTest extends Specification
       ConnectionFactoryEntry connectionFactoryEntryOne = ConnectionFactoryEntry.of(connectionFactoryProducerOne)
       Pool poolOne = Pool.of(connectionFactoryEntryOne, [domainIdOne, domainIdTwo])
       PoolMatcher poolMatcher = new PoolMatcher()
-      def serviceNameOne = "serviceNameOne"
+      def serviceName = "serviceName"
+      def queueName = 'queueName'
       when:
-      def matches = poolMatcher.match(ServiceInfo.of(serviceNameOne), [poolOne])
+      def matches = poolMatcher.match(ServiceInfo.of(serviceName), [poolOne])
       then:
       matches.size() == 1
       matches.get(0).getDomainId() == domainIdOne
       matches.get(0).getConnectionFactoryEntry() == connectionFactoryEntryOne
       matches.get(0).getServices().size() == 1
       matches.get(0).getQueues().isEmpty()
-      matches.get(0).getServices().get(0).getName() == serviceNameOne
+      matches.get(0).getServices().get(0).getName() == serviceName
+      when:
+      matches = poolMatcher.match(QueueInfo.of(queueName), [poolOne])
+      then:
+      matches.size() == 1
+      matches.get(0).getDomainId() == domainIdOne
+      matches.get(0).getConnectionFactoryEntry() == connectionFactoryEntryOne
+      matches.get(0).getQueues().size() == 1
+      matches.get(0).getServices().isEmpty()
+      matches.get(0).getQueues().get(0).getName() == queueName
    }
 
    ServiceDetails createServiceDetails(String serviceName, long hops)
