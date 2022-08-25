@@ -7,10 +7,14 @@ import se.laz.casual.api.service.ServiceInfo
 import se.laz.casual.connection.caller.entities.CacheEntry
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry
 import se.laz.casual.connection.caller.entities.MatchingEntry
+import se.laz.casual.connection.caller.entities.Pool
 import se.laz.casual.connection.caller.events.DomainGone
+import se.laz.casual.connection.caller.events.NewDomain
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.messages.domain.TransactionType
 import spock.lang.Specification
+
+import java.util.stream.Collectors
 
 class CacheImplTest extends Specification
 {
@@ -118,6 +122,67 @@ class CacheImplTest extends Specification
       matches == expectedMatches
    }
 
+   def'two new domains, one domain gone another domain connects'()
+   {
+      given:
+      DomainId domainIdOne = DomainId.of(UUID.randomUUID())
+      DomainId domainIdTwo = DomainId.of(UUID.randomUUID())
+      DomainId domainIdThree = DomainId.of(UUID.randomUUID())
+
+      def serviceName = 'exampleService'
+      def otherServiceName = 'otherService'
+      def yetAnotherServiceName = 'yetAnotherServiceName'
+
+      def queueName = 'exampleQueue'
+      def otherQueueName = 'otherQueue'
+      def yetAnotherQueueName = 'yetAnotherQueueName'
+
+      def connectionFactoryEntryOne = Mock(ConnectionFactoryEntry)
+      def connectionFactoryEntryTwo = Mock(ConnectionFactoryEntry)
+      def connectionFactoryEntryThree = Mock(ConnectionFactoryEntry)
+
+      def newPool = Pool.of(connectionFactoryEntryThree, [domainIdThree])
+      // match all entries
+      def poolMatcher = Mock(PoolMatcher) {
+         match(_, _, _) >> { List<ServiceInfo> services, List<QueueInfo> queues, List<Pool> pools ->
+            def matchingEntries = []
+            def matchingServices = services.stream()
+                    .map({item -> createServiceDetails(item.getServiceName(), 99)})
+                    .collect(Collectors.toList())
+            def matchingQueues = queues.stream()
+                    .map({item -> QueueDetails.of(item.getQueueName(),0)})
+                    .collect(Collectors.toList())
+            for(Pool pool : pools)
+            {
+               for(DomainId domainId : pool.getDomainIds())
+               {
+                  matchingEntries.add(createMatchingEntry(domainId, pool.getConnectionFactoryEntry(), matchingServices, matchingQueues))
+               }
+            }
+            return matchingEntries
+         }
+      }
+      def instance = new CacheImpl(poolMatcher)
+      // First store some queues/services, it would normally occur during normal service/queue calls
+      List<MatchingEntry> matchingEntries = [createMatchingEntry(domainIdOne, connectionFactoryEntryOne,[createServiceDetails(serviceName, 0)],[QueueDetails.of(queueName,0)]),
+                                             createMatchingEntry(domainIdTwo, connectionFactoryEntryOne,[createServiceDetails(otherServiceName, 0)],[QueueDetails.of(otherQueueName,0)]),
+                                             createMatchingEntry(domainIdOne, connectionFactoryEntryTwo,[createServiceDetails(yetAnotherServiceName, 0)],[QueueDetails.of(yetAnotherQueueName,0)])]
+      instance.store(matchingEntries)
+      def newDomainEvent = new NewDomain(newPool)
+
+      when:
+      def matches = instance.get(ServiceInfo.of(serviceName))
+      def expectedMatches = [CacheEntry.of(domainIdOne, connectionFactoryEntryOne)]
+      then:
+      matches == expectedMatches
+      when:
+      instance.onNewDomain(newDomainEvent)
+      matches = instance.get(ServiceInfo.of(serviceName))
+      expectedMatches = [CacheEntry.of(domainIdOne, connectionFactoryEntryOne), CacheEntry.of(domainIdThree, connectionFactoryEntryThree)]
+      then: // first match should now also be available via the new domain
+      matches == expectedMatches
+   }
+
    ServiceDetails createServiceDetails(String serviceName, long hops)
    {
       return ServiceDetails.createBuilder()
@@ -127,5 +192,10 @@ class CacheImplTest extends Specification
                            .withCategory("")
                            .withTransactionType(TransactionType.AUTOMATIC)
                            .build()
+   }
+
+   MatchingEntry createMatchingEntry(DomainId domainId, ConnectionFactoryEntry connectionFactoryEntry, ArrayList<ServiceDetails> serviceDetails, ArrayList<QueueDetails> queueDetails)
+   {
+      return MatchingEntry.of(connectionFactoryEntry, domainId, serviceDetails, queueDetails)
    }
 }
