@@ -69,8 +69,7 @@ public class PoolMatcher
             }
             catch (ResourceException resourceException)
             {
-                // NOP
-                System.out.println("throwing");
+                //NOP
             }
         }
         return entries;
