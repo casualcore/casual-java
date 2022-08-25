@@ -1,5 +1,7 @@
 package se.laz.casual.connection.caller
 
+import se.laz.casual.api.queue.QueueDetails
+import se.laz.casual.api.queue.QueueInfo
 import se.laz.casual.api.service.ServiceDetails
 import se.laz.casual.api.service.ServiceInfo
 import se.laz.casual.connection.caller.entities.CacheEntry
@@ -79,6 +81,41 @@ class CacheImplTest extends Specification
       matches = instance.get(ServiceInfo.of(serviceName))
       then:
       matches.isEmpty()
+   }
+
+   def 'queue storage/retrieval/domain gone'()
+   {
+      given:
+      def queueName = 'exampleQueue'
+      def otherQueueName = 'otherQueue'
+      def instance = new CacheImpl(Mock(PoolMatcher))
+      def domainIdOne = DomainId.of(UUID.randomUUID())
+      def connectionFactoryEntryOne = Mock(ConnectionFactoryEntry)
+      QueueDetails queueDetailsOne = QueueDetails.of(queueName, 0)
+      QueueDetails queueDetailsTwo = QueueDetails.of(queueName, 0)
+      QueueDetails queueDetailsOtherQueueName = QueueDetails.of(otherQueueName, 0)
+      def firstMatchingEntries = [MatchingEntry.of(connectionFactoryEntryOne, domainIdOne, Collections.emptyList(), [queueDetailsOne, queueDetailsTwo])]
+      when:
+      instance.store(firstMatchingEntries)
+      def matches = instance.get(QueueInfo.of(queueName)).orElse(null)
+      def expectedMatches = CacheEntry.of(domainIdOne, connectionFactoryEntryOne)
+      then:
+      matches == expectedMatches
+      when: // add matching entries for some other queue - should have no impact on previous matching
+      def yetAnotherMatchingEntries = [MatchingEntry.of(connectionFactoryEntryOne, domainIdOne, Collections.emptyList(), [queueDetailsOtherQueueName])]
+      instance.store(yetAnotherMatchingEntries)
+      matches = instance.get(QueueInfo.of(queueName)).orElse(null)
+      then:
+      matches == expectedMatches
+      when: //on domain gone
+      def domainGone = Mock(DomainGone){
+         getDomainId() >> domainIdOne
+      }
+      instance.onDomainGone(domainGone)
+      expectedMatches = null
+      matches = instance.get(QueueInfo.of(queueName)).orElse(null)
+      then:
+      matches == expectedMatches
    }
 
    ServiceDetails createServiceDetails(String serviceName, long hops)
