@@ -122,7 +122,7 @@ class CacheImplTest extends Specification
       matches == expectedMatches
    }
 
-   def'two new domains, one domain gone another domain connects'()
+   def 'services/queues available, a new domain connects'()
    {
       given:
       DomainId domainIdOne = DomainId.of(UUID.randomUUID())
