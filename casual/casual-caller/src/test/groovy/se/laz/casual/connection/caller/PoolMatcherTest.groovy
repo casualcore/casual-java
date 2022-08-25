@@ -1,0 +1,82 @@
+package se.laz.casual.connection.caller
+
+import se.laz.casual.api.discovery.DiscoveryReturn
+import se.laz.casual.api.queue.QueueDetails
+import se.laz.casual.api.service.ServiceDetails
+import se.laz.casual.api.service.ServiceInfo
+import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry
+import se.laz.casual.connection.caller.entities.ConnectionFactoryProducer
+import se.laz.casual.connection.caller.entities.Pool
+import se.laz.casual.jca.CasualConnection
+import se.laz.casual.jca.CasualConnectionFactory
+import se.laz.casual.jca.CasualRequestInfo
+import se.laz.casual.jca.DomainId
+import se.laz.casual.network.messages.domain.TransactionType
+import spock.lang.Specification
+
+import javax.resource.spi.ConnectionRequestInfo
+import javax.resource.spi.ResourceAdapterInternalException
+
+class PoolMatcherTest extends Specification
+{
+   def 'matching queues and services'()
+   {
+      given:
+      DomainId domainIdOne = DomainId.of(UUID.randomUUID())
+      DomainId domainIdTwo = DomainId.of(UUID.randomUUID())
+
+      ConnectionFactoryProducer connectionFactoryProducerOne = Mock(ConnectionFactoryProducer) {
+         getConnectionFactory() >> {
+            CasualConnectionFactory connectionFactory = Mock(CasualConnectionFactory) {
+               getConnection(_) >> { ConnectionRequestInfo connectionRequestInfo ->
+                  CasualRequestInfo requestInfo = (CasualRequestInfo) connectionRequestInfo
+                  if (requestInfo.getDomainId().get() == domainIdOne) {
+                     CasualConnection connection = Mock(CasualConnection) {
+                        discover(_, _, _) >> { UUID corrid, List<String> serviceNames, List<String> queueNames ->
+                           DiscoveryReturn.Builder builder = DiscoveryReturn.createBuilder()
+                           for (String serviceName : serviceNames) {
+                              builder.addServiceDetails(createServiceDetails(serviceName, 0))
+                           }
+                           for (String queueName : queueNames) {
+                              builder.addQueueDetails(QueueDetails.of(queueName, 0))
+                           }
+                           return builder.build()
+                        }
+                     }
+                     return connection
+                  } else {
+                     // would return null to appserver that would throw ResourceException this we throw here in test sans an appserver
+                     throw new ResourceAdapterInternalException()
+                  }
+               }
+            }
+            return connectionFactory
+         }
+      }
+      ConnectionFactoryEntry connectionFactoryEntryOne = ConnectionFactoryEntry.of(connectionFactoryProducerOne)
+      Pool poolOne = Pool.of(connectionFactoryEntryOne, [domainIdOne, domainIdTwo])
+      PoolMatcher poolMatcher = new PoolMatcher()
+      def serviceNameOne = "serviceNameOne"
+      when:
+      def matches = poolMatcher.match(ServiceInfo.of(serviceNameOne), [poolOne])
+      then:
+      matches.size() == 1
+      matches.get(0).getDomainId() == domainIdOne
+      matches.get(0).getConnectionFactoryEntry() == connectionFactoryEntryOne
+      matches.get(0).getServices().size() == 1
+      matches.get(0).getQueues().isEmpty()
+      matches.get(0).getServices().get(0).getName() == serviceNameOne
+   }
+
+   ServiceDetails createServiceDetails(String serviceName, long hops)
+   {
+      return ServiceDetails.createBuilder()
+              .withName(serviceName)
+              .withHops(hops)
+              // note: These two does not matter at all in this context so we set them to whatever for test
+              .withCategory("")
+              .withTransactionType(TransactionType.AUTOMATIC)
+              .build()
+   }
+
+}
