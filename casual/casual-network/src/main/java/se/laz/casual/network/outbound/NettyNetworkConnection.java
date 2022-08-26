@@ -230,6 +230,7 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     public String toString()
     {
         return "NettyNetworkConnection{" +
+                "ci=" + ci +
                 "correlator=" + correlator +
                 ", channel=" + channel +
                 ", domainId=" + domainId +

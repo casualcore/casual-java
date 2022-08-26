@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
 package se.laz.casual.connection.caller;
 
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
@@ -22,7 +27,7 @@ public class PoolDataRetriever
         List<Pool> pools = new ArrayList<>();
         for(ConnectionFactoryEntry connectionFactoryEntry : connectionFactoryEntries)
         {
-            get(connectionFactoryEntry, connectionListener).ifPresent(pool -> pools.add(pool));
+            get(connectionFactoryEntry, connectionListener).ifPresent(pools::add);
         }
         return pools;
     }

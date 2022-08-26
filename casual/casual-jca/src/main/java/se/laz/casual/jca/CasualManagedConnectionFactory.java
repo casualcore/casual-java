@@ -134,10 +134,10 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
          Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
       log.finest("matchManagedConnections()");
-      if( null != cxRequestInfo && cxRequestInfo instanceof CasualRequestInfo)
+      if(cxRequestInfo instanceof CasualRequestInfo)
       {
           CasualRequestInfo requestInfo = (CasualRequestInfo) cxRequestInfo;
-          // TODO: Why do we need to do this, streaming the Set and collecting returns not a List of objects but an Object???
+          // Why do we need to do this, streaming the Set and collecting returns not a List of objects but an Object???
           List<Object> wrapper = new ArrayList<>();
           wrapper.addAll(connectionSet);
           List<CasualManagedConnection> managedConnections = wrapper.stream()

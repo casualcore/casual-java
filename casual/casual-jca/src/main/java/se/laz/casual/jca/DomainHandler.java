@@ -57,7 +57,7 @@ public class DomainHandler
         if (null != values)
         {
             return values.stream()
-                         .map(value -> value.getDomainId())
+                         .map(DomainIdReferenceCounted::getDomainId)
                          .collect(Collectors.toList());
         }
         return Collections.emptyList();
@@ -67,10 +67,7 @@ public class DomainHandler
     {
         synchronized (listenerLock)
         {
-            List<CasualConnectionListener> listenersForAddress = connectionListeners.computeIfAbsent(address, key -> {
-                List<CasualConnectionListener> listeners = new ArrayList<>();
-                return listeners;
-            });
+            List<CasualConnectionListener> listenersForAddress = connectionListeners.computeIfAbsent(address, key -> new ArrayList<>());
             if (!listenersForAddress.contains(listener))
             {
                 listenersForAddress.add(listener);
@@ -131,7 +128,7 @@ public class DomainHandler
 
     private void handleConnectionGone(Address address, DomainId domainId)
     {
-        connectionListeners.get(address).forEach((listener) -> listener.connectionGone(domainId));
+        connectionListeners.get(address).forEach(listener -> listener.connectionGone(domainId));
     }
 }
 

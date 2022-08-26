@@ -154,7 +154,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     {
         log.finest(() -> "destroy()" + this);
         Optional<DomainId> domainId = Optional.ofNullable( null == networkConnection ? null : networkConnection.getDomainId());
-        domainId.ifPresent(id -> mcf.domainDisconnect(id));
+        domainId.ifPresent(mcf::domainDisconnect);
         closeNetworkConnection();
         connectionHandles.clear();
     }

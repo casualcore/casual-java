@@ -1,10 +1,15 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
 package se.laz.casual.connection.caller.entities;
 
 import se.laz.casual.jca.DomainId;
 
 import java.util.Objects;
 
-public class CacheEntry implements Comparable<CacheEntry>
+public class CacheEntry
 {
     private final ConnectionFactoryEntry connectionFactoryEntry;
     private final DomainId domainId;
@@ -22,14 +27,14 @@ public class CacheEntry implements Comparable<CacheEntry>
         return new CacheEntry(connectionFactoryEntry, domainId);
     }
 
-    public ConnectionFactoryEntry getConnectionFactoryEntry()
-    {
-        return connectionFactoryEntry;
-    }
-
     public DomainId getDomainId()
     {
         return domainId;
+    }
+
+    public ConnectionFactoryEntry getConnectionFactoryEntry()
+    {
+        return connectionFactoryEntry;
     }
 
     @Override
@@ -62,13 +67,4 @@ public class CacheEntry implements Comparable<CacheEntry>
                 '}';
     }
 
-    @Override
-    public int compareTo(CacheEntry cacheEntry)
-    {
-        if(getConnectionFactoryEntry().equals(cacheEntry.getConnectionFactoryEntry()))
-        {
-            return getDomainId().getId().compareTo(cacheEntry.getDomainId().getId());
-        }
-        return 1;
-    }
 }

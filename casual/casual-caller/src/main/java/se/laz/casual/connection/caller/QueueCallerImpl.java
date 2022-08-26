@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
 package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.flags.ErrorState;
@@ -46,7 +51,7 @@ public class QueueCallerImpl implements QueueCaller
             {
                 return EnqueueReturn.createBuilder().withErrorState(ErrorState.TPENOENT).build();
             }
-            entry = cache.get(qinfo).orElse(null);
+            entry = cache.get(qinfo).orElseThrow(() -> new CasualCallerException("expected: " + qinfo + " in cache but it is missing"));
         }
         return doCall(qinfo, entry, connection -> connection.enqueue(qinfo, msg), "enqueue");
     }
@@ -63,7 +68,7 @@ public class QueueCallerImpl implements QueueCaller
             {
                 return DequeueReturn.createBuilder().withErrorState(ErrorState.TPENOENT).build();
             }
-            entry = cache.get(qinfo).orElse(null);
+            entry = cache.get(qinfo).orElseThrow(() -> new CasualCallerException("expected: " + qinfo + " in cache but it is missing"));
         }
         return doCall(qinfo, entry, connection -> connection.dequeue(qinfo, selector), "dequeue");
     }

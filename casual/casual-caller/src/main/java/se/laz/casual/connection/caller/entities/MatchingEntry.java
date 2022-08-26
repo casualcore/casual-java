@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
 package se.laz.casual.connection.caller.entities;
 
 import se.laz.casual.api.queue.QueueDetails;
@@ -7,7 +12,7 @@ import se.laz.casual.jca.DomainId;
 import java.util.List;
 import java.util.Objects;
 
-public class MatchingEntry implements Comparable<MatchingEntry>
+public class MatchingEntry
 {
     private final ConnectionFactoryEntry connectionFactoryEntry;
     private final DomainId domainId;
@@ -86,11 +91,5 @@ public class MatchingEntry implements Comparable<MatchingEntry>
                 ", services=" + services +
                 ", queues=" + queues +
                 '}';
-    }
-
-    @Override
-    public int compareTo(MatchingEntry matchingEntry)
-    {
-        return matchingEntry.getDomainId().getId().compareTo(getDomainId().getId());
     }
 }

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
 package se.laz.casual.connection.caller;
 
 import se.laz.casual.connection.caller.entities.Pool;
@@ -88,14 +93,14 @@ public class PoolManager implements CasualConnectionListener
     private List<Pool> updatePools()
     {
         pools = poolDataRetriever.get(connectionFactoryEntryStore.get(), this);
-        LOG.finest(() -> logPools());
+        LOG.finest(this::logPools);
         return getPools();
     }
 
     private String logPools()
     {
         StringBuilder builder = new StringBuilder("currently known pools: ");
-        getPools().forEach(pool -> builder.append(pool));
+        getPools().forEach(builder::append);
         return builder.toString();
     }
 }

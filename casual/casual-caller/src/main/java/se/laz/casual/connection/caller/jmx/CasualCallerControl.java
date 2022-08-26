@@ -12,6 +12,7 @@ import se.laz.casual.connection.caller.Cache;
 import se.laz.casual.connection.caller.ConnectionFactoryEntryStore;
 import se.laz.casual.connection.caller.PoolManager;
 import se.laz.casual.connection.caller.entities.CacheEntry;
+import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
 import se.laz.casual.connection.caller.entities.Pool;
 
 import java.util.List;
@@ -33,6 +34,15 @@ public class CasualCallerControl implements CasualCallerControlMBean
     public static CasualCallerControl of(ConnectionFactoryEntryStore connectionFactoryEntryStore, Cache cache, PoolManager poolManager)
     {
         return new CasualCallerControl(connectionFactoryEntryStore, cache, poolManager);
+    }
+
+    @Override
+    public List<String> connectionFactoryJNDINames()
+    {
+        return connectionFactoryEntryStore.get()
+                                          .stream()
+                                          .map(ConnectionFactoryEntry::toString)
+                                          .collect(Collectors.toList());
     }
 
     @Override

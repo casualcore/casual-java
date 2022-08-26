@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface CasualCallerControlMBean
 {
+    List<String> connectionFactoryJNDINames();
     List<String> currentPools();
 
     void purgeServiceCache();

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
 package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.discovery.DiscoveryReturn;
@@ -42,7 +47,7 @@ public class PoolMatcher
             matchingEntries.addAll(maybeMatching);
         });
         String entriesString = matchingEntries.stream()
-                                              .map(v -> v.toString())
+                                              .map(MatchingEntry::toString)
                                               .collect(Collectors.joining(","));
         LOG.finest(() -> "# of matching entries: " + matchingEntries.size() + "\n values: " + entriesString);
         return matchingEntries;
@@ -59,10 +64,10 @@ public class PoolMatcher
                 DiscoveryReturn discoveryReturn = connection.discover(
                         UUID.randomUUID(),
                         services.stream()
-                                .map(serviceInfo -> serviceInfo.getServiceName())
+                                .map(ServiceInfo::getServiceName)
                                 .collect(Collectors.toList()),
                         queues.stream()
-                              .map(queueInfo -> queueInfo.getQueueName())
+                              .map(QueueInfo::getQueueName)
                               .collect(Collectors.toList()));
                 LOG.finest(() -> "discoveryReturn:" + discoveryReturn);
                 entries.add(MatchingEntry.of(connectionFactoryEntry, domainId, discoveryReturn.getServiceDetails(), discoveryReturn.getQueueDetails()));

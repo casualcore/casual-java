@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
 package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.buffer.CasualBuffer;
@@ -48,7 +53,7 @@ public class TpCallerImpl implements TpCaller
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         LOG.finest(() -> "tpcall<" + serviceName + ">");
-        return doCall(serviceName, connection -> connection.tpcall(serviceName, data, flags), () -> tpenoentReply());
+        return doCall(serviceName, connection -> connection.tpcall(serviceName, data, flags), this::tpenoentReply);
     }
 
     @Override
@@ -107,7 +112,7 @@ public class TpCallerImpl implements TpCaller
             }
         }
         String matchingEntriesAsText = entries.stream()
-                                              .map(entry -> entry.toString())
+                                              .map(CacheEntry::toString)
                                               .collect(Collectors.joining(","));
         throw new CasualResourceException("Call failed to all " + matchingEntries.size() + " matching casual connections.\n" + matchingEntriesAsText, thrownException);
     }
