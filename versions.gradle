@@ -8,9 +8,9 @@
 // casual-java group and version
 group = 'se.laz.casual'
 
-version = '2.0.3-alpha'
+version = '2.1.0-alpha'
 
-ext.casual_caller_app_version = '2.1.3-alpha'
+ext.casual_caller_app_version = '2.2.0-alpha'
 ext.casual_test_app_version = '1.0.1'
 
 ext.libs = [

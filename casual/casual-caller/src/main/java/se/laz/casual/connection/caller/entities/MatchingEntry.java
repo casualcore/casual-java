@@ -56,11 +56,6 @@ public class MatchingEntry
         return queues;
     }
 
-    public boolean validate()
-    {
-        return getConnectionFactoryEntry().validate(domainId);
-    }
-
     @Override
     public boolean equals(Object o)
     {
@@ -73,13 +68,13 @@ public class MatchingEntry
             return false;
         }
         MatchingEntry that = (MatchingEntry) o;
-        return Objects.equals(getConnectionFactoryEntry(), that.getConnectionFactoryEntry()) && Objects.equals(getDomainId(), that.getDomainId());
+        return getConnectionFactoryEntry().equals(that.getConnectionFactoryEntry()) && getDomainId().equals(that.getDomainId()) && getServices().equals(that.getServices()) && getQueues().equals(that.getQueues());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getConnectionFactoryEntry(), getDomainId());
+        return Objects.hash(getConnectionFactoryEntry(), getDomainId(), getServices(), getQueues());
     }
 
     @Override

@@ -14,8 +14,8 @@ import se.laz.casual.connection.caller.entities.CacheEntryWithHopsComparator;
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
 import se.laz.casual.connection.caller.entities.MatchingEntry;
 import se.laz.casual.connection.caller.entities.Pool;
-import se.laz.casual.connection.caller.events.DomainGone;
-import se.laz.casual.connection.caller.events.NewDomain;
+import se.laz.casual.connection.caller.events.DomainGoneEvent;
+import se.laz.casual.connection.caller.events.NewDomainEvent;
 import se.laz.casual.jca.DomainId;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -55,7 +55,7 @@ public class CacheImpl implements Cache
         this.poolMatcher = poolMatcher;
     }
 
-    public void onNewDomain(@Observes NewDomain event)
+    public void onNewDomain(@Observes NewDomainEvent event)
     {
         LOG.finest(() -> "onNewDomain: " + event);
         List<Pool> pools = new ArrayList<>();
@@ -64,7 +64,7 @@ public class CacheImpl implements Cache
         store(matchingEntries);
     }
 
-    public void onDomainGone(@Observes DomainGone event)
+    public void onDomainGone(@Observes DomainGoneEvent event)
     {
         LOG.finest(() -> "onDomainGone: " + event);
         services.entrySet().removeIf(entry -> {

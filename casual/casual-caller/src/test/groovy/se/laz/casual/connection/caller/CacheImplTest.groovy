@@ -13,8 +13,8 @@ import se.laz.casual.connection.caller.entities.CacheEntry
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry
 import se.laz.casual.connection.caller.entities.MatchingEntry
 import se.laz.casual.connection.caller.entities.Pool
-import se.laz.casual.connection.caller.events.DomainGone
-import se.laz.casual.connection.caller.events.NewDomain
+import se.laz.casual.connection.caller.events.DomainGoneEvent
+import se.laz.casual.connection.caller.events.NewDomainEvent
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.messages.domain.TransactionType
 import spock.lang.Specification
@@ -63,7 +63,7 @@ class CacheImplTest extends Specification
       then:
       matches == expectedMatches
       when: //one domain gone, second should remain
-      def domainGone = Mock(DomainGone){
+      def domainGone = Mock(DomainGoneEvent){
          getDomainId() >> domainIdTwo
       }
       instance.onDomainGone(domainGone)
@@ -79,11 +79,11 @@ class CacheImplTest extends Specification
       then:
       matches == expectedMatches
       when: // both domains gone, nothing should remain
-      domainGone = Mock(DomainGone){
+      domainGone = Mock(DomainGoneEvent){
          getDomainId() >> domainIdOne
       }
       instance.onDomainGone(domainGone)
-      domainGone = Mock(DomainGone){
+      domainGone = Mock(DomainGoneEvent){
          getDomainId() >> domainIdTwo
       }
       instance.onDomainGone(domainGone)
@@ -117,7 +117,7 @@ class CacheImplTest extends Specification
       then:
       matches == expectedMatches
       when: //on domain gone
-      def domainGone = Mock(DomainGone){
+      def domainGone = Mock(DomainGoneEvent){
          getDomainId() >> domainIdOne
       }
       instance.onDomainGone(domainGone)
@@ -173,7 +173,7 @@ class CacheImplTest extends Specification
                                              createMatchingEntry(domainIdTwo, connectionFactoryEntryOne,[createServiceDetails(otherServiceName, 0)],[QueueDetails.of(otherQueueName,0)]),
                                              createMatchingEntry(domainIdOne, connectionFactoryEntryTwo,[createServiceDetails(yetAnotherServiceName, 0)],[QueueDetails.of(yetAnotherQueueName,0)])]
       instance.store(matchingEntries)
-      def newDomainEvent = new NewDomain(newPool)
+      def newDomainEvent = new NewDomainEvent(newPool)
 
       when:
       def matches = instance.get(ServiceInfo.of(serviceName))

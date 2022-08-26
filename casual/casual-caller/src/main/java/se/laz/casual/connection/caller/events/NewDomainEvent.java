@@ -9,19 +9,19 @@ import se.laz.casual.connection.caller.entities.Pool;
 
 import java.util.Objects;
 
-public class NewDomain
+public class NewDomainEvent
 {
     private final Pool pool;
 
-    private NewDomain(Pool pool)
+    private NewDomainEvent(Pool pool)
     {
         this.pool = pool;
     }
 
-    public static NewDomain of(Pool pool)
+    public static NewDomainEvent of(Pool pool)
     {
         Objects.requireNonNull(pool, "pool can not be null");
-        return new NewDomain(pool);
+        return new NewDomainEvent(pool);
     }
 
     public Pool getPool()
@@ -40,7 +40,7 @@ public class NewDomain
         {
             return false;
         }
-        NewDomain that = (NewDomain) o;
+        NewDomainEvent that = (NewDomainEvent) o;
         return pool.equals(that.pool);
     }
 
