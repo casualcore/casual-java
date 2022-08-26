@@ -13,4 +13,10 @@ public interface Cache
     void store(List<MatchingEntry> matchingEntries);
     List<CacheEntry> get(ServiceInfo serviceInfo);
     Optional<CacheEntry> get(QueueInfo queueInfo);
+    List<String> getCachedServices();
+    List<String> getCachedSQueues();
+    List<String> getAllServices();
+    List<String> getAllQueues();
+    void purgeServiceCache();
+    void purgeQueueCache();
 }

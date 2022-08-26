@@ -117,6 +117,42 @@ public class CacheImpl implements Cache
         return Optional.ofNullable(queues.get(queueInfo));
     }
 
+    @Override
+    public List<String> getCachedServices()
+    {
+        return services.keySet().stream().map(ServiceInfo::toString).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getCachedSQueues()
+    {
+        return queues.keySet().stream().map(QueueInfo::toString).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getAllServices()
+    {
+        return allSeenServiceNames.keySet().stream().map(ServiceInfo::toString).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getAllQueues()
+    {
+        return allSeenQueueNames.keySet().stream().map(QueueInfo::toString).collect(Collectors.toList());
+    }
+
+    @Override
+    public void purgeServiceCache()
+    {
+        services.clear();
+    }
+
+    @Override
+    public void purgeQueueCache()
+    {
+        queues.clear();
+    }
+
     private CacheEntry createQueueCacheEntry(DomainId domainId, ConnectionFactoryEntry connectionFactoryEntry)
     {
         return CacheEntry.of(domainId, connectionFactoryEntry);

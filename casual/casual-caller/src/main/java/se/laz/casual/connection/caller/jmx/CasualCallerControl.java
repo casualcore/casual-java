@@ -6,73 +6,94 @@
 
 package se.laz.casual.connection.caller.jmx;
 
-import java.util.Collections;
+import se.laz.casual.api.queue.QueueInfo;
+import se.laz.casual.api.service.ServiceInfo;
+import se.laz.casual.connection.caller.Cache;
+import se.laz.casual.connection.caller.ConnectionFactoryEntryStore;
+import se.laz.casual.connection.caller.PoolManager;
+import se.laz.casual.connection.caller.entities.CacheEntry;
+import se.laz.casual.connection.caller.entities.Pool;
+
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CasualCallerControl implements CasualCallerControlMBean
 {
-    public static CasualCallerControl of()
+    private final ConnectionFactoryEntryStore connectionFactoryEntryStore;
+    private final Cache cache;
+    private final PoolManager poolManager;
+
+    public CasualCallerControl(ConnectionFactoryEntryStore connectionFactoryEntryStore, Cache cache, PoolManager poolManager)
     {
-        return new CasualCallerControl();
+        this.connectionFactoryEntryStore = connectionFactoryEntryStore;
+        this.cache = cache;
+        this.poolManager = poolManager;
+    }
+
+    public static CasualCallerControl of(ConnectionFactoryEntryStore connectionFactoryEntryStore, Cache cache, PoolManager poolManager)
+    {
+        return new CasualCallerControl(connectionFactoryEntryStore, cache, poolManager);
     }
 
     @Override
-    public List<String> validPools()
+    public List<String> currentPools()
     {
-        return Collections.emptyList();
+        return poolManager.getPools()
+                          .stream()
+                          .map(Pool::toString)
+                          .collect(Collectors.toList());
     }
-
-    @Override
-    public List<String> invalidPools()
-    {
-        return Collections.emptyList();
-    }
-
 
     @Override
     public void purgeServiceCache()
     {
-    }
-
-    @Override
-    public void purgeQueueCache()
-    {
-
+        cache.purgeServiceCache();
     }
 
     @Override
     public List<String> cachedServices()
     {
-        return Collections.emptyList();
+        return cache.getCachedServices();
+    }
+
+    @Override
+    public List<String> allServices()
+    {
+        return cache.getAllServices();
+    }
+
+    @Override
+    public List<String> poolsForService(String serviceName)
+    {
+        return cache.get(ServiceInfo.of(serviceName))
+                    .stream()
+                    .map(CacheEntry::toString)
+                    .collect(Collectors.toList());
+    }
+
+    @Override
+    public void purgeQueueCache()
+    {
+        cache.purgeQueueCache();
     }
 
     @Override
     public List<String> cachedQueues()
     {
-        return Collections.emptyList();
+        return cache.getCachedSQueues();
     }
 
     @Override
-    public List<String> poolsCheckedForService(String serviceName)
+    public List<String> allQueues()
     {
-        return Collections.emptyList();
+        return cache.getAllQueues();
     }
 
     @Override
-    public List<String> poolsContainingService(String serviceName)
+    public String poolForQueue(String queueName)
     {
-        return Collections.emptyList();
+        CacheEntry cacheEntry = cache.get(QueueInfo.of(queueName)).orElse(null);
+        return null != cacheEntry ? cacheEntry.toString() : null;
     }
 
-    @Override
-    public List<String> queueInPools(String queueName)
-    {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public String getQueueStickiedPool(String queueName)
-    {
-        return null;
-    }
 }
