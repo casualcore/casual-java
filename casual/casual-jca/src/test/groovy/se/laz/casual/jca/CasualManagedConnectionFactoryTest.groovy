@@ -40,7 +40,7 @@ class CasualManagedConnectionFactoryTest extends Specification
            }
         }
         domainHandler = new DomainHandler()
-        instance = new CasualManagedConnectionFactory(domainHandler,  producer)
+        instance = new CasualManagedConnectionFactory().setCasualManagedConnectionProducer(producer).setDomainHandler(domainHandler)
     }
 
     def "GetHostName returns null if not set."()
@@ -123,7 +123,7 @@ class CasualManagedConnectionFactoryTest extends Specification
            1 * addConnectionListener(address, listener)
            1 * removeConnectionListener(address, listener)
         }
-        instance = new CasualManagedConnectionFactory(domainHandler,  producer)
+        instance = new CasualManagedConnectionFactory().setDomainHandler(domainHandler).setCasualManagedConnectionProducer(producer)
         instance.setHostName(hostName)
         instance.setPortNumber( portNumber)
 
@@ -250,7 +250,7 @@ class CasualManagedConnectionFactoryTest extends Specification
         instance.setHostName( host1 )
         instance.setPortNumber( port1 )
 
-        CasualManagedConnectionFactory instance2 = new CasualManagedConnectionFactory(Mock(DomainHandler), Mock(CasualManagedConnectionProducer))
+        CasualManagedConnectionFactory instance2 = new CasualManagedConnectionFactory()
         instance2.setResourceAdapter( res2 )
         instance2.setHostName( host2 )
         instance2.setPortNumber( port2 )

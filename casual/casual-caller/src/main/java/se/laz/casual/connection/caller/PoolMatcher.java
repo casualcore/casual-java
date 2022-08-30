@@ -6,7 +6,9 @@
 package se.laz.casual.connection.caller;
 
 import se.laz.casual.api.discovery.DiscoveryReturn;
+import se.laz.casual.api.queue.QueueDetails;
 import se.laz.casual.api.queue.QueueInfo;
+import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
 import se.laz.casual.connection.caller.entities.MatchingEntry;
@@ -70,7 +72,10 @@ public class PoolMatcher
                               .map(QueueInfo::getQueueName)
                               .collect(Collectors.toList()));
                 LOG.finest(() -> "discoveryReturn:" + discoveryReturn);
-                entries.add(MatchingEntry.of(connectionFactoryEntry, domainId, discoveryReturn.getServiceDetails(), discoveryReturn.getQueueDetails()));
+                if(matchedSomething(discoveryReturn.getQueueDetails(), discoveryReturn.getServiceDetails()))
+                {
+                    entries.add(MatchingEntry.of(connectionFactoryEntry, domainId, discoveryReturn.getServiceDetails(), discoveryReturn.getQueueDetails()));
+                }
             }
             catch (ResourceException resourceException)
             {
@@ -78,6 +83,11 @@ public class PoolMatcher
             }
         }
         return entries;
+    }
+
+    private boolean matchedSomething(List<QueueDetails> queueDetails, List<ServiceDetails> serviceDetails)
+    {
+        return !queueDetails.isEmpty() || !serviceDetails.isEmpty();
     }
 }
 

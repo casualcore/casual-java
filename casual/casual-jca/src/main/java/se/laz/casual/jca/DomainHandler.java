@@ -5,7 +5,6 @@
  */
 package se.laz.casual.jca;
 
-import javax.faces.bean.ApplicationScoped;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-@ApplicationScoped
+
 public class DomainHandler
 {
     private static final Logger log = Logger.getLogger(DomainHandler.class.getName());
@@ -25,7 +24,15 @@ public class DomainHandler
     private Map<Address, List<CasualConnectionListener>> connectionListeners = new ConcurrentHashMap<>();
     private Object domainLock = new Object();
     private Object listenerLock = new Object();
+    private static final DomainHandler instance = new DomainHandler();
 
+    private DomainHandler()
+    {}
+
+    public static DomainHandler getInstance()
+    {
+        return instance;
+    }
 
     public void addDomainId(Address address, DomainId domainId)
     {

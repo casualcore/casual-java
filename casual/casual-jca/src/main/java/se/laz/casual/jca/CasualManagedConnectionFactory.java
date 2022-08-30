@@ -7,16 +7,14 @@ package se.laz.casual.jca;
 
 import se.laz.casual.network.ProtocolVersion;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.resource.ResourceException;
+import javax.resource.spi.CommException;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.resource.spi.ResourceAdapter;
 import javax.resource.spi.ResourceAdapterAssociation;
-import javax.resource.spi.ResourceAllocationException;
 import javax.security.auth.Subject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -35,7 +33,6 @@ import java.util.stream.Collectors;
  */
 //Non serialisable or transient for ResourceAdapter and PrintWriter - this is as shown in Iron Jacamar so ignoring.
 @SuppressWarnings("squid:S1948")
-@Stateless
 public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation
 {
     private static final long serialVersionUID = 1L;
@@ -50,15 +47,10 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    private Long casualProtocolVersion = 1000L;
    private final int resourceId = CasualResourceManager.getInstance().getNextId();
 
-   // for wls
    public CasualManagedConnectionFactory()
-   {}
-
-   @Inject
-   public CasualManagedConnectionFactory(DomainHandler domainHandler, CasualManagedConnectionProducer casualManagedConnectionProducer)
    {
-       this.domainHandler = domainHandler;
-       this.casualManagedConnectionProducer = casualManagedConnectionProducer;
+       this.casualManagedConnectionProducer = mcf -> new CasualManagedConnection(mcf);
+       this.domainHandler = DomainHandler.getInstance();
    }
 
    public String getHostName()
@@ -124,7 +116,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
            e.printStackTrace(printWriter);
            printWriter.flush();
            log.warning(() -> "createManagedConnection failed: " + writer);
-           throw new ResourceAllocationException(e);
+           throw new CommException(e);
        }
    }
 
@@ -250,6 +242,18 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    {
        domainHandler.removeConnectionListener(getAddress(), listener);
    }
+
+    // for test
+    public CasualManagedConnectionFactory setCasualManagedConnectionProducer(CasualManagedConnectionProducer casualManagedConnectionProducer)
+    {
+        this.casualManagedConnectionProducer = casualManagedConnectionProducer;
+        return this;
+    }
+    public CasualManagedConnectionFactory setDomainHandler(DomainHandler domainHandler)
+    {
+        this.domainHandler = domainHandler;
+        return this;
+    }
 
    private Address getAddress()
     {

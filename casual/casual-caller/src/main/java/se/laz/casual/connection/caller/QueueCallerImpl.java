@@ -16,6 +16,7 @@ import se.laz.casual.connection.caller.entities.MatchingEntry;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualRequestInfo;
 
+import javax.inject.Inject;
 import javax.resource.spi.ConnectionRequestInfo;
 import java.util.List;
 import java.util.function.Function;
@@ -32,6 +33,7 @@ public class QueueCallerImpl implements QueueCaller
     public QueueCallerImpl()
     {}
 
+    @Inject
     public QueueCallerImpl(PoolMatcher poolMatcher, Cache cache, PoolManager poolManager)
     {
         this.poolMatcher = poolMatcher;
@@ -46,11 +48,11 @@ public class QueueCallerImpl implements QueueCaller
         if(null == entry)
         {
             List<MatchingEntry> matchingEntries = poolMatcher.match(qinfo, poolManager.getPools());
-            cache.store(matchingEntries);
             if(matchingEntries.isEmpty())
             {
                 return EnqueueReturn.createBuilder().withErrorState(ErrorState.TPENOENT).build();
             }
+            cache.store(matchingEntries);
             entry = cache.get(qinfo).orElseThrow(() -> new CasualCallerException("expected: " + qinfo + " in cache but it is missing"));
         }
         return doCall(qinfo, entry, connection -> connection.enqueue(qinfo, msg), "enqueue");

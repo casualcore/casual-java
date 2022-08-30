@@ -9,6 +9,9 @@ import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.jca.inbound.handler.InboundRequest
+import se.laz.casual.jca.inbound.handler.InboundResponse
+
+import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
 import spock.lang.Specification
 
 class TestServiceImplTest extends Specification
@@ -16,7 +19,7 @@ class TestServiceImplTest extends Specification
    def 'no JAVA_FORWARD_SERVICE_NAME, throws'()
    {
       given:
-      TestServiceImpl instance = new TestServiceImpl(Mock(TpCaller), null)
+      TestServiceImpl instance = new TestServiceImpl(Mock(TpCaller))
       when:
       instance.forward(Mock(InboundRequest))
       then:
@@ -40,9 +43,12 @@ class TestServiceImplTest extends Specification
             returnBuffer
          }
       }
-      def instance = new TestServiceImpl(tpCaller, javaForwardServiceName)
+      def instance = new TestServiceImpl(tpCaller)
       when:
-      def actual = instance.forward(inboundRequest)
+      InboundResponse actual
+      withEnvironmentVariable(TestServiceImpl.JAVA_FORWARD_ENV_NAME, javaForwardServiceName).execute( {
+         actual = instance.forward(inboundRequest)
+      } )
       then:
       actual.getBuffer() == returnBuffer
    }
