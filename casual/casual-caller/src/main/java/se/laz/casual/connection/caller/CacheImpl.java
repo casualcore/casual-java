@@ -118,7 +118,13 @@ public class CacheImpl implements Cache
                                                    .stream()
                                                    .collect(Collectors.toList());
         Collections.sort(matches, CacheEntryWithHopsComparator.of());
+        if(matches.isEmpty())
+        {
+            return Collections.emptyList();
+        }
+        long minHops = matches.get(0).getHops();
         return matches.stream()
+                      .filter(item -> item.getHops() == minHops)
                       .map(CacheEntryWithHops::getCacheEntry)
                       .collect(Collectors.toList());
     }

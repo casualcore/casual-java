@@ -36,7 +36,6 @@ class CacheImplTest extends Specification
       def connectionFactoryEntryTwo = Mock(ConnectionFactoryEntry)
       def connectionFactoryEntryThree = Mock(ConnectionFactoryEntry)
       ServiceDetails serviceDetailsLowestHops = createServiceDetails(serviceName, 0)
-      ServiceDetails serviceDetails2ndLowestHops = createServiceDetails(serviceName, 1)
       ServiceDetails serviceDetails3rdLowestHops = createServiceDetails(serviceName, 3)
       ServiceDetails otherServiceDetails = createServiceDetails(otherServiceName, 0)
       ServiceDetails yetAnotherServiceDetails = createServiceDetails(yetAnotherServiceName, 0)
@@ -56,7 +55,7 @@ class CacheImplTest extends Specification
       then:
       matches == expectedMatches
       when: // matching entry for same service, same connectionFactoryEntry but another domainId and with lower hops
-      def anotherMatchingEntriesSameService = [MatchingEntry.of(connectionFactoryEntryOne, domainIdTwo, [serviceDetailsLowestHops], Collections.emptyList())]
+      def anotherMatchingEntriesSameService = [MatchingEntry.of(connectionFactoryEntryOne, domainIdTwo, [serviceDetailsLowestHops], Collections.emptyList()), MatchingEntry.of(connectionFactoryEntryOne, domainIdOne, [serviceDetailsLowestHops], Collections.emptyList())]
       instance.store(anotherMatchingEntriesSameService)
       expectedMatches = [CacheEntry.of(domainIdTwo, connectionFactoryEntryOne), CacheEntry.of(domainIdOne, connectionFactoryEntryOne)]
       matches = instance.get(ServiceInfo.of(serviceName))
@@ -68,13 +67,6 @@ class CacheImplTest extends Specification
       }
       instance.onDomainGone(domainGone)
       expectedMatches = [CacheEntry.of(domainIdOne, connectionFactoryEntryOne)]
-      matches = instance.get(ServiceInfo.of(serviceName))
-      then:
-      matches == expectedMatches
-      when: // matching entry for same service, same connectionFactoryEntry but another domainId and with lower hops
-      anotherMatchingEntriesSameService = [MatchingEntry.of(connectionFactoryEntryOne, domainIdTwo, [serviceDetails2ndLowestHops], Collections.emptyList())]
-      instance.store(anotherMatchingEntriesSameService)
-      expectedMatches = [CacheEntry.of(domainIdTwo, connectionFactoryEntryOne), CacheEntry.of(domainIdOne, connectionFactoryEntryOne)]
       matches = instance.get(ServiceInfo.of(serviceName))
       then:
       matches == expectedMatches
@@ -152,7 +144,7 @@ class CacheImplTest extends Specification
          match(_, _, _) >> { List<ServiceInfo> services, List<QueueInfo> queues, List<Pool> pools ->
             def matchingEntries = []
             def matchingServices = services.stream()
-                    .map({item -> createServiceDetails(item.getServiceName(), 99)})
+                    .map({item -> createServiceDetails(item.getServiceName(), 0)})
                     .collect(Collectors.toList())
             def matchingQueues = queues.stream()
                     .map({item -> QueueDetails.of(item.getQueueName(),0)})
