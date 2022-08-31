@@ -84,6 +84,50 @@ class PoolMatcherTest extends Specification
       matches.get(0).getQueues().get(0).getName() == queueName
    }
 
+
+   def 'no match'()
+   {
+      given:
+      DomainId domainIdOne = DomainId.of(UUID.randomUUID())
+      DomainId domainIdTwo = DomainId.of(UUID.randomUUID())
+
+      ConnectionFactoryProducer connectionFactoryProducerOne = Mock(ConnectionFactoryProducer) {
+         getConnectionFactory() >> {
+            CasualConnectionFactory connectionFactory = Mock(CasualConnectionFactory) {
+               getConnection(_) >> { ConnectionRequestInfo connectionRequestInfo ->
+                  CasualRequestInfo requestInfo = (CasualRequestInfo) connectionRequestInfo
+                  if (requestInfo.getDomainId().get() == domainIdOne) {
+                     CasualConnection connection = Mock(CasualConnection) {
+                        discover(_, _, _) >> { UUID corrid, List<String> serviceNames, List<String> queueNames ->
+                           DiscoveryReturn.Builder builder = DiscoveryReturn.createBuilder()
+                           return builder.build()
+                        }
+                     }
+                     return connection
+                     } else {
+                     // would return null to appserver that would throw ResourceException this we throw here in test sans an appserver
+                     throw new ResourceAdapterInternalException()
+                  }
+               }
+            }
+            return connectionFactory
+         }
+      }
+      ConnectionFactoryEntry connectionFactoryEntryOne = ConnectionFactoryEntry.of(connectionFactoryProducerOne)
+      Pool poolOne = Pool.of(connectionFactoryEntryOne, [domainIdOne, domainIdTwo])
+      PoolMatcher poolMatcher = new PoolMatcher()
+      def serviceName = "serviceName"
+      def queueName = 'queueName'
+      when:
+      def matches = poolMatcher.match(ServiceInfo.of(serviceName), [poolOne])
+      then:
+      matches.isEmpty() == true
+      when:
+      matches = poolMatcher.match(QueueInfo.of(queueName), [poolOne])
+      then:
+      matches.isEmpty() == true
+   }
+
    ServiceDetails createServiceDetails(String serviceName, long hops)
    {
       return ServiceDetails.createBuilder()
