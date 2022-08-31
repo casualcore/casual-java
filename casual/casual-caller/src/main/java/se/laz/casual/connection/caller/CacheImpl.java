@@ -44,6 +44,7 @@ public class CacheImpl implements Cache
     private final Map<ServiceInfo, Boolean> allSeenServiceNames = new ConcurrentHashMap<>();
     private final Map<QueueInfo, Boolean> allSeenQueueNames = new ConcurrentHashMap<>();
     private PoolMatcher poolMatcher;
+    private Object storeLock = new Object();
 
     // for wls
     public CacheImpl()
@@ -80,37 +81,42 @@ public class CacheImpl implements Cache
         List<MatchingEntry> uniqueEntries = matchingEntries.stream()
                                                            .distinct()
                                                            .collect(Collectors.toList());
-        LOG.finest(() -> "will cache:" + uniqueEntries);
-        uniqueEntries.forEach(matchingEntry -> {
-            matchingEntry.getServices().
-                         forEach(serviceDetails ->
-                         {
-                             ServiceInfo key = ServiceInfo.of(serviceDetails.getName());
-                             services.putIfAbsent(key, new ArrayList<>());
-                             CacheEntryWithHops cacheEntry = createServiceCacheEntry(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry(), serviceDetails.getHops());
-                             if (!services.get(key).contains(cacheEntry))
+        synchronized (storeLock)
+        {
+            LOG.finest(() -> "will cache:" + uniqueEntries);
+            uniqueEntries.forEach(matchingEntry -> {
+                matchingEntry.getServices().
+                             forEach(serviceDetails ->
                              {
-                                 services.get(key).add(cacheEntry);
-                             }
-                             allSeenServiceNames.putIfAbsent(ServiceInfo.of(serviceDetails.getName()), true);
-                         });
-            matchingEntry.getQueues().
-                         forEach(queueDetails ->
-                         {
-                             QueueInfo key = QueueInfo.of(queueDetails.getName());
-                             if(null != queues.putIfAbsent(key, createQueueCacheEntry(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry())))
+                                 ServiceInfo key = ServiceInfo.of(serviceDetails.getName());
+                                 services.putIfAbsent(key, new ArrayList<>());
+                                 CacheEntryWithHops cacheEntry = createServiceCacheEntry(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry(), serviceDetails.getHops());
+                                 if (!services.get(key).contains(cacheEntry))
+                                 {
+                                     services.get(key).add(cacheEntry);
+                                 }
+                                 allSeenServiceNames.putIfAbsent(ServiceInfo.of(serviceDetails.getName()), true);
+                             });
+                matchingEntry.getQueues().
+                             forEach(queueDetails ->
                              {
-                                 LOG.warning(() -> "More than one queue with the name: " + queueDetails.getName() + "\nNot storing entry: " + matchingEntry);
-                             }
-                             allSeenQueueNames.putIfAbsent(QueueInfo.of(queueDetails.getName()), true);
-                         });
-                });
+                                 QueueInfo key = QueueInfo.of(queueDetails.getName());
+                                 if (null != queues.putIfAbsent(key, createQueueCacheEntry(matchingEntry.getDomainId(), matchingEntry.getConnectionFactoryEntry())))
+                                 {
+                                     LOG.warning(() -> "More than one queue with the name: " + queueDetails.getName() + "\nNot storing entry: " + matchingEntry);
+                                 }
+                                 allSeenQueueNames.putIfAbsent(QueueInfo.of(queueDetails.getName()), true);
+                             });
+            });
+        }
     }
 
     @Override
     public List<CacheEntry> get(ServiceInfo serviceInfo)
     {
-        List<CacheEntryWithHops> matches = services.getOrDefault(serviceInfo, Collections.emptyList());
+        List<CacheEntryWithHops> matches = services.getOrDefault(serviceInfo, Collections.emptyList())
+                                                   .stream()
+                                                   .collect(Collectors.toList());
         Collections.sort(matches, CacheEntryWithHopsComparator.of());
         return matches.stream()
                       .map(CacheEntryWithHops::getCacheEntry)
