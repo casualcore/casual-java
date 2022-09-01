@@ -25,10 +25,10 @@ class CacheEntryWithHopsComparatorTest extends Specification
       CacheEntry cacheEntryOne = CacheEntry.of(domainIdOne, connectionFactoryEntryOne)
       CacheEntry cacheEntryTwo = CacheEntry.of(domainIdTwo, connectionFactoryEntryTwo)
 
-      CacheEntryWithHops firstEntry = CacheEntryWithHops.of(cacheEntryOne, 0)
-      CacheEntryWithHops secondEntry = CacheEntryWithHops.of(cacheEntryTwo, 1)
-      CacheEntryWithHops thirdEntry = CacheEntryWithHops.of(cacheEntryOne, 2)
-      CacheEntryWithHops fourthEntry = CacheEntryWithHops.of(cacheEntryOne, 3)
+      CacheEntryWithHops firstEntry = CacheEntryWithHops.of(cacheEntryOne.getConnectionFactoryEntry(), cacheEntryOne.getDomainId(), 0)
+      CacheEntryWithHops secondEntry = CacheEntryWithHops.of(cacheEntryTwo.getConnectionFactoryEntry(), cacheEntryTwo.getDomainId(),1)
+      CacheEntryWithHops thirdEntry = CacheEntryWithHops.of(cacheEntryOne.getConnectionFactoryEntry(), cacheEntryOne.getDomainId(),2)
+      CacheEntryWithHops fourthEntry = CacheEntryWithHops.of(cacheEntryOne.getConnectionFactoryEntry(), cacheEntryOne.getDomainId(), 3)
 
       List<CacheEntryWithHops> entries = new ArrayList<>()
       entries.add(fourthEntry)

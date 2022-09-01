@@ -5,27 +5,24 @@
  */
 package se.laz.casual.connection.caller.entities;
 
+import se.laz.casual.jca.DomainId;
+
 import java.util.Objects;
 
-public class CacheEntryWithHops
+public class CacheEntryWithHops extends CacheEntry
 {
-    private final CacheEntry cacheEntry;
     private long hops;
-    private CacheEntryWithHops(CacheEntry cacheEntry, long hops)
+    private CacheEntryWithHops(ConnectionFactoryEntry connectionFactoryEntry, DomainId domainId, long hops)
     {
-        this.cacheEntry = cacheEntry;
+        super(connectionFactoryEntry, domainId);
         this.hops = hops;
     }
 
-    public static CacheEntryWithHops of(CacheEntry cacheEntry, long hops)
+    public static CacheEntryWithHops of(ConnectionFactoryEntry connectionFactoryEntry, DomainId domainId, long hops)
     {
-        Objects.requireNonNull(cacheEntry, "cacheEntry can not be null");
-        return new CacheEntryWithHops(cacheEntry, hops);
-    }
-
-    public CacheEntry getCacheEntry()
-    {
-        return cacheEntry;
+        Objects.requireNonNull(connectionFactoryEntry, "connectionFactoryEntry can not be null");
+        Objects.requireNonNull(domainId, "domainId can not be null");
+        return new CacheEntryWithHops(connectionFactoryEntry, domainId, hops);
     }
 
     public long getHops()
@@ -44,21 +41,26 @@ public class CacheEntryWithHops
         {
             return false;
         }
+        if (!super.equals(o))
+        {
+            return false;
+        }
         CacheEntryWithHops that = (CacheEntryWithHops) o;
-        return getHops() == that.getHops() && getCacheEntry().equals(that.getCacheEntry());
+        return getHops() == that.getHops();
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getCacheEntry(), getHops());
+        return Objects.hash(super.hashCode(), getHops());
     }
 
     @Override
     public String toString()
     {
         return "CacheEntryWithHops{" +
-                "cacheEntry=" + cacheEntry +
+                "connectionFactoryEntry=" + getConnectionFactoryEntry() +
+                ", domainId=" + getDomainId() +
                 ", hops=" + hops +
                 '}';
     }

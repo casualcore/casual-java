@@ -9,10 +9,7 @@ import se.laz.casual.api.queue.QueueDetails
 import se.laz.casual.api.queue.QueueInfo
 import se.laz.casual.api.service.ServiceDetails
 import se.laz.casual.api.service.ServiceInfo
-import se.laz.casual.connection.caller.entities.CacheEntry
-import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry
-import se.laz.casual.connection.caller.entities.MatchingEntry
-import se.laz.casual.connection.caller.entities.Pool
+import se.laz.casual.connection.caller.entities.*
 import se.laz.casual.connection.caller.events.DomainGoneEvent
 import se.laz.casual.connection.caller.events.NewDomainEvent
 import se.laz.casual.jca.DomainId
@@ -37,13 +34,13 @@ class CacheImplTest extends Specification
       def connectionFactoryEntryThree = Mock(ConnectionFactoryEntry)
       ServiceDetails serviceDetailsLowestHops = createServiceDetails(serviceName, 0)
       ServiceDetails serviceDetails3rdLowestHops = createServiceDetails(serviceName, 3)
-      ServiceDetails otherServiceDetails = createServiceDetails(otherServiceName, 0)
+      ServiceDetails otherServiceDetailsAlsoLowestHops = createServiceDetails(otherServiceName, 0)
       ServiceDetails yetAnotherServiceDetails = createServiceDetails(yetAnotherServiceName, 0)
-      def firstMatchingEntries = [MatchingEntry.of(connectionFactoryEntryOne, domainIdOne, [serviceDetails3rdLowestHops, otherServiceDetails], Collections.emptyList())]
+      def firstMatchingEntries = [MatchingEntry.of(connectionFactoryEntryOne, domainIdOne, [serviceDetails3rdLowestHops, otherServiceDetailsAlsoLowestHops], Collections.emptyList())]
       when:
       instance.store(firstMatchingEntries)
       def matches = instance.get(ServiceInfo.of(serviceName))
-      def expectedMatches = [CacheEntry.of(domainIdOne, connectionFactoryEntryOne)]
+      def expectedMatches = [CacheEntryWithHops.of(connectionFactoryEntryOne, domainIdOne, 3)]
       then:
       connectionFactoryEntryOne != connectionFactoryEntryTwo
       connectionFactoryEntryThree != connectionFactoryEntryOne
@@ -57,7 +54,7 @@ class CacheImplTest extends Specification
       when: // matching entry for same service, same connectionFactoryEntry but another domainId and with lower hops
       def anotherMatchingEntriesSameService = [MatchingEntry.of(connectionFactoryEntryOne, domainIdTwo, [serviceDetailsLowestHops], Collections.emptyList()), MatchingEntry.of(connectionFactoryEntryOne, domainIdOne, [serviceDetailsLowestHops], Collections.emptyList())]
       instance.store(anotherMatchingEntriesSameService)
-      expectedMatches = [CacheEntry.of(domainIdTwo, connectionFactoryEntryOne), CacheEntry.of(domainIdOne, connectionFactoryEntryOne)]
+      expectedMatches = [CacheEntryWithHops.of(connectionFactoryEntryOne, domainIdTwo, 0), CacheEntryWithHops.of(connectionFactoryEntryOne, domainIdOne, 0)]
       matches = instance.get(ServiceInfo.of(serviceName))
       then:
       matches == expectedMatches
@@ -66,7 +63,7 @@ class CacheImplTest extends Specification
          getDomainId() >> domainIdTwo
       }
       instance.onDomainGone(domainGone)
-      expectedMatches = [CacheEntry.of(domainIdOne, connectionFactoryEntryOne)]
+      expectedMatches = [CacheEntryWithHops.of(connectionFactoryEntryOne, domainIdOne, 0)]
       matches = instance.get(ServiceInfo.of(serviceName))
       then:
       matches == expectedMatches
@@ -169,13 +166,13 @@ class CacheImplTest extends Specification
 
       when:
       def matches = instance.get(ServiceInfo.of(serviceName))
-      def expectedMatches = [CacheEntry.of(domainIdOne, connectionFactoryEntryOne)]
+      def expectedMatches = [CacheEntryWithHops.of(connectionFactoryEntryOne, domainIdOne, 0)]
       then:
       matches == expectedMatches
       when:
       instance.onNewDomain(newDomainEvent)
       matches = instance.get(ServiceInfo.of(serviceName))
-      expectedMatches = [CacheEntry.of(domainIdOne, connectionFactoryEntryOne), CacheEntry.of(domainIdThree, connectionFactoryEntryThree)]
+      expectedMatches = [CacheEntryWithHops.of(connectionFactoryEntryOne, domainIdOne, 0), CacheEntryWithHops.of(connectionFactoryEntryThree, domainIdThree, 0)]
       then: // first match should now also be available via the new domain
       matches == expectedMatches
    }

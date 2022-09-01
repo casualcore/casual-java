@@ -69,7 +69,7 @@ public class CacheImpl implements Cache
     {
         LOG.finest(() -> "onDomainGone: " + event);
         services.entrySet().removeIf(entry -> {
-            entry.getValue().removeIf(matchingEntry -> matchingEntry.getCacheEntry().getDomainId().equals(event.getDomainId()));
+            entry.getValue().removeIf(matchingEntry -> matchingEntry.getDomainId().equals(event.getDomainId()));
             return entry.getValue().isEmpty();
         });
         queues.entrySet().removeIf(entry -> entry.getValue().getDomainId().equals(event.getDomainId()));
@@ -125,7 +125,6 @@ public class CacheImpl implements Cache
         long minHops = matches.get(0).getHops();
         return matches.stream()
                       .filter(item -> item.getHops() == minHops)
-                      .map(CacheEntryWithHops::getCacheEntry)
                       .collect(Collectors.toList());
     }
 
@@ -178,8 +177,7 @@ public class CacheImpl implements Cache
 
     private CacheEntryWithHops createServiceCacheEntry(DomainId domainId, ConnectionFactoryEntry connectionFactoryEntry, long hops)
     {
-        CacheEntry cacheEntry = CacheEntry.of(domainId, connectionFactoryEntry);
-        return CacheEntryWithHops.of(cacheEntry, hops);
+        return CacheEntryWithHops.of(connectionFactoryEntry, domainId, hops);
     }
 
     private List<ServiceInfo> getAllSeenServices()
