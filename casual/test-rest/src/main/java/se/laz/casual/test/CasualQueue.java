@@ -32,7 +32,7 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Stateless
@@ -118,7 +118,7 @@ public class CasualQueue
             QueueMessage msg = reply.getQueueMessage().orElse(null);
             if(null != msg)
             {
-                return new String(msg.getPayload().getBytes().get(0), Charset.forName("utf-8")) + "\nmsg id: " + msg.getId();
+                return new String(msg.getPayload().getBytes().get(0), StandardCharsets.UTF_8) + "\nmsg id: " + msg.getId();
             }
             return "No more messages on queue: " + queueName;
         }

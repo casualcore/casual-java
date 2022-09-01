@@ -73,7 +73,7 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
         final int callError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_ERROR.getNetworkSize()).getInt();
         final long userError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_CODE.getNetworkSize()).getLong();
         final Xid xid = XIDUtils.readXid(channel);
-        final int transactionState = (int) ByteUtils.readFully(channel, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize()).get();
+        final int transactionState = ByteUtils.readFully(channel, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize()).get();
         final ServiceBuffer serviceBuffer = CasualMessageDecoderUtils.readServiceBuffer(channel, getMaxPayloadSingleBufferByteSize());
         return CasualServiceCallReplyMessage.createBuilder()
                                             .setExecution(execution)
@@ -110,7 +110,7 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
         final Xid xid = xidInfo.second();
 
         final ByteBuffer transactionStateBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize());
-        int transactionState = (int)transactionStateBuffer.get();
+        int transactionState = transactionStateBuffer.get();
         currentOffset += ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize();
 
         int serviceBufferTypeSize = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize()).getLong();

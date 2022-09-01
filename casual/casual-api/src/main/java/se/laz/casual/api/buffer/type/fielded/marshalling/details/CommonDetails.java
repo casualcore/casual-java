@@ -122,7 +122,7 @@ public final class CommonDetails
         {
             Parameter p = parameters[i];
             Optional<Annotation> a = Arrays.stream(p.getDeclaredAnnotations())
-                                           .filter(v -> v instanceof CasualFieldElement)
+                                           .filter(CasualFieldElement.class::isInstance)
                                            .findFirst();
             if(a.isPresent())
             {

@@ -49,7 +49,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
 
    public CasualManagedConnectionFactory()
    {
-       this.casualManagedConnectionProducer = mcf -> new CasualManagedConnection(mcf);
+       this.casualManagedConnectionProducer = CasualManagedConnection::new;
        this.domainHandler = DomainHandler.getInstance();
    }
 
@@ -143,7 +143,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
           }
       }
       return (ManagedConnection)connectionSet.stream()
-              .filter( s -> s instanceof CasualManagedConnection)
+              .filter(CasualManagedConnection.class::isInstance)
               .findFirst( )
               .orElse( null );
    }
