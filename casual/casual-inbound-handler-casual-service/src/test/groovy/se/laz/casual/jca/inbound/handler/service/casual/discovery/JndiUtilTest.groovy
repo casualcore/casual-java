@@ -6,9 +6,6 @@ import javax.naming.InitialContext
 import javax.naming.NameClassPair
 import javax.naming.NamingEnumeration
 import javax.naming.NamingException
-import java.lang.reflect.Field
-import java.lang.reflect.Modifier
-import java.util.logging.Logger
 
 class JndiUtilTest extends Specification
 {
@@ -47,23 +44,11 @@ class JndiUtilTest extends Specification
             return innerContext
          }
       }
-      Logger logger = Mock{
-         1 * warning(_)
-      }
-      setMockLogger(logger)
       when:
       JndiUtil.findAllGlobalJndiProxies(context)
       then:
       noExceptionThrown()
    }
 
-   def setMockLogger(mockLogger)
-   {
-      Field field = JndiUtil.getDeclaredField("logger")
-      field.setAccessible(true)
-      Field modifiers = Field.class.getDeclaredField("modifiers")
-      modifiers.setAccessible(true);
-      modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL)
-      field.set(null, mockLogger)
-   }
+
 }

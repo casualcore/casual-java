@@ -9,24 +9,24 @@ package se.laz.casual.jca.service
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ServiceReturn
 import se.laz.casual.api.buffer.type.JsonBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.*
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.api.xa.XID
+import se.laz.casual.config.Domain
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceAdapter
 import se.laz.casual.jca.CasualResourceManager
-import se.laz.casual.config.Domain
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.laz.casual.network.protocol.messages.domain.Service
-import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -164,7 +164,7 @@ class CasualServiceCallerTest extends Specification
 
             CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
-                return new CompletableFuture<>(serviceReply)
+                return CompletableFuture.completedFuture(serviceReply)
         }
         expect actualServiceRequest, matching( expectedServiceRequest )
     }
@@ -181,7 +181,7 @@ class CasualServiceCallerTest extends Specification
         1 * networkConnection.request( _ ) >> {
             CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
-                return new CompletableFuture<>(serviceReply)
+                return CompletableFuture.completedFuture(serviceReply)
         }
 
         expect actualServiceRequest, matching( expectedServiceRequest )
@@ -202,7 +202,7 @@ class CasualServiceCallerTest extends Specification
         1 * networkConnection.request( _ ) >> {
             CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
-                return new CompletableFuture<>(serviceReply)
+                return CompletableFuture.completedFuture(serviceReply)
         }
 
         expect actualServiceRequest, matching( expectedServiceRequest )
@@ -221,7 +221,7 @@ class CasualServiceCallerTest extends Specification
         1 * networkConnection.request( _ ) >> {
             CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
                 actualServiceRequest = input
-                return new CompletableFuture<>(serviceReply)
+                return CompletableFuture.completedFuture(serviceReply)
         }
 
         expect actualServiceRequest, matching( expectedServiceRequest )
@@ -254,7 +254,7 @@ class CasualServiceCallerTest extends Specification
         1 * networkConnection.request(_) >> {
             CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
-                return new CompletableFuture<>(domainDiscoveryReplyFound)
+                return CompletableFuture.completedFuture(domainDiscoveryReplyFound)
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }
@@ -269,7 +269,7 @@ class CasualServiceCallerTest extends Specification
         1 * networkConnection.request(_) >> {
             CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
-                return new CompletableFuture<>(domainDiscoveryReplyNotFound)
+                return CompletableFuture.completedFuture(domainDiscoveryReplyNotFound)
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }
