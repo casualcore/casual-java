@@ -122,10 +122,9 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     @Override
     public String toString()
     {
-        return "Server{" +
+        return "ReverseInboundServerImpl{" +
                 "channel=" + channel +
+                ", address=" + address +
                 '}';
     }
-
-
 }

@@ -25,6 +25,10 @@ public class JEEConcurrencyFactory
     public static ManagedExecutorService getManagedExecutorService()
     {
         Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
+        if(outbound.getUnmanaged())
+        {
+            return null;
+        }
         String name = outbound.getManagedExecutorServiceName();
         try
         {
