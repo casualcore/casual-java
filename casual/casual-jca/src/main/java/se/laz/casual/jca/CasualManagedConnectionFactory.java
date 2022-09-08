@@ -15,11 +15,13 @@ import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.resource.spi.ResourceAdapter;
 import javax.resource.spi.ResourceAdapterAssociation;
+import javax.resource.spi.ValidatingManagedConnectionFactory;
 import javax.security.auth.Subject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -33,7 +35,7 @@ import java.util.stream.Collectors;
  */
 //Non serialisable or transient for ResourceAdapter and PrintWriter - this is as shown in Iron Jacamar so ignoring.
 @SuppressWarnings("squid:S1948")
-public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation
+public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation, ValidatingManagedConnectionFactory
 {
     private static final long serialVersionUID = 1L;
     private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
@@ -149,6 +151,19 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
               .orElse( null );
    }
 
+    @Override
+    @SuppressWarnings({"rawtypes","unchecked"})
+    public Set getInvalidConnections(Set connectionSet) throws ResourceException
+    {
+        List<Object> wrapper = new ArrayList<>();
+        wrapper.addAll(connectionSet);
+        return wrapper.stream()
+                       .filter(CasualManagedConnection.class::isInstance)
+                       .map(CasualManagedConnection.class::cast)
+                       .filter(managedConnection -> !managedConnection.getNetworkConnection().isActive())
+                       .collect(Collectors.toSet());
+    }
+
    public List<DomainId> getPoolDomainIds()
    {
        return Collections.unmodifiableList(domainHandler.getDomainIds(getAddress()));
@@ -260,5 +275,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     {
         return Address.of(getHostName(), getPortNumber());
     }
+
 
 }
