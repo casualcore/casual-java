@@ -229,7 +229,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     }
 
     @Override
-    void disconnected()
+    void disconnected(Exception reason)
     {
         casualDisconnected = true
         // Note: this is what the appserver would do

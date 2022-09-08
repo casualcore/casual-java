@@ -16,7 +16,7 @@ class NetworkErrorHandlerTest extends Specification
         when:
         NetworkErrorHandler.notifyListenerIfNotConnected(channel, networkListener)
         then:
-        1 * networkListener.disconnected()
+        1 * networkListener.disconnected(_)
     }
 
     def 'do nothing if channel active'()
@@ -30,6 +30,6 @@ class NetworkErrorHandlerTest extends Specification
         when:
         NetworkErrorHandler.notifyListenerIfNotConnected(channel, networkListener)
         then:
-        0 * networkListener.disconnected()
+        0 * networkListener.disconnected(_)
     }
 }

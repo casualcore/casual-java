@@ -10,6 +10,7 @@ import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
+import se.laz.casual.jca.pool.PoolHandler;
 import se.laz.casual.network.outbound.NettyConnectionInformation;
 import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
@@ -84,6 +85,10 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         {
             if (networkConnection == null)
             {
+                // TODO:
+                // check pool config for address, if available use pool handler - otherwise go with 1-1 relation managed con/physical con
+                networkConnection = PoolHandler.getInstance().getOrCreate(mcf.getAddress(), mcf.getCasualProtocolVersion(), this);
+                /*
                 Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
                 NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
                                                                           .withProtocolVersion(mcf.getCasualProtocolVersion())
@@ -91,6 +96,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
                                                                           .withDomainName(domain.getName())
                                                                           .build();
                 networkConnection = NettyNetworkConnection.of(ci, this);
+                 */
                 log.finest(()->"created new nw connection " + this);
             }
         }
@@ -283,9 +289,9 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     }
 
     @Override
-    public void disconnected()
+    public void disconnected(Exception reason)
     {
-        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED);
+        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED, reason);
         connectionEventHandler.sendEvent(event);
     }
 

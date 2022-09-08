@@ -25,6 +25,16 @@ public class Address
         return new Address(hostName,portNumber);
     }
 
+    public String getHostName()
+    {
+        return hostName;
+    }
+
+    public Integer getPort()
+    {
+        return port;
+    }
+
     @Override
     public boolean equals(Object o)
     {

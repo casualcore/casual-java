@@ -118,7 +118,7 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         {
             // only inform on casual disconnect
             // will result in a close call on the ManagedConnection ( by the application server)
-            networkListener.disconnected();
+            networkListener.disconnected(new CasualConnectionException("network connection is gone"));
         }
     }
 
@@ -224,6 +224,27 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
             throw new CasualConnectionException("wanted protocol version " + version + " is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion());
         }
         return DomainId.of(replyEnvelope.getMessage().getDomainId());
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        NettyNetworkConnection that = (NettyNetworkConnection) o;
+        return getDomainId().equals(that.getDomainId());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(getDomainId());
     }
 
     @Override

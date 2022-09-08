@@ -248,6 +248,11 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       return resourceId;
    }
 
+   public Address getAddress()
+   {
+      return Address.of(getHostName(), getPortNumber());
+   }
+
    // for test
    public CasualManagedConnectionFactory setCasualManagedConnectionProducer(CasualManagedConnectionProducer casualManagedConnectionProducer)
    {
@@ -258,11 +263,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    {
       this.domainHandler = domainHandler;
       return this;
-   }
-
-   private Address getAddress()
-   {
-      return Address.of(getHostName(), getPortNumber());
    }
 
 }
