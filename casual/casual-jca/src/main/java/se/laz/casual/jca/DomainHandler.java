@@ -20,7 +20,6 @@ public class DomainHandler
     // This construct is since that for an address it can all be the same domain id per connection.
     // They may also all be different, or a mix - we do not know.
     private Map<Address, List<DomainIdReferenceCounted>> domainIds = new ConcurrentHashMap<>();
-    private Map<Address, List<CasualConnectionListener>> connectionListeners = new ConcurrentHashMap<>();
     private Object domainLock = new Object();
     private static final DomainHandler instance = new DomainHandler();
 

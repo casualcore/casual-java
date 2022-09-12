@@ -116,12 +116,10 @@ class CasualManagedConnectionFactoryTest extends Specification
               return managedConnection
            }
         }
-        CasualConnectionListener listener = Mock(CasualConnectionListener)
+
         Address address = Address.of(hostName, portNumber)
         domainHandler = Mock(DomainHandler){
            1 * addDomainId(address, domainId)
-           1 * addConnectionListener(address, listener)
-           1 * removeConnectionListener(address, listener)
         }
         instance = new CasualManagedConnectionFactory().setDomainHandler(domainHandler).setCasualManagedConnectionProducer(producer)
         instance.setHostName(hostName)
@@ -131,14 +129,6 @@ class CasualManagedConnectionFactoryTest extends Specification
         ManagedConnection m = instance.createManagedConnection( s, cri )
         then:
         m instanceof CasualManagedConnection
-        when:
-        instance.addConnectionListener(listener)
-        then:
-        noExceptionThrown()
-        when:
-        instance.removeConnectionListener(listener)
-        then:
-        noExceptionThrown()
     }
 
     def "MatchManagedConnections returns a CasualManagedConnection from the set provided."()

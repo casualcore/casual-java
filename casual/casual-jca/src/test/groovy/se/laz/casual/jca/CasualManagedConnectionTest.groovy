@@ -294,22 +294,6 @@ class CasualManagedConnectionTest extends Specification
        poolIds == poolDomainIds
     }
 
-    def 'add/remove connection listener'()
-    {
-       given:
-       CasualConnectionListener listener = Mock(CasualConnectionListener)
-       managedConnectionFactory = Mock(CasualManagedConnectionFactory){
-          1 * addConnectionListener(listener)
-          1 * removeConnectionListener(listener)
-       }
-       instance = new CasualManagedConnection( managedConnectionFactory )
-       when:
-       instance.addConnectionListener(listener)
-       instance.removeConnectionListener(listener)
-       then:
-       noExceptionThrown()
-    }
-
     def "toString test."()
     {
         expect:
