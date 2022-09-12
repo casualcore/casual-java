@@ -33,12 +33,9 @@ public interface CasualConnection extends CasualServiceApi, CasualQueueApi, Casu
     DomainId getDomainID();
 
     /**
-     * Get all known domain ids for this pool
+     * Get all known domain ids for this pool ( host:port)
      * @return
      */
     List<DomainId> getPoolDomainIds();
-
-    void addConnectionListener(CasualConnectionListener listener);
-    void removeConnectionListener(CasualConnectionListener listener);
 
 }

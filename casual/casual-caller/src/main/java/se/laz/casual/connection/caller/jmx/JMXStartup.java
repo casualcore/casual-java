@@ -9,7 +9,7 @@ package se.laz.casual.connection.caller.jmx;
 import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.connection.caller.Cache;
 import se.laz.casual.connection.caller.ConnectionFactoryEntryStore;
-import se.laz.casual.connection.caller.PoolManager;
+import se.laz.casual.connection.caller.pool.PoolManager;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;

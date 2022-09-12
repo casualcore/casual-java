@@ -10,7 +10,7 @@ import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.connection.caller.Cache;
 import se.laz.casual.connection.caller.ConnectionFactoryEntryStore;
-import se.laz.casual.connection.caller.PoolManager;
+import se.laz.casual.connection.caller.pool.PoolManager;
 import se.laz.casual.connection.caller.entities.CacheEntry;
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
 import se.laz.casual.connection.caller.entities.Pool;

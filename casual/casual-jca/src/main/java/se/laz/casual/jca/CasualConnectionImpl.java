@@ -103,18 +103,6 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
-    public void addConnectionListener(CasualConnectionListener listener)
-    {
-        managedConnection.addConnectionListener(listener);
-    }
-
-    @Override
-    public void removeConnectionListener(CasualConnectionListener listener)
-    {
-        managedConnection.removeConnectionListener(listener);
-    }
-
-    @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         throwIfInvalidated();

@@ -12,6 +12,7 @@ import se.laz.casual.api.service.ServiceInfo
 import se.laz.casual.connection.caller.entities.*
 import se.laz.casual.connection.caller.events.DomainGoneEvent
 import se.laz.casual.connection.caller.events.NewDomainEvent
+import se.laz.casual.connection.caller.pool.PoolMatcher
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.messages.domain.TransactionType
 import spock.lang.Specification

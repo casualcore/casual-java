@@ -248,16 +248,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       return resourceId;
    }
 
-   public void addConnectionListener(CasualConnectionListener listener)
-   {
-       domainHandler.addConnectionListener(getAddress(), listener);
-   }
-
-   public void removeConnectionListener(CasualConnectionListener listener)
-   {
-       domainHandler.removeConnectionListener(getAddress(), listener);
-   }
-
     // for test
     public CasualManagedConnectionFactory setCasualManagedConnectionProducer(CasualManagedConnectionProducer casualManagedConnectionProducer)
     {

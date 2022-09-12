@@ -307,16 +307,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         return mcf.getPoolDomainIds();
     }
 
-    public void addConnectionListener(CasualConnectionListener listener)
-    {
-        mcf.addConnectionListener(listener);
-    }
-
-    public void removeConnectionListener(CasualConnectionListener listener)
-    {
-        mcf.removeConnectionListener(listener);
-    }
-
     public void setTransactionTimeout(int timeout)
     {
         this.timeout = timeout;

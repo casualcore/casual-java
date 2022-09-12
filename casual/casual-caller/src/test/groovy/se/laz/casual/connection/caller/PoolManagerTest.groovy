@@ -7,6 +7,7 @@ package se.laz.casual.connection.caller
 
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry
 import se.laz.casual.connection.caller.entities.Pool
+import se.laz.casual.connection.caller.pool.PoolManager
 import se.laz.casual.jca.DomainId
 import spock.lang.Specification
 
@@ -22,10 +23,8 @@ class PoolManagerTest extends Specification
       def poolDomainId = DomainId.of(UUID.randomUUID())
       def newPools =  [Pool.of(Mock(ConnectionFactoryEntry), [poolDomainId])]
       ConnectionFactoryEntryStore connectionFactoryEntryStore = Mock(ConnectionFactoryEntryStore)
-      PoolDataRetriever poolDataRetriever = Mock(PoolDataRetriever){
-         get(connectionFactoryEntryStore.get(), _) >>> [originalPools, newPools]
-      }
-      PoolManager instance = new PoolManager(connectionFactoryEntryStore, poolDataRetriever, Mock(Event), Mock(Event))
+
+      PoolManager instance = new PoolManager(Mock(Event), Mock(Event))
       when:
       def pools = instance.getPools()
       then:

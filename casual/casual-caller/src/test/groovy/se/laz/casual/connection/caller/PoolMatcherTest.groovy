@@ -13,6 +13,7 @@ import se.laz.casual.api.service.ServiceInfo
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry
 import se.laz.casual.connection.caller.entities.ConnectionFactoryProducer
 import se.laz.casual.connection.caller.entities.Pool
+import se.laz.casual.connection.caller.pool.PoolMatcher
 import se.laz.casual.jca.CasualConnection
 import se.laz.casual.jca.CasualConnectionFactory
 import se.laz.casual.jca.CasualRequestInfo

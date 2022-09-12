@@ -15,6 +15,8 @@ import se.laz.casual.api.queue.*
 import se.laz.casual.connection.caller.entities.CacheEntry
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry
 import se.laz.casual.connection.caller.entities.ConnectionFactoryProducer
+import se.laz.casual.connection.caller.pool.PoolManager
+import se.laz.casual.connection.caller.pool.PoolMatcher
 import se.laz.casual.jca.CasualConnection
 import se.laz.casual.jca.CasualConnectionFactory
 import se.laz.casual.jca.CasualRequestInfo

@@ -13,6 +13,8 @@ import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.connection.caller.entities.CacheEntry;
 import se.laz.casual.connection.caller.entities.MatchingEntry;
+import se.laz.casual.connection.caller.pool.PoolManager;
+import se.laz.casual.connection.caller.pool.PoolMatcher;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.CasualRequestInfo;
 

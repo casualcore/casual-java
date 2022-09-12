@@ -16,6 +16,7 @@ import se.laz.casual.connection.caller.entities.MatchingEntry;
 import se.laz.casual.connection.caller.entities.Pool;
 import se.laz.casual.connection.caller.events.DomainGoneEvent;
 import se.laz.casual.connection.caller.events.NewDomainEvent;
+import se.laz.casual.connection.caller.pool.PoolMatcher;
 import se.laz.casual.jca.DomainId;
 
 import javax.enterprise.context.ApplicationScoped;

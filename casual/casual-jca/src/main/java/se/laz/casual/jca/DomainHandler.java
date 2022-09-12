@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-
 public class DomainHandler
 {
     private static final Logger log = Logger.getLogger(DomainHandler.class.getName());
@@ -23,7 +22,6 @@ public class DomainHandler
     private Map<Address, List<DomainIdReferenceCounted>> domainIds = new ConcurrentHashMap<>();
     private Map<Address, List<CasualConnectionListener>> connectionListeners = new ConcurrentHashMap<>();
     private Object domainLock = new Object();
-    private Object listenerLock = new Object();
     private static final DomainHandler instance = new DomainHandler();
 
     private DomainHandler()
@@ -51,9 +49,10 @@ public class DomainHandler
                 items.add(domainIdReferenceCounted);
             }
             // First time seen? ( As a domain id for an address can be seen as many times as there are connections)
+            // Note, this is not just a side effect, we want to up the reference count
             if (domainIdReferenceCounted.incrementAndGet() == 1)
             {
-                handleNewConnection(address, domainId);
+                log.finest(() -> "new domain id: " + domainId + " for address: " + address);
             }
         }
     }
@@ -68,31 +67,6 @@ public class DomainHandler
                          .collect(Collectors.toList());
         }
         return Collections.emptyList();
-    }
-
-    public void addConnectionListener(Address address, CasualConnectionListener listener)
-    {
-        synchronized (listenerLock)
-        {
-            List<CasualConnectionListener> listenersForAddress = connectionListeners.computeIfAbsent(address, key -> new ArrayList<>());
-            if (!listenersForAddress.contains(listener))
-            {
-                listenersForAddress.add(listener);
-            }
-        }
-    }
-
-    public void removeConnectionListener(Address address, CasualConnectionListener listener)
-    {
-        synchronized (listenerLock)
-        {
-            List<CasualConnectionListener> listeners = connectionListeners.get(address);
-            listeners.remove(listener);
-            if (listeners.isEmpty())
-            {
-                connectionListeners.remove(address);
-            }
-        }
     }
 
     public void domainDisconnect(Address address, DomainId domainId)
@@ -118,25 +92,8 @@ public class DomainHandler
                     {
                         domainIds.remove(address);
                     }
-                    handleConnectionGone(address, domainId);
                 }
             }
         }
     }
-
-    private void handleNewConnection(Address address, DomainId domainId)
-    {
-        List<CasualConnectionListener> listeners = connectionListeners.get(address);
-        if(null != listeners)
-        {
-            listeners.forEach(listener -> listener.newConnection(domainId));
-        }
-    }
-
-    private void handleConnectionGone(Address address, DomainId domainId)
-    {
-        connectionListeners.get(address).forEach(listener -> listener.connectionGone(domainId));
-    }
 }
-
-
