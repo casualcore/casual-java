@@ -6,7 +6,6 @@
 package se.laz.casual.connection.caller.pool;
 
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
-import se.laz.casual.connection.caller.entities.DomainIdDiffResult;
 import se.laz.casual.connection.caller.entities.Pool;
 import se.laz.casual.connection.caller.events.DomainGoneEvent;
 import se.laz.casual.connection.caller.events.NewDomainEvent;
@@ -47,7 +46,14 @@ public class PoolManager
         synchronized (poolLock)
         {
             LOG.info(() -> "updatePool: " + domainIds + " , " + connectionFactoryEntry);
-            doUpdatePool(connectionFactoryEntry, domainIds);
+            PoolUpdater updater = PoolUpdater.newBuilder()
+                                            .withConnectionFactoryEntry(connectionFactoryEntry)
+                                            .withDomainIds(domainIds)
+                                            .withPools(pools)
+                                            .withNewDomain(newDomain)
+                                            .withDomainGone(domainGone)
+                                            .build();
+            updater.update();
             LOG.info(this::logPools);
         }
     }
@@ -55,65 +61,6 @@ public class PoolManager
     public List<Pool> getPools()
     {
         return Collections.unmodifiableList(new ArrayList<>(pools.values()));
-    }
-
-    private void doUpdatePool(ConnectionFactoryEntry connectionFactoryEntry, List<DomainId> domainIds)
-    {
-        Pool pool = pools.get(connectionFactoryEntry);
-        if(alreadyHandled(pool, domainIds))
-        {
-            return;
-        }
-        if(newPool(pool))
-        {
-            LOG.info(() -> "new connection for: " + connectionFactoryEntry + " with domain ids: " + domainIds);
-            pools.put(connectionFactoryEntry, Pool.of(connectionFactoryEntry, domainIds));
-            newDomain.fire(NewDomainEvent.of(Pool.of(connectionFactoryEntry, domainIds)));
-            return;
-        }
-        if (poolGone(domainIds))
-        {
-            LOG.info(() -> "connection gone for: " + connectionFactoryEntry + " with domain ids: " + pool.getDomainIds());
-            pools.remove(connectionFactoryEntry);
-            pool.getDomainIds().stream().forEach(id -> domainGone.fire(DomainGoneEvent.of(connectionFactoryEntry, id)));
-            return;
-        }
-        if(!pool.equals(Pool.of(connectionFactoryEntry, domainIds)))
-        {
-            partialUpdate(connectionFactoryEntry, pool,domainIds);
-        }
-    }
-
-    private boolean alreadyHandled(Pool pool, List<DomainId> domainIds)
-    {
-        return null == pool && domainIds.isEmpty();
-    }
-
-    private boolean newPool(Pool pool)
-    {
-        return null == pool;
-    }
-
-    private boolean poolGone(List<DomainId> domainIds)
-    {
-        return domainIds.isEmpty();
-    }
-
-    private void partialUpdate(ConnectionFactoryEntry connectionFactoryEntry, Pool pool, List<DomainId> domainIds)
-    {
-        DomainIdDiffResult diff = DomainIdDiffer.of(pool.getDomainIds(), domainIds).diff();
-        if(!diff.getNewDomainIds().isEmpty())
-        {
-            LOG.info(() -> "new domain ids for: " + connectionFactoryEntry + " domain ids: " + diff.getNewDomainIds());
-            pools.replace(connectionFactoryEntry, Pool.of(connectionFactoryEntry, diff.getNewDomainIds()));
-            newDomain.fire(NewDomainEvent.of(Pool.of(connectionFactoryEntry, diff.getNewDomainIds())));
-        }
-        if(!diff.getLostDomainIds().isEmpty())
-        {
-            LOG.info(() -> "domain ids gone for: " + connectionFactoryEntry + " domain ids: " + diff.getLostDomainIds());
-            pool.getDomainIds().removeIf(id -> diff.getLostDomainIds().contains(id));
-            diff.getLostDomainIds().forEach(id -> domainGone.fire(DomainGoneEvent.of(connectionFactoryEntry, id)));
-        }
     }
 
     private String logPools()
