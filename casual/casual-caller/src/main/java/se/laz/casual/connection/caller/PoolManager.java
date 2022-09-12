@@ -8,7 +8,6 @@ package se.laz.casual.connection.caller;
 import se.laz.casual.connection.caller.entities.Pool;
 import se.laz.casual.connection.caller.events.DomainGoneEvent;
 import se.laz.casual.connection.caller.events.NewDomainEvent;
-import se.laz.casual.jca.CasualConnectionListener;
 import se.laz.casual.jca.DomainId;
 
 import javax.enterprise.event.Event;
@@ -21,7 +20,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
-public class PoolManager implements CasualConnectionListener
+public class PoolManager
 {
     private static final Logger LOG = Logger.getLogger(PoolManager.class.getName());
     private ConnectionFactoryEntryStore connectionFactoryEntryStore;
@@ -42,7 +41,7 @@ public class PoolManager implements CasualConnectionListener
         this.poolDataRetriever = poolDataRetriever;
         this.newDomain = newDomain;
         this.domainGone = domainGone;
-        this.pools = poolDataRetriever.get(connectionFactoryEntryStore.get(), this);
+        this.pools = poolDataRetriever.get(connectionFactoryEntryStore.get());
     }
 
     public List<Pool> getPools()
@@ -50,7 +49,6 @@ public class PoolManager implements CasualConnectionListener
         return Collections.unmodifiableList(pools);
     }
 
-    @Override
     public void newConnection(DomainId domainId)
     {
         synchronized (poolLock)
@@ -72,7 +70,7 @@ public class PoolManager implements CasualConnectionListener
             }
         }
     }
-    @Override
+
     public void connectionGone(DomainId domainId)
     {
         synchronized (poolLock)
@@ -92,7 +90,7 @@ public class PoolManager implements CasualConnectionListener
 
     private List<Pool> updatePools()
     {
-        pools = poolDataRetriever.get(connectionFactoryEntryStore.get(), this);
+        pools = poolDataRetriever.get(connectionFactoryEntryStore.get());
         LOG.finest(this::logPools);
         return getPools();
     }

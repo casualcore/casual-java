@@ -8,7 +8,6 @@ package se.laz.casual.connection.caller;
 import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
 import se.laz.casual.connection.caller.entities.Pool;
 import se.laz.casual.jca.CasualConnection;
-import se.laz.casual.jca.CasualConnectionListener;
 
 import javax.resource.ResourceException;
 import java.util.ArrayList;
@@ -19,27 +18,18 @@ public class PoolDataRetriever
 {
     public List<Pool> get(List<ConnectionFactoryEntry> connectionFactoryEntries)
     {
-        return get(connectionFactoryEntries, null);
-    }
-
-    public List<Pool> get(List<ConnectionFactoryEntry> connectionFactoryEntries, CasualConnectionListener connectionListener)
-    {
         List<Pool> pools = new ArrayList<>();
         for(ConnectionFactoryEntry connectionFactoryEntry : connectionFactoryEntries)
         {
-            get(connectionFactoryEntry, connectionListener).ifPresent(pools::add);
+            get(connectionFactoryEntry).ifPresent(pools::add);
         }
         return pools;
     }
 
-    private Optional<Pool> get(ConnectionFactoryEntry connectionFactoryEntry, CasualConnectionListener connectionListener)
+    private Optional<Pool> get(ConnectionFactoryEntry connectionFactoryEntry)
     {
         try(CasualConnection connection = connectionFactoryEntry.getConnectionFactory().getConnection())
         {
-            if(null != connectionListener)
-            {
-                connection.addConnectionListener(connectionListener);
-            }
             return Optional.of(Pool.of(connectionFactoryEntry, connection.getPoolDomainIds()));
         }
         catch (ResourceException e)
