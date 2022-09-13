@@ -43,7 +43,7 @@ public class DomainHandler
                                                                      .orElse(null);
             if (null == domainIdReferenceCounted)
             {
-                log.info(() -> "adding new domainId: " + domainId);
+                log.finest(() -> "adding new domainId: " + domainId);
                 domainIdReferenceCounted = DomainIdReferenceCounted.of(domainId);
                 items.add(domainIdReferenceCounted);
             }
@@ -85,7 +85,7 @@ public class DomainHandler
                 }
                 if (domainIdReferenceCounted.decrementAndGet() == 0)
                 {
-                    log.info(() -> "domain id gone - removing: " + domainId);
+                    log.finest(() -> "domain id gone - removing: " + domainId);
                     domainIdsPerAddress.remove(domainIdReferenceCounted);
                     if(domainIdsPerAddress.isEmpty())
                     {

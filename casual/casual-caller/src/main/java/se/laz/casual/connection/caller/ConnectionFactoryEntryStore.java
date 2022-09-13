@@ -28,7 +28,6 @@ public class ConnectionFactoryEntryStore
 
     public ConnectionFactoryEntryStore()
     {
-        LOG.info(() -> "ConnectionFactoryEntryStore::ConnectionFactoryEntryStore");
         // public NOP-constructor needed for wls-only
         connectionFactoryFinder = null;
     }
@@ -37,7 +36,6 @@ public class ConnectionFactoryEntryStore
     public ConnectionFactoryEntryStore(ConnectionFactoryFinder connectionFactoryFinder)
     {
         this.connectionFactoryFinder = connectionFactoryFinder;
-        LOG.info(() -> "ConnectionFactoryEntryStore::ConnectionFactoryEntryStore");
     }
 
     public List<ConnectionFactoryEntry> get()

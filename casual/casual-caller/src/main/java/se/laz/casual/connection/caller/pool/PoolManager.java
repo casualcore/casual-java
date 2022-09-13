@@ -45,7 +45,7 @@ public class PoolManager
     {
         synchronized (poolLock)
         {
-            LOG.info(() -> "updatePool: " + domainIds + " , " + connectionFactoryEntry);
+            LOG.finest(() -> "updatePool: " + domainIds + " , " + connectionFactoryEntry);
             PoolUpdater updater = PoolUpdater.createBuilder()
                                             .withConnectionFactoryEntry(connectionFactoryEntry)
                                             .withDomainIds(domainIds)
@@ -54,7 +54,7 @@ public class PoolManager
                                             .withDomainGone(domainGone)
                                             .build();
             updater.update();
-            LOG.info(this::logPools);
+            LOG.finest(this::logPools);
         }
     }
 
