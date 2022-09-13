@@ -7,6 +7,8 @@ package se.laz.casual.connection.caller.entities;
 
 import se.laz.casual.jca.DomainId;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -20,6 +22,8 @@ public class Pool
     {
         this.connectionFactoryEntry = connectionFactoryEntry;
         this.domainIds = domainIds;
+        Comparator<DomainId> domainIdComparator = Comparator.comparing(DomainId::getId);
+        Collections.sort(this.domainIds, domainIdComparator);
     }
 
     public static Pool of(ConnectionFactoryEntry connectionFactoryEntry, List<DomainId> domainIds)
@@ -36,7 +40,7 @@ public class Pool
 
     public List<DomainId> getDomainIds()
     {
-        return domainIds;
+        return Collections.unmodifiableList(domainIds);
     }
 
     @Override

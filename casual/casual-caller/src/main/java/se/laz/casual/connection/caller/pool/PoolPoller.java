@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 public class PoolPoller
 {
     private static final Logger LOG = Logger.getLogger(PoolPoller.class.getName());
-    private static final long DEFAULT_TIME_MILLIS = 10 * 1000;
+    private static final long DEFAULT_TIME_MILLIS = 10 * 1000L;
     public static final String ENV_VAR_NAME = "CASUAL_CALLER_POOL_UPDATE_INTERVAL";
     @Resource
     private TimerService timerService;

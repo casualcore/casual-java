@@ -71,6 +71,4 @@ class DomainIdDifferTest extends Specification
       result.getLostDomainIds() == [third]
       result.getNewDomainIds() == [newId]
    }
-
-
 }

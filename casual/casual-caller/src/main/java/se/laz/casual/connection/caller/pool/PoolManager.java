@@ -46,7 +46,7 @@ public class PoolManager
         synchronized (poolLock)
         {
             LOG.info(() -> "updatePool: " + domainIds + " , " + connectionFactoryEntry);
-            PoolUpdater updater = PoolUpdater.newBuilder()
+            PoolUpdater updater = PoolUpdater.createBuilder()
                                             .withConnectionFactoryEntry(connectionFactoryEntry)
                                             .withDomainIds(domainIds)
                                             .withPools(pools)

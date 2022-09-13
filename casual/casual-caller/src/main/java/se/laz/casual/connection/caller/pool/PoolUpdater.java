@@ -14,10 +14,12 @@ import se.laz.casual.connection.caller.events.NewDomainEvent;
 import se.laz.casual.jca.DomainId;
 
 import javax.enterprise.event.Event;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class PoolUpdater
 {
@@ -37,7 +39,7 @@ public class PoolUpdater
         pools = builder.pools;
     }
 
-    public static Builder newBuilder()
+    public static Builder createBuilder()
     {
         return new Builder();
     }
@@ -51,14 +53,17 @@ public class PoolUpdater
         }
         if(newPool(pool))
         {
-            LOG.info(() -> "new connection for: " + connectionFactoryEntry + " with domain ids: " + domainIds);
+            LOG.finest(() -> "new connection for: " + connectionFactoryEntry + " with domain ids: " + domainIds);
             pools.put(connectionFactoryEntry, Pool.of(connectionFactoryEntry, domainIds));
             newDomain.fire(NewDomainEvent.of(Pool.of(connectionFactoryEntry, domainIds)));
             return;
         }
-        if (poolGone(domainIds))
+        // note: this can not really happen but sonarqube does not understand that and reports it as a bug
+        // newPool(pool) matches if pool is null
+        assert null != pool;
+        if (poolEntriesGone(domainIds))
         {
-            LOG.info(() -> "connection gone for: " + connectionFactoryEntry + " with domain ids: " + pool.getDomainIds());
+            LOG.finest(() -> "connection gone for: " + connectionFactoryEntry + " with domain ids: " + pool.getDomainIds());
             pools.remove(connectionFactoryEntry);
             pool.getDomainIds().stream().forEach(id -> domainGone.fire(DomainGoneEvent.of(connectionFactoryEntry, id)));
             return;
@@ -85,7 +90,7 @@ public class PoolUpdater
 
         public Builder withDomainIds(List<DomainId> domainIds)
         {
-            this.domainIds = domainIds;
+            this.domainIds = domainIds.stream().collect(Collectors.toList());
             return this;
         }
 
@@ -118,22 +123,22 @@ public class PoolUpdater
         }
     }
 
-    private boolean alreadyHandled(Pool pool, List<DomainId> domainIds)
+    private static boolean alreadyHandled(Pool pool, List<DomainId> domainIds)
     {
         return null == pool && domainIds.isEmpty();
     }
 
-    private boolean newPool(Pool pool)
+    private static boolean newPool(Pool pool)
     {
         return null == pool;
     }
 
-    private boolean poolGone(List<DomainId> domainIds)
+    private static boolean poolEntriesGone(List<DomainId> domainIds)
     {
         return domainIds.isEmpty();
     }
 
-    private boolean domainIdMismatch(List<DomainId> first, List<DomainId> second)
+    private static boolean domainIdMismatch(List<DomainId> first, List<DomainId> second)
     {
         return !first.equals(second);
     }
@@ -143,16 +148,35 @@ public class PoolUpdater
         DomainIdDiffResult diff = DomainIdDiffer.of(pool.getDomainIds(), domainIds).diff();
         if(!diff.getNewDomainIds().isEmpty())
         {
-            LOG.info(() -> "new domain ids for: " + connectionFactoryEntry + " domain ids: " + diff.getNewDomainIds());
-            pools.replace(connectionFactoryEntry, Pool.of(connectionFactoryEntry, diff.getNewDomainIds()));
+            LOG.finest(() -> "new domain ids for: " + connectionFactoryEntry + " domain ids: " + diff.getNewDomainIds());
+            List<DomainId> currentIds = new ArrayList<>();
+            currentIds.addAll(pool.getDomainIds());
+            currentIds.addAll(diff.getNewDomainIds());
+            Pool newPool = Pool.of(connectionFactoryEntry, currentIds);
+            pools.replace(connectionFactoryEntry, newPool);
             newDomain.fire(NewDomainEvent.of(Pool.of(connectionFactoryEntry, diff.getNewDomainIds())));
         }
         if(!diff.getLostDomainIds().isEmpty())
         {
-            LOG.info(() -> "domain ids gone for: " + connectionFactoryEntry + " domain ids: " + diff.getLostDomainIds());
-            pool.getDomainIds().removeIf(id -> diff.getLostDomainIds().contains(id));
+            LOG.finest(() -> "domain ids gone for: " + connectionFactoryEntry + " domain ids: " + diff.getLostDomainIds());
+            List<DomainId> currentIds = new ArrayList<>();
+            currentIds.addAll(pool.getDomainIds());
+            currentIds.removeAll(diff.getLostDomainIds());
+            Pool newPool = Pool.of(connectionFactoryEntry, currentIds);
+            pools.replace(connectionFactoryEntry, newPool);
             diff.getLostDomainIds().forEach(id -> domainGone.fire(DomainGoneEvent.of(connectionFactoryEntry, id)));
         }
     }
 
+    @Override
+    public String toString()
+    {
+        return "PoolUpdater{" +
+                "connectionFactoryEntry=" + connectionFactoryEntry +
+                ", domainIds=" + domainIds +
+                ", newDomain=" + newDomain +
+                ", domainGone=" + domainGone +
+                ", pools=" + pools +
+                '}';
+    }
 }
