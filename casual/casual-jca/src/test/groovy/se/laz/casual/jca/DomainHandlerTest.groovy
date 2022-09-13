@@ -21,10 +21,12 @@ class DomainHandlerTest extends Specification
       instance.domainDisconnect(address, domainId)
       then:
       noExceptionThrown()
+      instance.getDomainIds(address).isEmpty()
       when:
-      instance.addDomainId(address, Mock(DomainId))
+      instance.addDomainId(address, domainId)
       then:
       noExceptionThrown()
+      instance.getDomainIds(address).contains(domainId)
    }
 
 }

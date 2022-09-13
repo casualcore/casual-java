@@ -3,7 +3,7 @@
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
-package se.laz.casual.connection.caller
+package se.laz.casual.connection.caller.pool
 
 import se.laz.casual.api.discovery.DiscoveryReturn
 import se.laz.casual.api.queue.QueueDetails
