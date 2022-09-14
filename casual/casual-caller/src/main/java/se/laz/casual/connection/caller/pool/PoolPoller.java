@@ -5,9 +5,11 @@
  */
 package se.laz.casual.connection.caller.pool;
 
+import se.laz.casual.connection.caller.CasualResourceException;
 import se.laz.casual.connection.caller.ConnectionFactoryEntryStore;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.jca.DomainId;
+import se.laz.casual.network.connection.CasualConnectionException;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -73,7 +75,7 @@ public class PoolPoller
                                           List<DomainId> domainIds = connection.getPoolDomainIds();
                                           poolManager.updatePool(connectionFactoryEntry, domainIds);
                                       }
-                                      catch(ResourceException resourceException)
+                                      catch(CasualConnectionException | CasualResourceException | ResourceException exception)
                                       {
                                           // this means we can not get any connection, it is gone
                                           poolManager.updatePool(connectionFactoryEntry, Collections.emptyList());

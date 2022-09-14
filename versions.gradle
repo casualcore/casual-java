@@ -10,7 +10,7 @@ group = 'se.laz.casual'
 
 version = '2.1.2-beta'
 
-ext.casual_caller_app_version = '2.2.2-beta'
+ext.casual_caller_app_version = '2.2.3-beta'
 ext.casual_test_app_version = '1.0.2'
 
 ext.libs = [
