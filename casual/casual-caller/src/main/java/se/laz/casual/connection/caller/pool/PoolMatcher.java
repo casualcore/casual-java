@@ -43,6 +43,10 @@ public class PoolMatcher
 
     public List<MatchingEntry> match(List<ServiceInfo> services, List<QueueInfo> queues,  List<Pool> pools)
     {
+        if(services.isEmpty() && queues.isEmpty())
+        {
+            return Collections.emptyList();
+        }
         List<MatchingEntry> matchingEntries = new ArrayList<>();
         pools.forEach(pool -> {
             List<MatchingEntry> maybeMatching = matches(services, queues, pool.getConnectionFactoryEntry(), pool.getDomainIds());
