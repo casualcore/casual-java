@@ -68,6 +68,14 @@ public class DomainHandler
         return Collections.emptyList();
     }
 
+    public void addressGone(Address address)
+    {
+        synchronized (domainLock)
+        {
+            domainIds.remove(address);
+        }
+    }
+
     public void domainDisconnect(Address address, DomainId domainId)
     {
         synchronized (domainLock)

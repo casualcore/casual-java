@@ -61,7 +61,7 @@ public class PoolUpdater
         // note: this can not really happen but sonarqube does not understand that and reports it as a bug
         // newPool(pool) matches if pool is null
         assert null != pool;
-        if (poolEntriesGone(domainIds))
+        if (poolEmpty(domainIds))
         {
             LOG.finest(() -> "connection gone for: " + connectionFactoryEntry + " with domain ids: " + pool.getDomainIds());
             pools.remove(connectionFactoryEntry);
@@ -133,7 +133,7 @@ public class PoolUpdater
         return null == pool;
     }
 
-    private static boolean poolEntriesGone(List<DomainId> domainIds)
+    private static boolean poolEmpty(List<DomainId> domainIds)
     {
         return domainIds.isEmpty();
     }
