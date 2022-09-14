@@ -73,7 +73,7 @@ public class CasualCallerControl implements CasualCallerControlMBean
     }
 
     @Override
-    public List<String> poolsForService(String serviceName)
+    public List<String> cacheEntryForService(String serviceName)
     {
         return cache.get(ServiceInfo.of(serviceName))
                     .stream()
@@ -100,7 +100,7 @@ public class CasualCallerControl implements CasualCallerControlMBean
     }
 
     @Override
-    public String poolForQueue(String queueName)
+    public String cacheEntryForQueue(String queueName)
     {
         CacheEntry cacheEntry = cache.get(QueueInfo.of(queueName)).orElse(null);
         return null != cacheEntry ? cacheEntry.toString() : null;

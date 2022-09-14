@@ -16,10 +16,10 @@ public interface CasualCallerControlMBean
     void purgeServiceCache();
     List<String> cachedServices();
     List<String> allServices();
-    List<String> poolsForService(String serviceName);
+    List<String> cacheEntryForService(String serviceName);
 
     void purgeQueueCache();
     List<String> cachedQueues();
     List<String> allQueues();
-    String poolForQueue(String queueName);
+    String cacheEntryForQueue(String queueName);
 }
