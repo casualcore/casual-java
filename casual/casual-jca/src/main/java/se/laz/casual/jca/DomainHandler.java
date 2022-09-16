@@ -68,14 +68,6 @@ public class DomainHandler
         return Collections.emptyList();
     }
 
-    public void addressGone(Address address)
-    {
-        synchronized (domainLock)
-        {
-            domainIds.remove(address);
-        }
-    }
-
     public void domainDisconnect(Address address, DomainId domainId)
     {
         synchronized (domainLock)
@@ -87,9 +79,10 @@ public class DomainHandler
                                                                                        .filter(value -> value.getDomainId().equals(domainId))
                                                                                        .findFirst()
                                                                                        .orElse(null);
-                if (null == domainIdReferenceCounted)
+                if(null == domainIdReferenceCounted)
                 {
-                    throw new CasualResourceAdapterException("unknown domain disconnect for address: " + address + " domainId: " + domainId + " this should never happen");
+                    log.warning(() -> "unknown domain disconnect for address: " + address + " domainId: " + domainId + " this should never happen");
+                    return;
                 }
                 if (domainIdReferenceCounted.decrementAndGet() == 0)
                 {

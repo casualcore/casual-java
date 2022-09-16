@@ -118,7 +118,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
            e.printStackTrace(printWriter);
            printWriter.flush();
            log.warning(() -> "createManagedConnection failed: " + writer);
-           domainHandler.addressGone(getAddress());
            throw new CommException(e);
        }
    }

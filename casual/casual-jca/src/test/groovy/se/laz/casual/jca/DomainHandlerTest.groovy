@@ -20,13 +20,25 @@ class DomainHandlerTest extends Specification
       instance.addDomainId(address, domainId)
       instance.domainDisconnect(address, domainId)
       then:
-      noExceptionThrown()
       instance.getDomainIds(address).isEmpty()
       when:
       instance.addDomainId(address, domainId)
       then:
-      noExceptionThrown()
+      instance.getDomainIds(address).size() == 1
       instance.getDomainIds(address).contains(domainId)
+      when: // same domain id again
+      instance.addDomainId(address, domainId)
+      then:
+      instance.getDomainIds(address).size() == 1
+      when: // one connection for the domain id goes away
+      instance.domainDisconnect(address, domainId)
+      then:
+      instance.getDomainIds(address).size() == 1
+      when: // the last connection for the domain id goes away
+      instance.domainDisconnect(address, domainId)
+      then:
+      instance.getDomainIds(address).isEmpty()
    }
+
 
 }
