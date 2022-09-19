@@ -15,26 +15,25 @@ import java.util.function.Supplier;
 
 public class AutoReconnect
 {
-    private final RepeatUntilSuccessTask<ReverseInboundServer> task;
-    private AutoReconnect(ReverseInboundConnectionInformation reverseInboundConnectionInformation,
-                          ReverseInboundListener eventListener,
-                          StaggeredOptions staggeredOptions)
-    {
-       Supplier<ReverseInboundServer> supplier = () -> ReverseInboundServerImpl.of(reverseInboundConnectionInformation, eventListener);
-       Consumer<ReverseInboundServer> consumer = eventListener::connected;
-       this.task = RepeatUntilSuccessTask.of(supplier, consumer, staggeredOptions);
-       this.task.start();
-    }
+   private final RepeatUntilSuccessTask<ReverseInboundServer> task;
+   public AutoReconnect(RepeatUntilSuccessTask<ReverseInboundServer> task)
+   {
+      this.task = task;
+      task.start();
+   }
 
-    public static AutoReconnect of(ReverseInboundConnectionInformation reverseInboundConnectionInformation,
-                          ReverseInboundListener eventListener,
-                          StaggeredOptions staggeredOptions)
-    {
-       Objects.requireNonNull(reverseInboundConnectionInformation,"reverseInboundConnectionInformation can not be null");
-       Objects.requireNonNull(eventListener, "eventListener can not be null");
-       Objects.requireNonNull(staggeredOptions, "staggeredOptions can not be null");
-       return new AutoReconnect(reverseInboundConnectionInformation, eventListener, staggeredOptions);
-    }
+   public static AutoReconnect of(ReverseInboundConnectionInformation reverseInboundConnectionInformation,
+                                  ReverseInboundListener eventListener,
+                                  StaggeredOptions staggeredOptions)
+   {
+      Objects.requireNonNull(reverseInboundConnectionInformation,"reverseInboundConnectionInformation can not be null");
+      Objects.requireNonNull(eventListener, "eventListener can not be null");
+      Objects.requireNonNull(staggeredOptions, "staggeredOptions can not be null");
+      Supplier<ReverseInboundServer> supplier = () -> ReverseInboundServerImpl.of(reverseInboundConnectionInformation, eventListener);
+      Consumer<ReverseInboundServer> consumer = eventListener::connected;
+      RepeatUntilSuccessTask<ReverseInboundServer> task = RepeatUntilSuccessTask.of(supplier, consumer, staggeredOptions);
+      return new AutoReconnect(task);
+   }
 
    @Override
    public String toString()

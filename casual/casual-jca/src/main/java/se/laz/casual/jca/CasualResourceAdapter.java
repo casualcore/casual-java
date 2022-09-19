@@ -14,8 +14,11 @@ import se.laz.casual.jca.work.StartInboundServerWork;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.inbound.CasualServer;
 import se.laz.casual.network.inbound.ConnectionInformation;
+import se.laz.casual.network.inbound.reverse.AutoConnect;
+import se.laz.casual.network.inbound.reverse.AutoReconnect;
 import se.laz.casual.network.inbound.reverse.ReverseInboundConnectionInformation;
 import se.laz.casual.network.inbound.reverse.ReverseInboundServerImpl;
+import se.laz.casual.network.inbound.reverse.StaggeredOptions;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
@@ -34,9 +37,11 @@ import javax.resource.spi.work.WorkException;
 import javax.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAResource;
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -119,8 +124,13 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     {
         for(int i = 0; i < numberOfInstances; ++i)
         {
-            Consumer<ReverseInboundServer> consumer = (ReverseInboundServer server) -> reverseInbounds.add(server);
-            Supplier<ReverseInboundServer> supplier = () -> ReverseInboundServerImpl.of(connectionInformation, this);
+            Consumer<ReverseInboundServer> consumer = this::connected;
+            Supplier<ReverseInboundServer> supplier = () -> {
+               CompletableFuture<ReverseInboundServer> future = new CompletableFuture<>();
+               StaggeredOptions staggeredOptions = StaggeredOptions.of(Duration.ofMillis(100), Duration.ofMillis(500L), Duration.ofMillis(10 * 1000L), 2);
+               AutoConnect.of(connectionInformation, future::complete,this, staggeredOptions);
+               return future.join();
+            };
             Supplier<String> logMsg = () -> "casual reverse inbound connected to: " + connectionInformation.getAddress();
             Work work = StartInboundServerWork.of(getInboundStartupServices(), logMsg, consumer, supplier);
             startWork(work);
