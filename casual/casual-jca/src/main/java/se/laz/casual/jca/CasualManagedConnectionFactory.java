@@ -35,13 +35,13 @@ import java.util.stream.Collectors;
 //Non serialisable or transient for ResourceAdapter and PrintWriter - this is as shown in Iron Jacamar so ignoring.
 @SuppressWarnings("squid:S1948")
 public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation, ValidatingManagedConnectionFactory
-{
-    private static final long serialVersionUID = 1L;
-    private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
-    private  DomainHandler domainHandler;
-    private  CasualManagedConnectionProducer casualManagedConnectionProducer;
-    private ResourceAdapter ra;
-    private PrintWriter logwriter;
+{ 
+   private static final long serialVersionUID = 1L;
+   private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
+   private  DomainHandler domainHandler;
+   private  CasualManagedConnectionProducer casualManagedConnectionProducer;
+   private ResourceAdapter ra;
+   private PrintWriter logwriter;
 
    private String hostName;
    private Integer portNumber;
@@ -101,71 +101,71 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
 
    @Override
    public ManagedConnection createManagedConnection(Subject subject,
-         ConnectionRequestInfo cxRequestInfo) throws ResourceException
+                                                    ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
-       try
-       {
-           CasualManagedConnection managedConnection = casualManagedConnectionProducer.createManagedConnection(this);
-           DomainId domainId = managedConnection.getDomainId();
-           domainHandler.addDomainId(getAddress(), domainId);
-           log.finest(() -> "Created a new physical connection for: " + getAddress() + " with domain id: " + domainId);
-           return managedConnection;
-       }
-       catch(Exception e)
-       {
-           StringWriter writer = new StringWriter();
-           PrintWriter printWriter = new PrintWriter( writer );
-           e.printStackTrace(printWriter);
-           printWriter.flush();
-           log.warning(() -> "createManagedConnection failed: " + writer);
-           throw new CommException(e);
-       }
+      try
+      {
+         CasualManagedConnection managedConnection = casualManagedConnectionProducer.createManagedConnection(this);
+         DomainId domainId = managedConnection.getDomainId();
+         domainHandler.addDomainId(getAddress(), domainId);
+         log.finest(() -> "Created a new physical connection for: " + getAddress() + " with domain id: " + domainId);
+         return managedConnection;
+      }
+      catch(Exception e)
+      {
+         StringWriter writer = new StringWriter();
+         PrintWriter printWriter = new PrintWriter( writer );
+         e.printStackTrace(printWriter);
+         printWriter.flush();
+         log.warning(() -> "createManagedConnection failed: " + writer);
+         throw new CommException(e);
+      }
    }
 
-    @Override
+   @Override
    @SuppressWarnings({"rawtypes","unchecked"})
    public ManagedConnection matchManagedConnections(Set connectionSet,
-         Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException
+                                                    Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
       log.finest("matchManagedConnections()");
       if(cxRequestInfo instanceof CasualRequestInfo)
       {
-          CasualRequestInfo requestInfo = (CasualRequestInfo) cxRequestInfo;
-          // Why do we need to do this, streaming the Set and collecting returns not a List of objects but an Object???
-          List<Object> wrapper = new ArrayList<>();
-          wrapper.addAll(connectionSet);
-          List<CasualManagedConnection> managedConnections = wrapper.stream()
-                                                                    .filter(CasualManagedConnection.class::isInstance)
-                                                                    .map(CasualManagedConnection.class::cast)
-                                                                    .collect(Collectors.toList());
-          DomainId domainId = requestInfo.getDomainId().orElse(null);
-          if(null != domainId)
-          {
-              return matchManagedConnections(managedConnections, domainId);
-          }
+         CasualRequestInfo requestInfo = (CasualRequestInfo) cxRequestInfo;
+         // Why do we need to do this, streaming the Set and collecting returns not a List of objects but an Object???
+         List<Object> wrapper = new ArrayList<>();
+         wrapper.addAll(connectionSet);
+         List<CasualManagedConnection> managedConnections = wrapper.stream()
+                                                                   .filter(CasualManagedConnection.class::isInstance)
+                                                                   .map(CasualManagedConnection.class::cast)
+                                                                   .collect(Collectors.toList());
+         DomainId domainId = requestInfo.getDomainId().orElse(null);
+         if(null != domainId)
+         {
+            return matchManagedConnections(managedConnections, domainId);
+         }
       }
       return (ManagedConnection)connectionSet.stream()
-              .filter(CasualManagedConnection.class::isInstance)
-              .findFirst( )
-              .orElse( null );
+                                             .filter(CasualManagedConnection.class::isInstance)
+                                             .findFirst( )
+                                             .orElse( null );
    }
 
-    @Override
-    @SuppressWarnings({"rawtypes","unchecked"})
-    public Set getInvalidConnections(Set connectionSet) throws ResourceException
-    {
-        List<Object> wrapper = new ArrayList<>();
-        wrapper.addAll(connectionSet);
-        return wrapper.stream()
-                       .filter(CasualManagedConnection.class::isInstance)
-                       .map(CasualManagedConnection.class::cast)
-                       .filter(managedConnection -> !managedConnection.getNetworkConnection().isActive())
-                       .collect(Collectors.toSet());
-    }
+   @Override
+   @SuppressWarnings({"rawtypes","unchecked"})
+   public Set getInvalidConnections(Set connectionSet) throws ResourceException
+   {
+      List<Object> wrapper = new ArrayList<>();
+      wrapper.addAll(connectionSet);
+      return wrapper.stream()
+                    .filter(CasualManagedConnection.class::isInstance)
+                    .map(CasualManagedConnection.class::cast)
+                    .filter(managedConnection -> !managedConnection.getNetworkConnection().isActive())
+                    .collect(Collectors.toSet());
+   }
 
    public List<DomainId> getPoolDomainIds()
    {
-       return Collections.unmodifiableList(domainHandler.getDomainIds(getAddress()));
+      return Collections.unmodifiableList(domainHandler.getDomainIds(getAddress()));
    }
 
    public void domainDisconnect(DomainId domainId)
@@ -173,17 +173,17 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
        domainHandler.domainDisconnect(getAddress(), domainId);
    }
 
-    private ManagedConnection matchManagedConnections(List<CasualManagedConnection> connections, DomainId domainId)
-    {
-        ManagedConnection matchedConnection =  connections.stream()
-                                                          .filter(connection -> connection.getDomainId().equals(domainId))
-                                                          .findFirst()
-                                                          .orElse(null);
-        log.finest(() -> null != matchedConnection ? "matching domain id " + domainId + " using: " + this : "matchManagedConnections no match for " + domainId + " using " + this);
-        return matchedConnection;
-    }
+   private ManagedConnection matchManagedConnections(List<CasualManagedConnection> connections, DomainId domainId)
+   {
+      ManagedConnection matchedConnection =  connections.stream()
+                                                        .filter(connection -> connection.getDomainId().equals(domainId))
+                                                        .findFirst()
+                                                        .orElse(null);
+      log.finest(() -> null != matchedConnection ? "matching domain id " + domainId + " using: " + this : "matchManagedConnections no match for " + domainId + " using " + this);
+      return matchedConnection;
+   }
 
-    @Override
+   @Override
    public PrintWriter getLogWriter() throws ResourceException
    {
       log.finest("getLogWriter()");
@@ -248,22 +248,21 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       return resourceId;
    }
 
-    // for test
-    public CasualManagedConnectionFactory setCasualManagedConnectionProducer(CasualManagedConnectionProducer casualManagedConnectionProducer)
-    {
-        this.casualManagedConnectionProducer = casualManagedConnectionProducer;
-        return this;
-    }
-    public CasualManagedConnectionFactory setDomainHandler(DomainHandler domainHandler)
-    {
-        this.domainHandler = domainHandler;
-        return this;
-    }
+   // for test
+   public CasualManagedConnectionFactory setCasualManagedConnectionProducer(CasualManagedConnectionProducer casualManagedConnectionProducer)
+   {
+      this.casualManagedConnectionProducer = casualManagedConnectionProducer;
+      return this;
+   }
+   public CasualManagedConnectionFactory setDomainHandler(DomainHandler domainHandler)
+   {
+      this.domainHandler = domainHandler;
+      return this;
+   }
 
    private Address getAddress()
-    {
-        return Address.of(getHostName(), getPortNumber());
-    }
-
+   {
+      return Address.of(getHostName(), getPortNumber());
+   }
 
 }
