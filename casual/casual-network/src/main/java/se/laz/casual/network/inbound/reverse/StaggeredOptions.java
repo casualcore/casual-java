@@ -46,7 +46,7 @@ public class StaggeredOptions
             initial = false;
             return initialDelay;
         }
-        subsequentDelay = Duration.ofMillis(subsequentDelay.toMillis() * staggerFactor);
+        subsequentDelay = Duration.ofMillis(initialDelay.toMillis() + subsequentDelay.toMillis() * staggerFactor);
         subsequentDelay = subsequentDelay.compareTo(maxDelay) == 1 ? maxDelay : subsequentDelay;
         LOG.finest(() -> " delay: " + subsequentDelay);
         return subsequentDelay;
