@@ -1,6 +1,8 @@
 package se.laz.casual.api.util;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -10,24 +12,27 @@ public class RepeatUntilSuccessTask<T> implements Runnable
    private final Supplier<T> supplier;
    private final Consumer<T> consumer;
    private final StaggeredOptions staggeredOptions;
+   private final Supplier<ScheduledExecutorService> executorServiceSupplier;
 
-   private RepeatUntilSuccessTask(Supplier<T> supplier, Consumer<T> consumer, StaggeredOptions staggeredOptions)
+   private RepeatUntilSuccessTask(Supplier<T> supplier, Consumer<T> consumer, StaggeredOptions staggeredOptions, Supplier<ScheduledExecutorService> executorServiceSupplier)
    {
       this.supplier = supplier;
       this.consumer = consumer;
       this.staggeredOptions = staggeredOptions;
+      this.executorServiceSupplier = executorServiceSupplier;
    }
 
-   public static <T> RepeatUntilSuccessTask<T> of(Supplier<T> supplier, Consumer<T> consumer, StaggeredOptions staggeredOptions)
+   public static <T> RepeatUntilSuccessTask<T> of(Supplier<T> supplier, Consumer<T> consumer, StaggeredOptions staggeredOptions, Supplier<ScheduledExecutorService> executorServiceSupplier)
    {
       Objects.requireNonNull(supplier, "supplier can not be null");
       Objects.requireNonNull(consumer, "consumer can not be null");
-      return  new RepeatUntilSuccessTask<>(supplier, consumer, staggeredOptions);
+      Objects.requireNonNull(executorServiceSupplier, "executorServiceSupplier can not be null");
+      return  new RepeatUntilSuccessTask<>(supplier, consumer, staggeredOptions, executorServiceSupplier);
    }
 
    public void start()
    {
-      JEEConcurrencyFactory.getManagedScheduledExecutorService().schedule(this, staggeredOptions.getNext().toMillis(), TimeUnit.MILLISECONDS);
+      executorServiceSupplier.get().schedule(this, staggeredOptions.getNext().toMillis(), TimeUnit.MILLISECONDS);
    }
 
    @Override
@@ -39,7 +44,7 @@ public class RepeatUntilSuccessTask<T> implements Runnable
       }
       catch(Exception e)
       {
-         JEEConcurrencyFactory.getManagedScheduledExecutorService().schedule(this, staggeredOptions.getNext().toMillis(), TimeUnit.MILLISECONDS);
+         executorServiceSupplier.get().schedule(this, staggeredOptions.getNext().toMillis(), TimeUnit.MILLISECONDS);
       }
    }
 

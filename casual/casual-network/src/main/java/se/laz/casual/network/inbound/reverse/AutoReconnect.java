@@ -12,6 +12,7 @@ import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
 import java.util.Objects;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -26,14 +27,16 @@ public class AutoReconnect
 
    public static AutoReconnect of(ReverseInboundConnectionInformation reverseInboundConnectionInformation,
                                   ReverseInboundListener eventListener,
-                                  StaggeredOptions staggeredOptions)
+                                  StaggeredOptions staggeredOptions,
+                                  Supplier<ScheduledExecutorService> executorServiceSupplier)
    {
       Objects.requireNonNull(reverseInboundConnectionInformation,"reverseInboundConnectionInformation can not be null");
       Objects.requireNonNull(eventListener, "eventListener can not be null");
       Objects.requireNonNull(staggeredOptions, "staggeredOptions can not be null");
+      Objects.requireNonNull(executorServiceSupplier, "executorServiceSupplier can not be null");
       Supplier<ReverseInboundServer> supplier = () -> ReverseInboundServerImpl.of(reverseInboundConnectionInformation, eventListener);
       Consumer<ReverseInboundServer> consumer = eventListener::connected;
-      RepeatUntilSuccessTask<ReverseInboundServer> task = RepeatUntilSuccessTask.of(supplier, consumer, staggeredOptions);
+      RepeatUntilSuccessTask<ReverseInboundServer> task = RepeatUntilSuccessTask.of(supplier, consumer, staggeredOptions, executorServiceSupplier);
       return new AutoReconnect(task);
    }
 

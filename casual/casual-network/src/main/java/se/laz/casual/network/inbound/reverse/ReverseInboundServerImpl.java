@@ -15,6 +15,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import se.laz.casual.api.util.JEEConcurrencyFactory;
 import se.laz.casual.api.util.StaggeredOptions;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
@@ -72,7 +73,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
                                                              .withMaxDelay(MAX_DURATION)
                                                              .withStaggerFactor(STAGGER_FACTOR)
                                                              .build();
-        AutoReconnect.of(reverseInboundConnectionInformation, eventListener, staggeredOptions);
+        AutoReconnect.of(reverseInboundConnectionInformation, eventListener, staggeredOptions, JEEConcurrencyFactory::getManagedScheduledExecutorService);
     }
 
     private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)

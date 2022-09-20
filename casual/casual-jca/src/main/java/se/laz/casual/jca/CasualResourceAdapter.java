@@ -5,6 +5,7 @@
  */
 package se.laz.casual.jca;
 
+import se.laz.casual.api.util.JEEConcurrencyFactory;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.ReverseInbound;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
@@ -131,7 +132,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                                                                    .withMaxDelay(Duration.ofMillis(10 * 1000L))
                                                                    .withStaggerFactor(1)
                                                                    .build();
-               AutoConnect.of(connectionInformation, future::complete,this, staggeredOptions);
+               AutoConnect.of(connectionInformation, future::complete,this, staggeredOptions, JEEConcurrencyFactory::getManagedScheduledExecutorService);
                return future.join();
             };
             Supplier<String> logMsg = () -> "casual reverse inbound connected to: " + connectionInformation.getAddress();
