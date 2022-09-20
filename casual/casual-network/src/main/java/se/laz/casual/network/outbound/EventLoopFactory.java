@@ -8,10 +8,10 @@ package se.laz.casual.network.outbound;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import se.laz.casual.api.util.JEEConcurrencyFactory;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Outbound;
 import se.laz.casual.jca.CasualResourceAdapterException;
-import se.laz.casual.network.JEEConcurrencyFactory;
 
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.concurrent.ManagedScheduledExecutorService;

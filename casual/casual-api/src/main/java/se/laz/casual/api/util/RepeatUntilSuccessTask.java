@@ -1,6 +1,4 @@
-package se.laz.casual.network.inbound.reverse;
-
-import se.laz.casual.network.JEEConcurrencyFactory;
+package se.laz.casual.api.util;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;

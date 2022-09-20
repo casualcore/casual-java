@@ -4,7 +4,7 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.network.inbound.reverse;
+package se.laz.casual.api.util;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -14,8 +14,9 @@ public class StaggeredOptions
 {
     private static final Logger LOG = Logger.getLogger(StaggeredOptions.class.getName());
     private final Duration initialDelay;
-    private Duration subsequentDelay;
-    private Duration maxDelay;
+    private final Duration subsequentDelay;
+    private final Duration maxDelay;
+    private Duration currentDelay;
     private int staggerFactor;
     private boolean initial = true;
 
@@ -44,12 +45,13 @@ public class StaggeredOptions
         if(initial)
         {
             initial = false;
-            return initialDelay;
+            currentDelay = initialDelay;
+            return currentDelay;
         }
-        subsequentDelay = Duration.ofMillis(initialDelay.toMillis() + subsequentDelay.toMillis() * staggerFactor);
-        subsequentDelay = subsequentDelay.compareTo(maxDelay) == 1 ? maxDelay : subsequentDelay;
-        LOG.finest(() -> " delay: " + subsequentDelay);
-        return subsequentDelay;
+        currentDelay = currentDelay.plus(Duration.ofMillis(subsequentDelay.toMillis() * staggerFactor));
+        currentDelay  = currentDelay.compareTo(maxDelay) > 0 ? maxDelay : currentDelay;
+        LOG.finest(() -> " delay: " + currentDelay);
+        return currentDelay;
     }
 
 }

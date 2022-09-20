@@ -22,7 +22,7 @@ import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
-import se.laz.casual.network.JEEConcurrencyFactory;
+import se.laz.casual.api.util.JEEConcurrencyFactory;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.conversation.Request;

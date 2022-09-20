@@ -3,7 +3,7 @@
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
-package se.laz.casual.network;
+package se.laz.casual.api.util;
 
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Outbound;

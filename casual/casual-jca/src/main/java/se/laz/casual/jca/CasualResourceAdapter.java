@@ -15,10 +15,8 @@ import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.inbound.CasualServer;
 import se.laz.casual.network.inbound.ConnectionInformation;
 import se.laz.casual.network.inbound.reverse.AutoConnect;
-import se.laz.casual.network.inbound.reverse.AutoReconnect;
 import se.laz.casual.network.inbound.reverse.ReverseInboundConnectionInformation;
-import se.laz.casual.network.inbound.reverse.ReverseInboundServerImpl;
-import se.laz.casual.network.inbound.reverse.StaggeredOptions;
+import se.laz.casual.api.util.StaggeredOptions;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
