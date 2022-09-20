@@ -66,7 +66,7 @@ public final class StartInboundServerWork<T> implements Work
 
     private void waitForInboundStartupServices()
     {
-        log.finest(() -> "Waiting for " + startupServices.size() + " startup services to be registered before inbound starts.");
+        log.info(() -> "Waiting for " + startupServices.size() + " startup services to be registered before inbound starts.");
         Set<String> remaining = checkRemainingServices( new HashSet<>( this.startupServices ) );
         while(!remaining.isEmpty())
         {
@@ -81,16 +81,7 @@ public final class StartInboundServerWork<T> implements Work
                 throw new InboundStartupException( "Interrupted waiting for inbound startup services registration.", e );
             }
         }
-        log.finest(() -> "All startup services registered.");
-        log.finest(() -> "Services: " + getServices());
-    }
-
-    private String getServices()
-    {
-        return CasualServiceRegistry.getInstance()
-                                    .getServices()
-                                    .stream()
-                                    .collect(Collectors.joining(","));
+        log.info(() -> "All startup services registered.");
     }
 
     private Set<String> checkRemainingServices( Set<String> remaining )
@@ -100,16 +91,15 @@ public final class StartInboundServerWork<T> implements Work
                 .collect( Collectors.partitioningBy( registry::hasServiceEntry, Collectors.toSet() ) );
         for( String foundService: found.get( true ) )
         {
-            log.finest( ()-> "Startup service registered: " + foundService );
+            log.info( ()-> "Startup service registered: " + foundService );
         }
         return found.get( false );
     }
 
     private void startInboundServer()
     {
-        log.finest(() -> "About to create casual inbound server");
         consumer.accept(supplier.get());
-        log.finest(() -> logMessage.get());
+        log.info(() -> logMessage.get());
     }
 
 }
