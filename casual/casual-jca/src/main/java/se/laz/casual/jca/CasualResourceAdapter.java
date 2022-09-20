@@ -125,7 +125,12 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
             Consumer<ReverseInboundServer> consumer = this::connected;
             Supplier<ReverseInboundServer> supplier = () -> {
                CompletableFuture<ReverseInboundServer> future = new CompletableFuture<>();
-               StaggeredOptions staggeredOptions = StaggeredOptions.of(Duration.ofMillis(100), Duration.ofMillis(500L), Duration.ofMillis(10 * 1000L), 2);
+               StaggeredOptions staggeredOptions = StaggeredOptions.createBuilder()
+                                                                   .withInitialDelay(Duration.ofMillis(100L))
+                                                                   .withSubsequentDelay(Duration.ofMillis(500L))
+                                                                   .withMaxDelay(Duration.ofMillis(10 * 1000L))
+                                                                   .withStaggerFactor(1)
+                                                                   .build();
                AutoConnect.of(connectionInformation, future::complete,this, staggeredOptions);
                return future.join();
             };

@@ -7,6 +7,33 @@ import java.time.Duration
 
 class StaggeredOptionsTest extends Specification
 {
+   def 'staggerfactor of 0 or less than 0'()
+   {
+      given:
+      Duration initialDelay = Duration.ofMillis(100L)
+      Duration subsequentDelay = Duration.ofMillis(500L)
+      Duration maxDelay = Duration.ofMillis(1000L)
+      int staggerFactor = 0
+      when:
+      StaggeredOptions.createBuilder()
+              .withInitialDelay(initialDelay)
+              .withSubsequentDelay(subsequentDelay)
+              .withMaxDelay(maxDelay)
+              .withStaggerFactor(staggerFactor)
+              .build()
+      then:
+      thrown(IllegalArgumentException)
+      when:
+      staggerFactor = -1
+      StaggeredOptions.createBuilder()
+              .withInitialDelay(initialDelay)
+              .withSubsequentDelay(subsequentDelay)
+              .withMaxDelay(maxDelay)
+              .withStaggerFactor(staggerFactor)
+              .build()
+      then:
+      thrown(IllegalArgumentException)
+   }
    def 'staggerfactor of 1'()
    {
       given:
@@ -14,7 +41,12 @@ class StaggeredOptionsTest extends Specification
       Duration subsequentDelay = Duration.ofMillis(500L)
       Duration maxDelay = Duration.ofMillis(1000L)
       int staggerFactor = 1
-      StaggeredOptions staggeredOptions = StaggeredOptions.of(initialDelay, subsequentDelay, maxDelay, staggerFactor)
+      StaggeredOptions staggeredOptions = StaggeredOptions.createBuilder()
+              .withInitialDelay(initialDelay)
+              .withSubsequentDelay(subsequentDelay)
+              .withMaxDelay(maxDelay)
+              .withStaggerFactor(staggerFactor)
+              .build()
       when: // initial
       Duration current = staggeredOptions.getNext()
       then:
@@ -36,7 +68,12 @@ class StaggeredOptionsTest extends Specification
       Duration subsequentDelay = Duration.ofMillis(500L)
       Duration maxDelay = Duration.ofMillis(1000L)
       int staggerFactor = 2
-      StaggeredOptions staggeredOptions = StaggeredOptions.of(initialDelay, subsequentDelay, maxDelay, staggerFactor)
+      StaggeredOptions staggeredOptions = StaggeredOptions.createBuilder()
+              .withInitialDelay(initialDelay)
+              .withSubsequentDelay(subsequentDelay)
+              .withMaxDelay(maxDelay)
+              .withStaggerFactor(staggerFactor)
+              .build()
       when: // initial
       Duration current = staggeredOptions.getNext()
       then:

@@ -66,7 +66,12 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     {
         // connection gone, need to reconnect while backing off, so we don't spam
         eventListener.disconnected(this);
-        StaggeredOptions staggeredOptions = StaggeredOptions.of(INITIAL_DURATION, SUBSEQUENT_DURATION, MAX_DURATION, STAGGER_FACTOR);
+        StaggeredOptions staggeredOptions  = StaggeredOptions.createBuilder()
+                                                             .withInitialDelay(INITIAL_DURATION)
+                                                             .withSubsequentDelay(SUBSEQUENT_DURATION)
+                                                             .withMaxDelay(MAX_DURATION)
+                                                             .withStaggerFactor(STAGGER_FACTOR)
+                                                             .build();
         AutoReconnect.of(reverseInboundConnectionInformation, eventListener, staggeredOptions);
     }
 
