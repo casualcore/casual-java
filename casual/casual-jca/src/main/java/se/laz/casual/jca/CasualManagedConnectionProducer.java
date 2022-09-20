@@ -5,11 +5,8 @@
  */
 package se.laz.casual.jca;
 
-public interface ConnectionObserver
+@FunctionalInterface
+public interface CasualManagedConnectionProducer
 {
-    /**
-     * The connection is gone and can not be used after this
-     * @param domainId
-     */
-    void connectionGone(DomainId domainId);
+    CasualManagedConnection createManagedConnection(CasualManagedConnectionFactory mcf);
 }

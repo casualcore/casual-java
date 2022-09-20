@@ -5,7 +5,6 @@
  */
 package se.laz.casual.test.service.remote;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
@@ -22,14 +21,17 @@ import java.util.Optional;
 @Remote(TestService.class)
 public class TestServiceImpl implements TestService
 {
+    public static final String JAVA_FORWARD_ENV_NAME = "JAVA_FORWARD_SERVICE_NAME";
     private TpCaller tpCaller;
-    private String javaForwardName;
+
+    // wls
+    public TestServiceImpl()
+    {}
 
     @Inject
-    public TestServiceImpl(TpCaller tpCaller, @ConfigProperty(name="JAVA_FORWARD_SERVICE_NAME") String javaForwardName)
+    public TestServiceImpl(TpCaller tpCaller)
     {
         this.tpCaller = tpCaller;
-        this.javaForwardName = javaForwardName;
     }
 
     @CasualService(name="javaEcho")
@@ -45,9 +47,13 @@ public class TestServiceImpl implements TestService
     @Override
     public InboundResponse forward(InboundRequest buffer)
     {
-        String forwardName = Optional.ofNullable(javaForwardName).orElseThrow(() -> new ForwardDefinitionMissingException("env var JAVA_FORWARD_SERVICE_NAME undefined, forward will not work ( does not know where to forward to)"));
+        String forwardName = Optional.ofNullable(getForwardNameIfAny()).orElseThrow(() -> new ForwardDefinitionMissingException("env var JAVA_FORWARD_SERVICE_NAME undefined, forward will not work ( does not know where to forward to)"));
         CasualBuffer returnBuffer = tpCaller.makeTpCall(forwardName, buffer.getBuffer(), Flag.of(AtmiFlags.NOFLAG));
         return InboundResponse.createBuilder().buffer( returnBuffer).build();
     }
 
+    private String getForwardNameIfAny()
+    {
+        return System.getenv(JAVA_FORWARD_ENV_NAME);
+    }
 }

@@ -23,15 +23,20 @@ class CasualManagedConnectionTest extends Specification
 
     @Shared CasualManagedConnection instance
     @Shared CasualManagedConnectionFactory managedConnectionFactory
+    @Shared DomainId domainId
+    @Shared def poolDomainIds = [Mock(DomainId), Mock(DomainId), Mock(DomainId)]
 
     def setup()
     {
-        managedConnectionFactory = Mock(CasualManagedConnectionFactory)
-
+        managedConnectionFactory = Mock(CasualManagedConnectionFactory){
+           getPoolDomainIds() >> poolDomainIds
+        }
         instance = new CasualManagedConnection( managedConnectionFactory )
-
-        NetworkConnection networkConnection = Mock( )
-        networkConnection.isActive() >> true
+        domainId = DomainId.of(UUID.randomUUID())
+        NetworkConnection networkConnection = Mock( ){
+           isActive() >> true
+           getDomainId() >> domainId
+        }
         instance.networkConnection = networkConnection
     }
 
@@ -271,6 +276,22 @@ class CasualManagedConnectionTest extends Specification
 
         instance.hashCode() == instance.hashCode()
         instance.hashCode() != instance2.hashCode()
+    }
+
+    def 'getDomainId returns the correct domainId'()
+    {
+       when:
+       def id = instance.getDomainId()
+       then:
+       id == instance.getNetworkConnection().getDomainId()
+    }
+
+    def 'getPoolDomainIds returns the right ids'()
+    {
+       when:
+       def poolIds = instance.getPoolDomainIds()
+       then:
+       poolIds == poolDomainIds
     }
 
     def "toString test."()

@@ -6,6 +6,7 @@
 
 package se.laz.casual.connection.caller;
 
+import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
 import se.laz.casual.connection.caller.util.ConnectionFactoryFinder;
 
 import javax.annotation.PostConstruct;

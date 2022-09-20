@@ -1,0 +1,75 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+package se.laz.casual.connection.caller.entities;
+
+import se.laz.casual.jca.DomainId;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+public class Pool
+{
+    private final ConnectionFactoryEntry connectionFactoryEntry;
+    private final List<DomainId> domainIds;
+
+    private Pool(ConnectionFactoryEntry connectionFactoryEntry, List<DomainId> domainIds)
+    {
+        this.connectionFactoryEntry = connectionFactoryEntry;
+        this.domainIds = domainIds;
+        Comparator<DomainId> domainIdComparator = Comparator.comparing(DomainId::getId);
+        Collections.sort(this.domainIds, domainIdComparator);
+    }
+
+    public static Pool of(ConnectionFactoryEntry connectionFactoryEntry, List<DomainId> domainIds)
+    {
+        Objects.requireNonNull(connectionFactoryEntry, "connectionFactoryEntry can not be null");
+        Objects.requireNonNull(domainIds, "domainIds can not be null");
+        return new Pool(connectionFactoryEntry, domainIds.stream().collect(Collectors.toList()));
+    }
+
+    public ConnectionFactoryEntry getConnectionFactoryEntry()
+    {
+        return connectionFactoryEntry;
+    }
+
+    public List<DomainId> getDomainIds()
+    {
+        return Collections.unmodifiableList(domainIds);
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        Pool pool = (Pool) o;
+        return getConnectionFactoryEntry().equals(pool.getConnectionFactoryEntry()) && getDomainIds().equals(pool.getDomainIds());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(getConnectionFactoryEntry(), getDomainIds());
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Pool{" +
+                "connectionFactoryEntry=" + connectionFactoryEntry +
+                ", domainIds=" + domainIds +
+                '}';
+    }
+}

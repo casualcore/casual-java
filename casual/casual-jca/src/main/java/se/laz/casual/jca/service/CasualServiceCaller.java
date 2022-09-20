@@ -130,7 +130,7 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setTimeout(timeout.toNanos())
                 .setXatmiFlags(flags).build();
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
-        LOG.finest(() -> "issuing service call reequest, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
+        LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
         return connection.getNetworkConnection().request(serviceRequestNetworkMessage);
     }
 

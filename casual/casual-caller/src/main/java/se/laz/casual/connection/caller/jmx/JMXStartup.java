@@ -9,6 +9,7 @@ package se.laz.casual.connection.caller.jmx;
 import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.connection.caller.Cache;
 import se.laz.casual.connection.caller.ConnectionFactoryEntryStore;
+import se.laz.casual.connection.caller.pool.PoolManager;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -32,11 +33,21 @@ public class JMXStartup
     private static final Logger LOG = Logger.getLogger(JMXStartup.class.getName());
     private static final String NAME = "se.laz.casual.caller:type=CasualCallerControl";
 
-    @Inject
+    ConnectionFactoryEntryStore connectionFactoryEntryStore;
     Cache cache;
+    PoolManager poolManager;
+
+    // for wls
+    public JMXStartup()
+    {}
 
     @Inject
-    ConnectionFactoryEntryStore connectionFactoryEntryStore;
+    public JMXStartup(ConnectionFactoryEntryStore connectionFactoryEntryStore, Cache cache, PoolManager poolManager)
+    {
+        this.connectionFactoryEntryStore = connectionFactoryEntryStore;
+        this.cache = cache;
+        this.poolManager = poolManager;
+    }
 
     @PostConstruct
     void initJmx()
@@ -45,7 +56,7 @@ public class JMXStartup
 
         try {
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            CasualCallerControl ccc = new CasualCallerControl(cache, connectionFactoryEntryStore);
+            CasualCallerControl ccc = CasualCallerControl.of(connectionFactoryEntryStore, cache, poolManager);
 
             ObjectName objectName = new ObjectName(NAME);
 

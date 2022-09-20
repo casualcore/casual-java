@@ -20,9 +20,16 @@ public final class QueueInfo implements Serializable
         this.options = options;
     }
 
-    public static Builder createBuilder()
+    public static QueueInfo of(String name)
     {
-        return new Builder();
+        return of(name, QueueOptions.defaultOptions());
+    }
+
+    public static QueueInfo of(String name, QueueOptions queueOptions)
+    {
+        Objects.requireNonNull(name, "name can not be null");
+        Objects.requireNonNull(queueOptions, "queueOptions can not be null");
+        return new QueueInfo(name, queueOptions);
     }
 
     public String getQueueName()
@@ -65,29 +72,5 @@ public final class QueueInfo implements Serializable
         sb.append(", options=").append(options);
         sb.append('}');
         return sb.toString();
-    }
-
-    public static final class Builder
-    {
-        private String qname;
-        private QueueOptions options = QueueOptions.defaultOptions();
-
-        public Builder withQueueName(String qname)
-        {
-            this.qname = qname;
-            return this;
-        }
-
-        public Builder withOptions(QueueOptions options)
-        {
-            this.options = options;
-            return this;
-        }
-
-        public QueueInfo build()
-        {
-            Objects.requireNonNull(qname, "qname can not be null");
-            return new QueueInfo(qname, options);
-        }
     }
 }

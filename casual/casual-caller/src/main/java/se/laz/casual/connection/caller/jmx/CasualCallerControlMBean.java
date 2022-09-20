@@ -10,16 +10,16 @@ import java.util.List;
 
 public interface CasualCallerControlMBean
 {
-    List<String> validPools();
-    List<String> invalidPools();
+    List<String> connectionFactoryJNDINames();
+    List<String> currentPools();
 
     void purgeServiceCache();
     List<String> cachedServices();
-    List<String> poolsCheckedForService(String serviceName);
-    List<String> poolsContainingService(String serviceName);
+    List<String> allServices();
+    List<String> cacheEntryForService(String serviceName);
 
     void purgeQueueCache();
     List<String> cachedQueues();
-    List<String> queueInPools(String queueName);
-    String getQueueStickiedPool(String queueName);
+    List<String> allQueues();
+    String cacheEntryForQueue(String queueName);
 }

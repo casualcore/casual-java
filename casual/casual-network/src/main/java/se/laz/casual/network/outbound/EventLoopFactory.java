@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 
 public final class EventLoopFactory
 {
-    private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
+    private static final Logger LOG = Logger.getLogger(EventLoopFactory.class.getName());
     private static final EventLoopGroup INSTANCE = createEventLoopGroup();
     private EventLoopFactory()
     {}
@@ -41,6 +41,10 @@ public final class EventLoopFactory
     public static ManagedExecutorService getManagedExecutorService()
     {
         Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
+        if(outbound.getUnmanaged())
+        {
+            return null;
+        }
         String name = outbound.getManagedExecutorServiceName();
         try
         {

@@ -48,7 +48,7 @@ public final class CasualDequeueRequestMessageDecoder implements NetworkDecoder<
         int selectorPropertiesSize = (int) ByteUtils.readFully(channel, DequeueRequestSizes.SELECTOR_PROPERTIES_SIZE.getNetworkSize()).getLong();
         String selectorProperties = (0 == selectorPropertiesSize) ? "" : CasualMessageDecoderUtils.readString(channel, selectorPropertiesSize);
         UUID selectorId = CasualMessageDecoderUtils.readUUID(channel);
-        boolean block = (1 == (int) ByteUtils.readFully(channel, DequeueRequestSizes.BLOCK.getNetworkSize()).get());
+        boolean block = (1 == ByteUtils.readFully(channel, DequeueRequestSizes.BLOCK.getNetworkSize()).get());
         return CasualDequeueRequestMessage.createBuilder()
                                           .withExecution(execution)
                                           .withQueueName(queueName)
@@ -83,7 +83,7 @@ public final class CasualDequeueRequestMessageDecoder implements NetworkDecoder<
         currentOffset += selectorPropertiesSize;
         UUID selectorId = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, currentOffset + DequeueRequestSizes.SELECTOR_ID_SIZE.getNetworkSize()));
         currentOffset += CommonSizes.EXECUTION.getNetworkSize();
-        boolean block = (1 == (int)ByteBuffer.wrap(bytes, currentOffset , DequeueRequestSizes.BLOCK.getNetworkSize()).get());
+        boolean block = (1 == ByteBuffer.wrap(bytes, currentOffset , DequeueRequestSizes.BLOCK.getNetworkSize()).get());
         return CasualDequeueRequestMessage.createBuilder()
                                           .withExecution(execution)
                                           .withQueueName(queueName)

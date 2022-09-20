@@ -81,16 +81,25 @@ public class CasualConnectionImpl implements CasualConnection
         managedConnection.closeHandle(this);
     }
 
+    /**
+     * Get the domain id for this physical connection
+     * @return
+     */
     @Override
     public DomainId getDomainID()
     {
         return managedConnection.getNetworkConnection().getDomainId();
     }
 
+    /**
+     * Get all known domain ids for the pool
+     * That is, for all current managed connections in this pool
+     * @return
+     */
     @Override
-    public void addConnectionObserver(ConnectionObserver observer)
+    public List<DomainId> getPoolDomainIds()
     {
-        managedConnection.getNetworkConnection().addConnectionObserver(observer);
+        return managedConnection.getPoolDomainIds();
     }
 
     @Override
