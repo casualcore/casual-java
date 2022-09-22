@@ -47,8 +47,9 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         // after that, randomly chose one - later one we can have some better heuristics for choosing which connection to return
         if(connections.size() == poolSize)
         {
-            ReferenceCountedNetworkConnection connection = (connections.size() == 1) ? connections.get(0) : connections.get(getRandomNumber(0,poolSize - 1));
+            ReferenceCountedNetworkConnection connection = (connections.size() == 1) ? connections.get(0) : connections.get(getRandomNumber(0, poolSize));
             connection.increment();
+            connection.addListener(networkListener);
             return connection;
         }
         synchronized (connectionLock)
@@ -109,11 +110,12 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
                                                                   .withDomainId(domain.getId())
                                                                   .withDomainName(domain.getName())
                                                                   .build();
-        NetworkConnection networkConnection = NettyNetworkConnection.of(ci, networkListener);
-        LOG.info(() -> "Created network connection: " + networkConnection);
+        NettyNetworkConnection networkConnection = NettyNetworkConnection.of(ci, networkListener);
+        LOG.info(() -> "created network connection: " + networkConnection);
         return ReferenceCountedNetworkConnection.of(networkConnection, this);
     }
 
+    // max - exclusive upper limit
     private static int getRandomNumber(int min, int max)
     {
         return ThreadLocalRandom.current().nextInt(min, max);

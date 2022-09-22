@@ -50,34 +50,40 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     private final Channel channel;
     private final AtomicBoolean connected = new AtomicBoolean(true);
     private final ManagedExecutorService managedExecutorService;
+    private final List<NetworkListener> listeners;
+    private final Object listenerLock = new Object();
     private DomainId domainId;
 
     private NettyNetworkConnection(BaseConnectionInformation ci,
                                    Correlator correlator,
                                    Channel channel,
                                    ConversationMessageStorage conversationMessageStorage,
-                                   ManagedExecutorService managedExecutorService)
+                                   ManagedExecutorService managedExecutorService,
+                                   List<NetworkListener> listeners)
     {
         this.ci = ci;
         this.correlator = correlator;
         this.channel = channel;
         this.conversationMessageStorage = conversationMessageStorage;
         this.managedExecutorService = managedExecutorService;
+        this.listeners = listeners;
     }
 
-    public static NetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
+    public static NettyNetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
     {
         Objects.requireNonNull(ci, "connection info can not be null");
         Objects.requireNonNull(ci, "network listener can not be null");
+        List<NetworkListener> listeners = new ArrayList<>();
+        listeners.add(networkListener);
         EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         Correlator correlator = ci.getCorrelator();
         ConversationMessageStorage conversationMessageStorage = ConversationMessageStorageImpl.of();
-        OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenerIfNotConnected(channel, networkListener);
+        OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenersIfNotConnected(channel, listeners);
         ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of( conversationMessageStorage);
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
-        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, EventLoopFactory.getManagedExecutorService());
+        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, EventLoopFactory.getManagedExecutorService(), listeners);
         LOG.finest(() -> networkConnection + " connected to: " + ci.getAddress());
-        ch.closeFuture().addListener(f -> handleClose(networkConnection, networkListener));
+        ch.closeFuture().addListener(f -> handleClose(networkConnection, listeners));
         DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
         networkConnection.setDomainId(id);
         return networkConnection;
@@ -108,7 +114,7 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         return b.connect(address).syncUninterruptibly().channel();
     }
 
-    private static void handleClose(final NettyNetworkConnection connection, NetworkListener networkListener)
+    private static void handleClose(final NettyNetworkConnection connection, List<NetworkListener> networkListener)
     {
         // always complete any outstanding requests exceptionally
         // both when the casual domain goes away or when the owner of the network connection
@@ -118,7 +124,7 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         {
             // only inform on casual disconnect
             // will result in a close call on the ManagedConnection ( by the application server)
-            networkListener.disconnected(new CasualConnectionException("network connection is gone"));
+            networkListener.forEach(listener -> listener.disconnected(new CasualConnectionException("network connection is gone")));
         }
     }
 
@@ -270,4 +276,12 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     {
         ConversationMessageStorageImpl.remove(conversationalCorrId);
     }
+
+   public void addListener(NetworkListener listener)
+   {
+      synchronized (listenerLock)
+      {
+         listeners.add(listener);
+      }
+   }
 }

@@ -5,8 +5,12 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.DomainId;
+import se.laz.casual.network.outbound.NettyNetworkConnection;
+import se.laz.casual.network.outbound.NetworkListener;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -17,16 +21,16 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
 {
     private static final Logger log = Logger.getLogger(ReferenceCountedNetworkConnection.class.getName());
     private final AtomicInteger referenceCount = new AtomicInteger(0);
-    private final NetworkConnection networkConnection;
+    private final NettyNetworkConnection networkConnection;
     private final ReferenceCountedNetworkCloseListener closeListener;
 
-    private ReferenceCountedNetworkConnection(NetworkConnection networkConnection, ReferenceCountedNetworkCloseListener closeListener)
+    private ReferenceCountedNetworkConnection(NettyNetworkConnection networkConnection, ReferenceCountedNetworkCloseListener closeListener)
     {
         this.networkConnection = networkConnection;
         this.closeListener = closeListener;
     }
 
-    public static ReferenceCountedNetworkConnection of(NetworkConnection networkConnection, ReferenceCountedNetworkCloseListener closeListener)
+    public static ReferenceCountedNetworkConnection of(NettyNetworkConnection networkConnection, ReferenceCountedNetworkCloseListener closeListener)
     {
         Objects.requireNonNull(networkConnection, "networkConnection can not be null");
         return new ReferenceCountedNetworkConnection(networkConnection, closeListener);
@@ -34,7 +38,13 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
 
     public int increment()
     {
+        log.info(() -> "increment current refcount: " + referenceCount.get());
         return referenceCount.incrementAndGet();
+    }
+
+    public void addListener(NetworkListener listener)
+    {
+       networkConnection.addListener(listener);
     }
 
     @Override
@@ -64,6 +74,7 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
     @Override
     public void close()
     {
+        log.info(() -> "close current refcount: " + referenceCount.get());
         if(referenceCount.decrementAndGet() == 0)
         {
             log.info(() -> "closing network connection: " + networkConnection);

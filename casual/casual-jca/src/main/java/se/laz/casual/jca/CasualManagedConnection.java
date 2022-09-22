@@ -6,13 +6,9 @@
 
 package se.laz.casual.jca;
 
-import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.config.Domain;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
 import se.laz.casual.jca.pool.PoolHandler;
-import se.laz.casual.network.outbound.NettyConnectionInformation;
-import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
 
 import javax.resource.NotSupportedException;
@@ -30,7 +26,6 @@ import javax.security.auth.Subject;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -158,7 +153,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     @Override
     public void destroy() throws ResourceException
     {
-        log.finest(() -> "destroy()" + this);
+        log.info(() -> "destroy()" + this);
         Optional<DomainId> domainId = Optional.ofNullable( null == networkConnection ? null : networkConnection.getDomainId());
         domainId.ifPresent(mcf::domainDisconnect);
         closeNetworkConnection();
@@ -267,13 +262,14 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         throw new CasualResourceAdapterException("resource adapter should be a casual resource adapter");
     }
 
+    /*
     @Override
     public String toString()
     {
         return "CasualManagedConnection{" +
                 ", xaResource=" + xaResource +
                 '}';
-    }
+    }*/
 
     public void casualNotAvailable()
     {
@@ -291,6 +287,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     @Override
     public void disconnected(Exception reason)
     {
+        log.info(() -> "disconnected: " + this);
         ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED, reason);
         connectionEventHandler.sendEvent(event);
     }
