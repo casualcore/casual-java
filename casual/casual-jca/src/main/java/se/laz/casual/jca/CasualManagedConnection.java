@@ -8,7 +8,7 @@ package se.laz.casual.jca;
 
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
-import se.laz.casual.jca.pool.PoolHandler;
+import se.laz.casual.jca.pool.NetworkPoolHandler;
 import se.laz.casual.network.outbound.NetworkListener;
 
 import javax.resource.NotSupportedException;
@@ -82,7 +82,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
             {
                 // TODO:
                 // check pool config for address, if available use pool handler - otherwise go with 1-1 relation managed con/physical con
-                networkConnection = PoolHandler.getInstance().getOrCreate(mcf.getAddress(), mcf.getCasualProtocolVersion(), this);
+                networkConnection = NetworkPoolHandler.getInstance().getOrCreate(mcf.getAddress(), mcf.getCasualProtocolVersion(), this);
                 /*
                 Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
                 NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))

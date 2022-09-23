@@ -98,7 +98,6 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
                 "address=" + address +
                 ", connections=" + connections +
                 ", poolSize=" + poolSize +
-                ", connectionLock=" + connectionLock +
                 '}';
     }
 

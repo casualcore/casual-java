@@ -57,6 +57,11 @@ public class DomainHandler
         }
     }
 
+    public Map<Address, List<DomainIdReferenceCounted>> getDomainIds()
+    {
+       return Collections.unmodifiableMap(domainIds);
+    }
+
     public List<DomainId> getDomainIds(Address address)
     {
         List<DomainIdReferenceCounted> values = domainIds.get(address);
