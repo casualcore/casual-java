@@ -5,6 +5,8 @@
  */
 package se.laz.casual.config;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 public final class Outbound
@@ -18,29 +20,33 @@ public final class Outbound
     private final String managedExecutorServiceName;
     private int numberOfThreads;
     private boolean unmanaged;
+    private List<NetworkPool> networkPools;
 
-    private Outbound(String managedExecutorServiceName, int numberOfThreads, boolean unmanaged)
+    private Outbound(String managedExecutorServiceName, int numberOfThreads, boolean unmanaged, List<NetworkPool> networkPools)
     {
         this.managedExecutorServiceName = managedExecutorServiceName;
         this.numberOfThreads = numberOfThreads;
         this.unmanaged = unmanaged;
+        this.networkPools = null == networkPools ? Collections.emptyList() : networkPools;
     }
 
+    // note: These are used in unit tests only
     public static Outbound of(Boolean unmanaged)
     {
-        return new Outbound(DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME, DEFAULT_NUMBER_OF_THREADS, null == unmanaged ? DEFAULT_UNMANAGED : unmanaged);
+        return new Outbound(DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME, DEFAULT_NUMBER_OF_THREADS, null == unmanaged ? DEFAULT_UNMANAGED : unmanaged, null);
     }
 
     public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads)
     {
-        return of(managedExecutorServiceName, numberOfThreads, DEFAULT_UNMANAGED);
+        return of(managedExecutorServiceName, numberOfThreads, DEFAULT_UNMANAGED, null);
     }
 
-    public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads, Boolean unmanaged)
+    public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads, Boolean unmanaged, List<NetworkPool> networkPools)
     {
         return new Outbound(null == managedExecutorServiceName ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME :  managedExecutorServiceName,
                             null == numberOfThreads ? DEFAULT_NUMBER_OF_THREADS : numberOfThreads,
-                            null == unmanaged ? DEFAULT_UNMANAGED : unmanaged);
+                            null == unmanaged ? DEFAULT_UNMANAGED : unmanaged,
+                networkPools);
     }
 
     public String getManagedExecutorServiceName()
@@ -58,7 +64,12 @@ public final class Outbound
         return unmanaged;
     }
 
-    @Override
+    public List<NetworkPool> getNetworkPools()
+    {
+        return networkPools;
+    }
+
+   @Override
     public boolean equals(Object o)
     {
         if (this == o)

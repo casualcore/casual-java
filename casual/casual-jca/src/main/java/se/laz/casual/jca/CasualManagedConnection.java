@@ -6,9 +6,15 @@
 
 package se.laz.casual.jca;
 
+import se.laz.casual.config.Address;
+import se.laz.casual.config.ConfigurationService;
+import se.laz.casual.config.Domain;
+import se.laz.casual.config.NetworkPool;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
 import se.laz.casual.jca.pool.NetworkPoolHandler;
+import se.laz.casual.network.outbound.NettyConnectionInformation;
+import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
 
 import javax.resource.NotSupportedException;
@@ -26,6 +32,7 @@ import javax.security.auth.Subject;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -80,25 +87,37 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         {
             if (networkConnection == null)
             {
-                // TODO:
-                // check pool config for address, if available use pool handler - otherwise go with 1-1 relation managed con/physical con
-                networkConnection = NetworkPoolHandler.getInstance().getOrCreate(mcf.getAddress(), mcf.getCasualProtocolVersion(), this);
-                /*
-                Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
-                NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
-                                                                          .withProtocolVersion(mcf.getCasualProtocolVersion())
-                                                                          .withDomainId(domain.getId())
-                                                                          .withDomainName(domain.getName())
-                                                                          .build();
-                networkConnection = NettyNetworkConnection.of(ci, this);
-                 */
-                log.finest(()->"created new nw connection " + this);
+                Integer poolSize = ConfigurationService.getInstance().getConfiguration().getOutbound().getNetworkPools().stream()
+                                                       .filter(networkPool -> sameHostAndPort(networkPool, mcf))
+                                                       .map(NetworkPool::getSize)
+                                                       .findFirst()
+                                                       .orElse(null);
+                networkConnection = null == poolSize ? createOneToOneManagedConnection() : NetworkPoolHandler.getInstance().getOrCreate( mcf.getAddress(), mcf.getCasualProtocolVersion(), this, poolSize);
             }
         }
         return networkConnection;
     }
 
-    @Override
+   private boolean sameHostAndPort(NetworkPool networkPool, CasualManagedConnectionFactory mcf)
+   {
+       return networkPool.getAddress().getHostName().equals(mcf.getAddress().getHostName()) &&
+               networkPool.getAddress().getPort().equals(mcf.getAddress().getPort());
+   }
+
+   private NetworkConnection createOneToOneManagedConnection()
+   {
+       Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
+       NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
+                                                                 .withProtocolVersion(mcf.getCasualProtocolVersion())
+                                                                 .withDomainId(domain.getId())
+                                                                 .withDomainName(domain.getName())
+                                                                 .build();
+       NettyNetworkConnection networkConnection = NettyNetworkConnection.of(ci, this);
+       log.finest(()->"created new nw connection " + this);
+       return networkConnection;
+   }
+
+   @Override
     public Object getConnection(Subject subject,
                                 ConnectionRequestInfo cxRequestInfo) throws ResourceException
     {

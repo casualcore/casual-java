@@ -13,9 +13,7 @@ import java.util.logging.Logger;
 
 public class NetworkPoolHandler
 {
-    private static final Logger log = Logger.getLogger(NetworkPoolHandler.class.getName());
     private static final NetworkPoolHandler instance = new NetworkPoolHandler();
-    private static final int POOL_SIZE = 2;
     private final Map<Address, NetworkConnectionPool> pools = new ConcurrentHashMap<>();
 
     public static NetworkPoolHandler getInstance()
@@ -23,11 +21,11 @@ public class NetworkPoolHandler
         return instance;
     }
 
-    public NetworkConnection getOrCreate(Address address, ProtocolVersion protocolVersion, NetworkListener listener)
+    public NetworkConnection getOrCreate(Address address, ProtocolVersion protocolVersion, NetworkListener listener, int poolSize)
     {
         // TODO:
         // check configuration for this address to get the pool size
-        return pools.computeIfAbsent(address, key -> NetworkConnectionPool.of(key, POOL_SIZE)).getOrCreateConnection(address, protocolVersion,listener);
+        return pools.computeIfAbsent(address, key -> NetworkConnectionPool.of(key, poolSize)).getOrCreateConnection(address, protocolVersion,listener);
     }
 
     // used by jmx only

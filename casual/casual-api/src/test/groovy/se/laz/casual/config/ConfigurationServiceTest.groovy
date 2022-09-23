@@ -68,7 +68,7 @@ class ConfigurationServiceTest extends Specification
     {
         given:
         Configuration expected = Configuration.newBuilder()
-                .withOutbound(Outbound.of(executorName, numberOfThreads, unmanaged))
+                .withOutbound(Outbound.of(executorName, numberOfThreads, unmanaged, networkPool))
                 .build()
 
         when:
@@ -82,12 +82,14 @@ class ConfigurationServiceTest extends Specification
         actual == expected
 
         where:
-        file                                                  || executorName                                                        || numberOfThreads || unmanaged
-        'casual-config-outbound.json'                         || 'java:comp/env/concurrent/casualManagedExecutorService'             || 10              || false
-        'casual-config-outbound-executorName-missing.json'    || 'java:comp/DefaultManagedExecutorService'                           || 10              || false
-        'casual-config-outbound-numberOfThreads-missing.json' || 'java:comp/env/concurrent/casualManagedExecutorService'             || 0               || false
-        'casual-config-outbound-null.json'                    || 'java:comp/DefaultManagedExecutorService'                           || 0               || false
-        'casual-config-outbound-unmanaged.json'               || 'java:comp/DefaultManagedExecutorService'                           || 0               || true
+        file                                                  || executorName                                                        || numberOfThreads || unmanaged || networkPool
+        'casual-config-outbound.json'                         || 'java:comp/env/concurrent/casualManagedExecutorService'             || 10              || false     || null
+        'casual-config-outbound-executorName-missing.json'    || 'java:comp/DefaultManagedExecutorService'                           || 10              || false     || null
+        'casual-config-outbound-numberOfThreads-missing.json' || 'java:comp/env/concurrent/casualManagedExecutorService'             || 0               || false     || null
+        'casual-config-outbound-null.json'                    || 'java:comp/DefaultManagedExecutorService'                           || 0               || false     || null
+        'casual-config-outbound-unmanaged.json'               || 'java:comp/DefaultManagedExecutorService'                           || 0               || true      || null
+        'casual-config-outbound-network-pooling.json'         || 'java:comp/DefaultManagedExecutorService'                           || 0               || false     || [NetworkPool.of(Address.of("10.96.186.114", 7771), 5),
+                                                                                                                                                                         NetworkPool.of(Address.of("0.0.0.0", 7771), 10)]
     }
 
     def 'default outbound config, no file'()
@@ -148,6 +150,4 @@ class ConfigurationServiceTest extends Specification
         // was not set at all - the expected behaviour in this case is that the default mode is used
         ''                       || Mode.IMMEDIATE | []
     }
-
-
 }
