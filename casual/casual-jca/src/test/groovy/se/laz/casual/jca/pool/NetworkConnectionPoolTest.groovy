@@ -31,4 +31,40 @@ class NetworkConnectionPoolTest extends Specification
       thrown(CasualResourceAdapterException)
    }
 
+   def 'size 1 always returns the same instance'()
+   {
+      int poolSize = 1
+      Address address = Address.of("nifty", 7771)
+      NetworkConnectionCreator connectionCreator = Mock(NetworkConnectionCreator){
+         1 * createNetworkConnection(*_) >> Mock(ReferenceCountedNetworkConnection)
+      }
+      NetworkConnectionPool pool = NetworkConnectionPool.of(address, poolSize, connectionCreator)
+      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
+      when:
+      NetworkConnection connection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
+      NetworkConnection sameConnection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
+      then:
+      connection == sameConnection
+   }
+
+   def 'big pool, should be able to get other instances'()
+   {
+      int poolSize = 1000
+      Address address = Address.of("nifty", 7771)
+      NetworkConnectionCreator connectionCreator = Mock(NetworkConnectionCreator){
+         1 * createNetworkConnection(*_) >> Mock(ReferenceCountedNetworkConnection)
+      }
+      NetworkConnectionPool pool = NetworkConnectionPool.of(address, poolSize, connectionCreator)
+      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
+      when:
+      NetworkConnection connection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
+      NetworkConnection anotherConnection = null
+      while(connection == anotherConnection)
+      {
+         anotherConnection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
+      }
+      then:
+      connection != anotherConnection
+   }
+
 }
