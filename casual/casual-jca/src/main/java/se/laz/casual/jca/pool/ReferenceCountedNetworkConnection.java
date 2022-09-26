@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 public class ReferenceCountedNetworkConnection implements NetworkConnection
 {
     private static final Logger log = Logger.getLogger(ReferenceCountedNetworkConnection.class.getName());
-    private final AtomicInteger referenceCount = new AtomicInteger(0);
+    private final AtomicInteger referenceCount = new AtomicInteger(1);
     private final NettyNetworkConnection networkConnection;
     private final ReferenceCountedNetworkCloseListener closeListener;
 

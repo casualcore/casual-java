@@ -98,25 +98,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         return networkConnection;
     }
 
-   private boolean sameHostAndPort(NetworkPool networkPool, CasualManagedConnectionFactory mcf)
-   {
-       return networkPool.getAddress().getHostName().equals(mcf.getAddress().getHostName()) &&
-               networkPool.getAddress().getPort().equals(mcf.getAddress().getPort());
-   }
-
-   private NetworkConnection createOneToOneManagedConnection()
-   {
-       Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
-       NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
-                                                                 .withProtocolVersion(mcf.getCasualProtocolVersion())
-                                                                 .withDomainId(domain.getId())
-                                                                 .withDomainName(domain.getName())
-                                                                 .build();
-       NettyNetworkConnection networkConnection = NettyNetworkConnection.of(ci, this);
-       log.finest(()->"created new nw connection " + this);
-       return networkConnection;
-   }
-
    @Override
     public Object getConnection(Subject subject,
                                 ConnectionRequestInfo cxRequestInfo) throws ResourceException
@@ -337,5 +318,24 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public int getTransactionTimeout()
     {
         return timeout;
+    }
+
+    private boolean sameHostAndPort(NetworkPool networkPool, CasualManagedConnectionFactory mcf)
+    {
+        return networkPool.getAddress().getHostName().equals(mcf.getAddress().getHostName()) &&
+                networkPool.getAddress().getPort().equals(mcf.getAddress().getPort());
+    }
+
+    private NetworkConnection createOneToOneManagedConnection()
+    {
+        Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
+        NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
+                                                                  .withProtocolVersion(mcf.getCasualProtocolVersion())
+                                                                  .withDomainId(domain.getId())
+                                                                  .withDomainName(domain.getName())
+                                                                  .build();
+        NettyNetworkConnection networkConnection = NettyNetworkConnection.of(ci, this);
+        log.finest(()->"created new nw connection " + this);
+        return networkConnection;
     }
 }

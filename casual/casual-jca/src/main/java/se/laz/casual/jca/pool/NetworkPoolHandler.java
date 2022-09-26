@@ -6,10 +6,8 @@ import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.outbound.NetworkListener;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 public class NetworkPoolHandler
 {
@@ -23,8 +21,6 @@ public class NetworkPoolHandler
 
     public NetworkConnection getOrCreate(Address address, ProtocolVersion protocolVersion, NetworkListener listener, int poolSize)
     {
-        // TODO:
-        // check configuration for this address to get the pool size
         return pools.computeIfAbsent(address, key -> NetworkConnectionPool.of(key, poolSize)).getOrCreateConnection(address, protocolVersion,listener);
     }
 

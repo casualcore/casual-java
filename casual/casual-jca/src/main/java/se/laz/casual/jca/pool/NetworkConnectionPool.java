@@ -1,10 +1,10 @@
 package se.laz.casual.jca.pool;
 
-import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.Address;
+import se.laz.casual.jca.CasualResourceAdapterException;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.outbound.NettyConnectionInformation;
 import se.laz.casual.network.outbound.NettyNetworkConnection;
@@ -24,27 +24,35 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     private final List<ReferenceCountedNetworkConnection> connections = new ArrayList<>();
     private int poolSize;
     private final Object connectionLock = new Object();
+    private final NetworkConnectionCreator networkConnectionCreator;
 
-    private NetworkConnectionPool(Address address, int poolSize)
+    private NetworkConnectionPool(Address address, int poolSize, NetworkConnectionCreator networkConnectionCreator)
     {
         this.address = address;
         this.poolSize = poolSize;
+        this.networkConnectionCreator = networkConnectionCreator;
     }
 
     public static NetworkConnectionPool of(Address address, int poolSize)
     {
+        return of(address, poolSize, null);
+    }
+
+    public static NetworkConnectionPool of(Address address, int poolSize, NetworkConnectionCreator networkConnectionCreator)
+    {
         Objects.requireNonNull(address, "address can not be null");
-        return new NetworkConnectionPool(address, poolSize);
+        networkConnectionCreator = null == networkConnectionCreator ? NetworkConnectionPool::createNetworkConnection : networkConnectionCreator;
+        return new NetworkConnectionPool(address, poolSize, networkConnectionCreator);
     }
 
     public NetworkConnection getOrCreateConnection(Address address, ProtocolVersion protocolVersion, NetworkListener networkListener)
     {
         if(!this.address.equals(address))
         {
-            throw new CasualRuntimeException("Address mismatch, have: " + this.address + " got: " + address);
+            throw new CasualResourceAdapterException("Address mismatch, have: " + this.address + " got: " + address);
         }
         // create up to pool size # of connections
-        // after that, randomly chose one - later one we can have some better heuristics for choosing which connection to return
+        // after that, randomly chose one - later on we can have some better heuristics for choosing which connection to return
         if(connections.size() == poolSize)
         {
             ReferenceCountedNetworkConnection connection = (connections.size() == 1) ? connections.get(0) : connections.get(getRandomNumber(0, poolSize));
@@ -54,9 +62,8 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         }
         synchronized (connectionLock)
         {
-            ReferenceCountedNetworkConnection connection = createNetworkConnection(address, protocolVersion, networkListener);
+            ReferenceCountedNetworkConnection connection = networkConnectionCreator.createNetworkConnection(address, protocolVersion, networkListener, this);
             connections.add(connection);
-            connection.increment();
             return connection;
         }
     }
@@ -101,7 +108,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
                 '}';
     }
 
-    private ReferenceCountedNetworkConnection createNetworkConnection(Address address, ProtocolVersion protocolVersion, NetworkListener networkListener)
+    private static ReferenceCountedNetworkConnection createNetworkConnection(Address address, ProtocolVersion protocolVersion, NetworkListener networkListener, ReferenceCountedNetworkCloseListener referenceCountedNetworkCloseListener)
     {
         Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
         NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(address.getHostName(), address.getPort()))
@@ -111,7 +118,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
                                                                   .build();
         NettyNetworkConnection networkConnection = NettyNetworkConnection.of(ci, networkListener);
         LOG.info(() -> "created network connection: " + networkConnection);
-        return ReferenceCountedNetworkConnection.of(networkConnection, this);
+        return ReferenceCountedNetworkConnection.of(networkConnection, referenceCountedNetworkCloseListener);
     }
 
     // max - exclusive upper limit
