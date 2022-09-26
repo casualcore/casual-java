@@ -1,12 +1,12 @@
 {
   "outbound":
   {
-    "networkPools": [
+    "pools":[
       {"address": {"host":"10.96.186.114", "port":7771},
-        "size": 5
+        "size": 42
       },
-      {"address": {"host":"0.0.0.0", "port":7771},
-        "size": 10
+      {"address": {"host":"casual-one", "port":7771},
+        "size": 2
       }
     ]
   }

@@ -6,10 +6,9 @@
 
 package se.laz.casual.jca;
 
-import se.laz.casual.config.Address;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
-import se.laz.casual.config.NetworkPool;
+import se.laz.casual.config.Pool;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
 import se.laz.casual.jca.pool.NetworkPoolHandler;
@@ -87,9 +86,9 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         {
             if (networkConnection == null)
             {
-                Integer poolSize = ConfigurationService.getInstance().getConfiguration().getOutbound().getNetworkPools().stream()
-                                                       .filter(networkPool -> sameHostAndPort(networkPool, mcf))
-                                                       .map(NetworkPool::getSize)
+                Integer poolSize = ConfigurationService.getInstance().getConfiguration().getOutbound().getPools().stream()
+                                                       .filter(pool -> sameHostAndPort(pool, mcf))
+                                                       .map(Pool::getSize)
                                                        .findFirst()
                                                        .orElse(null);
                 networkConnection = null == poolSize ? createOneToOneManagedConnection() : NetworkPoolHandler.getInstance().getOrCreate( mcf.getAddress(), mcf.getCasualProtocolVersion(), this, poolSize);
@@ -320,10 +319,12 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         return timeout;
     }
 
-    private boolean sameHostAndPort(NetworkPool networkPool, CasualManagedConnectionFactory mcf)
+    private boolean sameHostAndPort(Pool pool, CasualManagedConnectionFactory mcf)
     {
-        return networkPool.getAddress().getHostName().equals(mcf.getAddress().getHostName()) &&
-                networkPool.getAddress().getPort().equals(mcf.getAddress().getPort());
+        Objects.requireNonNull(pool, "pool can not be null");
+        Objects.requireNonNull(mcf, "managed connection factory can not be null");
+        return pool.getAddress().getHost().equals(mcf.getAddress().getHostName()) &&
+                pool.getAddress().getPort().equals(mcf.getAddress().getPort());
     }
 
     private NetworkConnection createOneToOneManagedConnection()

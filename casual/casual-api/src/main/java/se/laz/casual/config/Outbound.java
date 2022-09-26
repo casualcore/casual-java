@@ -20,17 +20,16 @@ public final class Outbound
     private final String managedExecutorServiceName;
     private int numberOfThreads;
     private boolean unmanaged;
-    private List<NetworkPool> networkPools;
+    private final List<Pool> pools;
 
-    private Outbound(String managedExecutorServiceName, int numberOfThreads, boolean unmanaged, List<NetworkPool> networkPools)
+    private Outbound(String managedExecutorServiceName, int numberOfThreads, boolean unmanaged, List<Pool> pools)
     {
         this.managedExecutorServiceName = managedExecutorServiceName;
         this.numberOfThreads = numberOfThreads;
         this.unmanaged = unmanaged;
-        this.networkPools = null == networkPools ? Collections.emptyList() : networkPools;
+        this.pools = pools;
     }
 
-    // note: These are used in unit tests only
     public static Outbound of(Boolean unmanaged)
     {
         return new Outbound(DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME, DEFAULT_NUMBER_OF_THREADS, null == unmanaged ? DEFAULT_UNMANAGED : unmanaged, null);
@@ -41,12 +40,12 @@ public final class Outbound
         return of(managedExecutorServiceName, numberOfThreads, DEFAULT_UNMANAGED, null);
     }
 
-    public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads, Boolean unmanaged, List<NetworkPool> networkPools)
+    public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads, Boolean unmanaged, List<Pool> pools)
     {
         return new Outbound(null == managedExecutorServiceName ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME :  managedExecutorServiceName,
                             null == numberOfThreads ? DEFAULT_NUMBER_OF_THREADS : numberOfThreads,
                             null == unmanaged ? DEFAULT_UNMANAGED : unmanaged,
-                networkPools);
+                pools);
     }
 
     public String getManagedExecutorServiceName()
@@ -64,9 +63,9 @@ public final class Outbound
         return unmanaged;
     }
 
-    public List<NetworkPool> getNetworkPools()
+    public List<Pool> getPools()
     {
-        return networkPools;
+        return null == pools ? Collections.emptyList() : pools;
     }
 
    @Override
@@ -81,22 +80,25 @@ public final class Outbound
             return false;
         }
         Outbound outbound = (Outbound) o;
-        return getNumberOfThreads() == outbound.getNumberOfThreads() && getUnmanaged() == outbound.getUnmanaged() && Objects.equals(getManagedExecutorServiceName(), outbound.getManagedExecutorServiceName());
+        return getNumberOfThreads() == outbound.getNumberOfThreads() && getUnmanaged() == outbound.getUnmanaged()
+                && Objects.equals(getManagedExecutorServiceName(), outbound.getManagedExecutorServiceName())
+                && Objects.equals(getPools(), outbound.getPools());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getManagedExecutorServiceName(), getNumberOfThreads(), getUnmanaged());
+        return Objects.hash(getManagedExecutorServiceName(), getNumberOfThreads(), getUnmanaged(), getPools());
     }
 
     @Override
     public String toString()
     {
         return "Outbound{" +
-                "managedExecutorServiceName='" + managedExecutorServiceName + '\'' +
-                ", numberOfThreads=" + numberOfThreads +
-                ", unmanaged=" + unmanaged +
+                "managedExecutorServiceName='" + getManagedExecutorServiceName() + '\'' +
+                ", numberOfThreads=" + getNumberOfThreads() +
+                ", unmanaged=" + getUnmanaged() +
+                ", pools=" + getPools() +
                 '}';
     }
 }

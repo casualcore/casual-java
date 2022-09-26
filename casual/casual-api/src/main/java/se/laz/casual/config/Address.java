@@ -9,12 +9,12 @@ import java.util.Objects;
 
 public class Address
 {
-    private final String hostName;
+    private final String host;
     private final Integer port;
 
-    private Address(String hostName, Integer port)
+    private Address(String host, Integer port)
     {
-        this.hostName = hostName;
+        this.host = host;
         this.port = port;
     }
 
@@ -25,9 +25,9 @@ public class Address
         return new Address(hostName,portNumber);
     }
 
-    public String getHostName()
+    public String getHost()
     {
-        return hostName;
+        return host;
     }
 
     public Integer getPort()
@@ -47,20 +47,20 @@ public class Address
             return false;
         }
         Address address = (Address) o;
-        return hostName.equals(address.hostName) && port.equals(address.port);
+        return getHost().equals(address.getHost()) && getPort().equals(address.getPort());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(hostName, port);
+        return Objects.hash(host, port);
     }
 
     @Override
     public String toString()
     {
         return "Address{" +
-                "host='" + hostName + '\'' +
+                "host='" + host + '\'' +
                 ", port='" + port + '\'' +
                 '}';
     }
