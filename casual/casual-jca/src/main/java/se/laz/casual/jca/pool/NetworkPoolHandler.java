@@ -15,23 +15,23 @@ public class NetworkPoolHandler
 {
     private static final Logger log = Logger.getLogger(NetworkPoolHandler.class.getName());
     private static final NetworkPoolHandler instance = new NetworkPoolHandler();
-    private final Map<Address, NetworkConnectionPool> pools = new ConcurrentHashMap<>();
+    private final Map<String, NetworkConnectionPool> pools = new ConcurrentHashMap<>();
 
     public static NetworkPoolHandler getInstance()
     {
         return instance;
     }
 
-    public NetworkConnection getOrCreate(Address address, ProtocolVersion protocolVersion, NetworkListener listener, int poolSize)
+    public NetworkConnection getOrCreate(String poolName, Address address, ProtocolVersion protocolVersion, NetworkListener listener, int poolSize)
     {
         try
         {
-            return pools.computeIfAbsent(address, key -> NetworkConnectionPool.of(key, poolSize)).getOrCreateConnection(address, protocolVersion, listener);
+            return pools.computeIfAbsent(poolName, key -> NetworkConnectionPool.of(key, address, poolSize)).getOrCreateConnection(address, protocolVersion, listener);
         }
         catch(CasualConnectionException e)
         {
             log.finest(() -> "connection failure for: " + address);
-            pools.remove(address);
+            pools.remove(poolName);
             throw e;
         }
     }
@@ -42,7 +42,7 @@ public class NetworkPoolHandler
        return pools.get(address);
     }
 
-    public Map<Address, NetworkConnectionPool> getPools()
+    public Map<String, NetworkConnectionPool> getPools()
     {
        return Collections.unmodifiableMap(pools);
     }

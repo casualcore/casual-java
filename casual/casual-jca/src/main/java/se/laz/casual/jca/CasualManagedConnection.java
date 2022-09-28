@@ -87,11 +87,11 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
             if (networkConnection == null)
             {
                 Integer poolSize = ConfigurationService.getInstance().getConfiguration().getOutbound().getPools().stream()
-                                                       .filter(pool -> sameHostAndPort(pool, mcf))
+                                                       .filter(pool -> pool.getName().equals(mcf.getPoolName()))
                                                        .map(Pool::getSize)
                                                        .findFirst()
                                                        .orElse(null);
-                networkConnection = null == poolSize ? createOneToOneManagedConnection() : NetworkPoolHandler.getInstance().getOrCreate( mcf.getAddress(), mcf.getCasualProtocolVersion(), this, poolSize);
+                networkConnection = null == poolSize ? createOneToOneManagedConnection() : NetworkPoolHandler.getInstance().getOrCreate( mcf.getPoolName(), mcf.getAddress(), mcf.getCasualProtocolVersion(), this, poolSize);
             }
         }
         return networkConnection;
@@ -318,14 +318,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         return timeout;
     }
 
-    private boolean sameHostAndPort(Pool pool, CasualManagedConnectionFactory mcf)
-    {
-        Objects.requireNonNull(pool, "pool can not be null");
-        Objects.requireNonNull(mcf, "managed connection factory can not be null");
-        return pool.getAddress().getHost().equals(mcf.getAddress().getHostName()) &&
-                pool.getAddress().getPort().equals(mcf.getAddress().getPort());
-    }
-
     private NetworkConnection createOneToOneManagedConnection()
     {
         Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
@@ -335,7 +327,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
                                                                   .withDomainName(domain.getName())
                                                                   .build();
         NettyNetworkConnection networkConnection = NettyNetworkConnection.of(ci, this);
-        log.finest(()->"created new nw connection " + this);
+        log.finest(() -> "created new nw connection " + this);
         return networkConnection;
     }
 }

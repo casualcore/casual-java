@@ -122,6 +122,8 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
         return "ReferenceCountedNetworkConnection{" +
                 "referenceCount=" + referenceCount +
                 ", networkConnection=" + networkConnection +
+                ", closeListener=" + closeListener +
                 '}';
     }
+
 }

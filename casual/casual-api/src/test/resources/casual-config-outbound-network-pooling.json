@@ -2,10 +2,10 @@
   "outbound":
   {
     "pools":[
-      {"address": {"host":"10.96.186.114", "port":7771},
+      { "name": "big-pool",
         "size": 42
       },
-      {"address": {"host":"casual-one", "port":7771},
+      { "name":  "small-pool",
         "size": 2
       }
     ]

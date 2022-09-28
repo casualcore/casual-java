@@ -17,7 +17,7 @@ class OutboundPoolTest extends Specification
                  actual = instance.getConfiguration(  )} )
       when:
       Integer poolSize = actual.getOutbound().getPools().stream()
-              .filter({it.getAddress().getHost() == "10.96.186.114" && it.getAddress().getPort() == 7771} )
+              .filter({it.getName() == "does-not-exist"} )
               .map({it.getSize()})
               .findFirst()
               .orElse(null)
@@ -28,8 +28,8 @@ class OutboundPoolTest extends Specification
    def 'with pool configurations'()
    {
       given:
-      Address addressOne = Address.of('10.96.186.114', 7771)
-      Address addressTwo = Address.of('casual-one', 7771)
+      def bigPoolName = 'big-pool'
+      def smallPoolName = 'small-pool'
       Configuration actual
       withEnvironmentVariable( ConfigurationService.CASUAL_CONFIG_FILE_ENV_NAME, "src/test/resources/casual-config-outbound-network-pooling.json")
               .execute( {
@@ -37,7 +37,7 @@ class OutboundPoolTest extends Specification
                  actual = instance.getConfiguration(  )} )
       when:
       Integer poolSize = actual.getOutbound().getPools().stream()
-              .filter({it.getAddress() == addressOne} )
+              .filter({it.getName() == bigPoolName} )
               .map({it.getSize()})
               .findFirst()
               .orElse(null)
@@ -45,7 +45,7 @@ class OutboundPoolTest extends Specification
       poolSize == 42
       when:
       poolSize = actual.getOutbound().getPools().stream()
-              .filter({it.getAddress() == addressTwo} )
+              .filter({it.getName() == smallPoolName} )
               .map({it.getSize()})
               .findFirst()
               .orElse(null)
@@ -53,7 +53,7 @@ class OutboundPoolTest extends Specification
       poolSize == 2
       when: // does not exist
       poolSize = actual.getOutbound().getPools().stream()
-              .filter({it.getAddress().getHost() == "no-host"} )
+              .filter({it.getName() == "no-name"} )
               .map({it.getSize()})
               .findFirst()
               .orElse(null)

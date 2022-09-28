@@ -17,11 +17,10 @@ public class Casual implements CasualMBean
    @Override
    public List<String> networkPools()
    {
-      Map<Address, NetworkConnectionPool> pools = NetworkPoolHandler.getInstance().getPools();
+      Map<String, NetworkConnectionPool> pools = NetworkPoolHandler.getInstance().getPools();
       return pools.keySet().stream()
                   .map(key -> key + "=" + pools.get(key))
                   .collect(Collectors.toList());
-
    }
 
    @Override

@@ -4,30 +4,30 @@ import java.util.Objects;
 
 public class Pool
 {
-   private final Address address;
-   private int size;
+    private final String name;
+    private int size;
 
-   private Pool(Address address, int size)
-   {
-      this.address = address;
-      this.size = size;
-   }
+    private Pool(String name, int size)
+    {
+        this.size = size;
+        this.name = name;
+    }
 
-   public static Pool of(Address address, int size)
-   {
-      Objects.requireNonNull(address, "address can not be null");
-      return new Pool(address, size);
-   }
+    public static Pool of(String name, int size)
+    {
+        Objects.requireNonNull(name, "name can not be null");
+        return new Pool(name, size);
+    }
 
-   public Address getAddress()
-   {
-      return address;
-   }
-
-   public int getSize()
+    public int getSize()
    {
       return size;
    }
+
+    public String getName()
+    {
+        return name;
+    }
 
     @Override
     public boolean equals(Object o)
@@ -41,21 +41,21 @@ public class Pool
             return false;
         }
         Pool pool = (Pool) o;
-        return getSize() == pool.getSize() && Objects.equals(getAddress(), pool.getAddress());
+        return getSize() == pool.getSize() && Objects.equals(getName(), pool.getName());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getAddress(), getSize());
+        return Objects.hash(getSize(), getName());
     }
 
     @Override
     public String toString()
     {
         return "Pool{" +
-                "address=" + getAddress() +
-                ", size=" + getSize() +
+                "size=" + size +
+                ", name='" + name + '\'' +
                 '}';
     }
 }

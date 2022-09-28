@@ -24,28 +24,32 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     private static final Logger LOG = Logger.getLogger(NetworkConnectionPool.class.getName());
     private final Address address;
     private final List<ReferenceCountedNetworkConnection> connections = new ArrayList<>();
+    private final String poolName;
     private int poolSize;
     private final Object connectionLock = new Object();
+    private final Object getOrCreateLock = new Object();
     private final NetworkConnectionCreator networkConnectionCreator;
     private final AtomicBoolean disconnected = new AtomicBoolean(false);
 
-    private NetworkConnectionPool(Address address, int poolSize, NetworkConnectionCreator networkConnectionCreator)
+    private NetworkConnectionPool(String poolName, Address address, int poolSize, NetworkConnectionCreator networkConnectionCreator)
     {
         this.address = address;
         this.poolSize = poolSize;
         this.networkConnectionCreator = networkConnectionCreator;
+        this.poolName = poolName;
     }
 
-    public static NetworkConnectionPool of(Address address, int poolSize)
+    public static NetworkConnectionPool of(String poolName, Address address, int poolSize)
     {
-        return of(address, poolSize, null);
+        return of(poolName, address, poolSize, null);
     }
 
-    public static NetworkConnectionPool of(Address address, int poolSize, NetworkConnectionCreator networkConnectionCreator)
+    public static NetworkConnectionPool of(String poolName, Address address, int poolSize, NetworkConnectionCreator networkConnectionCreator)
     {
+        Objects.requireNonNull(address, "poolName can not be null");
         Objects.requireNonNull(address, "address can not be null");
         networkConnectionCreator = null == networkConnectionCreator ? NetworkConnectionPool::createNetworkConnection : networkConnectionCreator;
-        return new NetworkConnectionPool(address, poolSize, networkConnectionCreator);
+        return new NetworkConnectionPool(poolName, address, poolSize, networkConnectionCreator);
     }
 
     private int numberOfConnections()
@@ -80,42 +84,40 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         }
     }
 
-    private boolean noConnections()
-    {
-        synchronized (connectionLock)
-        {
-            return connections.isEmpty();
-        }
-    }
-
     public NetworkConnection getOrCreateConnection(Address address, ProtocolVersion protocolVersion, NetworkListener networkListener)
     {
         if(!this.address.equals(address))
         {
-            throw new CasualResourceAdapterException("Address mismatch, have: " + this.address + " got: " + address);
+            throw new CasualResourceAdapterException("Address mismatch, have: " + this.address + " got: " + address + " for pool with name: " + poolName);
         }
         if(disconnected.get())
         {
             throw new CasualConnectionException("disconnected");
         }
-        // create up to pool size # of connections
-        // after that, randomly chose one - later on we can have some better heuristics for choosing which connection to return
-        if(numberOfConnections() == poolSize)
+        synchronized (getOrCreateLock)
         {
-            ReferenceCountedNetworkConnection connection = (numberOfConnections() == 1) ? getAtIndex(0) : getAtIndex(getRandomNumber(0, poolSize));
-            connection.increment();
-            connection.addListener(networkListener);
+            // create up to pool size # of connections
+            // after that, randomly chose one - later on we can have some better heuristics for choosing which connection to return
+            if (numberOfConnections() == poolSize)
+            {
+                ReferenceCountedNetworkConnection connection = (numberOfConnections() == 1) ? getAtIndex(0) : getAtIndex(getRandomNumber(0, poolSize));
+                connection.increment();
+                connection.addListener(networkListener);
+                return connection;
+            }
+            ReferenceCountedNetworkConnection connection = networkConnectionCreator.createNetworkConnection(address, protocolVersion, networkListener, this, this);
+            addConnection(connection);
             return connection;
         }
-        ReferenceCountedNetworkConnection connection = networkConnectionCreator.createNetworkConnection(address, protocolVersion, networkListener, this, this);
-        addConnection(connection);
-        return connection;
     }
 
     @Override
     public void closed(ReferenceCountedNetworkConnection networkConnection)
     {
-        removeConnection(networkConnection);
+        synchronized (getOrCreateLock)
+        {
+            removeConnection(networkConnection);
+        }
     }
 
     @Override
@@ -130,13 +132,13 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
             return false;
         }
         NetworkConnectionPool that = (NetworkConnectionPool) o;
-        return Objects.equals(address, that.address);
+        return Objects.equals(address, that.address) && Objects.equals(poolName, that.poolName);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(address);
+        return Objects.hash(address, poolName);
     }
 
     @Override
@@ -145,7 +147,9 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         return "NetworkConnectionPool{" +
                 "address=" + address +
                 ", connections=" + connections +
+                ", poolName='" + poolName + '\'' +
                 ", poolSize=" + poolSize +
+                ", disconnected=" + disconnected +
                 '}';
     }
 

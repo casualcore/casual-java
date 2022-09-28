@@ -46,6 +46,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    private String hostName;
    private Integer portNumber;
    private Long casualProtocolVersion = 1000L;
+   private String poolName;
    private final int resourceId = CasualResourceManager.getInstance().getNextId();
 
    public CasualManagedConnectionFactory()
@@ -84,6 +85,16 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       Objects.requireNonNull(casualProtocolVersion, "casual protocol version can not be null!");
       this.casualProtocolVersion = casualProtocolVersion;
       return this;
+   }
+
+   public String getPoolName()
+   {
+       return poolName;
+   }
+
+   public void setPoolName(String poolName)
+   {
+       this.poolName = poolName;
    }
 
    @Override
