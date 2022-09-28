@@ -35,7 +35,7 @@ public class DomainHandler
     {
         synchronized (domainLock)
         {
-            log.info(() -> "addDomain: " + address + " , " + domainId);
+            log.finest(() -> "addDomain: " + address + " , " + domainId);
             domainIds.putIfAbsent(address, new ArrayList<>());
             List<DomainIdReferenceCounted> items = domainIds.get(address);
             DomainIdReferenceCounted domainIdReferenceCounted = items.stream()
@@ -44,7 +44,7 @@ public class DomainHandler
                                                                      .orElse(null);
             if (null == domainIdReferenceCounted)
             {
-                log.info(() -> "adding new domainId: " + domainId);
+                log.finest(() -> "adding new domainId: " + domainId);
                 domainIdReferenceCounted = DomainIdReferenceCounted.of(domainId);
                 items.add(domainIdReferenceCounted);
             }
@@ -52,7 +52,7 @@ public class DomainHandler
             // Note, this is not just a side effect, we want to up the reference count
             if (domainIdReferenceCounted.incrementAndGet() == 1)
             {
-                log.info(() -> "new domain id: " + domainId + " for address: " + address);
+                log.finest(() -> "new domain id: " + domainId + " for address: " + address);
             }
         }
     }
@@ -78,7 +78,7 @@ public class DomainHandler
     {
         synchronized (domainLock)
         {
-            log.info(() -> "domainDisconnect: " + address + " , " + domainId);
+            log.finest(() -> "domainDisconnect: " + address + " , " + domainId);
             List<DomainIdReferenceCounted> domainIdsPerAddress = domainIds.get(address);
             if (null != domainIdsPerAddress)
             {
@@ -93,11 +93,11 @@ public class DomainHandler
                 }
                 if (domainIdReferenceCounted.decrementAndGet() == 0)
                 {
-                    log.info(() -> "domain id gone - removing: " + domainId);
+                    log.finest(() -> "domain id gone - removing: " + domainId);
                     domainIdsPerAddress.remove(domainIdReferenceCounted);
                     if(domainIdsPerAddress.isEmpty())
                     {
-                        log.info(() -> "no more domain ids for address: " + address + "  - removing");
+                        log.finest(() -> "no more domain ids for address: " + address + "  - removing");
                         domainIds.remove(address);
                     }
                 }

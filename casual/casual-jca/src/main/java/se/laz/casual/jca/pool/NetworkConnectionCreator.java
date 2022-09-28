@@ -7,5 +7,5 @@ import se.laz.casual.network.outbound.NetworkListener;
 @FunctionalInterface
 public interface NetworkConnectionCreator
 {
-    ReferenceCountedNetworkConnection createNetworkConnection(Address address, ProtocolVersion protocolVersion, NetworkListener networkListener, ReferenceCountedNetworkCloseListener referenceCountedNetworkCloseListener);
+    ReferenceCountedNetworkConnection createNetworkConnection(Address address, ProtocolVersion protocolVersion, NetworkListener networkListener, ReferenceCountedNetworkCloseListener referenceCountedNetworkCloseListener, NetworkListener ownListener);
 }

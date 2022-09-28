@@ -152,7 +152,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     @Override
     public void destroy() throws ResourceException
     {
-        log.info(() -> "destroy()" + this);
+        log.finest(() -> "destroy()" + this);
         Optional<DomainId> domainId = Optional.ofNullable( null == networkConnection ? null : networkConnection.getDomainId());
         domainId.ifPresent(mcf::domainDisconnect);
         closeNetworkConnection();
@@ -261,14 +261,13 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         throw new CasualResourceAdapterException("resource adapter should be a casual resource adapter");
     }
 
-    /*
     @Override
     public String toString()
     {
         return "CasualManagedConnection{" +
                 ", xaResource=" + xaResource +
                 '}';
-    }*/
+    }
 
     public void casualNotAvailable()
     {
@@ -286,7 +285,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     @Override
     public void disconnected(Exception reason)
     {
-        log.info(() -> "disconnected: " + this);
+        log.finest(() -> "disconnected: " + this);
         ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED, reason);
         connectionEventHandler.sendEvent(event);
     }

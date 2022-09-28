@@ -44,6 +44,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 {
     private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
+    private static final Object listenerNotificationLock = new Object();
     private final BaseConnectionInformation ci;
     private final Correlator correlator;
     private final ConversationMessageStorage conversationMessageStorage;
@@ -124,7 +125,10 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         {
             // only inform on casual disconnect
             // will result in a close call on the ManagedConnection ( by the application server)
-            networkListener.forEach(listener -> listener.disconnected(new CasualConnectionException("network connection is gone")));
+            synchronized (listenerNotificationLock)
+            {
+                networkListener.forEach(listener -> listener.disconnected(new CasualConnectionException("network connection is gone")));
+            }
         }
     }
 

@@ -38,7 +38,7 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
 
     public int increment()
     {
-        log.info(() -> "increment current refcount: " + referenceCount.get());
+        log.finest(() -> "increment current refcount: " + referenceCount.get());
         return referenceCount.incrementAndGet();
     }
 
@@ -74,12 +74,12 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
     @Override
     public void close()
     {
-        log.info(() -> "close current refcount: " + referenceCount.get());
+        log.finest(() -> "close current refcount: " + referenceCount.get());
         if(referenceCount.decrementAndGet() == 0)
         {
-            log.info(() -> "closing network connection: " + networkConnection);
-            closeListener.closed(this);
+            log.finest(() -> "closing network connection: " + networkConnection);
             networkConnection.close();
+            closeListener.closed(this);
         }
     }
 

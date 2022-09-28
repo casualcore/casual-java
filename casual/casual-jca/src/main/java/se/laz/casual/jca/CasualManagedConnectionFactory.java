@@ -108,7 +108,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
          CasualManagedConnection managedConnection = casualManagedConnectionProducer.createManagedConnection(this);
          DomainId domainId = managedConnection.getDomainId();
          domainHandler.addDomainId(getAddress(), domainId);
-         log.info(() -> "Created a new managed connection: " + managedConnection + " with domain id: " + domainId);
+         log.finest(() -> "Created a new managed connection: " + managedConnection + " with domain id: " + domainId);
          return managedConnection;
       }
       catch(Exception e)
