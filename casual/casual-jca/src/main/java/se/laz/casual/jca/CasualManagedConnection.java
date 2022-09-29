@@ -8,7 +8,6 @@ package se.laz.casual.jca;
 
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
-import se.laz.casual.config.Pool;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
 import se.laz.casual.jca.pool.NetworkPoolHandler;
@@ -86,12 +85,11 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         {
             if (networkConnection == null)
             {
-                Integer poolSize = ConfigurationService.getInstance().getConfiguration().getOutbound().getPools().stream()
-                                                       .filter(pool -> pool.getName().equals(mcf.getPoolName()))
-                                                       .map(Pool::getSize)
-                                                       .findFirst()
-                                                       .orElse(null);
-                networkConnection = null == poolSize ? createOneToOneManagedConnection() : NetworkPoolHandler.getInstance().getOrCreate( mcf.getPoolName(), mcf.getAddress(), mcf.getCasualProtocolVersion(), this, poolSize);
+                if(null != mcf.getNetworkPoolName() && null == mcf.getNetworkPoolSize())
+                {
+                    log.warning(() -> "networkPoolName set to: " + mcf.getNetworkPoolName() + " but missing networkPoolSize!");
+                }
+                networkConnection = null != mcf.getNetworkPoolSize() && null != mcf.getNetworkPoolName() ? NetworkPoolHandler.getInstance().getOrCreate( mcf.getNetworkPoolName(), mcf.getAddress(), mcf.getCasualProtocolVersion(), this, mcf.getNetworkPoolSize()) : createOneToOneManagedConnection();
             }
         }
         return networkConnection;

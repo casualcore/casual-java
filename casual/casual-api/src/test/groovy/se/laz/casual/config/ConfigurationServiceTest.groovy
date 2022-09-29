@@ -68,7 +68,7 @@ class ConfigurationServiceTest extends Specification
     {
         given:
         Configuration expected = Configuration.newBuilder()
-                .withOutbound(Outbound.of(executorName, numberOfThreads, unmanaged, networkPool))
+                .withOutbound(Outbound.of(executorName, numberOfThreads, unmanaged))
                 .build()
 
         when:
@@ -88,8 +88,6 @@ class ConfigurationServiceTest extends Specification
         'casual-config-outbound-numberOfThreads-missing.json' || 'java:comp/env/concurrent/casualManagedExecutorService'             || 0               || false     || null
         'casual-config-outbound-null.json'                    || 'java:comp/DefaultManagedExecutorService'                           || 0               || false     || null
         'casual-config-outbound-unmanaged.json'               || 'java:comp/DefaultManagedExecutorService'                           || 0               || true      || null
-        'casual-config-outbound-network-pooling.json'         || 'java:comp/DefaultManagedExecutorService'                           || 0               || false     || [Pool.of('big-pool', 42),
-                                                                                                                                                                         Pool.of('small-pool', 2)]
     }
 
     def 'default outbound config, no file'()

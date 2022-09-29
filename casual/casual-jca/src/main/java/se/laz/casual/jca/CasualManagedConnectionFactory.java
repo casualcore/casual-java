@@ -46,7 +46,8 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    private String hostName;
    private Integer portNumber;
    private Long casualProtocolVersion = 1000L;
-   private String poolName;
+   private String networkPoolName;
+   private Integer networkPoolSize;
    private final int resourceId = CasualResourceManager.getInstance().getNextId();
 
    public CasualManagedConnectionFactory()
@@ -87,15 +88,25 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       return this;
    }
 
-   public String getPoolName()
+   public String getNetworkPoolName()
    {
-       return poolName;
+       return networkPoolName;
    }
 
-   public void setPoolName(String poolName)
+   public void setNetworkPoolName(String networkPoolName)
    {
-       this.poolName = poolName;
+       this.networkPoolName = networkPoolName;
    }
+
+    public Integer getNetworkPoolSize()
+    {
+        return networkPoolSize;
+    }
+
+    public void setNetworkPoolSize(Integer networkPoolSize)
+    {
+        this.networkPoolSize = networkPoolSize;
+    }
 
    @Override
    public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException

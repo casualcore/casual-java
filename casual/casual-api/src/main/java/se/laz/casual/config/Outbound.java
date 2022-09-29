@@ -5,7 +5,6 @@
  */
 package se.laz.casual.config;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,32 +19,29 @@ public final class Outbound
     private final String managedExecutorServiceName;
     private int numberOfThreads;
     private boolean unmanaged;
-    private final List<Pool> pools;
 
-    private Outbound(String managedExecutorServiceName, int numberOfThreads, boolean unmanaged, List<Pool> pools)
+    private Outbound(String managedExecutorServiceName, int numberOfThreads, boolean unmanaged)
     {
         this.managedExecutorServiceName = managedExecutorServiceName;
         this.numberOfThreads = numberOfThreads;
         this.unmanaged = unmanaged;
-        this.pools = pools;
     }
 
     public static Outbound of(Boolean unmanaged)
     {
-        return new Outbound(DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME, DEFAULT_NUMBER_OF_THREADS, null == unmanaged ? DEFAULT_UNMANAGED : unmanaged, null);
+        return new Outbound(DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME, DEFAULT_NUMBER_OF_THREADS, null == unmanaged ? DEFAULT_UNMANAGED : unmanaged);
     }
 
     public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads)
     {
-        return of(managedExecutorServiceName, numberOfThreads, DEFAULT_UNMANAGED, null);
+        return of(managedExecutorServiceName, numberOfThreads, DEFAULT_UNMANAGED);
     }
 
-    public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads, Boolean unmanaged, List<Pool> pools)
+    public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads, Boolean unmanaged)
     {
         return new Outbound(null == managedExecutorServiceName ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME :  managedExecutorServiceName,
                             null == numberOfThreads ? DEFAULT_NUMBER_OF_THREADS : numberOfThreads,
-                            null == unmanaged ? DEFAULT_UNMANAGED : unmanaged,
-                pools);
+                            null == unmanaged ? DEFAULT_UNMANAGED : unmanaged);
     }
 
     public String getManagedExecutorServiceName()
@@ -63,12 +59,7 @@ public final class Outbound
         return unmanaged;
     }
 
-    public List<Pool> getPools()
-    {
-        return null == pools ? Collections.emptyList() : pools;
-    }
-
-   @Override
+    @Override
     public boolean equals(Object o)
     {
         if (this == o)
@@ -80,25 +71,22 @@ public final class Outbound
             return false;
         }
         Outbound outbound = (Outbound) o;
-        return getNumberOfThreads() == outbound.getNumberOfThreads() && getUnmanaged() == outbound.getUnmanaged()
-                && Objects.equals(getManagedExecutorServiceName(), outbound.getManagedExecutorServiceName())
-                && Objects.equals(getPools(), outbound.getPools());
+        return getNumberOfThreads() == outbound.getNumberOfThreads() && getUnmanaged() == outbound.getUnmanaged() && Objects.equals(getManagedExecutorServiceName(), outbound.getManagedExecutorServiceName());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getManagedExecutorServiceName(), getNumberOfThreads(), getUnmanaged(), getPools());
+        return Objects.hash(getManagedExecutorServiceName(), getNumberOfThreads(), getUnmanaged());
     }
 
     @Override
     public String toString()
     {
         return "Outbound{" +
-                "managedExecutorServiceName='" + getManagedExecutorServiceName() + '\'' +
-                ", numberOfThreads=" + getNumberOfThreads() +
-                ", unmanaged=" + getUnmanaged() +
-                ", pools=" + getPools() +
+                "managedExecutorServiceName='" + managedExecutorServiceName + '\'' +
+                ", numberOfThreads=" + numberOfThreads +
+                ", unmanaged=" + unmanaged +
                 '}';
     }
 }
