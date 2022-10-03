@@ -7,9 +7,7 @@
 package se.laz.casual.network.outbound;
 
 import io.netty.channel.Channel;
-import se.laz.casual.network.connection.CasualConnectionException;
 
-import java.util.List;
 import java.util.logging.Logger;
 
 public final class NetworkErrorHandler
@@ -18,12 +16,12 @@ public final class NetworkErrorHandler
     private NetworkErrorHandler()
     {}
 
-    public static void notifyListenersIfNotConnected(Channel channel, List<NetworkListener> networkListeners)
+    public static void notifyListenersIfNotConnected(Channel channel, ErrorInformer errorInformer)
     {
         if(!channel.isActive())
         {
-            LOG.finest("network connection gone, informing listener");
-            networkListeners.forEach(listener -> listener.disconnected(new CasualConnectionException("network connection is gone")));
+            LOG.finest("network connection gone, informing listeners");
+            errorInformer.inform();
         }
     }
 }

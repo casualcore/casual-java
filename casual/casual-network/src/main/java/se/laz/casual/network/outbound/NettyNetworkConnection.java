@@ -44,7 +44,6 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 {
     private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
-    private static final Object listenerNotificationLock = new Object();
     private final BaseConnectionInformation ci;
     private final Correlator correlator;
     private final ConversationMessageStorage conversationMessageStorage;
@@ -70,7 +69,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         this.listeners = listeners;
     }
 
-    public static NettyNetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
+    public static NetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
     {
         Objects.requireNonNull(ci, "connection info can not be null");
         Objects.requireNonNull(ci, "network listener can not be null");
@@ -79,7 +78,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         Correlator correlator = ci.getCorrelator();
         ConversationMessageStorage conversationMessageStorage = ConversationMessageStorageImpl.of();
-        OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenersIfNotConnected(channel, listeners);
+        OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenersIfNotConnected(channel, ErrorInformer.of(new CasualConnectionException("network connection is gone"), listeners));
         ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of( conversationMessageStorage);
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, EventLoopFactory.getManagedExecutorService(), listeners);
@@ -125,10 +124,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         {
             // only inform on casual disconnect
             // will result in a close call on the ManagedConnection ( by the application server)
-            synchronized (listenerNotificationLock)
-            {
-                networkListener.forEach(listener -> listener.disconnected(new CasualConnectionException("network connection is gone")));
-            }
+            ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException("network connection is gone"), networkListener);
+            errorInformer.inform();
         }
     }
 
@@ -151,7 +148,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                 List<UUID> l = new ArrayList<>();
                 l.add(message.getCorrelationId());
                 LOG.finest(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
-                correlator.completeExceptionally(l, new CasualConnectionException(cf.cause()));
+                // This since all outstanding requests may already have been completed exceptionally
+                if(!f.isCompletedExceptionally())
+                {
+                    correlator.completeExceptionally(l, new CasualConnectionException(cf.cause()));
+                }
             }// successful correlation is done in CasualMessageHandler
         });
         return f;
@@ -248,13 +249,13 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
             return false;
         }
         NettyNetworkConnection that = (NettyNetworkConnection) o;
-        return getDomainId().equals(that.getDomainId());
+        return Objects.equals(channel, that.channel) && Objects.equals(getDomainId(), that.getDomainId());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getDomainId());
+        return Objects.hash(channel, getDomainId());
     }
 
     @Override

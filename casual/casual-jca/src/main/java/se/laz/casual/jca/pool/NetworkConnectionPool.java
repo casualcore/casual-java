@@ -166,10 +166,15 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
                                                                   .withDomainId(domain.getId())
                                                                   .withDomainName(domain.getName())
                                                                   .build();
-        NettyNetworkConnection networkConnection = NettyNetworkConnection.of(ci, ownListener);
-        networkConnection.addListener(networkListener);
-        LOG.finest(() -> "created network connection: " + networkConnection);
-        return ReferenceCountedNetworkConnection.of(networkConnection, referenceCountedNetworkCloseListener);
+        NetworkConnection networkConnection = NettyNetworkConnection.of(ci, ownListener);
+        if (networkConnection instanceof NettyNetworkConnection)
+        {
+            NettyNetworkConnection impl = (NettyNetworkConnection) networkConnection;
+            impl.addListener(networkListener);
+            LOG.finest(() -> "created network connection: " + networkConnection);
+            return ReferenceCountedNetworkConnection.of(impl, referenceCountedNetworkCloseListener);
+        }
+        throw new CasualResourceAdapterException("Wrong implementation for NetworkConnection, was expecting NettyNetworkConnection but got: " + networkConnection.getClass());
     }
 
     // pseudorandom is good enough here
