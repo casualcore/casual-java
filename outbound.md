@@ -48,3 +48,15 @@ Math.max(1, SystemPropertyUtil.getInt( "io.netty.eventLoopThreads", NettyRuntime
 
 If you are running on an older JVM in a containerized world, that might be suboptimal.
 
+## Pool configuration
+
+Without any specific configuration the mapping of Managed Connection entries, pool entries, and physical network connection is 1 to 1.
+You can specify the number of physical connections by specifying the network pool name and the number of connections you want.
+
+Example for wildfly:
+```
+$connectionDefinitionNode/config-properties=NetworkPoolName:add(value=pool-one)
+$connectionDefinitionNode/config-properties=NetworkPoolSize:add(value=1)
+```
+
+Note that each physical network connection is multiplexing on its own since we are running on top of Netty.
