@@ -5,7 +5,6 @@
  */
 package se.laz.casual.config;
 
-import java.util.List;
 import java.util.Objects;
 
 public final class Outbound

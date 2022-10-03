@@ -324,8 +324,8 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
                                                                   .withDomainId(domain.getId())
                                                                   .withDomainName(domain.getName())
                                                                   .build();
-        NettyNetworkConnection networkConnection = NettyNetworkConnection.of(ci, this);
+        NettyNetworkConnection newNetworkConnection = NettyNetworkConnection.of(ci, this);
         log.finest(() -> "created new nw connection " + this);
-        return networkConnection;
+        return newNetworkConnection;
     }
 }

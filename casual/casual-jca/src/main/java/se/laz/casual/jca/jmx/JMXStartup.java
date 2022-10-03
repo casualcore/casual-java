@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 public class JMXStartup
 {
-   private static final Logger LOG = Logger.getLogger(Casual.class.getName());
+   private static final Logger LOG = Logger.getLogger(JMXStartup.class.getName());
    private static final String NAME = "se.laz.casual.jca:type=Casual";
    private static final JMXStartup instance = new JMXStartup();
 
