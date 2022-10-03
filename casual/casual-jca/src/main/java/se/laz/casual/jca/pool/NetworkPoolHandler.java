@@ -37,9 +37,9 @@ public class NetworkPoolHandler
     }
 
     // used by jmx only
-    public NetworkConnectionPool getPool(Address address)
+    public NetworkConnectionPool getPool(String poolName)
     {
-       return pools.get(address);
+       return pools.get(poolName);
     }
 
     public Map<String, NetworkConnectionPool> getPools()
