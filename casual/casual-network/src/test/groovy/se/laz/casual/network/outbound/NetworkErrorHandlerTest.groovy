@@ -14,8 +14,10 @@ class NetworkErrorHandlerTest extends Specification
             false
         }
         def networkListener = Mock(NetworkListener)
+        ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException("connection gone"))
+        errorInformer.addListener(networkListener)
         when:
-        NetworkErrorHandler.notifyListenersIfNotConnected(channel, ErrorInformer.of(new CasualConnectionException("gone"), [networkListener]))
+        NetworkErrorHandler.notifyListenersIfNotConnected(channel, errorInformer)
         then:
         1 * networkListener.disconnected(_)
     }
@@ -28,8 +30,10 @@ class NetworkErrorHandlerTest extends Specification
             true
         }
         def networkListener = Mock(NetworkListener)
+        ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException("connection gone"))
+        errorInformer.addListener(networkListener)
         when:
-        NetworkErrorHandler.notifyListenersIfNotConnected(channel, ErrorInformer.of(new CasualConnectionException("gone"), [networkListener]))
+        NetworkErrorHandler.notifyListenersIfNotConnected(channel, errorInformer)
         then:
         0 * networkListener.disconnected(_)
     }
