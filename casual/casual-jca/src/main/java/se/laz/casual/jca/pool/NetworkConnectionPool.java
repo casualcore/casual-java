@@ -17,10 +17,7 @@ import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -28,10 +25,9 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
 {
     private static final Logger LOG = Logger.getLogger(NetworkConnectionPool.class.getName());
     private final Address address;
-    private final List<ReferenceCountedNetworkConnection> connections = new ArrayList<>();
+    private final ConnectionContainer connections = ConnectionContainer.of();
     private final String poolName;
     private int poolSize;
-    private final Object connectionLock = new Object();
     private final Object getOrCreateLock = new Object();
     private final NetworkConnectionCreator networkConnectionCreator;
     private final AtomicBoolean disconnected = new AtomicBoolean(false);
@@ -57,38 +53,6 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         return new NetworkConnectionPool(poolName, address, poolSize, networkConnectionCreator);
     }
 
-    private int numberOfConnections()
-    {
-        synchronized (connectionLock)
-        {
-            return connections.size();
-        }
-    }
-
-    private void addConnection(ReferenceCountedNetworkConnection connection)
-    {
-        synchronized (connectionLock)
-        {
-            connections.add(connection);
-        }
-    }
-
-    private void removeConnection(ReferenceCountedNetworkConnection connection)
-    {
-        synchronized (connectionLock)
-        {
-            connections.remove(connection);
-        }
-    }
-
-    private ReferenceCountedNetworkConnection getAtIndex(int index)
-    {
-        synchronized (connectionLock)
-        {
-            return connections.get(index);
-        }
-    }
-
     public NetworkConnection getOrCreateConnection(Address address, ProtocolVersion protocolVersion, NetworkListener networkListener)
     {
         if(!this.address.equals(address))
@@ -103,15 +67,15 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         {
             // create up to pool size # of connections
             // after that, randomly chose one - later on we can have some better heuristics for choosing which connection to return
-            if (numberOfConnections() == poolSize)
+            if (connections.size() == poolSize)
             {
-                ReferenceCountedNetworkConnection connection = (numberOfConnections() == 1) ? getAtIndex(0) : getAtIndex(getRandomNumber(0, poolSize));
+                ReferenceCountedNetworkConnection connection = connections.get();
                 connection.increment();
                 connection.addListener(networkListener);
                 return connection;
             }
             ReferenceCountedNetworkConnection connection = networkConnectionCreator.createNetworkConnection(address, protocolVersion, networkListener, this, this);
-            addConnection(connection);
+            connections.addConnection(connection);
             return connection;
         }
     }
@@ -121,7 +85,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     {
         synchronized (getOrCreateLock)
         {
-            removeConnection(networkConnection);
+            connections.removeConnection(networkConnection);
         }
     }
 
@@ -175,14 +139,6 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
             return ReferenceCountedNetworkConnection.of(impl, referenceCountedNetworkCloseListener);
         }
         throw new CasualResourceAdapterException("Wrong implementation for NetworkConnection, was expecting NettyNetworkConnection but got: " + networkConnection.getClass());
-    }
-
-    // pseudorandom is good enough here
-    @SuppressWarnings("java:S2245")
-    // max - exclusive upper limit
-    private static int getRandomNumber(int min, int max)
-    {
-        return ThreadLocalRandom.current().nextInt(min, max);
     }
 
     @Override
