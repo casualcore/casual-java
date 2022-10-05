@@ -41,6 +41,8 @@ public class ErrorInformer
         synchronized (lock)
         {
             networkListeners.forEach(listener -> listener.disconnected(exception));
+            // can only ever inform listeners once even if invoked multiple times
+            networkListeners.clear();
         }
     }
 
