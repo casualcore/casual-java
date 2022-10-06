@@ -40,14 +40,14 @@ public class CasualService
     @POST
     @Consumes("application/casual-x-octet")
     @Path("{serviceName}")
-    public Response echoRequest(@PathParam("serviceName") String serviceName, InputStream inputStream)
+    public Response serviceRequest(@PathParam("serviceName") String serviceName, InputStream inputStream)
     {
         try
         {
             byte[] data = IOUtils.toByteArray(inputStream);
             Flag<AtmiFlags> flags = Flag.of(AtmiFlags.NOFLAG);
             OctetBuffer buffer = OctetBuffer.of(data);
-            return Response.ok().entity(makeCasualCall(buffer, serviceName, flags).getBytes().get(0)).build();
+            return Response.ok().entity(makeServiceCall(buffer, serviceName, flags).getBytes().get(0)).build();
         }
         catch (Exception e)
         {
@@ -61,7 +61,8 @@ public class CasualService
             return Response.serverError().entity(sw.toString()).build();
         }
     }
-    private CasualBuffer makeCasualCall(CasualBuffer msg, String serviceName, Flag<AtmiFlags> flags)
+
+    private CasualBuffer makeServiceCall(CasualBuffer msg, String serviceName, Flag<AtmiFlags> flags)
     {
         ServiceReturn<CasualBuffer> reply = casualCaller.tpcall(serviceName, msg, flags);
         if(reply.getServiceReturnState() == ServiceReturnState.TPSUCCESS)
@@ -70,6 +71,5 @@ public class CasualService
         }
         throw new ServiceCallFailedException("tpcall failed: " + reply.getErrorState());
     }
-
 
 }

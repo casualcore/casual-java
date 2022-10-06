@@ -86,7 +86,7 @@ class CasualQueueCallerTest extends Specification
         enqueueReplyId = UUID.randomUUID()
         domainName = Domain.getName()
         queueName = 'echo'
-        queueInfo = QueueInfo.createBuilder().withQueueName(queueName).build()
+        queueInfo = QueueInfo.of(queueName)
         message = JsonBuffer.of( "{msg: \"hello echo service.\"}" )
     }
 

@@ -22,10 +22,10 @@ public interface FieldedData<T> extends Serializable
      * @throws ClassCastException if the class does not match
      * @throws ArithmeticException if the underlying type is Long and a cast to Integer is request and it does not fit
      * @param clazz the class to cast to
-     * @param <T> the type
+     * @param <X> the type
      * @return the data
      */
-    <T> T getData(Class<T> clazz);
+    <X> X getData(Class<X> clazz);
 
     /**
      * @return the field type

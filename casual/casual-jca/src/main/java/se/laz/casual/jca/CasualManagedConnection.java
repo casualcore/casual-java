@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -152,6 +153,8 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public void destroy() throws ResourceException
     {
         log.finest(() -> "destroy()" + this);
+        Optional<DomainId> domainId = Optional.ofNullable( null == networkConnection ? null : networkConnection.getDomainId());
+        domainId.ifPresent(mcf::domainDisconnect);
         closeNetworkConnection();
         connectionHandles.clear();
     }
@@ -284,6 +287,24 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     {
         ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED);
         connectionEventHandler.sendEvent(event);
+    }
+
+    /**
+     * The domain id for this connection
+     * @return
+     */
+    public DomainId getDomainId()
+    {
+        return getNetworkConnection().getDomainId();
+    }
+
+    /**
+     * The domain ids for the pool of which this managed connection is a member
+     * @return
+     */
+    public List<DomainId> getPoolDomainIds()
+    {
+        return mcf.getPoolDomainIds();
     }
 
     public void setTransactionTimeout(int timeout)

@@ -108,7 +108,7 @@ public class Flag<T extends CasualFlag> implements Serializable
             return this;
         }
 
-        public <T extends CasualFlag> Flag<T> build()
+        public <X extends CasualFlag> Flag<X> build()
         {
             return new Flag<>(value);
         }

@@ -18,6 +18,10 @@ public class TpCallerImpl implements TpCaller
 {
     private CasualCaller casualCaller;
 
+    // wls
+    public TpCallerImpl()
+    {}
+
     @Inject
     public TpCallerImpl(CasualCaller casualCaller)
     {

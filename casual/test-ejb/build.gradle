@@ -20,6 +20,7 @@ dependencies {
     compileOnly project( path: ':casual:casual-fielded-annotations')
 
     testImplementation libs.javaee_api
+    testImplementation libs.system_lambda
     testImplementation project( path: ':casual:test-api')
     testImplementation project( path: ':casual:casual-inbound-handler-api')
     testImplementation project( path: ':casual:casual-api')

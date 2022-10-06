@@ -72,5 +72,4 @@ public class TransactionLess
             throw new CasualCallerException("Failed resuming transaction", e);
         }
     }
-
 }

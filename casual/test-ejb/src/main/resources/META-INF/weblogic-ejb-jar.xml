@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<weblogic-ejb-jar xmlns:wls="http://xmlns.oracle.com/weblogic/weblogic-ejb-jar"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd http://xmlns.oracle.com/weblogic/weblogic-ejb-jar http://xmlns.oracle.com/weblogic/weblogic-ejb-jar/1.3/weblogic-ejb-jar.xsd">
+<weblogic-enterprise-bean>
+  <entity-descriptor>
+    <ejb-name>TestServiceImpl</ejb-name>
+    <enable-call-by-reference>True</enable-call-by-reference>
+  </entity-descriptor>
+</weblogic-enterprise-bean>
+
+<weblogic-enterprise-bean>
+  <entity-descriptor>
+    <ejb-name>TestServiceImpl</ejb-name>
+    <enable-call-by-reference>True</enable-call-by-reference>
+  </entity-descriptor>
+</weblogic-enterprise-bean>
+
+</weblogic-ejb-jar>

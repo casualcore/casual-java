@@ -107,9 +107,7 @@ class CasualConnectionImplTest extends Specification
     {
         when:
         instance.invalidate()
-        instance.enqueue(QueueInfo.createBuilder()
-                                  .withQueueName('qname')
-                                  .build(), QueueMessage.of(JsonBuffer.of( "{}")))
+        instance.enqueue(QueueInfo.of('qname'), QueueMessage.of(JsonBuffer.of( "{}")))
         then:
         thrown CasualConnectionException
     }
@@ -118,9 +116,7 @@ class CasualConnectionImplTest extends Specification
     {
         when:
         instance.invalidate()
-        instance.dequeue(QueueInfo.createBuilder()
-                                  .withQueueName('qname')
-                                  .build(), MessageSelector.of())
+        instance.dequeue(QueueInfo.of('qname'), MessageSelector.of())
         then:
         thrown CasualConnectionException
     }
@@ -154,13 +150,9 @@ class CasualConnectionImplTest extends Specification
         ((CasualConnectionImpl) instance).queueCaller = queueCaller
         def msg = QueueMessage.of(JsonBuffer.of( "{}"))
         when:
-        instance.enqueue(QueueInfo.createBuilder()
-                .withQueueName('qname')
-                .build(), msg)
+        instance.enqueue(QueueInfo.of('qname'), msg)
         then:
-        1 * queueCaller.enqueue(QueueInfo.createBuilder()
-                .withQueueName('qname')
-                .build(), msg)
+        1 * queueCaller.enqueue(QueueInfo.of ('qname'), msg)
     }
 
     def "dequeue forwards request to CasaulServiceCaller"()
@@ -169,13 +161,9 @@ class CasualConnectionImplTest extends Specification
         CasualQueueCaller queueCaller = Mock(CasualQueueCaller)
         ((CasualConnectionImpl) instance).queueCaller = queueCaller
         when:
-        instance.dequeue(QueueInfo.createBuilder()
-                .withQueueName('qname')
-                .build(), MessageSelector.of())
+        instance.dequeue(QueueInfo.of('qname'), MessageSelector.of())
         then:
-        1 * queueCaller.dequeue(QueueInfo.createBuilder()
-                .withQueueName('qname')
-                .build(), MessageSelector.of())
+        1 * queueCaller.dequeue(QueueInfo.of('qname'), MessageSelector.of())
     }
 
     def "getCasaulServiceCaller when not test injected returns a new instance"()

@@ -1,0 +1,5 @@
+<jboss-ejb-client xmlns="urn:jboss:ejb-client:1.0">
+    <client-context>
+        <ejb-receivers local-receiver-pass-by-value="false"/>
+    </client-context>
+</jboss-ejb-client>

@@ -8,6 +8,7 @@ package se.laz.casual.jca;
 
 import javax.resource.Referenceable;
 import javax.resource.ResourceException;
+import javax.resource.spi.ConnectionRequestInfo;
 import java.io.Serializable;
 
 /**
@@ -25,4 +26,11 @@ public interface CasualConnectionFactory extends Serializable, Referenceable
     */
    CasualConnection getConnection() throws ResourceException;
 
+    /**
+     * Get connection from factory
+     *
+     * @return DefaultNetworkConnection instance
+     * @exception ResourceException Thrown if a connection can't be obtained
+     */
+    CasualConnection getConnection(ConnectionRequestInfo connectionRequestInfo) throws ResourceException;
 }

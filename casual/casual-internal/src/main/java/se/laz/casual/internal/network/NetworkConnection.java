@@ -9,6 +9,7 @@ package se.laz.casual.internal.network;
 import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 
 import java.util.UUID;
@@ -28,4 +29,6 @@ public interface NetworkConnection
 
     void close();
     boolean isActive();
+
+    DomainId getDomainId();
 }

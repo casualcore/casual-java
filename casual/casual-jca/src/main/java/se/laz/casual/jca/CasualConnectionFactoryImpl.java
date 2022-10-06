@@ -10,6 +10,7 @@ import javax.naming.NamingException;
 import javax.naming.Reference;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
+import javax.resource.spi.ConnectionRequestInfo;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -47,7 +48,14 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     public CasualConnection getConnection() throws ResourceException
     {
         log.finest("getConnection()");
-        return (CasualConnection) connectionManager.allocateConnection(managedConnectionFactory, null);
+        return getConnection(null);
+    }
+
+    @Override
+    public CasualConnection getConnection(ConnectionRequestInfo connectionRequestInfo) throws ResourceException
+    {
+        log.finest("getConnection()");
+        return (CasualConnection) connectionManager.allocateConnection(managedConnectionFactory, connectionRequestInfo);
     }
 
     @Override
