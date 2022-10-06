@@ -291,7 +291,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
 
     /**
      * The domain id for this connection
-     * @return
+     * @return connection domain id.
      */
     public DomainId getDomainId()
     {
@@ -300,7 +300,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
 
     /**
      * The domain ids for the pool of which this managed connection is a member
-     * @return
+     * @return pool domain ids.
      */
     public List<DomainId> getPoolDomainIds()
     {
