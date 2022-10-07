@@ -56,6 +56,15 @@ public class ConnectionContainer
         }
     }
 
+    @Override
+    public String toString()
+    {
+        return "ConnectionContainer{" +
+                "connections=" + connections +
+                ", lock=" + lock +
+                '}';
+    }
+
     // pseudorandom is good enough here
     @SuppressWarnings("java:S2245")
     // max - exclusive upper limit

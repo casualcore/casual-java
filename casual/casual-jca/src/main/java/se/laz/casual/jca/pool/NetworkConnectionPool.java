@@ -66,7 +66,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         synchronized (getOrCreateLock)
         {
             // create up to pool size # of connections
-            // after that, randomly chose one - later on we can have some better heuristics for choosing which connection to return
+            // after that, randomly choose one - later on we can have some better heuristics for choosing which connection to return
             if (connections.size() == poolSize)
             {
                 ReferenceCountedNetworkConnection connection = connections.get();
@@ -86,6 +86,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         synchronized (getOrCreateLock)
         {
             connections.removeConnection(networkConnection);
+            LOG.finest(() -> "removed: " + networkConnection + " from: " + this);
         }
     }
 

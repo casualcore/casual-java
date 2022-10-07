@@ -39,6 +39,7 @@ class NetworkConnectionPoolTest extends Specification
 
    def 'size 1 always returns the same instance'()
    {
+      given:
       int poolSize = 1
       def poolName = 'small-pool'
       Address address = Address.of("nifty", 7771)
@@ -56,6 +57,7 @@ class NetworkConnectionPoolTest extends Specification
 
    def 'big pool, should be able to get other instances'()
    {
+      given:
       int poolSize = 1000
       def poolName = 'small-pool'
       Address address = Address.of("nifty", 7771)

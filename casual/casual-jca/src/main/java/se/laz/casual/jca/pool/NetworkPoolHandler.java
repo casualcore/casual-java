@@ -36,6 +36,7 @@ public class NetworkPoolHandler
         catch(CasualConnectionException e)
         {
             log.finest(() -> "connection failure for: " + address);
+            log.finest(() -> "removing pool: " + poolName);
             pools.remove(poolName);
             throw e;
         }

@@ -89,13 +89,29 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
                 {
                     log.warning(() -> "networkPoolName set to: " + mcf.getNetworkPoolName() + " but missing networkPoolSize!");
                 }
-                networkConnection = null != mcf.getNetworkPoolSize() && null != mcf.getNetworkPoolName() ? NetworkPoolHandler.getInstance().getOrCreate( mcf.getNetworkPoolName(), mcf.getAddress(), mcf.getCasualProtocolVersion(), this, mcf.getNetworkPoolSize()) : createOneToOneManagedConnection();
+                networkConnection = networkPoolNameAndNetworkPoolSizeSet() ? getOrCreateFromPool() : createOneToOneManagedConnection();
             }
         }
         return networkConnection;
     }
 
-   @Override
+    private boolean networkPoolNameAndNetworkPoolSizeSet()
+    {
+        return null != mcf.getNetworkPoolSize() && null != mcf.getNetworkPoolName();
+    }
+
+    private NetworkConnection getOrCreateFromPool()
+    {
+        return NetworkPoolHandler.getInstance()
+                                 .getOrCreate(
+                                         mcf.getNetworkPoolName(),
+                                         mcf.getAddress(),
+                                         mcf.getCasualProtocolVersion(),
+                                         this,
+                                         mcf.getNetworkPoolSize());
+    }
+
+    @Override
     public Object getConnection(Subject subject,
                                 ConnectionRequestInfo cxRequestInfo) throws ResourceException
     {
