@@ -21,11 +21,11 @@ class NetworkConnectionPoolTest extends Specification
       def poolName = 'small-pool'
       Address address = Address.of("nifty", 7771)
       Address anotherAddress = Address.of('delta', 8787)
+      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       NetworkConnectionCreator connectionCreator = Mock(NetworkConnectionCreator){
-         1 * createNetworkConnection(*_) >> Mock(ReferenceCountedNetworkConnection)
+         1 * createNetworkConnection(address, protocolVersion, *_) >> Mock(ReferenceCountedNetworkConnection)
       }
       NetworkConnectionPool pool = NetworkConnectionPool.of(poolName, address, poolSize, connectionCreator)
-      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       when: // working as expected with the correct address
       NetworkConnection connection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
       then:
@@ -43,11 +43,11 @@ class NetworkConnectionPoolTest extends Specification
       int poolSize = 1
       def poolName = 'small-pool'
       Address address = Address.of("nifty", 7771)
+      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       NetworkConnectionCreator connectionCreator = Mock(NetworkConnectionCreator){
-         1 * createNetworkConnection(*_) >> Mock(ReferenceCountedNetworkConnection)
+         1 * createNetworkConnection(address, protocolVersion, *_) >> Mock(ReferenceCountedNetworkConnection)
       }
       NetworkConnectionPool pool = NetworkConnectionPool.of(poolName, address, poolSize, connectionCreator)
-      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       when:
       NetworkConnection connection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
       NetworkConnection sameConnection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
@@ -61,11 +61,11 @@ class NetworkConnectionPoolTest extends Specification
       int poolSize = 1000
       def poolName = 'small-pool'
       Address address = Address.of("nifty", 7771)
+      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       NetworkConnectionCreator connectionCreator = Mock(NetworkConnectionCreator){
-         1 * createNetworkConnection(*_) >> Mock(ReferenceCountedNetworkConnection)
+         1 * createNetworkConnection(address, protocolVersion, *_) >> Mock(ReferenceCountedNetworkConnection)
       }
       NetworkConnectionPool pool = NetworkConnectionPool.of(poolName, address, poolSize, connectionCreator)
-      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       when:
       NetworkConnection connection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
       NetworkConnection anotherConnection = null
