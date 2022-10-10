@@ -91,17 +91,6 @@ public class CasualConnectionImpl implements CasualConnection
         return managedConnection.getNetworkConnection().getDomainId();
     }
 
-    /**
-     * Get all known domain ids for the pool
-     * That is, for all current managed connections in this pool
-     * @return
-     */
-    @Override
-    public List<DomainId> getPoolDomainIds()
-    {
-        return managedConnection.getPoolDomainIds();
-    }
-
     @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {

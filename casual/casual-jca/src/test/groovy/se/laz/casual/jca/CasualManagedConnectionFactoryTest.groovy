@@ -22,25 +22,17 @@ class CasualManagedConnectionFactoryTest extends Specification
     @Shared CasualManagedConnectionFactory instance
     @Shared ResourceAdapter ra1 = Mock(ResourceAdapter)
     @Shared ResourceAdapter ra2 = Mock(ResourceAdapter)
-    @Shared DomainHandler domainHandler
     @Shared String hostName = 'morpheus'
     @Shared int portNumber = 65738
 
     def setup()
     {
-        DomainId domainId = DomainId.of(UUID.randomUUID())
         CasualManagedConnectionProducer producer = Stub(CasualManagedConnectionProducer){
            createManagedConnection(_) >>{
-              def managedConnection = Stub(CasualManagedConnection){
-                 getDomainId() >> {
-                    domainId
-                 }
-              }
-              return managedConnection
+              Mock(CasualManagedConnection)
            }
         }
-        domainHandler = new DomainHandler()
-        instance = new CasualManagedConnectionFactory().setCasualManagedConnectionProducer(producer).setDomainHandler(domainHandler)
+        instance = new CasualManagedConnectionFactory().setCasualManagedConnectionProducer(producer)
     }
 
     def "GetHostName returns null if not set."()
@@ -105,23 +97,12 @@ class CasualManagedConnectionFactoryTest extends Specification
         setup:
         Subject s = new Subject()
         ConnectionRequestInfo cri = Mock(ConnectionRequestInfo)
-        DomainId domainId = DomainId.of(UUID.randomUUID())
-        CasualManagedConnectionProducer producer = Stub(CasualManagedConnectionProducer){
-           createManagedConnection(_) >>{
-              def managedConnection = Stub(CasualManagedConnection){
-                 getDomainId() >> {
-                    domainId
-                 }
-              }
-              return managedConnection
+        CasualManagedConnectionProducer producer = Stub(CasualManagedConnectionProducer) {
+           createManagedConnection(_) >> {
+              Mock(CasualManagedConnection)
            }
         }
-
-        Address address = Address.of(hostName, portNumber)
-        domainHandler = Mock(DomainHandler){
-           1 * addDomainId(address, domainId)
-        }
-        instance = new CasualManagedConnectionFactory().setDomainHandler(domainHandler).setCasualManagedConnectionProducer(producer)
+        instance = new CasualManagedConnectionFactory().setCasualManagedConnectionProducer(producer)
         instance.setHostName(hostName)
         instance.setPortNumber( portNumber)
 
@@ -144,49 +125,12 @@ class CasualManagedConnectionFactoryTest extends Specification
         instance.matchManagedConnections( set, subject, cri ) == connection
     }
 
-   def "MatchManagedConnections returns the correct CasualManagedConnection from the set provided when matching for domain id"()
-   {
-      setup:
-      DomainId domainId = DomainId.of(UUID.randomUUID())
-      Subject subject = new Subject()
-      ConnectionRequestInfo cri = CasualRequestInfo.of(domainId)
-      ManagedConnection connection = Mock(CasualManagedConnection) {
-         1 * getDomainId() >> {
-            domainId
-         }
-      }
-      Set<Object> set = new HashSet<>()
-      set.add( connection )
-
-      expect:
-      instance.matchManagedConnections( set, subject, cri ) == connection
-   }
-
-   def "MatchManagedConnections returns null for an unknown domain id"()
-   {
-      setup:
-      DomainId matchingFor = DomainId.of(UUID.randomUUID())
-      DomainId domainId = DomainId.of(UUID.randomUUID())
-      Subject subject = new Subject()
-      ConnectionRequestInfo cri = CasualRequestInfo.of(matchingFor)
-      ManagedConnection connection = Mock(CasualManagedConnection) {
-         1 * getDomainId() >> {
-            domainId
-         }
-      }
-      Set<Object> set = new HashSet<>()
-      set.add( connection )
-
-      expect:
-      instance.matchManagedConnections( set, subject, cri ) == null
-   }
-
     def "MatchManagedConnections returns null if there are no CasualManagedConnection instance in the set provided."()
     {
         setup:
         Subject subject = new Subject()
-        ConnectionRequestInfo cri = Mock(ConnectionRequestInfo)
         ManagedConnection connection = Mock(ManagedConnection)
+        ConnectionRequestInfo cri = Mock(ConnectionRequestInfo)
         Set<Object> set = new HashSet<>()
         set.add( connection )
 
