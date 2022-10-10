@@ -1,0 +1,7 @@
+<weblogic-ejb-jar xmlns="http://xmlns.oracle.com/weblogic/weblogic-ejb-jar" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://xmlns.oracle.com/weblogic/weblogic-ejb-jar  http://xmlns.oracle.com/weblogic/weblogic-ejb-jar/1.6/weblogic-ejb-jar.xsd">
+    <weblogic-enterprise-bean>
+        <ejb-name>CasualCallerImpl</ejb-name>
+        <enable-call-by-reference>true</enable-call-by-reference>
+    </weblogic-enterprise-bean>
+</weblogic-ejb-jar>
