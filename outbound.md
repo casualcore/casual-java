@@ -55,8 +55,10 @@ You can specify the number of physical connections by specifying the network poo
 
 Example for wildfly:
 ```
-$connectionDefinitionNode/config-properties=NetworkPoolName:add(value=pool-one)
-$connectionDefinitionNode/config-properties=NetworkPoolSize:add(value=1)
+$connectionDefinitionNode/config-properties=NetworkConnectionPoolName:add(value=pool-one)
+$connectionDefinitionNode/config-properties=NetworkConnectionPoolSize:add(value=1)
 ```
 
 Note that each physical network connection is multiplexing on its own since we are running on top of Netty.
+On another note, we recommend that if you are connecting via a load balancer - create different pools each with the  NetworkConnectionPoolSize of 1.
+This means that for each pool, each ManagedConnection is still talking to the same EIS.

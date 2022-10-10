@@ -85,9 +85,9 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         {
             if (networkConnection == null)
             {
-                if(null != mcf.getNetworkPoolName() && null == mcf.getNetworkPoolSize())
+                if(null != mcf.getNetworkConnectionPoolName() && null == mcf.getNetworkConnectionPoolSize())
                 {
-                    log.warning(() -> "networkPoolName set to: " + mcf.getNetworkPoolName() + " but missing networkPoolSize!");
+                    log.warning(() -> "networkPoolName set to: " + mcf.getNetworkConnectionPoolName() + " but missing networkPoolSize!");
                 }
                 networkConnection = networkPoolNameAndNetworkPoolSizeSet() ? getOrCreateFromPool() : createOneToOneManagedConnection();
             }
@@ -97,18 +97,18 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
 
     private boolean networkPoolNameAndNetworkPoolSizeSet()
     {
-        return null != mcf.getNetworkPoolSize() && null != mcf.getNetworkPoolName();
+        return null != mcf.getNetworkConnectionPoolSize() && null != mcf.getNetworkConnectionPoolName();
     }
 
     private NetworkConnection getOrCreateFromPool()
     {
         return NetworkPoolHandler.getInstance()
                                  .getOrCreate(
-                                         mcf.getNetworkPoolName(),
+                                         mcf.getNetworkConnectionPoolName(),
                                          mcf.getAddress(),
                                          mcf.getCasualProtocolVersion(),
                                          this,
-                                         mcf.getNetworkPoolSize());
+                                         mcf.getNetworkConnectionPoolSize());
     }
 
     @Override

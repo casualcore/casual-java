@@ -46,8 +46,8 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    private String hostName;
    private Integer portNumber;
    private Long casualProtocolVersion = 1000L;
-   private String networkPoolName;
-   private Integer networkPoolSize;
+   private String networkConnectionPoolName;
+   private Integer networkConnectionPoolSize;
    private final int resourceId = CasualResourceManager.getInstance().getNextId();
 
    public CasualManagedConnectionFactory()
@@ -88,24 +88,24 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       return this;
    }
 
-   public String getNetworkPoolName()
+   public String getNetworkConnectionPoolName()
    {
-       return networkPoolName;
+       return networkConnectionPoolName;
    }
 
-   public void setNetworkPoolName(String networkPoolName)
+   public void setNetworkConnectionPoolName(String networkConnectionPoolName)
    {
-       this.networkPoolName = networkPoolName;
+       this.networkConnectionPoolName = networkConnectionPoolName;
    }
 
-    public Integer getNetworkPoolSize()
+    public Integer getNetworkConnectionPoolSize()
     {
-        return networkPoolSize;
+        return networkConnectionPoolSize;
     }
 
-    public void setNetworkPoolSize(Integer networkPoolSize)
+    public void setNetworkConnectionPoolSize(Integer networkConnectionPoolSize)
     {
-        this.networkPoolSize = networkPoolSize;
+        this.networkConnectionPoolSize = networkConnectionPoolSize;
     }
 
    @Override
