@@ -35,6 +35,7 @@ public class DomainHandler
     {
         synchronized (domainLock)
         {
+            log.finest(() -> "addDomain: " + address + " , " + domainId);
             domainIds.putIfAbsent(address, new ArrayList<>());
             List<DomainIdReferenceCounted> items = domainIds.get(address);
             DomainIdReferenceCounted domainIdReferenceCounted = items.stream()
@@ -56,6 +57,11 @@ public class DomainHandler
         }
     }
 
+    public Map<Address, List<DomainIdReferenceCounted>> getDomainIds()
+    {
+       return Collections.unmodifiableMap(domainIds);
+    }
+
     public List<DomainId> getDomainIds(Address address)
     {
         List<DomainIdReferenceCounted> values = domainIds.get(address);
@@ -72,6 +78,7 @@ public class DomainHandler
     {
         synchronized (domainLock)
         {
+            log.finest(() -> "domainDisconnect: " + address + " , " + domainId);
             List<DomainIdReferenceCounted> domainIdsPerAddress = domainIds.get(address);
             if (null != domainIdsPerAddress)
             {
@@ -90,6 +97,7 @@ public class DomainHandler
                     domainIdsPerAddress.remove(domainIdReferenceCounted);
                     if(domainIdsPerAddress.isEmpty())
                     {
+                        log.finest(() -> "no more domain ids for address: " + address + "  - removing");
                         domainIds.remove(address);
                     }
                 }

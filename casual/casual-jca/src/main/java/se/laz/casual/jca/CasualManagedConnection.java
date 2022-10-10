@@ -10,6 +10,7 @@ import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
+import se.laz.casual.jca.pool.NetworkPoolHandler;
 import se.laz.casual.network.outbound.NettyConnectionInformation;
 import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
@@ -84,17 +85,30 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         {
             if (networkConnection == null)
             {
-                Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
-                NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
-                                                                          .withProtocolVersion(mcf.getCasualProtocolVersion())
-                                                                          .withDomainId(domain.getId())
-                                                                          .withDomainName(domain.getName())
-                                                                          .build();
-                networkConnection = NettyNetworkConnection.of(ci, this);
-                log.finest(()->"created new nw connection " + this);
+                if(null != mcf.getNetworkConnectionPoolName() && null == mcf.getNetworkConnectionPoolSize())
+                {
+                    log.warning(() -> "networkPoolName set to: " + mcf.getNetworkConnectionPoolName() + " but missing networkPoolSize!");
+                }
+                networkConnection = networkPoolNameAndNetworkPoolSizeSet() ? getOrCreateFromPool() : createOneToOneManagedConnection();
             }
         }
         return networkConnection;
+    }
+
+    private boolean networkPoolNameAndNetworkPoolSizeSet()
+    {
+        return null != mcf.getNetworkConnectionPoolSize() && null != mcf.getNetworkConnectionPoolName();
+    }
+
+    private NetworkConnection getOrCreateFromPool()
+    {
+        return NetworkPoolHandler.getInstance()
+                                 .getOrCreate(
+                                         mcf.getNetworkConnectionPoolName(),
+                                         mcf.getAddress(),
+                                         mcf.getCasualProtocolVersion(),
+                                         this,
+                                         mcf.getNetworkConnectionPoolSize());
     }
 
     @Override
@@ -283,9 +297,10 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     }
 
     @Override
-    public void disconnected()
+    public void disconnected(Exception reason)
     {
-        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED);
+        log.finest(() -> "disconnected: " + this);
+        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED, reason);
         connectionEventHandler.sendEvent(event);
     }
 
@@ -315,5 +330,18 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public int getTransactionTimeout()
     {
         return timeout;
+    }
+
+    private NetworkConnection createOneToOneManagedConnection()
+    {
+        Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
+        NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
+                                                                  .withProtocolVersion(mcf.getCasualProtocolVersion())
+                                                                  .withDomainId(domain.getId())
+                                                                  .withDomainName(domain.getName())
+                                                                  .build();
+        NetworkConnection newNetworkConnection = NettyNetworkConnection.of(ci, this);
+        log.finest(() -> "created new nw connection " + this);
+        return newNetworkConnection;
     }
 }

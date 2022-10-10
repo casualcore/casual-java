@@ -40,7 +40,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
-public final class NettyNetworkConnection implements NetworkConnection, ConversationClose
+public class NettyNetworkConnection implements NetworkConnection, ConversationClose
 {
     private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
@@ -50,34 +50,39 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     private final Channel channel;
     private final AtomicBoolean connected = new AtomicBoolean(true);
     private final ManagedExecutorService managedExecutorService;
+    private final ErrorInformer errorInformer;
     private DomainId domainId;
 
     private NettyNetworkConnection(BaseConnectionInformation ci,
                                    Correlator correlator,
                                    Channel channel,
                                    ConversationMessageStorage conversationMessageStorage,
-                                   ManagedExecutorService managedExecutorService)
+                                   ManagedExecutorService managedExecutorService,
+                                   ErrorInformer errorInformer)
     {
         this.ci = ci;
         this.correlator = correlator;
         this.channel = channel;
         this.conversationMessageStorage = conversationMessageStorage;
         this.managedExecutorService = managedExecutorService;
+        this.errorInformer = errorInformer;
     }
 
     public static NetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
     {
         Objects.requireNonNull(ci, "connection info can not be null");
         Objects.requireNonNull(ci, "network listener can not be null");
+        ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException("network connection is gone"));
+        errorInformer.addListener(networkListener);
         EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         Correlator correlator = ci.getCorrelator();
         ConversationMessageStorage conversationMessageStorage = ConversationMessageStorageImpl.of();
-        OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenerIfNotConnected(channel, networkListener);
+        OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenersIfNotConnected(channel, errorInformer);
         ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of( conversationMessageStorage);
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
-        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, EventLoopFactory.getManagedExecutorService());
+        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, EventLoopFactory.getManagedExecutorService(), errorInformer);
         LOG.finest(() -> networkConnection + " connected to: " + ci.getAddress());
-        ch.closeFuture().addListener(f -> handleClose(networkConnection, networkListener));
+        ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
         DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
         networkConnection.setDomainId(id);
         return networkConnection;
@@ -108,7 +113,7 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         return b.connect(address).syncUninterruptibly().channel();
     }
 
-    private static void handleClose(final NettyNetworkConnection connection, NetworkListener networkListener)
+    private static void handleClose(final NettyNetworkConnection connection, ErrorInformer errorInformer)
     {
         // always complete any outstanding requests exceptionally
         // both when the casual domain goes away or when the owner of the network connection
@@ -118,7 +123,7 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
         {
             // only inform on casual disconnect
             // will result in a close call on the ManagedConnection ( by the application server)
-            networkListener.disconnected();
+            errorInformer.inform();
         }
     }
 
@@ -141,7 +146,11 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
                 List<UUID> l = new ArrayList<>();
                 l.add(message.getCorrelationId());
                 LOG.finest(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
-                correlator.completeExceptionally(l, new CasualConnectionException(cf.cause()));
+                // This since all outstanding requests may already have been completed exceptionally
+                if(!f.isCompletedExceptionally())
+                {
+                    correlator.completeExceptionally(l, new CasualConnectionException(cf.cause()));
+                }
             }// successful correlation is done in CasualMessageHandler
         });
         return f;
@@ -227,6 +236,27 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     }
 
     @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        NettyNetworkConnection that = (NettyNetworkConnection) o;
+        return Objects.equals(channel, that.channel) && Objects.equals(getDomainId(), that.getDomainId());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(channel, getDomainId());
+    }
+
+    @Override
     public String toString()
     {
         return "NettyNetworkConnection{" +
@@ -249,4 +279,9 @@ public final class NettyNetworkConnection implements NetworkConnection, Conversa
     {
         ConversationMessageStorageImpl.remove(conversationalCorrId);
     }
+
+   public void addListener(NetworkListener listener)
+   {
+       errorInformer.addListener(listener);
+   }
 }

@@ -7,6 +7,7 @@ package se.laz.casual.jca;
 
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
+import se.laz.casual.jca.jmx.JMXStartup;
 import se.laz.casual.jca.work.StartInboundServerListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
 import se.laz.casual.network.inbound.CasualServer;
@@ -130,6 +131,7 @@ public class CasualResourceAdapter implements ResourceAdapter
         log.finest(()->"start()");
         workManager = ctx.getWorkManager();
         xaTerminator = ctx.getXATerminator();
+        JMXStartup.getInstance().initJMX();
     }
 
     @Override
