@@ -23,7 +23,7 @@ class RandomEntryTest extends Specification
     def 'get queue with 0 entries, should give TPENOENT'()
     {
         given:
-        def queueInfo = QueueInfo.createBuilder().withQueueName('Battlestar.Galactica').build()
+        def queueInfo = QueueInfo.of('Battlestar.Galactica')
         def entry = Optional.empty()
         def lookup = Mock(ConnectionFactoryLookup)
         lookup.get(queueInfo) >> {
@@ -53,7 +53,7 @@ class RandomEntryTest extends Specification
     def 'get queue with 1 entry, should return that entry'()
     {
         given:
-        def queueInfo = QueueInfo.createBuilder().withQueueName('Battlestar.Galactica').build()
+        def queueInfo = QueueInfo.of('Battlestar.Galactica')
         def entry = Optional.of(ConnectionFactoryEntry.of(Mock(ConnectionFactoryProducer)))
         def lookup = Mock(ConnectionFactoryLookup)
         lookup.get(queueInfo) >> {
