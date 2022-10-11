@@ -81,16 +81,6 @@ public class CasualConnectionImpl implements CasualConnection
         managedConnection.closeHandle(this);
     }
 
-    /**
-     * Get the domain id for this physical connection
-     * @return
-     */
-    @Override
-    public DomainId getDomainID()
-    {
-        return managedConnection.getNetworkConnection().getDomainId();
-    }
-
     @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
