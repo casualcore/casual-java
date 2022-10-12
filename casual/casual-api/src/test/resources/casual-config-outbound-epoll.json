@@ -1,0 +1,6 @@
+{
+  "outbound":
+  {
+    "useEpoll": true
+  }
+}
