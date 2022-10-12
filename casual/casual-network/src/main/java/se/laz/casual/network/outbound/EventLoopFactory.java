@@ -6,6 +6,7 @@
 package se.laz.casual.network.outbound;
 
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Outbound;
@@ -33,9 +34,10 @@ public final class EventLoopFactory
         if(outbound.getUnmanaged())
         {
             LOG.info(() -> "outbound not using any ManagedExecutorService, running unmanaged");
-            return new NioEventLoopGroup(outbound.getNumberOfThreads());
+            //return new NioEventLoopGroup(outbound.getNumberOfThreads());
+            return new EpollEventLoopGroup(outbound.getNumberOfThreads());
         }
-        return new NioEventLoopGroup(outbound.getNumberOfThreads(), getManagedExecutorService());
+        return new EpollEventLoopGroup(outbound.getNumberOfThreads(), getManagedExecutorService());
     }
 
     public static ManagedExecutorService getManagedExecutorService()

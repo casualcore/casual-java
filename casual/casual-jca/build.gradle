@@ -35,7 +35,7 @@ dependencies {
     resourceAdapter project(':casual:casual-network-protocol')
     resourceAdapter project(':casual:casual-inbound-api')
     resourceAdapterLib libs.netty
-
+    resourceAdapterLib libs.netty_epoll
 
     testImplementation project(':casual:casual-api')
     testImplementation project(':casual:casual-service-discovery-extension')

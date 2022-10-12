@@ -5,6 +5,7 @@
  */
 package se.laz.casual.jca.pool;
 
+import io.netty.channel.epoll.EpollSocketChannel;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
 import se.laz.casual.internal.network.NetworkConnection;
@@ -130,6 +131,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
                                                                   .withProtocolVersion(protocolVersion)
                                                                   .withDomainId(domain.getId())
                                                                   .withDomainName(domain.getName())
+                                                                  .withChannelClass(EpollSocketChannel.class)
                                                                   .build();
         NetworkConnection networkConnection = NettyNetworkConnection.of(ci, ownListener);
         if (networkConnection instanceof NettyNetworkConnection)
