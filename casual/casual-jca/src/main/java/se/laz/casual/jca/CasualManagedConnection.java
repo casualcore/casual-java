@@ -167,8 +167,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public void destroy() throws ResourceException
     {
         log.finest(() -> "destroy()" + this);
-        Optional<DomainId> domainId = Optional.ofNullable( null == networkConnection ? null : networkConnection.getDomainId());
-        domainId.ifPresent(mcf::domainDisconnect);
         closeNetworkConnection();
         connectionHandles.clear();
     }
@@ -311,15 +309,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public DomainId getDomainId()
     {
         return getNetworkConnection().getDomainId();
-    }
-
-    /**
-     * The domain ids for the pool of which this managed connection is a member
-     * @return
-     */
-    public List<DomainId> getPoolDomainIds()
-    {
-        return mcf.getPoolDomainIds();
     }
 
     public void setTransactionTimeout(int timeout)

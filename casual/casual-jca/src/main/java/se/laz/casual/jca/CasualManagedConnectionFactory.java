@@ -20,7 +20,6 @@ import javax.security.auth.Subject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -38,7 +37,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
 { 
    private static final long serialVersionUID = 1L;
    private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
-   private  DomainHandler domainHandler;
    private  CasualManagedConnectionProducer casualManagedConnectionProducer;
    private ResourceAdapter ra;
    private PrintWriter logwriter;
@@ -53,7 +51,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    public CasualManagedConnectionFactory()
    {
        this.casualManagedConnectionProducer = CasualManagedConnection::new;
-       this.domainHandler = DomainHandler.getInstance();
    }
 
    public String getHostName()
@@ -128,9 +125,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       try
       {
          CasualManagedConnection managedConnection = casualManagedConnectionProducer.createManagedConnection(this);
-         DomainId domainId = managedConnection.getDomainId();
-         domainHandler.addDomainId(getAddress(), domainId);
-         log.finest(() -> "Created a new managed connection: " + managedConnection + " with domain id: " + domainId);
+         log.finest(() -> "Created a new managed connection: " + managedConnection);
          return managedConnection;
       }
       catch(Exception e)
@@ -150,22 +145,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
                                                     Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
       log.finest("matchManagedConnections()");
-      if(cxRequestInfo instanceof CasualRequestInfo)
-      {
-         CasualRequestInfo requestInfo = (CasualRequestInfo) cxRequestInfo;
-         // Why do we need to do this, streaming the Set and collecting returns not a List of objects but an Object???
-         List<Object> wrapper = new ArrayList<>();
-         wrapper.addAll(connectionSet);
-         List<CasualManagedConnection> managedConnections = wrapper.stream()
-                                                                   .filter(CasualManagedConnection.class::isInstance)
-                                                                   .map(CasualManagedConnection.class::cast)
-                                                                   .collect(Collectors.toList());
-         DomainId domainId = requestInfo.getDomainId().orElse(null);
-         if(null != domainId)
-         {
-            return matchManagedConnections(managedConnections, domainId);
-         }
-      }
       return (ManagedConnection)connectionSet.stream()
                                              .filter(CasualManagedConnection.class::isInstance)
                                              .findFirst( )
@@ -183,26 +162,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
                     .map(CasualManagedConnection.class::cast)
                     .filter(managedConnection -> !managedConnection.getNetworkConnection().isActive())
                     .collect(Collectors.toSet());
-   }
-
-   public List<DomainId> getPoolDomainIds()
-   {
-      return Collections.unmodifiableList(domainHandler.getDomainIds(getAddress()));
-   }
-
-   public void domainDisconnect(DomainId domainId)
-   {
-       domainHandler.domainDisconnect(getAddress(), domainId);
-   }
-
-   private ManagedConnection matchManagedConnections(List<CasualManagedConnection> connections, DomainId domainId)
-   {
-      ManagedConnection matchedConnection =  connections.stream()
-                                                        .filter(connection -> connection.getDomainId().equals(domainId))
-                                                        .findFirst()
-                                                        .orElse(null);
-      log.finest(() -> null != matchedConnection ? "matching domain id " + domainId + " using: " + this : "matchManagedConnections no match for " + domainId + " using " + this);
-      return matchedConnection;
    }
 
    @Override
@@ -279,11 +238,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    public CasualManagedConnectionFactory setCasualManagedConnectionProducer(CasualManagedConnectionProducer casualManagedConnectionProducer)
    {
       this.casualManagedConnectionProducer = casualManagedConnectionProducer;
-      return this;
-   }
-   public CasualManagedConnectionFactory setDomainHandler(DomainHandler domainHandler)
-   {
-      this.domainHandler = domainHandler;
       return this;
    }
 

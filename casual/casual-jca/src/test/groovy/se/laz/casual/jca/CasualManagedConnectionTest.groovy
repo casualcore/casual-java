@@ -24,13 +24,10 @@ class CasualManagedConnectionTest extends Specification
     @Shared CasualManagedConnection instance
     @Shared CasualManagedConnectionFactory managedConnectionFactory
     @Shared DomainId domainId
-    @Shared def poolDomainIds = [Mock(DomainId), Mock(DomainId), Mock(DomainId)]
 
     def setup()
     {
-        managedConnectionFactory = Mock(CasualManagedConnectionFactory){
-           getPoolDomainIds() >> poolDomainIds
-        }
+        managedConnectionFactory = Mock(CasualManagedConnectionFactory)
         instance = new CasualManagedConnection( managedConnectionFactory )
         domainId = DomainId.of(UUID.randomUUID())
         NetworkConnection networkConnection = Mock( ){
@@ -74,8 +71,6 @@ class CasualManagedConnectionTest extends Specification
         then:
         thrown(ResourceException)
     }
-
-
 
     def "AssociateConnection with null throws NullPointerException"()
     {
@@ -284,14 +279,6 @@ class CasualManagedConnectionTest extends Specification
        def id = instance.getDomainId()
        then:
        id == instance.getNetworkConnection().getDomainId()
-    }
-
-    def 'getPoolDomainIds returns the right ids'()
-    {
-       when:
-       def poolIds = instance.getPoolDomainIds()
-       then:
-       poolIds == poolDomainIds
     }
 
     def "toString test."()
