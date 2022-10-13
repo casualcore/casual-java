@@ -37,6 +37,8 @@ public final class RandomEntry
      * @param max
      * @return a pseudorandom number within the range [min, max-1]
      */
+    // note: Pseudorandom is fine in this context
+    @SuppressWarnings("java:S2245")
     private static int getRandomNumber(int min, int max)
     {
         return ThreadLocalRandom.current().nextInt(min, max);
