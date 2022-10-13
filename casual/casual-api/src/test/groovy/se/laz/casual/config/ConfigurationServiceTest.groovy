@@ -68,7 +68,12 @@ class ConfigurationServiceTest extends Specification
     {
         given:
         Configuration expected = Configuration.newBuilder()
-                .withOutbound(Outbound.of(executorName, numberOfThreads, unmanaged, useEpoll))
+                .withOutbound(Outbound.newBuilder()
+                        .withManagedExecutorServiceName(executorName)
+                        .withNumberOfThreads(numberOfThreads)
+                        .withUnmanaged(unmanaged)
+                        .withUseEpoll(useEpoll)
+                        .build())
                 .build()
 
         when:
@@ -95,7 +100,7 @@ class ConfigurationServiceTest extends Specification
     {
         given:
         Configuration expected = Configuration.newBuilder()
-                .withOutbound(Outbound.of('java:comp/DefaultManagedExecutorService', 0))
+                .withOutbound(Outbound.newBuilder().build())
                 .build()
         when:
         Configuration actual = ConfigurationService.getInstance().getConfiguration()
@@ -106,8 +111,14 @@ class ConfigurationServiceTest extends Specification
    def 'no outbound config, useEpoll set via env var'()
    {
       given:
+      // Outbound.of('java:comp/DefaultManagedExecutorService', 0, false, true)
       Configuration expected = Configuration.newBuilder()
-              .withOutbound(Outbound.of('java:comp/DefaultManagedExecutorService', 0, false, true))
+              .withOutbound(Outbound.newBuilder()
+                      .withManagedExecutorServiceName('java:comp/DefaultManagedExecutorService')
+                      .withNumberOfThreads(0)
+                      .withUnmanaged(false)
+                      .withUseEpoll(true)
+                      .build())
               .build()
       when:
       Configuration actual
