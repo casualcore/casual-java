@@ -71,6 +71,7 @@ public class ConfigurationService
                                 .withMode( mode )
                                 .build() )
                         .build() )
+                .withOutbound(Outbound.newBuilder().build())
                 .build();
     }
 

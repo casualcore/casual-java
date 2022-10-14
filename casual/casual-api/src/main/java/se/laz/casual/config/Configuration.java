@@ -32,7 +32,7 @@ public class Configuration
 
     public Outbound getOutbound()
     {
-        return outbound == null ? Outbound.of(null, null) : outbound;
+        return outbound == null ? Outbound.newBuilder().build() : outbound;
     }
 
     @Override

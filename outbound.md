@@ -21,7 +21,8 @@ Example configurations:
 {
   "outbound":
   {
-    "unmanaged": true
+    "unmanaged": true,
+    "useEpoll": true
   }
 }
 ```
@@ -40,6 +41,7 @@ If you do not provide any configuration for outbound the defaults are:
 
 * *0*
 
+* Netty uses NIO
 
 0 for netty means: 
 ```java
@@ -47,6 +49,7 @@ Math.max(1, SystemPropertyUtil.getInt( "io.netty.eventLoopThreads", NettyRuntime
 ```
 
 If you are running on an older JVM in a containerized world, that might be suboptimal.
+
 
 ## Pool configuration
 

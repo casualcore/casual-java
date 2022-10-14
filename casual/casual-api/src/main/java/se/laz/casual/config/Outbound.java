@@ -6,6 +6,7 @@
 package se.laz.casual.config;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public final class Outbound
 {
@@ -15,32 +16,30 @@ public final class Outbound
     // for the EventLoopGroup
     private static final int DEFAULT_NUMBER_OF_THREADS = 0;
     private static final boolean DEFAULT_UNMANAGED = false;
+
     private final String managedExecutorServiceName;
     private int numberOfThreads;
     private boolean unmanaged;
+    private Boolean useEpoll;
 
-    private Outbound(String managedExecutorServiceName, int numberOfThreads, boolean unmanaged)
+    public static final String USE_EPOLL_ENV_VAR_NAME = "CASUAL_OUTBOUND_USE_EPOLL";
+
+    private Outbound(Builder builder)
     {
-        this.managedExecutorServiceName = managedExecutorServiceName;
-        this.numberOfThreads = numberOfThreads;
-        this.unmanaged = unmanaged;
+        managedExecutorServiceName = builder.managedExecutorServiceName;
+        numberOfThreads = builder.numberOfThreads;
+        unmanaged = builder.unmanaged;
+        useEpoll = builder.useEpoll;
     }
 
-    public static Outbound of(Boolean unmanaged)
+    public static Builder newBuilder()
     {
-        return new Outbound(DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME, DEFAULT_NUMBER_OF_THREADS, null == unmanaged ? DEFAULT_UNMANAGED : unmanaged);
+        return new Builder();
     }
 
-    public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads)
+    private boolean getUseEPollFromEnv()
     {
-        return of(managedExecutorServiceName, numberOfThreads, DEFAULT_UNMANAGED);
-    }
-
-    public static Outbound of(String managedExecutorServiceName, Integer numberOfThreads, Boolean unmanaged)
-    {
-        return new Outbound(null == managedExecutorServiceName ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME :  managedExecutorServiceName,
-                            null == numberOfThreads ? DEFAULT_NUMBER_OF_THREADS : numberOfThreads,
-                            null == unmanaged ? DEFAULT_UNMANAGED : unmanaged);
+        return Boolean.valueOf(Optional.ofNullable(System.getenv(USE_EPOLL_ENV_VAR_NAME)).orElse("false"));
     }
 
     public String getManagedExecutorServiceName()
@@ -58,6 +57,11 @@ public final class Outbound
         return unmanaged;
     }
 
+    public boolean getUseEpoll()
+    {
+        return null == useEpoll ?  getUseEPollFromEnv() : useEpoll;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -70,22 +74,67 @@ public final class Outbound
             return false;
         }
         Outbound outbound = (Outbound) o;
-        return getNumberOfThreads() == outbound.getNumberOfThreads() && getUnmanaged() == outbound.getUnmanaged() && Objects.equals(getManagedExecutorServiceName(), outbound.getManagedExecutorServiceName());
+        return getNumberOfThreads() == outbound.getNumberOfThreads() &&
+                getUnmanaged() == outbound.getUnmanaged() &&
+                Objects.equals(getManagedExecutorServiceName(), outbound.getManagedExecutorServiceName()) &&
+                getUseEpoll() ==  outbound.getUseEpoll();
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getManagedExecutorServiceName(), getNumberOfThreads(), getUnmanaged());
+        return Objects.hash(getManagedExecutorServiceName(), getNumberOfThreads(), getUnmanaged(), getUseEpoll());
     }
 
     @Override
     public String toString()
     {
         return "Outbound{" +
-                "managedExecutorServiceName='" + managedExecutorServiceName + '\'' +
-                ", numberOfThreads=" + numberOfThreads +
-                ", unmanaged=" + unmanaged +
+                "managedExecutorServiceName='" + getManagedExecutorServiceName() + '\'' +
+                ", numberOfThreads=" + getNumberOfThreads() +
+                ", unmanaged=" + getUnmanaged() +
+                ", useEpoll=" + getUseEpoll() +
                 '}';
+    }
+
+
+    public static final class Builder
+    {
+        private String managedExecutorServiceName;
+        private Integer numberOfThreads;
+        private Boolean unmanaged;
+        private Boolean useEpoll;
+
+        public Builder withManagedExecutorServiceName(String managedExecutorServiceName)
+        {
+            this.managedExecutorServiceName = managedExecutorServiceName;
+            return this;
+        }
+
+        public Builder withNumberOfThreads(Integer numberOfThreads)
+        {
+            this.numberOfThreads = numberOfThreads;
+            return this;
+        }
+
+        public Builder withUnmanaged(Boolean unmanaged)
+        {
+            this.unmanaged = unmanaged;
+            return this;
+        }
+
+        public Builder withUseEpoll(Boolean useEpoll)
+        {
+            this.useEpoll = useEpoll;
+            return this;
+        }
+
+        public Outbound build()
+        {
+            managedExecutorServiceName = null == managedExecutorServiceName ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME : managedExecutorServiceName;
+            numberOfThreads = null == numberOfThreads ? DEFAULT_NUMBER_OF_THREADS : numberOfThreads;
+            unmanaged = null == unmanaged ? DEFAULT_UNMANAGED : unmanaged;
+            return new Outbound(this);
+        }
     }
 }

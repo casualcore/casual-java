@@ -64,11 +64,16 @@ class ConfigurationServiceTest extends Specification
     }
 
     @Unroll
-    def "outbound config #executorName, #numberOfThreads"()
+    def "outbound config #executorName, #numberOfThreads #unmanaged #useEpoll"()
     {
         given:
         Configuration expected = Configuration.newBuilder()
-                .withOutbound(Outbound.of(executorName, numberOfThreads, unmanaged))
+                .withOutbound(Outbound.newBuilder()
+                        .withManagedExecutorServiceName(executorName)
+                        .withNumberOfThreads(numberOfThreads)
+                        .withUnmanaged(unmanaged)
+                        .withUseEpoll(useEpoll)
+                        .build())
                 .build()
 
         when:
@@ -82,25 +87,50 @@ class ConfigurationServiceTest extends Specification
         actual == expected
 
         where:
-        file                                                  || executorName                                                        || numberOfThreads || unmanaged
-        'casual-config-outbound.json'                         || 'java:comp/env/concurrent/casualManagedExecutorService'             || 10              || false
-        'casual-config-outbound-executorName-missing.json'    || 'java:comp/DefaultManagedExecutorService'                           || 10              || false
-        'casual-config-outbound-numberOfThreads-missing.json' || 'java:comp/env/concurrent/casualManagedExecutorService'             || 0               || false
-        'casual-config-outbound-null.json'                    || 'java:comp/DefaultManagedExecutorService'                           || 0               || false
-        'casual-config-outbound-unmanaged.json'               || 'java:comp/DefaultManagedExecutorService'                           || 0               || true
+        file                                                  || executorName                                                        || numberOfThreads || unmanaged || useEpoll
+        'casual-config-outbound.json'                         || 'java:comp/env/concurrent/casualManagedExecutorService'             || 10              || false     || false
+        'casual-config-outbound-executorName-missing.json'    || 'java:comp/DefaultManagedExecutorService'                           || 10              || false     || false
+        'casual-config-outbound-numberOfThreads-missing.json' || 'java:comp/env/concurrent/casualManagedExecutorService'             || 0               || false     || false
+        'casual-config-outbound-null.json'                    || 'java:comp/DefaultManagedExecutorService'                           || 0               || false     || false
+        'casual-config-outbound-unmanaged.json'               || 'java:comp/DefaultManagedExecutorService'                           || 0               || true      || false
+        'casual-config-outbound-epoll.json'                   || 'java:comp/DefaultManagedExecutorService'                           || 0               || false     || true
     }
 
     def 'default outbound config, no file'()
     {
         given:
         Configuration expected = Configuration.newBuilder()
-                .withOutbound(Outbound.of('java:comp/DefaultManagedExecutorService', 0))
+                .withOutbound(Outbound.newBuilder().build())
                 .build()
         when:
         Configuration actual = ConfigurationService.getInstance().getConfiguration()
         then:
         actual == expected
     }
+
+   def 'no outbound config, useEpoll set via env var'()
+   {
+      given:
+      // Outbound.of('java:comp/DefaultManagedExecutorService', 0, false, true)
+      Configuration expected = Configuration.newBuilder()
+              .withOutbound(Outbound.newBuilder()
+                      .withManagedExecutorServiceName('java:comp/DefaultManagedExecutorService')
+                      .withNumberOfThreads(0)
+                      .withUnmanaged(false)
+                      .withUseEpoll(true)
+                      .build())
+              .build()
+      when:
+      Configuration actual
+      withEnvironmentVariable( Outbound.USE_EPOLL_ENV_VAR_NAME, "true" )
+              .execute( {
+                 actual = ConfigurationService.getInstance().getConfiguration()} )
+      then:
+      withEnvironmentVariable( Outbound.USE_EPOLL_ENV_VAR_NAME, "true" )
+              .execute( {
+                 actual == expected
+              } )
+   }
 
     def "Get configuration where file not found, throws CasualRuntimeException."()
     {
