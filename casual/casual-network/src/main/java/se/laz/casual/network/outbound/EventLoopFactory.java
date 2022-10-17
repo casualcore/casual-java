@@ -11,12 +11,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import se.laz.casual.api.util.JEEConcurrencyFactory;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Outbound;
-import se.laz.casual.jca.CasualResourceAdapterException;
 
-import javax.enterprise.concurrent.ManagedExecutorService;
-import javax.enterprise.concurrent.ManagedScheduledExecutorService;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.util.logging.Logger;
 
 public final class EventLoopFactory
@@ -28,42 +23,6 @@ public final class EventLoopFactory
     public static synchronized EventLoopGroup getInstance()
     {
         return INSTANCE;
-    }
-
-    public static ManagedExecutorService getManagedExecutorService()
-    {
-        Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
-        if(outbound.getUnmanaged())
-        {
-            return null;
-        }
-        String name = outbound.getManagedExecutorServiceName();
-        try
-        {
-            LOG.info(() -> "using ManagedExecutorService: " + name);
-            InitialContext ctx = new InitialContext();
-            return (ManagedExecutorService) ctx.lookup(name);
-        }
-        catch (NamingException e)
-        {
-            throw new CasualResourceAdapterException("failed lookup for: " + name + "\n outbound will not function!", e);
-        }
-    }
-
-    public static ManagedScheduledExecutorService getManagedScheduledExecutorService()
-    {
-        Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
-        String name = outbound.getManagedScheduledExecutorServiceName();
-        try
-        {
-            LOG.info(() -> "using ManagedScheduledExecutorService: " + name);
-            InitialContext ctx = new InitialContext();
-            return (ManagedScheduledExecutorService) ctx.lookup(name);
-        }
-        catch (NamingException e)
-        {
-            throw new CasualResourceAdapterException("failed lookup for: " + name + "\n outbound will not function!", e);
-        }
     }
 
     private static EventLoopGroup createEventLoopGroup()
@@ -93,7 +52,7 @@ public final class EventLoopFactory
         if (useEpoll)
         {
             LOG.info(() -> "using EpollEventLoopGroup");
-            return new EpollEventLoopGroup(numberOfThreads, getManagedExecutorService());
+            return new EpollEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService());
         }
         LOG.info(() -> "using NioEventLoopGroup");
         return new NioEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService());
