@@ -17,6 +17,7 @@ public class AutoConnect
    private AutoConnect(RepeatUntilSuccessTask<ReverseInboundServer> task)
    {
       this.task = task;
+      task.start();
    }
 
    public static AutoConnect of(ReverseInboundConnectionInformation reverseInboundConnectionInformation,
