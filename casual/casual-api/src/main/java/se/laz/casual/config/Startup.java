@@ -38,7 +38,7 @@ public class Startup
             case TRIGGER:
                 return Collections.singletonList( Mode.Constants.TRIGGER_SERVICE );
             default:
-                return services == null ? Collections.emptyList() : services;
+                return services == null ? Collections.emptyList() : new ArrayList<>( services );
         }
     }
 
