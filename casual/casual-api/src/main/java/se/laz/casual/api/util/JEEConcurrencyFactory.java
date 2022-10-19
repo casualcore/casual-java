@@ -13,6 +13,8 @@ import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.concurrent.ManagedScheduledExecutorService;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.logging.Logger;
 
 public class JEEConcurrencyFactory
@@ -41,7 +43,7 @@ public class JEEConcurrencyFactory
         }
     }
 
-    public static ManagedScheduledExecutorService getManagedScheduledExecutorService()
+    public static ScheduledExecutorService getManagedScheduledExecutorService()
     {
         Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
         String name = outbound.getManagedScheduledExecutorServiceName();
@@ -62,7 +64,9 @@ public class JEEConcurrencyFactory
             }
             catch(NamingException ee)
             {
-                throw new CasualResourceAdapterException("failed lookup for: " + name + "\n outbound will not function!", ee);
+                // On wls there is no alternative thus we end up here
+                LOG.warning(() -> "failed using ManagedScheduledExecutorService: " + name + " falling back to ScheduledThreadPoolExecutor");
+                return new ScheduledThreadPoolExecutor(1);
             }
         }
     }
