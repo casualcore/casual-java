@@ -7,17 +7,13 @@
 package se.laz.casual.jca.queue
 
 import se.laz.casual.api.buffer.type.JsonBuffer
-import se.laz.casual.api.queue.DequeueReturn
-import se.laz.casual.api.queue.EnqueueReturn
-import se.laz.casual.api.queue.MessageSelector
-import se.laz.casual.api.queue.QueueInfo
-import se.laz.casual.api.queue.QueueMessage
+import se.laz.casual.api.queue.*
 import se.laz.casual.api.xa.XID
+import se.laz.casual.config.Domain
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceManager
-import se.laz.casual.config.Domain
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
@@ -167,7 +163,7 @@ class CasualQueueCallerTest extends Specification
         1 * networkConnection.request( _ ) >> {
             CasualNWMessageImpl<CasualEnqueueRequestMessage> input ->
                 actualEnqueueRequest = input
-                return new CompletableFuture<>(enqueueReply)
+                return CompletableFuture.completedFuture(enqueueReply)
         }
         expect actualEnqueueRequest, matching( expectedEnqueueRequest )
     }
@@ -207,7 +203,7 @@ class CasualQueueCallerTest extends Specification
         1 * networkConnection.request(_) >> {
             CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
-                return new CompletableFuture<>(domainDiscoveryReplyFound)
+                return CompletableFuture.completedFuture(domainDiscoveryReplyFound)
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }
@@ -221,7 +217,7 @@ class CasualQueueCallerTest extends Specification
         1 * networkConnection.request(_) >> {
             CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
                 actualDomainDiscoveryRequest = input
-                return new CompletableFuture<>(domainDiscoveryReplyNotFound)
+                return CompletableFuture.completedFuture(domainDiscoveryReplyNotFound)
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
     }
