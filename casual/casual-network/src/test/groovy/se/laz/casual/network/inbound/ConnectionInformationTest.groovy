@@ -53,6 +53,7 @@ class ConnectionInformationTest extends Specification
         noExceptionThrown()
         instance != null
         !instance.isLogHandlerEnabled()
+        !instance.isUseEpoll()
     }
 
     def 'ok construction - network logging'()
@@ -75,6 +76,23 @@ class ConnectionInformationTest extends Specification
         noExceptionThrown()
         instance != null
         instance.isLogHandlerEnabled()
+        !instance.isUseEpoll()
+    }
+
+    def 'ok construction - epoll enabled'()
+    {
+        when:
+        def instance = ConnectionInformation.createBuilder()
+                .withWorkManager(mockWorkManager)
+                .withXaTerminator(mockXATerminator)
+                .withFactory(mockFactory)
+                .withUseEpoll( true )
+                .build()
+        then:
+        noExceptionThrown()
+        instance != null
+        !instance.isLogHandlerEnabled()
+        instance.isUseEpoll()
     }
 
 }

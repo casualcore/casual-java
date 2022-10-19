@@ -11,6 +11,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -39,16 +41,17 @@ public final class CasualServer
     public static CasualServer of(final ConnectionInformation ci)
     {
         CasualMessageHandler mh = CasualMessageHandler.of(ci.getFactory(), ci.getXaTerminator(), ci.getWorkManager());
-        Channel c = init(mh, ExceptionHandler.of(), ci.getPort(), ci.isLogHandlerEnabled());
+        Channel c = init(mh, ExceptionHandler.of(), ci.getPort(), ci.isLogHandlerEnabled(), ci.isUseEpoll() );
         return new CasualServer(c);
     }
 
-    private static Channel init(CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, int port, boolean enableLogHandler)
+    private static Channel init(CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, int port, boolean enableLogHandler, boolean useEpoll)
     {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
+        Class<? extends ServerChannel> channelClass = useEpoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
         ServerBootstrap b = new ServerBootstrap()
             .group(workerGroup)
-            .channel(NioServerSocketChannel.class)
+            .channel(channelClass)
             .childHandler(new ChannelInitializer<SocketChannel>()
             {
                 @Override

@@ -19,14 +19,16 @@ public final class ConnectionInformation
     private final XATerminator xaTerminator;
     private final WorkManager workManager;
     private final boolean logHandlerEnabled;
+    private final boolean useEpoll;
 
-    private ConnectionInformation(int port, MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, boolean logHandlerEnabled)
+    private ConnectionInformation( Builder builder )
     {
-        this.port = port;
-        this.factory = factory;
-        this.xaTerminator = xaTerminator;
-        this.workManager = workManager;
-        this.logHandlerEnabled = logHandlerEnabled;
+        this.port = builder.port;
+        this.factory = builder.factory;
+        this.xaTerminator = builder.xaTerminator;
+        this.workManager = builder.workManager;
+        this.logHandlerEnabled = builder.logHandlerEnabled;
+        this.useEpoll = builder.useEpoll;
     }
 
     public int getPort()
@@ -54,6 +56,11 @@ public final class ConnectionInformation
         return logHandlerEnabled;
     }
 
+    public boolean isUseEpoll()
+    {
+        return useEpoll;
+    }
+
     public static Builder createBuilder()
     {
         return new Builder();
@@ -65,6 +72,8 @@ public final class ConnectionInformation
         private MessageEndpointFactory factory;
         private XATerminator xaTerminator;
         private WorkManager workManager;
+        private boolean useEpoll;
+        private Boolean logHandlerEnabled;
 
         public Builder withPort(int port)
         {
@@ -90,12 +99,25 @@ public final class ConnectionInformation
             return this;
         }
 
+        public Builder withUseEpoll( boolean useEpoll )
+        {
+            this.useEpoll = useEpoll;
+            return this;
+        }
+
+        public Builder withEnabledLogHandler( boolean enabled )
+        {
+            this.logHandlerEnabled = enabled;
+            return this;
+        }
+
         public ConnectionInformation build()
         {
             Objects.requireNonNull(factory, "factory can not be null");
             Objects.requireNonNull(xaTerminator, "xaTerminator can not be null");
             Objects.requireNonNull(workManager, "workManager can not be null");
-            return new ConnectionInformation(port, factory, xaTerminator, workManager, Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME)));
+            logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME)); //TODO: Move out to ConfigurationService.
+            return new ConnectionInformation( this );
         }
     }
 }
