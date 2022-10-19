@@ -14,6 +14,7 @@ import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
 import se.laz.casual.network.utils.FakeListener
+import spock.lang.Requires
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -107,6 +108,7 @@ class CasualServerTest extends Specification
         !server.channel.isOpen()
     }
 
+    @Requires({os.linux})
     def 'connect and send a message using epoll'()
     {
         setup:
@@ -150,6 +152,7 @@ class CasualServerTest extends Specification
         !server.channel.isOpen()
     }
 
+    @Requires({os.linux})
     def "Check channel is set."()
     {
         given:
