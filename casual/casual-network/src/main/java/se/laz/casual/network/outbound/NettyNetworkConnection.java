@@ -18,18 +18,17 @@ import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.api.util.JEEConcurrencyFactory;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
-import se.laz.casual.api.util.JEEConcurrencyFactory;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 
-import javax.enterprise.concurrent.ManagedExecutorService;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +37,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public class NettyNetworkConnection implements NetworkConnection, ConversationClose
@@ -50,7 +51,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private final ConversationMessageStorage conversationMessageStorage;
     private final Channel channel;
     private final AtomicBoolean connected = new AtomicBoolean(true);
-    private final ManagedExecutorService managedExecutorService;
+    private final Supplier<ExecutorService> managedExecutorService;
     private final ErrorInformer errorInformer;
     private DomainId domainId;
 
@@ -58,7 +59,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                                    Correlator correlator,
                                    Channel channel,
                                    ConversationMessageStorage conversationMessageStorage,
-                                   ManagedExecutorService managedExecutorService,
+                                   Supplier<ExecutorService> managedExecutorService,
                                    ErrorInformer errorInformer)
     {
         this.ci = ci;
@@ -81,7 +82,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenersIfNotConnected(channel, errorInformer);
         ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of( conversationMessageStorage);
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
-        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory.getManagedExecutorService(), errorInformer);
+        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
         LOG.finest(() -> networkConnection + " connected to: " + ci.getAddress());
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
         DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
@@ -184,7 +185,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         maybeMessage.ifPresent(future::complete);
         if(!future.isDone())
         {
-            managedExecutorService.execute(() -> future.complete(conversationMessageStorage.takeFirst(corrid)));
+            managedExecutorService.get().execute(() -> future.complete(conversationMessageStorage.takeFirst(corrid)));
         }
         return future;
     }

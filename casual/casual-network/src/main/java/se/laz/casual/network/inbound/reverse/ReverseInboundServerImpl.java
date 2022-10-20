@@ -11,12 +11,14 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.api.util.JEEConcurrencyFactory;
 import se.laz.casual.api.util.StaggeredOptions;
+import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.inbound.CasualMessageHandler;
@@ -57,9 +59,11 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         Objects.requireNonNull(reverseInboundConnectionInformation, "connectionInformation can not be null");
         EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         CasualMessageHandler messageHandler = CasualMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager());
-        Channel ch = init(reverseInboundConnectionInformation.getAddress(), workerGroup, messageHandler, ExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled());
+        boolean useEPoll = ConfigurationService.getInstance().getConfiguration().getOutbound().getUseEpoll();
+        Channel ch = init(reverseInboundConnectionInformation.getAddress(), workerGroup, messageHandler, ExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), useEPoll);
         ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress());
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
+        LOG.info(() -> "reverse inbound connected to: " + reverseInboundConnectionInformation.getAddress());
         return server;
     }
 
@@ -76,11 +80,11 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         AutoReconnect.of(reverseInboundConnectionInformation, eventListener, staggeredOptions, JEEConcurrencyFactory::getManagedScheduledExecutorService);
     }
 
-    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)
+    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler, boolean useEPoll)
     {
         Bootstrap b = new Bootstrap()
                 .group(workerGroup)
-                .channel(NioSocketChannel.class)
+                .channel(useEPoll ? EpollSocketChannel.class : NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .handler(new ChannelInitializer<SocketChannel>()
                 {

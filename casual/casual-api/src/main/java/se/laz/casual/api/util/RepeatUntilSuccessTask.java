@@ -6,9 +6,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 public class RepeatUntilSuccessTask<T> implements Runnable
 {
+    private static final Logger LOG = Logger.getLogger(RepeatUntilSuccessTask.class.getName());
    private final Supplier<T> supplier;
    private final Consumer<T> consumer;
    private final StaggeredOptions staggeredOptions;
@@ -44,6 +46,7 @@ public class RepeatUntilSuccessTask<T> implements Runnable
       }
       catch(Exception e)
       {
+          LOG.warning(() -> "task failed: " + e);
          executorServiceSupplier.get().schedule(this, staggeredOptions.getNext().toMillis(), TimeUnit.MILLISECONDS);
       }
    }
