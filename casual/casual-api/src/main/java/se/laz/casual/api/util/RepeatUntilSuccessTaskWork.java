@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.api.util;
 
 import javax.resource.spi.work.Work;
@@ -11,43 +17,43 @@ import java.util.logging.Logger;
 public class RepeatUntilSuccessTaskWork<T> implements Work
 {
     private static final Logger LOG = Logger.getLogger(RepeatUntilSuccessTaskWork.class.getName());
-   private final Supplier<T> supplier;
-   private final Consumer<T> consumer;
-   private final Supplier<WorkManager> workManagerSupplier;
+    private final Supplier<T> supplier;
+    private final Consumer<T> consumer;
+    private final Supplier<WorkManager> workManagerSupplier;
 
-   private RepeatUntilSuccessTaskWork(Supplier<T> supplier, Consumer<T> consumer, Supplier<WorkManager> workManagerSupplier)
-   {
-      this.supplier = supplier;
-      this.consumer = consumer;
-      this.workManagerSupplier = workManagerSupplier;
-   }
+    private RepeatUntilSuccessTaskWork(Supplier<T> supplier, Consumer<T> consumer, Supplier<WorkManager> workManagerSupplier)
+    {
+        this.supplier = supplier;
+        this.consumer = consumer;
+        this.workManagerSupplier = workManagerSupplier;
+    }
 
-   public static <T> RepeatUntilSuccessTaskWork<T> of(Supplier<T> supplier, Consumer<T> consumer, Supplier<WorkManager> workManagerSupplier)
-   {
-      Objects.requireNonNull(supplier, "supplier can not be null");
-      Objects.requireNonNull(consumer, "consumer can not be null");
-      Objects.requireNonNull(workManagerSupplier, "workManagerSupplier can not be null");
-      return  new RepeatUntilSuccessTaskWork<>(supplier, consumer, workManagerSupplier);
-   }
+    public static <T> RepeatUntilSuccessTaskWork<T> of(Supplier<T> supplier, Consumer<T> consumer, Supplier<WorkManager> workManagerSupplier)
+    {
+        Objects.requireNonNull(supplier, "supplier can not be null");
+        Objects.requireNonNull(consumer, "consumer can not be null");
+        Objects.requireNonNull(workManagerSupplier, "workManagerSupplier can not be null");
+        return  new RepeatUntilSuccessTaskWork<>(supplier, consumer, workManagerSupplier);
+    }
 
-   public void start()
-   {
-      scheduleWork();
-   }
+    public void start()
+    {
+        scheduleWork();
+    }
 
-   @Override
-   public void run()
-   {
-      try
-      {
-         consumer.accept(supplier.get());
-      }
-      catch(Exception e)
-      {
-          LOG.warning(() -> "task failed: " + e);
-          scheduleWork();
-      }
-   }
+    @Override
+    public void run()
+    {
+        try
+        {
+            consumer.accept(supplier.get());
+        }
+        catch(Exception e)
+        {
+            LOG.warning(() -> "task failed: " + e);
+            scheduleWork();
+        }
+    }
 
     @Override
     public String toString()
@@ -73,7 +79,15 @@ public class RepeatUntilSuccessTaskWork<T> implements Work
         }
         catch (WorkException e)
         {
-            throw new CasualWorkException("fatality - failed to schedule work!", e);
+            LOG.warning(() -> "failed to schedule work, will retry once: " + e);
+            try
+            {
+                workManagerSupplier.get().scheduleWork(this, WorkManager.INDEFINITE, null, RepeatUntilSuccessTaskWorkListener.of());
+            }
+            catch (WorkException ee)
+            {
+                throw new CasualWorkException("fatality - failed retry scheduling work!", ee);
+            }
         }
     }
 }
