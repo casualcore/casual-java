@@ -7,35 +7,36 @@ package se.laz.casual.network.outbound;
 
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Outbound;
+import se.laz.casual.jca.CasualResourceAdapterException;
 
+import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class JEEConcurrencyFactory
 {
     private static final Logger LOG = Logger.getLogger(JEEConcurrencyFactory.class.getName());
     // An indirect, via java:comp, JNDI lookup can only be done from an application within a J2EE container (Web module, EJB module, or application client module).
-    // Hence, we need to issue direct JNDI lookup since that is not true for us - yet.
+    // Hence, we need to issue direct JNDI lookup since that is not true for us - yet, due to the packaging of casual-jca
 
     // JBOSS direct JNDI names for EE Concurrency utils
     // see: https://docs.jboss.org/author/display/WFLY/EE%20Subsystem%20Configuration.html
-    // For wls, we have not found what the direct names are so if you run on wls you will in fact run the unmanaged variants
-    // This goes for reverse inbound as well as conversation
+    // For wls:
+    // * we have not found what the direct names are so if you run on wls it will throw unless direct a direct JNDI-name is configured
+    // * this goes for conversation, it needs an ExecutorService, and Outbound - if not set to run unmanaged
     private static final String DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT = "java:jboss/ee/concurrency/executor/default";
-    private static ExecutorService fallBackExecutorService;
 
     private JEEConcurrencyFactory()
     {}
 
     /**
-     * Gets default managed executor service, on jboss
-     * On wls it will instead get a fallback non managed executor service
+     * Gets default managed executor service - on jboss
+     * On wls it will throw CasualResourceAdapterException unless a direct JNDI-name is configured
      * @return an ExecutorService
      */
-    public static ExecutorService getManagedExecutorService()
+    public static ManagedExecutorService getManagedExecutorService()
     {
         Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
         if(outbound.getUnmanaged())
@@ -57,20 +58,9 @@ public class JEEConcurrencyFactory
             }
             catch (NamingException ee)
             {
-                // on wls you will end up here
-                LOG.warning(() -> "failed using ManagedExecutorService: " + name + " falling back to non managed ExecutorService");
-                return getFallBackExecutorService();
+                throw new CasualResourceAdapterException("failed lookup for: " + name + "\n outbound will not function!", e);
             }
         }
-    }
-
-    private static ExecutorService getFallBackExecutorService()
-    {
-        if(null == fallBackExecutorService)
-        {
-            fallBackExecutorService = Executors.newWorkStealingPool();
-        }
-        return fallBackExecutorService;
     }
 
 }

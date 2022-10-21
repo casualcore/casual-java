@@ -28,6 +28,7 @@ import se.laz.casual.network.protocol.messages.conversation.Request;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 
+import javax.enterprise.concurrent.ManagedExecutorService;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +37,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -50,7 +50,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private final ConversationMessageStorage conversationMessageStorage;
     private final Channel channel;
     private final AtomicBoolean connected = new AtomicBoolean(true);
-    private final Supplier<ExecutorService> managedExecutorService;
+    private final Supplier<ManagedExecutorService> managedExecutorService;
     private final ErrorInformer errorInformer;
     private DomainId domainId;
 
@@ -58,7 +58,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                                    Correlator correlator,
                                    Channel channel,
                                    ConversationMessageStorage conversationMessageStorage,
-                                   Supplier<ExecutorService> managedExecutorService,
+                                   Supplier<ManagedExecutorService> managedExecutorService,
                                    ErrorInformer errorInformer)
     {
         this.ci = ci;
