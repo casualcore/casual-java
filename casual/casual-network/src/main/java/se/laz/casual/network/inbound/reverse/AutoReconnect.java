@@ -6,7 +6,7 @@
 
 package se.laz.casual.network.inbound.reverse;
 
-import se.laz.casual.api.util.RepeatUntilSuccessTaskWork;
+import se.laz.casual.api.util.work.RepeatUntilSuccessTaskWork;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 

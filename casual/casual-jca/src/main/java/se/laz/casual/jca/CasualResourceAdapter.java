@@ -11,6 +11,7 @@ import se.laz.casual.jca.inflow.CasualActivationSpec;
 import se.laz.casual.jca.jmx.JMXStartup;
 import se.laz.casual.jca.work.StartInboundServerListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
+import se.laz.casual.jca.work.StartReverseInboundServerListener;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.inbound.CasualServer;
 import se.laz.casual.network.inbound.ConnectionInformation;
@@ -31,6 +32,7 @@ import javax.resource.spi.XATerminator;
 import javax.resource.spi.endpoint.MessageEndpointFactory;
 import javax.resource.spi.work.Work;
 import javax.resource.spi.work.WorkException;
+import javax.resource.spi.work.WorkListener;
 import javax.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAResource;
 import java.net.InetSocketAddress;
@@ -128,7 +130,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
             };
             Supplier<String> logMsg = () -> "casual reverse inbound connected to: " + connectionInformation.getAddress();
             Work work = StartInboundServerWork.of(getInboundStartupServices(), logMsg, consumer, supplier);
-            startWork(work);
+            startWork(work, StartReverseInboundServerListener.of());
         }
     }
 
@@ -138,7 +140,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         Supplier<CasualServer> supplier = () -> CasualServer.of(connectionInformation);
         Supplier<String> logMsg = () -> "Casual inbound server bound to port: " + connectionInformation.getPort();
         Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier);
-        startWork(work);
+        startWork(work, StartInboundServerListener.of());
     }
 
     private List<String> getInboundStartupServices()
@@ -146,11 +148,11 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         return configurationService.getConfiguration().getInbound().getStartup().getServices();
     }
 
-    private void startWork(Work work)
+    private void startWork(Work work, WorkListener workListener)
     {
         try
         {
-            workManager.startWork(work, WorkManager.INDEFINITE, null, StartInboundServerListener.of());
+            workManager.startWork(work, WorkManager.INDEFINITE, null, workListener);
         }
         catch (WorkException e)
         {
