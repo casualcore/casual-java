@@ -12,8 +12,6 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.logging.Logger;
 
 public class JEEConcurrencyFactory
@@ -26,10 +24,7 @@ public class JEEConcurrencyFactory
     // see: https://docs.jboss.org/author/display/WFLY/EE%20Subsystem%20Configuration.html
     // For wls, we have not found what the direct names are so if you run on wls you will in fact run the unmanaged variants
     // This goes for reverse inbound as well as conversation
-    private static final String DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT = "java:jboss/ee/concurrency/scheduler/default";
     private static final String DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT = "java:jboss/ee/concurrency/executor/default";
-    private static final int SCHEDULED_THREAD_POOL_EXECUTOR_SIZE = 1;
-    private static ScheduledThreadPoolExecutor fallBackScheduledExecutorService;
     private static ExecutorService fallBackExecutorService;
 
     private JEEConcurrencyFactory()
@@ -69,36 +64,6 @@ public class JEEConcurrencyFactory
         }
     }
 
-    /**
-     * Gets default managed scheduled executor service, on jboss
-     * On wls it will instead get a fallback non managed scheduled executor service
-     * @return a ScheduledExecutorService
-     */
-    public static ScheduledExecutorService getManagedScheduledExecutorService()
-    {
-        Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
-        String name = outbound.getManagedScheduledExecutorServiceName();
-        try
-        {
-            LOG.info(() -> "using ManagedScheduledExecutorService: " + name);
-            return InitialContext.doLookup(name);
-        }
-        catch (NamingException e)
-        {
-            try
-            {
-                LOG.warning(() -> "failed using ManagedScheduledExecutorService: " + name + " will try with: " + DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT);
-                return InitialContext.doLookup(DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT);
-            }
-            catch(NamingException ee)
-            {
-                // on wls you will end up here
-                LOG.warning(() -> "failed using ManagedScheduledExecutorService: " + name + " falling back to non managed ScheduledThreadPoolExecutor");
-                return getFallBackScheduledExecutorService();
-            }
-        }
-    }
-
     private static ExecutorService getFallBackExecutorService()
     {
         if(null == fallBackExecutorService)
@@ -108,12 +73,4 @@ public class JEEConcurrencyFactory
         return fallBackExecutorService;
     }
 
-    private static synchronized ScheduledExecutorService getFallBackScheduledExecutorService()
-    {
-        if(null == fallBackScheduledExecutorService)
-        {
-            fallBackScheduledExecutorService = new ScheduledThreadPoolExecutor(SCHEDULED_THREAD_POOL_EXECUTOR_SIZE);
-        }
-        return fallBackScheduledExecutorService;
-    }
 }

@@ -16,8 +16,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import se.laz.casual.api.util.JEEConcurrencyFactory;
-import se.laz.casual.api.util.StaggeredOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
@@ -27,10 +25,12 @@ import se.laz.casual.network.outbound.EventLoopFactory;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
+import javax.resource.spi.work.WorkManager;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
@@ -47,21 +47,23 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     private static final int STAGGER_FACTOR = 2;
     private final Channel channel;
     private final InetSocketAddress address;
+    private final Supplier<WorkManager> workManagerSupplier;
 
-    private ReverseInboundServerImpl(Channel channel, InetSocketAddress address)
+    private ReverseInboundServerImpl(Channel channel, InetSocketAddress address, Supplier<WorkManager> workManagerSupplier)
     {
         this.channel = channel;
         this.address = address;
+        this.workManagerSupplier = workManagerSupplier;
     }
 
-    public static ReverseInboundServer of(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener)
+    public static ReverseInboundServer of(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener, Supplier<WorkManager> workManagerSupplier)
     {
         Objects.requireNonNull(reverseInboundConnectionInformation, "connectionInformation can not be null");
         EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         CasualMessageHandler messageHandler = CasualMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager());
         boolean useEPoll = ConfigurationService.getInstance().getConfiguration().getOutbound().getUseEpoll();
         Channel ch = init(reverseInboundConnectionInformation.getAddress(), workerGroup, messageHandler, ExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), useEPoll);
-        ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress());
+        ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress(), workManagerSupplier);
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
         LOG.info(() -> "reverse inbound connected to: " + reverseInboundConnectionInformation.getAddress());
         return server;
@@ -69,15 +71,8 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
 
     private void onClose(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener)
     {
-        // connection gone, need to reconnect while backing off, so we don't spam
         eventListener.disconnected(this);
-        StaggeredOptions staggeredOptions  = StaggeredOptions.createBuilder()
-                                                             .withInitialDelay(INITIAL_DURATION)
-                                                             .withSubsequentDelay(SUBSEQUENT_DURATION)
-                                                             .withMaxDelay(MAX_DURATION)
-                                                             .withStaggerFactor(STAGGER_FACTOR)
-                                                             .build();
-        AutoReconnect.of(reverseInboundConnectionInformation, eventListener, staggeredOptions, JEEConcurrencyFactory::getManagedScheduledExecutorService);
+        AutoReconnect.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
     }
 
     private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler, boolean useEPoll)

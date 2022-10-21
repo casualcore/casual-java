@@ -126,13 +126,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
             Consumer<ReverseInboundServer> consumer = this::connected;
             Supplier<ReverseInboundServer> supplier = () -> {
                CompletableFuture<ReverseInboundServer> future = new CompletableFuture<>();
-               StaggeredOptions staggeredOptions = StaggeredOptions.createBuilder()
-                                                                   .withInitialDelay(Duration.ofMillis(100L))
-                                                                   .withSubsequentDelay(Duration.ofMillis(500L))
-                                                                   .withMaxDelay(Duration.ofMillis(10 * 1000L))
-                                                                   .withStaggerFactor(1)
-                                                                   .build();
-               AutoConnect.of(connectionInformation, future::complete,this, staggeredOptions, JEEConcurrencyFactory::getManagedScheduledExecutorService);
+               AutoConnect.of(connectionInformation, future::complete,this, () -> workManager);
                return future.join();
             };
             Supplier<String> logMsg = () -> "casual reverse inbound connected to: " + connectionInformation.getAddress();
