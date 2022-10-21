@@ -19,8 +19,6 @@ import javax.annotation.Resource;
 import javax.ejb.EJBContext;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -44,7 +42,6 @@ public class CasualService
     @Path("{serviceName}")
     public Response serviceRequest(@PathParam("serviceName") String serviceName, InputStream inputStream)
     {
-        doJNDILookups();
         try
         {
             byte[] data = IOUtils.toByteArray(inputStream);
@@ -63,25 +60,6 @@ public class CasualService
             }
             return Response.serverError().entity(sw.toString()).build();
         }
-    }
-
-    private void doJNDILookups()
-    {
-        doLookup("java:comp/DefaultManagedExecutorService");
-        doLookup("java:comp/DefaultManagedScheduledExecutorService");
-    }
-
-    private void doLookup(String name)
-    {
-        try
-        {
-            InitialContext.doLookup(name);
-        }
-        catch (NamingException e)
-        {
-            throw new RuntimeException(e);
-        }
-
     }
 
     private CasualBuffer makeServiceCall(CasualBuffer msg, String serviceName, Flag<AtmiFlags> flags)
