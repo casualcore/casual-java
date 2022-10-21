@@ -11,12 +11,9 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.inbound.CasualMessageHandler;
@@ -27,8 +24,6 @@ import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
 import javax.resource.spi.work.WorkManager;
 import java.net.InetSocketAddress;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -41,10 +36,6 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
 {
     private static final Logger LOG = Logger.getLogger(ReverseInboundServerImpl.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
-    private static final Duration INITIAL_DURATION = Duration.of(100, ChronoUnit.MILLIS);
-    private static final Duration SUBSEQUENT_DURATION = Duration.of(100, ChronoUnit.MILLIS);
-    private static final Duration MAX_DURATION = Duration.of(5000, ChronoUnit.MILLIS);
-    private static final int STAGGER_FACTOR = 2;
     private final Channel channel;
     private final InetSocketAddress address;
     private final Supplier<WorkManager> workManagerSupplier;
@@ -61,8 +52,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         Objects.requireNonNull(reverseInboundConnectionInformation, "connectionInformation can not be null");
         EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         CasualMessageHandler messageHandler = CasualMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager());
-        boolean useEPoll = ConfigurationService.getInstance().getConfiguration().getOutbound().getUseEpoll();
-        Channel ch = init(reverseInboundConnectionInformation.getAddress(), workerGroup, messageHandler, ExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), useEPoll);
+        Channel ch = init(reverseInboundConnectionInformation.getAddress(), workerGroup, messageHandler, ExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
         ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress(), workManagerSupplier);
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
         LOG.info(() -> "reverse inbound connected to: " + reverseInboundConnectionInformation.getAddress());
@@ -75,11 +65,11 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         AutoReconnect.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
     }
 
-    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler, boolean useEPoll)
+    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass)
     {
         Bootstrap b = new Bootstrap()
                 .group(workerGroup)
-                .channel(useEPoll ? EpollSocketChannel.class : NioSocketChannel.class)
+                .channel(channelClass)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .handler(new ChannelInitializer<SocketChannel>()
                 {
@@ -131,6 +121,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         return "ReverseInboundServerImpl{" +
                 "channel=" + channel +
                 ", address=" + address +
+                ", workManagerSupplier=" + workManagerSupplier +
                 '}';
     }
 }

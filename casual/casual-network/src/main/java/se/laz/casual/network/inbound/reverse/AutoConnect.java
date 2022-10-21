@@ -36,4 +36,12 @@ public class AutoConnect
       RepeatUntilSuccessTaskWork<ReverseInboundServer> task = RepeatUntilSuccessTaskWork.of(supplier, consumer, workManagerSupplier);
       return new AutoConnect(task);
    }
+
+    @Override
+    public String toString()
+    {
+        return "AutoConnect{" +
+                "task=" + task +
+                '}';
+    }
 }
