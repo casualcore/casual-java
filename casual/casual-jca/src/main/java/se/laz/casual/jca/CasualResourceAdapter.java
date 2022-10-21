@@ -5,7 +5,6 @@
  */
 package se.laz.casual.jca;
 
-import se.laz.casual.api.util.JEEConcurrencyFactory;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.ReverseInbound;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
@@ -17,7 +16,6 @@ import se.laz.casual.network.inbound.CasualServer;
 import se.laz.casual.network.inbound.ConnectionInformation;
 import se.laz.casual.network.inbound.reverse.AutoConnect;
 import se.laz.casual.network.inbound.reverse.ReverseInboundConnectionInformation;
-import se.laz.casual.api.util.StaggeredOptions;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
@@ -36,7 +34,6 @@ import javax.resource.spi.work.WorkException;
 import javax.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAResource;
 import java.net.InetSocketAddress;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
