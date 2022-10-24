@@ -17,6 +17,7 @@ dependencies {
   compileOnly libs.javaee_api
   compileOnly libs.gson
 
+  testImplementation libs.javaee_api
   testImplementation libs.gson
   testImplementation libs.system_lambda
     
