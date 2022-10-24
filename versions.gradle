@@ -9,7 +9,7 @@
 group = 'se.laz.casual'
 
 
-version = '2.2.5'
+version = '2.2.6'
 
 
 ext.casual_caller_app_version = '2.2.4'
