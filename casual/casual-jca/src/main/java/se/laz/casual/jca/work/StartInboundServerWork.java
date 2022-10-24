@@ -99,7 +99,7 @@ public final class StartInboundServerWork<T> implements Work
     private void startInboundServer()
     {
         consumer.accept(supplier.get());
-        log.info(() -> logMessage.get());
+        log.info(logMessage::get);
     }
 
 }

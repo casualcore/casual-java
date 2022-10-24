@@ -11,8 +11,6 @@ import java.util.Optional;
 public final class Outbound
 {
     private static final String DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME = "java:comp/DefaultManagedExecutorService";
-    // TODO: Symbol not found in wildfly
-    private static final String DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME = "java:comp/DefaultManagedScheduledExecutorService";
     // In netty number of threads == 0 is interpreted as:
     // Math.max(1, SystemPropertyUtil.getInt( "io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2))
     // for the EventLoopGroup
@@ -20,7 +18,6 @@ public final class Outbound
     private static final boolean DEFAULT_UNMANAGED = false;
 
     private final String managedExecutorServiceName;
-    private String managedScheduledExecutorServiceName;
     private int numberOfThreads;
     private boolean unmanaged;
     private Boolean useEpoll;
@@ -49,11 +46,6 @@ public final class Outbound
     public String getManagedExecutorServiceName()
     {
         return null == managedExecutorServiceName ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME : managedExecutorServiceName;
-    }
-
-    public String getManagedScheduledExecutorServiceName()
-    {
-        return managedScheduledExecutorServiceName == null ? DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME : managedScheduledExecutorServiceName;
     }
 
     public int getNumberOfThreads()
@@ -100,7 +92,6 @@ public final class Outbound
     {
         return "Outbound{" +
                 "managedExecutorServiceName='" + getManagedExecutorServiceName() + '\'' +
-                ", managedScheduledExecutorServiceName='" + getManagedScheduledExecutorServiceName() + '\'' +
                 ", numberOfThreads=" + getNumberOfThreads() +
                 ", unmanaged=" + getUnmanaged() +
                 ", useEpoll=" + getUseEpoll() +
@@ -110,7 +101,6 @@ public final class Outbound
     public static final class Builder
     {
         private String managedExecutorServiceName;
-        private String managedScheduledExecutorServiceName;
         private Integer numberOfThreads;
         private Boolean unmanaged;
         private Boolean useEpoll;
@@ -118,12 +108,6 @@ public final class Outbound
         public Builder withManagedExecutorServiceName(String managedExecutorServiceName)
         {
             this.managedExecutorServiceName = managedExecutorServiceName;
-            return this;
-        }
-
-        public Builder withManagedScheduledExecutorServiceName(String managedScheduledExecutorServiceName)
-        {
-            this.managedScheduledExecutorServiceName = managedScheduledExecutorServiceName;
             return this;
         }
 
@@ -148,7 +132,6 @@ public final class Outbound
         public Outbound build()
         {
             managedExecutorServiceName = null == managedExecutorServiceName ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME : managedExecutorServiceName;
-            managedScheduledExecutorServiceName = managedScheduledExecutorServiceName == null ? DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME : managedScheduledExecutorServiceName;
             numberOfThreads = null == numberOfThreads ? DEFAULT_NUMBER_OF_THREADS : numberOfThreads;
             unmanaged = null == unmanaged ? DEFAULT_UNMANAGED : unmanaged;
             return new Outbound(this);

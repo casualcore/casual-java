@@ -35,27 +35,18 @@ public class ReverseInboundConnectionInformation
     private final String domainName;
     private final Class<? extends Channel> channelClass;
 
-    private ReverseInboundConnectionInformation(InetSocketAddress address,
-                                                ProtocolVersion protocolVersion,
-                                                Correlator correlator,
-                                                MessageEndpointFactory factory,
-                                                XATerminator xaTerminator,
-                                                WorkManager workManager,
-                                                boolean logHandlerEnabled,
-                                                UUID domainId,
-                                                String domainName,
-                                                Class<? extends Channel> channelClass)
+    private ReverseInboundConnectionInformation(Builder builder)
     {
-        this.address = address;
-        this.protocolVersion = protocolVersion;
-        this.correlator = correlator;
-        this.factory = factory;
-        this.xaTerminator = xaTerminator;
-        this.workManager = workManager;
-        this.logHandlerEnabled = logHandlerEnabled;
-        this.domainId = domainId;
-        this.domainName = domainName;
-        this.channelClass = channelClass;
+        this.address = builder.address;
+        this.protocolVersion = builder.protocolVersion;
+        this.correlator = builder.correlator;
+        this.factory = builder.factory;
+        this.xaTerminator = builder.xaTerminator;
+        this.workManager = builder.workManager;
+        this.logHandlerEnabled = builder.logHandlerEnabled;
+        this.domainId = builder.domainId;
+        this.domainName = builder.domainName;
+        this.channelClass = builder.channelClass;
     }
 
     public InetSocketAddress getAddress()
@@ -124,6 +115,7 @@ public class ReverseInboundConnectionInformation
         private UUID domainId;
         private String domainName;
         private Class<? extends Channel> channelClass;
+        private boolean logHandlerEnabled;
 
         public Builder withAddress(InetSocketAddress address)
         {
@@ -190,7 +182,8 @@ public class ReverseInboundConnectionInformation
             Objects.requireNonNull(domainName, "domainName can not be null");
             correlator = null == correlator ? CorrelatorImpl.of() : correlator;
             channelClass = null == channelClass ? getChannelClass() : channelClass;
-            return new ReverseInboundConnectionInformation(address, protocolVersion, correlator, factory, xaTerminator, workManager, Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME)), domainId, domainName, channelClass);
+            logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME));
+            return new ReverseInboundConnectionInformation(this);
         }
 
         private Class<? extends Channel> getChannelClass()

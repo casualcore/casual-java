@@ -9,7 +9,7 @@ import java.util.Objects;
 
 public final class ReverseInbound
 {
-    private static int DEFAULT_SIZE = 1;
+    private static final int DEFAULT_SIZE = 1;
     private final Address address;
     private Integer size;
 

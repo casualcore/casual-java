@@ -12,7 +12,6 @@ import se.laz.casual.jca.CasualResourceAdapterException;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 public class JEEConcurrencyFactory
