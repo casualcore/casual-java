@@ -93,6 +93,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                 .withPort(as.getPort())
                 .withWorkManager(workManager)
                 .withXaTerminator(xaTerminator)
+                .withUseEpoll( configurationService.getConfiguration().getInbound().isUseEpoll() )
                 .build();
         activations.put(as.getPort(), as);
         log.info(() -> "start casual inbound server" );
