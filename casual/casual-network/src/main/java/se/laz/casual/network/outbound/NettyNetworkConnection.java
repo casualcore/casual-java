@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public class NettyNetworkConnection implements NetworkConnection, ConversationClose
@@ -49,7 +50,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private final ConversationMessageStorage conversationMessageStorage;
     private final Channel channel;
     private final AtomicBoolean connected = new AtomicBoolean(true);
-    private final ManagedExecutorService managedExecutorService;
+    private final Supplier<ManagedExecutorService> managedExecutorService;
     private final ErrorInformer errorInformer;
     private DomainId domainId;
 
@@ -57,7 +58,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                                    Correlator correlator,
                                    Channel channel,
                                    ConversationMessageStorage conversationMessageStorage,
-                                   ManagedExecutorService managedExecutorService,
+                                   Supplier<ManagedExecutorService> managedExecutorService,
                                    ErrorInformer errorInformer)
     {
         this.ci = ci;
@@ -80,7 +81,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenersIfNotConnected(channel, errorInformer);
         ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of( conversationMessageStorage);
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
-        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, EventLoopFactory.getManagedExecutorService(), errorInformer);
+        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
         LOG.finest(() -> networkConnection + " connected to: " + ci.getAddress());
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
         DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
@@ -183,7 +184,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         maybeMessage.ifPresent(future::complete);
         if(!future.isDone())
         {
-            managedExecutorService.execute(() -> future.complete(conversationMessageStorage.takeFirst(corrid)));
+            managedExecutorService.get().execute(() -> future.complete(conversationMessageStorage.takeFirst(corrid)));
         }
         return future;
     }

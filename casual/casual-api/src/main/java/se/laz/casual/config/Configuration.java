@@ -6,6 +6,9 @@
 
 package se.laz.casual.config;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 public class Configuration
@@ -13,11 +16,13 @@ public class Configuration
     private final Inbound inbound;
     private final Domain domain;
     private final Outbound outbound;
-    public Configuration(Domain domain, Inbound inbound, Outbound outbound)
+    private final List<ReverseInbound> reverseInbound;
+    public Configuration(Domain domain, Inbound inbound, Outbound outbound, List<ReverseInbound> reverseInbound)
     {
         this.domain = domain;
         this.inbound = inbound;
         this.outbound = outbound;
+        this.reverseInbound = reverseInbound;
     }
 
     public Domain getDomain()
@@ -35,6 +40,11 @@ public class Configuration
         return outbound == null ? Outbound.newBuilder().build() : outbound;
     }
 
+    public List<ReverseInbound> getReverseInbound()
+    {
+        return null == reverseInbound ? Collections.emptyList() : Collections.unmodifiableList(reverseInbound);
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -47,13 +57,16 @@ public class Configuration
             return false;
         }
         Configuration that = (Configuration) o;
-        return Objects.equals(getInbound(), that.getInbound()) && Objects.equals(getDomain(), that.getDomain()) && Objects.equals(getOutbound(), that.getOutbound());
+        return Objects.equals(getInbound(), that.getInbound()) &&
+                Objects.equals(getDomain(), that.getDomain()) &&
+                Objects.equals(getOutbound(), that.getOutbound()) &&
+                Objects.equals(getReverseInbound(), that.getReverseInbound());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getInbound(), getDomain(), getOutbound());
+        return Objects.hash(getInbound(), getDomain(), getOutbound(), getReverseInbound());
     }
 
     @Override
@@ -63,6 +76,7 @@ public class Configuration
                 "inbound=" + getInbound() +
                 ", domain=" + getDomain() +
                 ", outbound=" + getOutbound() +
+                ", reverseInbound=" + getReverseInbound() +
                 '}';
     }
 
@@ -76,6 +90,7 @@ public class Configuration
         private Inbound inbound;
         private Domain domain;
         private Outbound outbound;
+        private List<ReverseInbound> reverseInbound = new ArrayList<>();
 
         private Builder()
         {
@@ -99,9 +114,15 @@ public class Configuration
             return this;
         }
 
+        public Builder withReverseInbound( ReverseInbound reverseInbound )
+        {
+            this.reverseInbound.add(reverseInbound);
+            return this;
+        }
+
         public Configuration build()
         {
-            return new Configuration(domain, inbound, outbound );
+            return new Configuration(domain, inbound, outbound, reverseInbound );
         }
     }
 }
