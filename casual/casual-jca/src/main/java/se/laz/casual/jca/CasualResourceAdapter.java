@@ -6,12 +6,19 @@
 package se.laz.casual.jca;
 
 import se.laz.casual.config.ConfigurationService;
+import se.laz.casual.config.ReverseInbound;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
 import se.laz.casual.jca.jmx.JMXStartup;
 import se.laz.casual.jca.work.StartInboundServerListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
+import se.laz.casual.jca.work.StartReverseInboundServerListener;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.inbound.CasualServer;
 import se.laz.casual.network.inbound.ConnectionInformation;
+import se.laz.casual.network.inbound.reverse.AutoConnect;
+import se.laz.casual.network.inbound.reverse.ReverseInboundConnectionInformation;
+import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
+import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ActivationSpec;
@@ -25,12 +32,17 @@ import javax.resource.spi.XATerminator;
 import javax.resource.spi.endpoint.MessageEndpointFactory;
 import javax.resource.spi.work.Work;
 import javax.resource.spi.work.WorkException;
+import javax.resource.spi.work.WorkListener;
 import javax.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAResource;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
@@ -45,10 +57,11 @@ import java.util.logging.Logger;
         version = "1.0",
         transactionSupport = TransactionSupport.TransactionSupportLevel.XATransaction
 )
-public class CasualResourceAdapter implements ResourceAdapter
+public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundListener
 {
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
     private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
+    private List<ReverseInboundServer> reverseInbounds = new ArrayList<>();
 
     private WorkManager workManager;
     private XATerminator xaTerminator;
@@ -84,15 +97,50 @@ public class CasualResourceAdapter implements ResourceAdapter
         activations.put(as.getPort(), as);
         log.info(() -> "start casual inbound server" );
         startInboundServer( ci );
+        maybeStartReverseInbound( ConfigurationService.getInstance().getConfiguration().getReverseInbound(), endpointFactory, workManager, xaTerminator);
         log.finest(() -> "end endpointActivation()");
 
+    }
+
+    private void maybeStartReverseInbound(List<ReverseInbound> reverseInbound, MessageEndpointFactory endpointFactory, WorkManager workManager, XATerminator xaTerminator)
+    {
+        for(ReverseInbound instance : reverseInbound)
+        {
+            startReverseInbound(ReverseInboundConnectionInformation.createBuilder()
+                                                                   .withAddress(new InetSocketAddress(instance.getAddress().getHost(), instance.getAddress().getPort()))
+                                                                   .withDomainId(configurationService.getConfiguration().getDomain().getId())
+                                                                   .withDomainName(configurationService.getConfiguration().getDomain().getName())
+                                                                   .withFactory(endpointFactory)
+                                                                   .withWorkManager(workManager)
+                                                                   .withXaTerminator(xaTerminator)
+                                                                   .withProtocolVersion(ProtocolVersion.VERSION_1_0)
+                                                                   .build(), instance.getSize());
+        }
+    }
+
+    private void startReverseInbound(ReverseInboundConnectionInformation connectionInformation, int numberOfInstances )
+    {
+        for(int i = 0; i < numberOfInstances; ++i)
+        {
+            Consumer<ReverseInboundServer> consumer = this::connected;
+            Supplier<ReverseInboundServer> supplier = () -> {
+               CompletableFuture<ReverseInboundServer> future = new CompletableFuture<>();
+               AutoConnect.of(connectionInformation, future::complete,this, () -> workManager);
+               return future.join();
+            };
+            Supplier<String> logMsg = () -> "casual reverse inbound connected to: " + connectionInformation.getAddress();
+            Work work = StartInboundServerWork.of(getInboundStartupServices(), logMsg, consumer, supplier);
+            startWork(work, StartReverseInboundServerListener.of());
+        }
     }
 
     private void startInboundServer( ConnectionInformation connectionInformation )
     {
         Consumer<CasualServer> consumer = (CasualServer runningServer) -> server = runningServer;
-        Work work = StartInboundServerWork.of( getInboundStartupServices(), connectionInformation, consumer);
-        startWork(work);
+        Supplier<CasualServer> supplier = () -> CasualServer.of(connectionInformation);
+        Supplier<String> logMsg = () -> "Casual inbound server bound to port: " + connectionInformation.getPort();
+        Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier);
+        startWork(work, StartInboundServerListener.of());
     }
 
     private List<String> getInboundStartupServices()
@@ -100,11 +148,11 @@ public class CasualResourceAdapter implements ResourceAdapter
         return configurationService.getConfiguration().getInbound().getStartup().getServices();
     }
 
-    private void startWork(Work work)
+    private void startWork(Work work, WorkListener workListener)
     {
         try
         {
-            workManager.startWork(work, WorkManager.INDEFINITE, null, StartInboundServerListener.of());
+            workManager.startWork(work, WorkManager.INDEFINITE, null, workListener);
         }
         catch (WorkException e)
         {
@@ -176,6 +224,20 @@ public class CasualResourceAdapter implements ResourceAdapter
     }
 
     @Override
+    public void disconnected(ReverseInboundServer server)
+    {
+        log.info(() -> "ReverseInbound: " + server.getAddress() + " disconnected");
+        reverseInbounds.remove(server);
+    }
+
+    @Override
+    public void connected(ReverseInboundServer server)
+    {
+        log.info(() -> "ReverseInbound: " + server.getAddress() + " connection resumed");
+        reverseInbounds.add(server);
+    }
+
+    @Override
     public boolean equals(Object o)
     {
         if (this == o)
@@ -204,4 +266,5 @@ public class CasualResourceAdapter implements ResourceAdapter
                 ", xaTerminator=" + xaTerminator +
                 '}';
     }
+
 }

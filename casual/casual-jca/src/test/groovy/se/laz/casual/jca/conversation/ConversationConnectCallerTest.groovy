@@ -115,7 +115,7 @@ class ConversationConnectCallerTest extends Specification
       1 * networkConnection.request( _ ) >> {
          CasualNWMessageImpl<ConnectRequest> input ->
             actualConnectRequest = input
-            return new CompletableFuture<>(connectReplyOK)
+            return CompletableFuture.completedFuture(connectReplyOK)
       }
       when:
       Conversation conversation = instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPSENDONLY))
@@ -136,7 +136,7 @@ class ConversationConnectCallerTest extends Specification
       1 * networkConnection.request( _ ) >> {
          CasualNWMessageImpl<ConnectRequest> input ->
             actualConnectRequest = input
-            return new CompletableFuture<>(connectReplyOKUserCodeMissing)
+            return CompletableFuture.completedFuture(connectReplyOKUserCodeMissing)
       }
       when:
       Conversation conversation = instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPSENDONLY))

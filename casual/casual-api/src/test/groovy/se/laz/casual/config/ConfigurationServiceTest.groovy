@@ -218,4 +218,28 @@ class ConfigurationServiceTest extends Specification
         ''                       || Mode.IMMEDIATE | []
     }
 
+   @Unroll
+   def "reverse inbound config #host, #port, #size"()
+   {
+      given:
+      Configuration expected = Configuration.newBuilder()
+              .withReverseInbound(ReverseInbound.of(Address.of(host, port), size))
+              .build()
+
+      when:
+      Configuration actual
+      withEnvironmentVariable(ConfigurationService.CASUAL_CONFIG_FILE_ENV_NAME, "src/test/resources/" + file)
+              .execute({
+                 instance = new ConfigurationService()
+                 actual = instance.getConfiguration()
+              })
+
+      then:
+      actual == expected
+
+      where:
+      file                                                       || host              || port || size
+      'casual-config-reverse-inbound.json'                       || '10.96.186.114'   || 7771 || 1
+      'casual-config-reverse-inbound-with-size.json'             || '10.96.186.114'   || 7771 || 42
+   }
 }

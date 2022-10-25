@@ -22,6 +22,7 @@ public final class Outbound
     private boolean unmanaged;
     private Boolean useEpoll;
 
+
     public static final String USE_EPOLL_ENV_VAR_NAME = "CASUAL_OUTBOUND_USE_EPOLL";
 
     private Outbound(Builder builder)
@@ -44,7 +45,7 @@ public final class Outbound
 
     public String getManagedExecutorServiceName()
     {
-        return managedExecutorServiceName == null ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME : managedExecutorServiceName;
+        return null == managedExecutorServiceName ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME : managedExecutorServiceName;
     }
 
     public int getNumberOfThreads()
@@ -97,7 +98,6 @@ public final class Outbound
                 '}';
     }
 
-
     public static final class Builder
     {
         private String managedExecutorServiceName;
@@ -137,4 +137,5 @@ public final class Outbound
             return new Outbound(this);
         }
     }
+
 }
