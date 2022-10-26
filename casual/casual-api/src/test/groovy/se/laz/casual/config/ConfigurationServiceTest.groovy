@@ -16,9 +16,14 @@ class ConfigurationServiceTest extends Specification
 {
     ConfigurationService instance
 
+    private ConfigurationService reinitialiseConfigurationService()
+    {
+        instance = new ConfigurationService();
+    }
+
     def setup()
     {
-        instance = new ConfigurationService()
+        reinitialiseConfigurationService(  )
     }
 
     def "Get configuration with no file or envs returns default empty config."()
@@ -43,6 +48,7 @@ class ConfigurationServiceTest extends Specification
                                     .withMode( mode )
                                     .withServices( services )
                                     .build(  ) )
+                            .withUseEpoll( epoll )
                             .build(  ) )
                 .build(  )
 
@@ -50,17 +56,18 @@ class ConfigurationServiceTest extends Specification
         Configuration actual
         withEnvironmentVariable( ConfigurationService.CASUAL_CONFIG_FILE_ENV_NAME, "src/test/resources/" + file )
                 .execute( {
-                    instance = new ConfigurationService()
+                    reinitialiseConfigurationService( )
                     actual = instance.getConfiguration(  )} )
 
         then:
         actual == expected
 
         where:
-        file                           || mode           | services
-        "casual-config-immediate.json" || Mode.IMMEDIATE | []
-        "casual-config-trigger.json"   || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE]
-        "casual-config-discover.json"  || Mode.DISCOVER  | ["service1", "service2"]
+        file                               || mode           | services                         | epoll
+        "casual-config-immediate.json"     || Mode.IMMEDIATE | []                               | false
+        "casual-config-trigger.json"       || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE] | false
+        "casual-config-discover.json"      || Mode.DISCOVER  | ["service1", "service2"]         | false
+        "casual-config-inbound-epoll.json" || Mode.IMMEDIATE | []                               | true
     }
 
     @Unroll
@@ -80,7 +87,7 @@ class ConfigurationServiceTest extends Specification
         Configuration actual
         withEnvironmentVariable( ConfigurationService.CASUAL_CONFIG_FILE_ENV_NAME, "src/test/resources/" + file )
                 .execute( {
-                    instance = new ConfigurationService()
+                    reinitialiseConfigurationService( )
                     actual = instance.getConfiguration(  )} )
 
         then:
@@ -103,7 +110,7 @@ class ConfigurationServiceTest extends Specification
                 .withOutbound(Outbound.newBuilder().build())
                 .build()
         when:
-        Configuration actual = ConfigurationService.getInstance().getConfiguration()
+        Configuration actual = instance.getConfiguration()
         then:
         actual == expected
     }
@@ -124,7 +131,9 @@ class ConfigurationServiceTest extends Specification
       Configuration actual
       withEnvironmentVariable( Outbound.USE_EPOLL_ENV_VAR_NAME, "true" )
               .execute( {
-                 actual = ConfigurationService.getInstance().getConfiguration()} )
+                  reinitialiseConfigurationService( )
+                  actual = instance.getConfiguration()
+              } )
       then:
       withEnvironmentVariable( Outbound.USE_EPOLL_ENV_VAR_NAME, "true" )
               .execute( {
@@ -132,13 +141,43 @@ class ConfigurationServiceTest extends Specification
               } )
    }
 
+    def 'default inbound config, no file'()
+    {
+        given:
+        Configuration expected = Configuration.newBuilder()
+                .withInbound(Inbound.newBuilder().build())
+                .build()
+        when:
+        Configuration actual = instance.getConfiguration()
+        then:
+        actual == expected
+    }
+
+    def 'no inbound config, useEpoll set via env var'()
+    {
+        given:
+        Configuration expected = Configuration.newBuilder()
+                .withInbound(Inbound.newBuilder()
+                        .withUseEpoll(true)
+                        .build())
+                .build()
+        when:
+        Configuration actual = null
+        withEnvironmentVariable( Inbound.CASUAL_INBOUND_USE_EPOLL, "true" )
+                .execute( {
+                    reinitialiseConfigurationService( )
+                    actual = instance.getConfiguration()} )
+        then:
+        actual == expected
+    }
+
     def "Get configuration where file not found, throws CasualRuntimeException."()
     {
         when:
         Configuration actual
         withEnvironmentVariable( ConfigurationService.CASUAL_CONFIG_FILE_ENV_NAME, "invalid.json" )
                 .execute( {
-                    instance = new ConfigurationService()
+                    reinitialiseConfigurationService( )
                     actual = instance.getConfiguration(  )} )
 
         then:
@@ -162,7 +201,7 @@ class ConfigurationServiceTest extends Specification
         Configuration actual
         withEnvironmentVariable( ConfigurationService.CASUAL_INBOUND_STARTUP_MODE_ENV_NAME, env )
                 .execute( {
-                    instance = new ConfigurationService()
+                    reinitialiseConfigurationService( )
                     actual = instance.getConfiguration(  )} )
 
         then:
@@ -203,5 +242,4 @@ class ConfigurationServiceTest extends Specification
       'casual-config-reverse-inbound.json'                       || '10.96.186.114'   || 7771 || 1
       'casual-config-reverse-inbound-with-size.json'             || '10.96.186.114'   || 7771 || 42
    }
-
 }

@@ -1,0 +1,6 @@
+{
+  "inbound":
+  {
+    "useEpoll": true
+  }
+}

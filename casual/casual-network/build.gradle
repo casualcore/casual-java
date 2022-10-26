@@ -23,6 +23,7 @@ dependencies {
 
   testImplementation project(':casual:casual-api')
   testImplementation libs.netty
+  testImplementation libs.netty_epoll
   testImplementation libs.javaee_api
   testImplementation libs.system_lambda
   // for spock

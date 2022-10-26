@@ -25,7 +25,7 @@ public class ConfigurationService
 
     private final Configuration configuration;
 
-    private ConfigurationService()
+    ConfigurationService()
     {
         this.configuration = init();
     }
