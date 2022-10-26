@@ -116,7 +116,7 @@ public final class ConnectionInformation
             Objects.requireNonNull(factory, "factory can not be null");
             Objects.requireNonNull(xaTerminator, "xaTerminator can not be null");
             Objects.requireNonNull(workManager, "workManager can not be null");
-            logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME)); //TODO: Move out to ConfigurationService.
+            logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME));
             return new ConnectionInformation( this );
         }
     }
