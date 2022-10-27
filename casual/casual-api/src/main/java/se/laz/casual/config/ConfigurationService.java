@@ -25,7 +25,7 @@ public class ConfigurationService
 
     private final Configuration configuration;
 
-    private ConfigurationService()
+    ConfigurationService()
     {
         this.configuration = init();
     }
@@ -71,6 +71,7 @@ public class ConfigurationService
                                 .withMode( mode )
                                 .build() )
                         .build() )
+                .withOutbound(Outbound.newBuilder().build())
                 .build();
     }
 

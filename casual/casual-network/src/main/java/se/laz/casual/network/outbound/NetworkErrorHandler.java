@@ -16,12 +16,12 @@ public final class NetworkErrorHandler
     private NetworkErrorHandler()
     {}
 
-    public static void notifyListenerIfNotConnected(Channel channel, NetworkListener networkListener)
+    public static void notifyListenersIfNotConnected(Channel channel, ErrorInformer errorInformer)
     {
         if(!channel.isActive())
         {
-            LOG.finest("network connection gone, informing listener");
-            networkListener.disconnected();
+            LOG.finest("network connection gone, informing listeners");
+            errorInformer.inform();
         }
     }
 }

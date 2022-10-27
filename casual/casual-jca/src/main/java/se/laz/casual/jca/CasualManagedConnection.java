@@ -6,12 +6,12 @@
 
 package se.laz.casual.jca;
 
-import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.config.Domain;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
+import se.laz.casual.jca.pool.NetworkPoolHandler;
 import se.laz.casual.network.outbound.NettyConnectionInformation;
 import se.laz.casual.network.outbound.NettyNetworkConnection;
+import se.laz.casual.network.outbound.NettyConnectionInformationCreator;
 import se.laz.casual.network.outbound.NetworkListener;
 
 import javax.resource.NotSupportedException;
@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -84,17 +83,30 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         {
             if (networkConnection == null)
             {
-                Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
-                NettyConnectionInformation ci = NettyConnectionInformation.createBuilder().withAddress(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()))
-                                                                          .withProtocolVersion(mcf.getCasualProtocolVersion())
-                                                                          .withDomainId(domain.getId())
-                                                                          .withDomainName(domain.getName())
-                                                                          .build();
-                networkConnection = NettyNetworkConnection.of(ci, this);
-                log.finest(()->"created new nw connection " + this);
+                if(null != mcf.getNetworkConnectionPoolName() && null == mcf.getNetworkConnectionPoolSize())
+                {
+                    log.warning(() -> "networkPoolName set to: " + mcf.getNetworkConnectionPoolName() + " but missing networkPoolSize!");
+                }
+                networkConnection = networkPoolNameAndNetworkPoolSizeSet() ? getOrCreateFromPool() : createOneToOneManagedConnection();
             }
         }
         return networkConnection;
+    }
+
+    private boolean networkPoolNameAndNetworkPoolSizeSet()
+    {
+        return null != mcf.getNetworkConnectionPoolSize() && null != mcf.getNetworkConnectionPoolName();
+    }
+
+    private NetworkConnection getOrCreateFromPool()
+    {
+        return NetworkPoolHandler.getInstance()
+                                 .getOrCreate(
+                                         mcf.getNetworkConnectionPoolName(),
+                                         mcf.getAddress(),
+                                         mcf.getCasualProtocolVersion(),
+                                         this,
+                                         mcf.getNetworkConnectionPoolSize());
     }
 
     @Override
@@ -153,8 +165,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public void destroy() throws ResourceException
     {
         log.finest(() -> "destroy()" + this);
-        Optional<DomainId> domainId = Optional.ofNullable( null == networkConnection ? null : networkConnection.getDomainId());
-        domainId.ifPresent(mcf::domainDisconnect);
         closeNetworkConnection();
         connectionHandles.clear();
     }
@@ -283,9 +293,10 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     }
 
     @Override
-    public void disconnected()
+    public void disconnected(Exception reason)
     {
-        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED);
+        log.finest(() -> "disconnected: " + this);
+        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED, reason);
         connectionEventHandler.sendEvent(event);
     }
 
@@ -298,15 +309,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         return getNetworkConnection().getDomainId();
     }
 
-    /**
-     * The domain ids for the pool of which this managed connection is a member
-     * @return pool domain ids.
-     */
-    public List<DomainId> getPoolDomainIds()
-    {
-        return mcf.getPoolDomainIds();
-    }
-
     public void setTransactionTimeout(int timeout)
     {
         this.timeout = timeout;
@@ -315,5 +317,13 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public int getTransactionTimeout()
     {
         return timeout;
+    }
+
+    private NetworkConnection createOneToOneManagedConnection()
+    {
+        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()), mcf.getCasualProtocolVersion());
+        NetworkConnection newNetworkConnection = NettyNetworkConnection.of(ci, this);
+        log.finest(() -> "created new nw connection " + this);
+        return newNetworkConnection;
     }
 }

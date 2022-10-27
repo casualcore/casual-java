@@ -8,5 +8,5 @@ package se.laz.casual.network.outbound;
 @FunctionalInterface
 public interface NetworkListener
 {
-    void disconnected();
+    void disconnected(Exception reason);
 }

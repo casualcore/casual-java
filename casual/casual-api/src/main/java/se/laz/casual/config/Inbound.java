@@ -12,16 +12,24 @@ import java.util.Optional;
 public class Inbound
 {
     public static final String CASUAL_INBOUND_STARTUP_MODE = "CASUAL_INBOUND_STARTUP_MODE";
+    public static final String CASUAL_INBOUND_USE_EPOLL = "CASUAL_INBOUND_USE_EPOLL";
     private final Startup startup;
+    private final boolean useEpoll;
 
-    public Inbound( Startup startup )
+    public Inbound( Builder builder )
     {
-        this.startup = startup;
+        this.startup = builder.startup;
+        this.useEpoll = builder.useEpoll;
     }
 
     public Startup getStartup()
     {
         return startup == null ? Startup.newBuilder().build() : startup;
+    }
+
+    public boolean isUseEpoll()
+    {
+        return useEpoll;
     }
 
     @Override
@@ -36,20 +44,21 @@ public class Inbound
             return false;
         }
         Inbound inbound = (Inbound) o;
-        return Objects.equals( getStartup(), inbound.getStartup() );
+        return isUseEpoll() == inbound.isUseEpoll() && Objects.equals( getStartup(), inbound.getStartup() );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( getStartup() );
+        return Objects.hash( getStartup(), isUseEpoll() );
     }
 
     @Override
     public String toString()
     {
         return "Inbound{" +
-                "startup=" + getStartup() +
+                "startup=" + startup +
+                ", useEpoll=" + useEpoll +
                 '}';
     }
 
@@ -61,9 +70,16 @@ public class Inbound
     public static final class Builder
     {
         private Startup startup;
+        private Boolean useEpoll;
 
         private Builder()
         {
+        }
+
+        public Builder withUseEpoll( boolean useEpoll )
+        {
+            this.useEpoll = useEpoll;
+            return this;
         }
 
         public Builder withStartup( Startup startup )
@@ -81,10 +97,14 @@ public class Inbound
                 if(null != startupMode)
                 {
                     Mode mode = Mode.fromName(startupMode);
-                    return new Inbound(Startup.newBuilder().withMode(mode).build());
+                    startup = Startup.newBuilder().withMode(mode).build();
                 }
             }
-            return new Inbound( startup );
+            if( useEpoll == null )
+            {
+                useEpoll = Boolean.parseBoolean( Optional.ofNullable( System.getenv( CASUAL_INBOUND_USE_EPOLL ) ).orElse( "false" ) );
+            }
+            return new Inbound( this );
         }
     }
 }

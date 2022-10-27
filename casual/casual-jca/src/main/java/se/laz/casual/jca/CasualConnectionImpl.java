@@ -82,18 +82,6 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
-    public DomainId getDomainID()
-    {
-        return managedConnection.getNetworkConnection().getDomainId();
-    }
-
-    @Override
-    public List<DomainId> getPoolDomainIds()
-    {
-        return managedConnection.getPoolDomainIds();
-    }
-
-    @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         throwIfInvalidated();

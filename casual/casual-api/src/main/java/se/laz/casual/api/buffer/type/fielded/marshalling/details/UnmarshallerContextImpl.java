@@ -146,25 +146,15 @@ public final class UnmarshallerContextImpl<T> implements UnmarshallerContext<T>
 
     private T createInstance(Class<T> clazz)
     {
-        boolean accessible = false;
-        Constructor<T> constructor = null;
         try
         {
-            constructor = clazz.getDeclaredConstructor();
-            accessible = constructor.isAccessible();
+            Constructor<T> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
             return constructor.newInstance();
         }
         catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
         {
             throw new FieldedUnmarshallingException("Missing NOP constructor for class: " + clazz, e);
-        }
-        finally
-        {
-            if(null != constructor)
-            {
-                constructor.setAccessible(accessible);
-            }
         }
     }
 

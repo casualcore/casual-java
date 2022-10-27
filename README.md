@@ -37,4 +37,6 @@ See [casual caller documentation](casual/casual-caller-api/README.md) for more i
 
 [Inbound Server](inbound.md)
 
+[Reverse Inbound Server](reverse-inbound.md)
+
 [Outbound](outbound.md)

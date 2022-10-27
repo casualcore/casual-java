@@ -5,8 +5,8 @@
  */
 package se.laz.casual.connection.caller.util;
 
-import se.laz.casual.connection.caller.entities.ConnectionFactoryProducer;
-import se.laz.casual.connection.caller.entities.ConnectionFactoryEntry;
+import se.laz.casual.connection.caller.ConnectionFactoryProducer;
+import se.laz.casual.connection.caller.ConnectionFactoryEntry;
 import se.laz.casual.jca.CasualConnectionFactory;
 
 import javax.naming.InitialContext;

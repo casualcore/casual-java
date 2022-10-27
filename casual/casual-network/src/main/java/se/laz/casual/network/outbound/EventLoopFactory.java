@@ -6,14 +6,11 @@
 package se.laz.casual.network.outbound;
 
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Outbound;
-import se.laz.casual.jca.CasualResourceAdapterException;
 
-import javax.enterprise.concurrent.ManagedExecutorService;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.util.logging.Logger;
 
 public final class EventLoopFactory
@@ -32,30 +29,32 @@ public final class EventLoopFactory
         Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
         if(outbound.getUnmanaged())
         {
-            LOG.info(() -> "outbound not using any ManagedExecutorService, running unmanaged");
-            return new NioEventLoopGroup(outbound.getNumberOfThreads());
+            return getUnmanagedEventLoopGroup(outbound.getUseEpoll(), outbound.getNumberOfThreads());
         }
-        return new NioEventLoopGroup(outbound.getNumberOfThreads(), getManagedExecutorService());
+        return getManagedEventLoopGroup(outbound.getUseEpoll(), outbound.getNumberOfThreads());
     }
 
-    public static ManagedExecutorService getManagedExecutorService()
+    private static EventLoopGroup getUnmanagedEventLoopGroup(boolean useEpoll, int numberOfThreads)
     {
-        Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
-        if(outbound.getUnmanaged())
+        LOG.info(() -> "outbound not using any ManagedExecutorService, running unmanaged");
+        if(useEpoll)
         {
-            return null;
+            LOG.info(() -> "using EpollEventLoopGroup");
+            return new EpollEventLoopGroup(numberOfThreads);
         }
-        String name = outbound.getManagedExecutorServiceName();
-        try
+        LOG.info(() -> "using NioEventLoopGroup");
+        return new NioEventLoopGroup(numberOfThreads);
+    }
+
+    private static EventLoopGroup getManagedEventLoopGroup(boolean useEpoll, int numberOfThreads)
+    {
+        if (useEpoll)
         {
-            LOG.info(() -> "outbound using ManagedExecutorService: " + name);
-            InitialContext ctx = new InitialContext();
-            return (ManagedExecutorService) ctx.lookup(name);
+            LOG.info(() -> "using EpollEventLoopGroup");
+            return new EpollEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService());
         }
-        catch (NamingException e)
-        {
-            throw new CasualResourceAdapterException("failed lookup for: " + name + "\n outbound will not function!", e);
-        }
+        LOG.info(() -> "using NioEventLoopGroup");
+        return new NioEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService());
     }
 
 }

@@ -25,6 +25,22 @@ public class Address
         return new Address(hostName,portNumber);
     }
 
+   public static Address of(String hostName, String port)
+   {
+      Objects.requireNonNull(port, "port can not be null");
+      return of(hostName, Integer.parseInt(port));
+   }
+
+    public String getHostName()
+    {
+        return hostName;
+    }
+
+    public Integer getPort()
+    {
+        return port;
+    }
+
     @Override
     public boolean equals(Object o)
     {

@@ -1,6 +1,7 @@
 package se.laz.casual.network.outbound
 
 import io.netty.channel.Channel
+import se.laz.casual.network.connection.CasualConnectionException
 import spock.lang.Specification
 
 class NetworkErrorHandlerTest extends Specification
@@ -13,10 +14,12 @@ class NetworkErrorHandlerTest extends Specification
             false
         }
         def networkListener = Mock(NetworkListener)
+        ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException("connection gone"))
+        errorInformer.addListener(networkListener)
         when:
-        NetworkErrorHandler.notifyListenerIfNotConnected(channel, networkListener)
+        NetworkErrorHandler.notifyListenersIfNotConnected(channel, errorInformer)
         then:
-        1 * networkListener.disconnected()
+        1 * networkListener.disconnected(_)
     }
 
     def 'do nothing if channel active'()
@@ -27,9 +30,11 @@ class NetworkErrorHandlerTest extends Specification
             true
         }
         def networkListener = Mock(NetworkListener)
+        ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException("connection gone"))
+        errorInformer.addListener(networkListener)
         when:
-        NetworkErrorHandler.notifyListenerIfNotConnected(channel, networkListener)
+        NetworkErrorHandler.notifyListenersIfNotConnected(channel, errorInformer)
         then:
-        0 * networkListener.disconnected()
+        0 * networkListener.disconnected(_)
     }
 }

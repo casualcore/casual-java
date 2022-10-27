@@ -136,10 +136,8 @@ public final class Unmarshaller
         for(Field f : fields)
         {
             CasualFieldElement annotation = f.getAnnotation(CasualFieldElement.class);
-            boolean accessible = f.isAccessible();
             f.setAccessible(true);
             readValue(context, annotation, (Object v) -> setField(context.getInstance(), f, v, fieldedValueUnmarshalled),f.getType(), f::getGenericType);
-            f.setAccessible(accessible);
         }
         return fieldedValueUnmarshalled.get();
     }
