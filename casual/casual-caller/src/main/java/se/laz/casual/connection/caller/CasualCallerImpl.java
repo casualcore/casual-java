@@ -56,7 +56,8 @@ public class CasualCallerImpl implements CasualCaller
     @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        return flags.isSet(AtmiFlags.TPNOTRAN) ? transactionLess.tpcall(() -> tpCaller.tpcall(serviceName, data, flags, lookup)) : tpCaller.tpcall(serviceName, data, flags, lookup);
+        NoArgFunction remover = () -> lookup.remove(serviceName);
+        return flags.isSet(AtmiFlags.TPNOTRAN) ? transactionLess.tpcall(() -> tpCaller.tpcall(serviceName, data, flags, lookup, remover)) : tpCaller.tpcall(serviceName, data, flags, lookup, remover);
     }
 
     @Override

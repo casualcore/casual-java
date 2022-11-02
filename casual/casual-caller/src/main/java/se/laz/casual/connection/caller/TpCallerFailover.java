@@ -28,15 +28,15 @@ import java.util.concurrent.CompletableFuture;
 
 public class TpCallerFailover implements TpCaller
 {
-    private static final FailoverAlgorithm<ServiceReturn<CasualBuffer>> sync = new FailoverAlgorithm<>();
-    private static final FailoverAlgorithm<CompletableFuture<ServiceReturn<CasualBuffer>>> async = new FailoverAlgorithm<>();
+    private static final FailoverAlgorithm algorithm = new FailoverAlgorithm();
 
     @Override
-    public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup)
+    public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup, NoArgFunction serviceRemover)
     {
-        return sync.callWithFailover(
+        return algorithm.tpcallWithFailover(
                 serviceName,
                 lookup,
+                serviceRemover,
                 // How to call service
                 con -> con.tpcall(serviceName, data, flags),
                 // What to do if the cache has no entries
@@ -47,7 +47,7 @@ public class TpCallerFailover implements TpCaller
     @Override
     public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup)
     {
-        return async.callWithFailover(
+        return algorithm.tpacallWithFailover(
                 serviceName,
                 lookup,
                 // How to call service

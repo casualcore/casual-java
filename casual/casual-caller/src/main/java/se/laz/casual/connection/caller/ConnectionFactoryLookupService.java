@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
+public class ConnectionFactoryLookupService implements ConnectionFactoryLookup, ServiceRemover
 {
     @Inject
     private ConnectionFactoryEntryStore connectionFactoryProvider;
@@ -68,5 +68,13 @@ public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
         // because a different error may be reported depending on if the service has no known backend
         // or if none of the known backends are available
         return cachedEntries.isEmpty() ? Collections.emptyList() : cachedEntries.randomizeWithPriority();
+    }
+
+
+    @Override
+    public ServiceRemover remove(String serviceName)
+    {
+        cache.removeService(serviceName);
+        return null;
     }
 }
