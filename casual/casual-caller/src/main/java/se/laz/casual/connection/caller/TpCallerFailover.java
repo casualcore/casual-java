@@ -31,12 +31,11 @@ public class TpCallerFailover implements TpCaller
     private static final FailoverAlgorithm algorithm = new FailoverAlgorithm();
 
     @Override
-    public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup, Procedure serviceRemover)
+    public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup)
     {
         return algorithm.tpcallWithFailover(
                 serviceName,
                 lookup,
-                serviceRemover,
                 // How to call service
                 con -> con.tpcall(serviceName, data, flags),
                 // What to do if the cache has no entries

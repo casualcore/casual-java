@@ -26,7 +26,6 @@ public class FailoverAlgorithm
     public ServiceReturn<CasualBuffer> tpcallWithFailover(
             String serviceName,
             ConnectionFactoryLookup lookup,
-            Procedure serviceCacheRemover,
             FunctionThrowsResourceException<CasualConnection, ServiceReturn<CasualBuffer>> doCall,
             FunctionNoArg<ServiceReturn<CasualBuffer>> doTpenoent)
     {
@@ -45,7 +44,7 @@ public class FailoverAlgorithm
             // using a known cached service entry results in TPENOENT
             // clear the service from the cache ( for all pools), get potentially new entries
             // issue call again if possible
-            serviceCacheRemover.apply();
+            lookup.removeFromServiceCache(serviceName);
             validEntries = getFoundAndValidEntries(lookup, serviceName);
             // No valid casual server found (revalidation is on a timer in ConnectionFactoryEntryValidationTimer)
             if (validEntries.isEmpty())
