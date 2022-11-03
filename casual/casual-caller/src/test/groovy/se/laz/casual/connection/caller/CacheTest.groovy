@@ -91,7 +91,7 @@ class CacheTest extends Specification
       thrown(NullPointerException)
    }
 
-   def 'set and get get service'()
+   def 'set, get and remove service'()
    {
       given:
       def anotherServiceName = 'anotherServiceName'
@@ -100,6 +100,11 @@ class CacheTest extends Specification
       def entries = instance.get(anotherServiceName)
       then:
       entries.getForPriority(priority).size() == 2
+      when:
+      instance.removeService(anotherServiceName)
+      entries = instance.get(anotherServiceName)
+      then:
+      entries.empty
    }
 
    def 'get missing service entry'()

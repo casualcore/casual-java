@@ -8,6 +8,7 @@ package se.laz.casual.connection.caller
 
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ServiceReturn
+import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.jca.CasualConnection
 import se.laz.casual.jca.CasualConnectionFactory
@@ -224,5 +225,34 @@ class TpCallerFailoverTest extends Specification
         (priorities*entriesPerPriority) * conFacHigh.getConnection() >> {throw new javax.resource.ResourceException(failMessage)}
         (1) * conLow.tpcall(serviceName, data, flags) >> someServiceReturn
         result == someServiceReturn
+    }
+
+    def 'cached entry, TPENOENT, should clear cache and lookup again'()
+    {
+       given:
+       lookup.find(serviceName, connectionFactoryProvider.get()) >> ConnectionFactoriesByPriority.of([
+               (priorityHigh): [ConnectionFactoryEntry.of(connectionFactoryProducerHigh)],
+               (priorityLow): [ConnectionFactoryEntry.of(connectionFactoryProducerLow)]
+       ])
+       def failMessage = 'Connection is fail'
+
+       def someServiceReturn = new ServiceReturn(null, null, null, 0)
+       def tpenoentServiceReturn = new ServiceReturn(null, null, ErrorState.TPENOENT, 0)
+
+       Procedure serviceCacheRemover = Mock(Procedure){
+          1 * apply() >> {
+             cache.removeService(serviceName)
+          }
+       }
+       when:
+       def result = tpCaller.tpcall(serviceName, data, flags, lookupService, serviceCacheRemover)
+       def subsequentResult = tpCaller.tpcall(serviceName, data, flags, lookupService, serviceCacheRemover)
+
+       then:
+       1 * conFacHigh.getConnection() >> {throw new javax.resource.ResourceException(failMessage)}
+       0 * conHigh.tpcall(serviceName, data, flags) >> {throw new RuntimeException("This should not happen because getConnection should fail")}
+       3 * conLow.tpcall(serviceName, data, flags) >>> [someServiceReturn, tpenoentServiceReturn, someServiceReturn]
+       result == someServiceReturn
+       subsequentResult == someServiceReturn
     }
 }
