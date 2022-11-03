@@ -24,7 +24,7 @@ import java.util.Optional;
  * Note, results are cached - thus a successful lookup is only ever done once
  *
  */
-public interface ConnectionFactoryLookup
+public interface ConnectionFactoryLookup extends ServiceCacheMutator
 {
     /**
      *

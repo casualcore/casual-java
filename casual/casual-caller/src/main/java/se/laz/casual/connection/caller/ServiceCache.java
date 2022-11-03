@@ -77,4 +77,9 @@ public class ServiceCache
     {
         cacheMap.clear();
     }
+
+    public void remove(String serviceName)
+    {
+        cacheMap.remove(serviceName);
+    }
 }

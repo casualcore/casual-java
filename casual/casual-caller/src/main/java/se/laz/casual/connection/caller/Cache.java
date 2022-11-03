@@ -100,4 +100,9 @@ public class Cache
     {
         return new ArrayList<>(queueCache.getCachedQueueNames());
     }
+
+    public void removeService(String serviceName)
+    {
+        serviceCache.remove(serviceName);
+    }
 }

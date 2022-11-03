@@ -6,46 +6,86 @@
 
 package se.laz.casual.connection.caller;
 
+import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.api.buffer.ServiceReturn;
+import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.jca.CasualConnection;
 import se.laz.casual.network.connection.CasualConnectionException;
 
 import javax.resource.ResourceException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class FailoverAlgorithm<T>
+public class FailoverAlgorithm
 {
     private static final Logger LOG = Logger.getLogger(FailoverAlgorithm.class.getName());
+    private static final String ALL_FAIL_MESSAGE = "Received a set of ConnectionFactoryEntries, but not one was valid for service ";
 
-    public T callWithFailover(
+    public ServiceReturn<CasualBuffer> tpcallWithFailover(
             String serviceName,
             ConnectionFactoryLookup lookup,
-            FunctionThrowsResourceException<CasualConnection, T> doCall,
-            FunctionNoArg<T> doTpenoent)
+            FunctionThrowsResourceException<CasualConnection, ServiceReturn<CasualBuffer>> doCall,
+            FunctionNoArg<ServiceReturn<CasualBuffer>> doTpenoent)
     {
-        Exception thrownException = null;
-
-        List<ConnectionFactoryEntry> prioritySortedFactories = lookup.get(serviceName);
-
-        // Service not found
-        if (prioritySortedFactories.isEmpty())
-        {
-            LOG.warning(() -> "No priority or service targets at all for service " + serviceName);
-            return doTpenoent.apply();
-        }
-
-        List<ConnectionFactoryEntry> validEntries = prioritySortedFactories.stream().filter(ConnectionFactoryEntry::isValid).collect(Collectors.toList());
-
-        LOG.finest(() -> "Running call to '" + serviceName + "' with " + validEntries.size() + " of " + prioritySortedFactories.size() + " possible connection factories");
+        List<ConnectionFactoryEntry> validEntries = getFoundAndValidEntries(lookup, serviceName);
 
         // No valid casual server found (revalidation is on a timer in ConnectionFactoryEntryValidationTimer)
         if (validEntries.isEmpty())
         {
-            LOG.warning(() -> "Received a set of ConnectionFactoryEntries, but not one was valid for service " + serviceName);
+            LOG.warning(() -> ALL_FAIL_MESSAGE + serviceName);
             return doTpenoent.apply();
         }
 
+        ServiceReturn<CasualBuffer> result = issueCall(serviceName, validEntries, doCall);
+        if(result.getErrorState() == ErrorState.TPENOENT)
+        {
+            // using a known cached service entry results in TPENOENT
+            // clear the service from the cache ( for all pools), get potentially new entries
+            // issue call again if possible
+            lookup.removeFromServiceCache(serviceName);
+            validEntries = getFoundAndValidEntries(lookup, serviceName);
+            // No valid casual server found (revalidation is on a timer in ConnectionFactoryEntryValidationTimer)
+            if (validEntries.isEmpty())
+            {
+                LOG.warning(() -> ALL_FAIL_MESSAGE + serviceName);
+                return doTpenoent.apply();
+            }
+            result = issueCall(serviceName, validEntries, doCall);
+        }
+        return result;
+    }
+
+    public CompletableFuture<ServiceReturn<CasualBuffer>> tpacallWithFailover(
+            String serviceName,
+            ConnectionFactoryLookup lookup,
+            FunctionThrowsResourceException<CasualConnection, CompletableFuture<ServiceReturn<CasualBuffer>>> doCall,
+            FunctionNoArg<CompletableFuture<ServiceReturn<CasualBuffer>>> doTpenoent)
+    {
+        List<ConnectionFactoryEntry> validEntries = getFoundAndValidEntries(lookup, serviceName);
+
+        // No valid casual server found (revalidation is on a timer in ConnectionFactoryEntryValidationTimer)
+        if (validEntries.isEmpty())
+        {
+            LOG.warning(() -> ALL_FAIL_MESSAGE + serviceName);
+            return doTpenoent.apply();
+        }
+        return issueCall(serviceName, validEntries, doCall);
+    }
+
+    private List<ConnectionFactoryEntry> getFoundAndValidEntries(ConnectionFactoryLookup lookup, String serviceName)
+    {
+        // This is always through the cache, either it was already there or a lookup was issued and then stored
+        List<ConnectionFactoryEntry> prioritySortedFactories = lookup.get(serviceName);
+        List<ConnectionFactoryEntry> validEntries = prioritySortedFactories.stream().filter(ConnectionFactoryEntry::isValid).collect(Collectors.toList());
+        LOG.finest(() -> "Entries found for '" + serviceName + "' with " + validEntries.size() + " of " + prioritySortedFactories.size() + " possible connection factories");
+        return validEntries;
+    }
+
+    private <T> T issueCall(String serviceName, List<ConnectionFactoryEntry> validEntries, FunctionThrowsResourceException<CasualConnection, T> doCall)
+    {
+        Exception thrownException = null;
         for (ConnectionFactoryEntry connectionFactoryEntry : validEntries)
         {
             try (CasualConnection con = connectionFactoryEntry.getConnectionFactory().getConnection())

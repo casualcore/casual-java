@@ -8,6 +8,7 @@ package se.laz.casual.connection.caller
 
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ServiceReturn
+import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.jca.CasualConnection
 import se.laz.casual.jca.CasualConnectionFactory
@@ -122,7 +123,6 @@ class TpCallerFailoverTest extends Specification
                 (priorityHigh): [ConnectionFactoryEntry.of(connectionFactoryProducerHigh), ConnectionFactoryEntry.of(connectionFactoryProducerLow)]
         ])
         def failMessage = 'Connection is fail'
-
         when:
         def result = tpCaller.tpcall(serviceName, data, flags, lookupService)
 
@@ -214,7 +214,6 @@ class TpCallerFailoverTest extends Specification
         lookup.find(serviceName, connectionFactoryProvider.get()) >> ConnectionFactoriesByPriority.of(cacheMap)
         def failMessage = 'Connection is fail'
         def someServiceReturn = new ServiceReturn(null, null, null, 0)
-
         when:
         def result = tpCaller.tpcall(serviceName, data, flags, lookupService)
 
@@ -222,5 +221,33 @@ class TpCallerFailoverTest extends Specification
         (priorities*entriesPerPriority) * conFacHigh.getConnection() >> {throw new javax.resource.ResourceException(failMessage)}
         (1) * conLow.tpcall(serviceName, data, flags) >> someServiceReturn
         result == someServiceReturn
+    }
+
+    def 'cached entry, TPENOENT, should clear cache and lookup again'()
+    {
+       given:
+       connectionFactoryProvider = Mock(ConnectionFactoryEntryStore)
+       connectionFactoryProvider.get() >> [
+               ConnectionFactoryEntry.of(connectionFactoryProducerLow)
+       ]
+       lookupService.connectionFactoryProvider = connectionFactoryProvider
+       2 * lookup.find(serviceName, connectionFactoryProvider.get()) >> {
+          def hit = ConnectionFactoriesByPriority.of([
+                  (priorityLow): [ConnectionFactoryEntry.of(connectionFactoryProducerLow)]
+          ])
+          hit.setResolved(connectionFactoryProducerLow.getJndiName())
+          return hit
+       }
+       def someServiceReturn = new ServiceReturn(null, null, null, 0)
+       def tpenoentServiceReturn = new ServiceReturn(null, null, ErrorState.TPENOENT, 0)
+
+       when:
+       def result = tpCaller.tpcall(serviceName, data, flags, lookupService)
+       def subsequentResult = tpCaller.tpcall(serviceName, data, flags, lookupService)
+       then:
+       3 * conLow.tpcall(serviceName, data, flags) >>> [someServiceReturn, tpenoentServiceReturn, someServiceReturn]
+       !cache.get(serviceName).empty
+       result == someServiceReturn
+       subsequentResult == someServiceReturn
     }
 }
