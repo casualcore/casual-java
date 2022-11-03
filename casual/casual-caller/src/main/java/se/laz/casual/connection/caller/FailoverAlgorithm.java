@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class FailoverAlgorithm
 {
     private static final Logger LOG = Logger.getLogger(FailoverAlgorithm.class.getName());
+    private static final String ALL_FAIL_MESSAGE = "Received a set of ConnectionFactoryEntries, but not one was valid for service ";
 
     public ServiceReturn<CasualBuffer> tpcallWithFailover(
             String serviceName,
@@ -34,7 +35,7 @@ public class FailoverAlgorithm
         // No valid casual server found (revalidation is on a timer in ConnectionFactoryEntryValidationTimer)
         if (validEntries.isEmpty())
         {
-            LOG.warning(() -> "Received a set of ConnectionFactoryEntries, but not one was valid for service " + serviceName);
+            LOG.warning(() -> ALL_FAIL_MESSAGE + serviceName);
             return doTpenoent.apply();
         }
 
@@ -49,7 +50,7 @@ public class FailoverAlgorithm
             // No valid casual server found (revalidation is on a timer in ConnectionFactoryEntryValidationTimer)
             if (validEntries.isEmpty())
             {
-                LOG.warning(() -> "Received a set of ConnectionFactoryEntries, but not one was valid for service " + serviceName);
+                LOG.warning(() -> ALL_FAIL_MESSAGE + serviceName);
                 return doTpenoent.apply();
             }
             result = issueCall(serviceName, validEntries, doCall);
@@ -68,7 +69,7 @@ public class FailoverAlgorithm
         // No valid casual server found (revalidation is on a timer in ConnectionFactoryEntryValidationTimer)
         if (validEntries.isEmpty())
         {
-            LOG.warning(() -> "Received a set of ConnectionFactoryEntries, but not one was valid for service " + serviceName);
+            LOG.warning(() -> ALL_FAIL_MESSAGE + serviceName);
             return doTpenoent.apply();
         }
         return issueCall(serviceName, validEntries, doCall);
