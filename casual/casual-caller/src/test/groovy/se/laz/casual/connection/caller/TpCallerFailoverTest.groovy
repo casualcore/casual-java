@@ -105,8 +105,9 @@ class TpCallerFailoverTest extends Specification
 
         def someServiceReturn = new ServiceReturn(null, null, null, 0)
 
+        Procedure serviceCacheRemover = {}
         when:
-        def result = tpCaller.tpcall(serviceName, data, flags, lookupService)
+        def result = tpCaller.tpcall(serviceName, data, flags, lookupService, serviceCacheRemover)
 
         then:
         1 * conFacHigh.getConnection() >> {throw new javax.resource.ResourceException(failMessage)}
@@ -122,9 +123,9 @@ class TpCallerFailoverTest extends Specification
                 (priorityHigh): [ConnectionFactoryEntry.of(connectionFactoryProducerHigh), ConnectionFactoryEntry.of(connectionFactoryProducerLow)]
         ])
         def failMessage = 'Connection is fail'
-
+        Procedure serviceCacheRemover = {}
         when:
-        def result = tpCaller.tpcall(serviceName, data, flags, lookupService)
+        def result = tpCaller.tpcall(serviceName, data, flags, lookupService, serviceCacheRemover)
 
         then:
         1 * conFacHigh.getConnection() >> {throw new javax.resource.ResourceException(failMessage)}
@@ -160,8 +161,9 @@ class TpCallerFailoverTest extends Specification
         lookup.find(serviceName, connectionFactoryProvider.get()) >> ConnectionFactoriesByPriority.of(cacheMap)
         def failMessage = 'Connection is fail'
 
+        Procedure serviceCacheRemover = {}
         when:
-        def result = tpCaller.tpcall(serviceName, data, flags, lookupService)
+        def result = tpCaller.tpcall(serviceName, data, flags, lookupService, serviceCacheRemover)
 
         then:
         (priorities*entriesPerPriority) * conFacHigh.getConnection() >> {throw new javax.resource.ResourceException(failMessage)}
@@ -214,9 +216,9 @@ class TpCallerFailoverTest extends Specification
         lookup.find(serviceName, connectionFactoryProvider.get()) >> ConnectionFactoriesByPriority.of(cacheMap)
         def failMessage = 'Connection is fail'
         def someServiceReturn = new ServiceReturn(null, null, null, 0)
-
+        Procedure serviceCacheRemover = {}
         when:
-        def result = tpCaller.tpcall(serviceName, data, flags, lookupService)
+        def result = tpCaller.tpcall(serviceName, data, flags, lookupService, serviceCacheRemover)
 
         then:
         (priorities*entriesPerPriority) * conFacHigh.getConnection() >> {throw new javax.resource.ResourceException(failMessage)}

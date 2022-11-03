@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class ConnectionFactoryLookupService implements ConnectionFactoryLookup, ServiceRemover
+public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
 {
     @Inject
     private ConnectionFactoryEntryStore connectionFactoryProvider;
@@ -72,9 +72,8 @@ public class ConnectionFactoryLookupService implements ConnectionFactoryLookup, 
 
 
     @Override
-    public ServiceRemover remove(String serviceName)
+    public void removeFromServiceCache(String serviceName)
     {
         cache.removeService(serviceName);
-        return null;
     }
 }
