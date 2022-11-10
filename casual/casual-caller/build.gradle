@@ -11,6 +11,8 @@ plugins {
     id 'groovy'
 }
 
+version = "${casual_caller_app_version}"
+
 dependencies {
   compileOnly project(":casual:casual-caller-api")
   compileOnly project(":casual:casual-api")

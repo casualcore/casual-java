@@ -65,20 +65,26 @@ subprojects{
                     }
                 }
                 pom {
-                    name = 'My Library'
-                    description = 'A description of my library'
+                    name = 'Casual JCA'
+                    description = 'Casual JCA - Resource Adapter for Casual middleware.'
+                    url = 'http://casual.laz.se'
                 }
             }
         }
-    }
-    repositories{
-        maven {
-            // change URLs to point to your repos, e.g. http://my.org/repo
-            def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
-            def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        repositories{
+            maven {
+                // change URLs to point to your repos, e.g. http://my.org/repo
+//                def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+//                def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                def releasesRepoUrl = layout.buildDirectory.dir('repo/releases')
+                def snapshotsRepoUrl = layout.buildDirectory.dir('repo/snapshots')
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                //System.out.println( "Url is " + url )
+            }
         }
     }
+
+
     signing {
         sign publishing.publications.mavenJava
     }
@@ -87,7 +93,11 @@ subprojects{
             options.addBooleanOption('html5', true)
         }
     }
+
+
 }
+
+
 
 
 task dist(type: Sync) {

@@ -10,6 +10,8 @@ plugins {
     id 'jacoco'
 }
 
+version = "${casual_caller_app_version}"
+
 dependencies {
   compileOnly project(":casual:casual-api")
   compileOnly project(":casual:casual-jca")
