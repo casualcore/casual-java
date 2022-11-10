@@ -69,4 +69,11 @@ public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
         // or if none of the known backends are available
         return cachedEntries.isEmpty() ? Collections.emptyList() : cachedEntries.randomizeWithPriority();
     }
+
+
+    @Override
+    public void removeFromServiceCache(String serviceName)
+    {
+        cache.removeService(serviceName);
+    }
 }
