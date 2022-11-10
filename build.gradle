@@ -14,8 +14,6 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '2.7'
-    id 'signing'
-    id 'maven-publish'
 }
 
 apply from: 'testsourcesets.gradle'
@@ -44,61 +42,18 @@ allprojects{
 subprojects{
   apply from: "$rootProject.projectDir/versions.gradle"
   apply plugin: 'java'
-  apply plugin: 'signing'
-  apply plugin: 'maven-publish'
-
-    java {
-        withJavadocJar()
-        withSourcesJar()
-    }
-
-    publishing {
-        publications {
-            mavenJava( MavenPublication ) {
-                from components.java
-                versionMapping {
-                    usage( 'java-api' ) {
-                        fromResolutionOf( 'runtimeClasspath' )
-                    }
-                    usage( 'java-runtime' ) {
-                        fromResolutionResult()
-                    }
-                }
-                pom {
-                    name = 'Casual JCA'
-                    description = 'Casual JCA - Resource Adapter for Casual middleware.'
-                    url = 'http://casual.laz.se'
-                }
-            }
-        }
-        repositories{
-            maven {
-                // change URLs to point to your repos, e.g. http://my.org/repo
-//                def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-//                def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-                def releasesRepoUrl = layout.buildDirectory.dir('repo/releases')
-                def snapshotsRepoUrl = layout.buildDirectory.dir('repo/snapshots')
-                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-                //System.out.println( "Url is " + url )
-            }
-        }
-    }
-
-
-    signing {
-        sign publishing.publications.mavenJava
-    }
-    javadoc {
-        if(JavaVersion.current().isJava9Compatible()) {
-            options.addBooleanOption('html5', true)
-        }
-    }
-
-
 }
 
+project.ext {
+    casual_jca_subprojects = subprojects.findAll {
+        !it.name.startsWith( "casual-caller" ) &&
+        !it.name.contains( "test" )
+    }
+}
 
-
+configure(project.casual_jca_subprojects) {
+    apply from: "$rootProject.projectDir/publish.gradle"
+}
 
 task dist(type: Sync) {
     allprojects { p ->
