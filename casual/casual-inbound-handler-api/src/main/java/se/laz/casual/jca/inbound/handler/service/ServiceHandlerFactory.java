@@ -67,7 +67,7 @@ public final class ServiceHandlerFactory
             if( h.canHandleService( serviceName ) )
             {
                 serviceHandlerCache.put( serviceName, h );
-                LOG.info(() -> "service handler: " + h + " chosen for service: " + serviceName);
+                LOG.finest(() -> "service handler: " + h + " chosen for service: " + serviceName);
                 return h;
             }
         }
@@ -76,7 +76,7 @@ public final class ServiceHandlerFactory
 
     private static void log(List<ServiceHandler> handlers)
     {
-        LOG.info(()-> "# of service handlers: " + handlers.size() + "\n" + logHandlers(handlers));
+        LOG.finest(()-> "# of service handlers: " + handlers.size() + "\n" + logHandlers(handlers));
     }
 
     private static String logHandlers(List<ServiceHandler> handlers)
