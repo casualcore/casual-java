@@ -70,7 +70,6 @@ public class ConnectionFactoryLookupService implements ConnectionFactoryLookup
         return cachedEntries.isEmpty() ? Collections.emptyList() : cachedEntries.randomizeWithPriority();
     }
 
-
     @Override
     public void removeFromServiceCache(String serviceName)
     {

@@ -33,6 +33,27 @@ These entries are then cached.
 Upon service or queue request, we issue a discovery request towards all those connections.
 The matches are then cached.
 
+## Configuration
+
+Just like casual-jca casual-caller can be configured by environment or by file.
+
+Point to config file using env variable `CASUAL_CALLER_CONFIG_FILE`. If this file is found it will be used, otherwise, config by env will be done. Anything missing in the file will use env-values or defaults.
+
+The following environment variables are expected
+
+- `CASUAL_CALLER_CONNECTION_FACTORY_JNDI_SEARCH_ROOT`, String, default value "eis"
+- `CASUAL_CALLER_VALIDATION_INTERVAL`, int, default value 5000
+- `CASUAL_CALLER_TRANSACTION_STICKY`, boolean, default value false
+
+A typical config file can look like the following:
+```json
+{
+  "jndiSearchRoot": "somecustomjndiroot",
+  "validationIntervalMillis": 500,
+  "transactionStickyEnabled": true
+}
+```
+
 ## Algorithm for choosing which connection to use
 
 If there's only one connection that matches then that one is used
@@ -93,3 +114,9 @@ that contains the following:
     </client-context>
 </jboss-ejb-client>
 ```
+
+# Transaction pool sticky
+
+Casual caller has an optional feature to sticky calls from a specific transaction to a specific casual pool. It will only sticky the first pool it sees for a given transaction and if the stickied pool is unavailable or does not serve a specific service the normal casual caller flow will be used.
+
+Enable the feature with environment `CASUAL_CALLER_TRANSACTION_STICKY=true` or with a casual-caller config file, see configuration section.

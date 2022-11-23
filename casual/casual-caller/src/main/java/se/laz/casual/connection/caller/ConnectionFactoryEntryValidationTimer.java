@@ -6,6 +6,8 @@
 
 package se.laz.casual.connection.caller;
 
+import se.laz.casual.connection.caller.config.ConfigurationService;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.Singleton;
@@ -37,21 +39,7 @@ public class ConnectionFactoryEntryValidationTimer
     @PostConstruct
     private void setup()
     {
-        long interval = 5000;
-
-        // Try read user config for timeout from env
-        final String rawIntervalValue = System.getenv("CASUAL_CALLER_VALIDATION_INTERVAL");
-        if (rawIntervalValue != null && !rawIntervalValue.isEmpty())
-        {
-            try
-            {
-                interval = Long.parseLong(rawIntervalValue);
-            }
-            catch (NumberFormatException e)
-            {
-                LOG.severe("Invalid config value for casual caller validation timer.\n" + e);
-            }
-        }
+        long interval = ConfigurationService.getInstance().getConfiguration().getValidationIntervalMillis();
 
         // Setup timer
         TimerConfig config = new TimerConfig();
@@ -65,7 +53,7 @@ public class ConnectionFactoryEntryValidationTimer
         LOG.finest("Running ConnectionFactoryEntryValidationTimer");
         try
         {
-            connectionFactoryStore.get().stream()
+            connectionFactoryStore.get()
                                   .forEach( connectionFactoryEntry -> {
                                              try
                                              {

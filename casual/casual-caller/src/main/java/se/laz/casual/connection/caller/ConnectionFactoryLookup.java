@@ -36,7 +36,7 @@ public interface ConnectionFactoryLookup extends ServiceCacheMutator
 
     /**
      *
-     * @param serviceName - the name of he service
+     * @param serviceName - the name of the service
      * @return a List of 0-n CacheEntries
      */
     List<ConnectionFactoryEntry> get(String serviceName);

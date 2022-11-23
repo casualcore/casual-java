@@ -22,4 +22,6 @@ public interface CasualCallerControlMBean
     List<String> cachedQueues();
     List<String> queueInPools(String queueName);
     String getQueueStickiedPool(String queueName);
+
+    boolean transactionStickyEnabled();
 }

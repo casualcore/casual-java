@@ -14,6 +14,7 @@ import se.laz.casual.network.connection.CasualConnectionException;
 
 import javax.resource.ResourceException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -39,7 +40,7 @@ public class FailoverAlgorithm
         }
 
         ServiceReturn<CasualBuffer> result = issueCall(serviceName, validEntries, doCall);
-        if(result.getErrorState() == ErrorState.TPENOENT)
+        if (result.getErrorState() == ErrorState.TPENOENT)
         {
             // using a known cached service entry results in TPENOENT
             // clear the service from the cache ( for all pools), get potentially new entries
@@ -86,11 +87,30 @@ public class FailoverAlgorithm
     private <T> T issueCall(String serviceName, List<ConnectionFactoryEntry> validEntries, FunctionThrowsResourceException<CasualConnection, T> doCall)
     {
         Exception thrownException = null;
+
+        // Sticky transaction handling
+        try
+        {
+            Optional<T> stickyMaybe = handleTransactionSticky(serviceName, validEntries, doCall);
+
+            if (stickyMaybe.isPresent())
+            {
+                return stickyMaybe.get();
+            }
+        }
+        catch (ResourceException e)
+        {
+            thrownException = e;
+        }
+
+        // Normal flow
         for (ConnectionFactoryEntry connectionFactoryEntry : validEntries)
         {
             try (CasualConnection con = connectionFactoryEntry.getConnectionFactory().getConnection())
             {
-                return doCall.apply(con);
+                T returnValue = doCall.apply(con);
+                TransactionPoolMapper.getInstance().setPoolNameForCurrentTransaction(connectionFactoryEntry.getJndiName());
+                return returnValue;
             }
             catch (CasualConnectionException e)
             {
@@ -113,6 +133,66 @@ public class FailoverAlgorithm
         }
         throw new CasualResourceException("Call failed to all " + validEntries.size() + " available casual connections.", thrownException);
     }
+
+    /**
+     * Try to use a stickied pool if pool stickiness is configured and any stickied pool is available and serves the requested service
+     *
+     * @param serviceName Service to call
+     * @param factories   Currently available factories for service to call
+     * @param doCall      Provided service call procedure
+     * @return Optional ServiceReturn. An empty result could indicate that stickiness isn't enabled, sticky isn't set yet for the current transaction (which will be the case for the first call) or the stickied pool was unavailable so call to sticky was skipped. Empty should always lead to retry down the line if possible, otherwise a TPENOENT response.
+     * @throws ResourceException Some softer errors are reported as resource exceptions. If these are thrown later retries with other pools is possible.
+     */
+    private <T> Optional<T> handleTransactionSticky(
+            String serviceName,
+            List<ConnectionFactoryEntry> factories,
+            FunctionThrowsResourceException<CasualConnection, T> doCall) throws ResourceException
+    {
+        if (! TransactionPoolMapper.getInstance().isPoolMappingActive())
+        {
+            return Optional.empty();
+        }
+
+        String transactionPoolName = TransactionPoolMapper.getInstance().getPoolNameForCurrentTransaction();
+
+        Optional<ConnectionFactoryEntry> stickyFactoryMaybe = factories
+                .stream()
+                .filter(connectionFactoryEntry -> connectionFactoryEntry.isValid() && connectionFactoryEntry.getJndiName().equals(transactionPoolName))
+                .findFirst();
+
+        if (stickyFactoryMaybe.isPresent() && stickyFactoryMaybe.get().isValid())
+        {
+            // We have a specific stickied pool to use that looks usable, try to use it
+            ConnectionFactoryEntry connectionFactoryEntry = stickyFactoryMaybe.get();
+            factories.remove(connectionFactoryEntry); // If we later need to do failover stuff we don't want to retry with this one
+            LOG.finest(() -> "Attempting to use pool=" + connectionFactoryEntry.getJndiName() + " with sticky to current transaction.");
+
+            try (CasualConnection con = connectionFactoryEntry.getConnectionFactory().getConnection())
+            {
+                return Optional.of(doCall.apply(con));
+            }
+            catch (CasualConnectionException e)
+            {
+                //This error branch will most likely happen if there are connection errors during a service call
+                connectionFactoryEntry.invalidate();
+
+                // These exceptions are rollback-only, do not attempt any retries.
+                throw new CasualResourceException("Call failed during execution to service=" + serviceName
+                        + " on connection=" + connectionFactoryEntry.getJndiName()
+                        + " because of a network connection error, retries not possible.", e);
+            }
+        }
+        else if (stickyFactoryMaybe.isPresent())
+        {
+            TransactionPoolMapper.getInstance().purgeMappingsForSpecificPool(transactionPoolName);
+        }
+
+        LOG.finest(() -> "Failed to call service=" + serviceName + " on stickied pool=" + transactionPoolName + ", falling through to normal flow.");
+
+        // Found nothing, empty result should be signal to try normal flow.
+        return Optional.empty();
+    }
+
 
     public interface FunctionNoArg<R>
     {
