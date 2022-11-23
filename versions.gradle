@@ -10,7 +10,7 @@ group = 'se.laz.casual'
 version = '2.2.15'
 
 ext.casual_caller_app_version = '2.2.7'
-ext.casual_test_app_version = '1.0.2'
+ext.casual_test_app_version = '1.0.3'
 
 def netty_version = '4.1.87.Final'
 def gson_version = '2.10.1'

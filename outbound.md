@@ -37,7 +37,7 @@ If you configure to run *unmanaged*, that is no ManagedExecutor service will be 
 
 If you do not provide any configuration for outbound the defaults are:
 
-* *java:comp/DefaultManagedExecutorService*
+* *java:comp/DefaultManagedExecutorService* - with fallback to the direct JNDI-name on JBoss/Wildfly
 
 * *0*
 
@@ -63,5 +63,13 @@ $connectionDefinitionNode/config-properties=NetworkConnectionPoolSize:add(value=
 ```
 
 Note that each physical network connection is multiplexing on its own since we are running on top of Netty.
-On another note, we recommend that if you are connecting via a load balancer - create different pools each with the  NetworkConnectionPoolSize of 1.
+
+## Recommendations
+
+We recommend that if you are connecting via a load balancer - create different pools each with the  NetworkConnectionPoolSize of 1.
 This means that for each pool, each ManagedConnection is still talking to the same EIS.
+
+We also recommend this even when not running via a load balancer, not to waste resources.
+If you are running on linux we suggest trying to enable epoll and measure if that gives any benefit.
+In theory, according to the Netty documentation - it should be more performant.
+

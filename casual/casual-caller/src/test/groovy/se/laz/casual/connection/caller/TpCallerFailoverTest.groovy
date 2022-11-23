@@ -6,10 +6,13 @@
 
 package se.laz.casual.connection.caller
 
+import se.laz.casual.api.Conversation
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ServiceReturn
+import se.laz.casual.api.conversation.TpConnectReturn
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.Flag
+import se.laz.casual.connection.caller.conversation.ConversationImpl
 import se.laz.casual.jca.CasualConnection
 import se.laz.casual.jca.CasualConnectionFactory
 import spock.lang.Shared
@@ -105,15 +108,30 @@ class TpCallerFailoverTest extends Specification
         def failMessage = 'Connection is fail'
 
         def someServiceReturn = new ServiceReturn(null, null, null, 0)
+        def realConversation = Mock(Conversation)
+        def someTpConnectReturn = TpConnectReturn.of(realConversation)
 
         when:
         def result = tpCaller.tpcall(serviceName, data, flags, lookupService)
-
         then:
         1 * conFacHigh.getConnection() >> {throw new javax.resource.ResourceException(failMessage)}
         0 * conHigh.tpcall(serviceName, data, flags) >> {throw new RuntimeException("This should not happen because getConnection should fail")}
         1 * conLow.tpcall(serviceName, data, flags) >> someServiceReturn
         result == someServiceReturn
+        when:
+        TpConnectReturn tpConnectReturn = tpCaller.tpconnect(serviceName, data, flags, lookupService)
+        Conversation conversation = tpConnectReturn.getConversation().orElseThrow({"missing conversation!"})
+        ConversationImpl conversationImpl
+        if(conversation instanceof ConversationImpl)
+        {
+           conversationImpl = (ConversationImpl) conversation
+        }
+        then:
+        0 * conHigh.tpconnect(serviceName, data, flags) >> {throw new RuntimeException("This should not happen because getConnection should fail")}
+        1 * conLow.tpconnect(serviceName, data, flags) >> someTpConnectReturn
+        tpConnectReturn.getErrorState() == someTpConnectReturn.getErrorState()
+        conversation instanceof ConversationImpl
+        conversationImpl.conversation == realConversation
     }
 
     def "2 connection factories with same priority - both are called and fail, exception is thrown"()

@@ -5,6 +5,7 @@
  */
 package se.laz.casual.connection.caller;
 
+import se.laz.casual.api.CasualConversationAPI;
 import se.laz.casual.api.CasualQueueApi;
 import se.laz.casual.api.CasualServiceApi;
 
@@ -22,5 +23,5 @@ import se.laz.casual.api.CasualServiceApi;
  * We choose randomly between matching entries when selecting which one to issue the call to - if more than one is found
  *
  */
-public interface CasualCaller extends CasualServiceApi, CasualQueueApi
+public interface CasualCaller extends CasualServiceApi, CasualQueueApi, CasualConversationAPI
 {}

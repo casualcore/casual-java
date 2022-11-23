@@ -9,6 +9,7 @@ package se.laz.casual.connection.caller;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
+import se.laz.casual.api.conversation.TpConnectReturn;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.Flag;
@@ -54,6 +55,18 @@ public class TpCallerFailover implements TpCaller
                 // What to do if the cache has no entries
                 () -> CompletableFuture.supplyAsync(this::tpenoentReply)
         );
+    }
+
+    @Override
+    public TpConnectReturn tpconnect(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ConnectionFactoryLookup lookup)
+    {
+        return algorithm.tpconnectWithFailover(
+                serviceName,
+                lookup,
+                // How to issue the call
+                con -> con.tpconnect(serviceName, data, flags),
+                // What to do if service is not found
+                () -> TpConnectReturn.of(ErrorState.TPENOENT));
     }
 
     private ServiceReturn<CasualBuffer> tpenoentReply()
