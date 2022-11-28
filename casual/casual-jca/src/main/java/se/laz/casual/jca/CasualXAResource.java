@@ -80,7 +80,7 @@ public class CasualXAResource implements XAResource
     @Override
     public void end(Xid xid, int flag) throws XAException
     {
-        LOG.finest(()-> String.format("end, xid: %s (%s) flag: %d ", PrettyPrinter.casualStringify(xid), xid, flag));
+        LOG.finest(()-> String.format("end, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, flag, XAFlags.unmarshall(flag)));
         CasualResourceManager.getInstance().remove(xid);
         disassociate();
         XAFlags f = XAFlags.unmarshall(flag);
@@ -139,7 +139,7 @@ public class CasualXAResource implements XAResource
         CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
         CasualTransactionResourcePrepareReplyMessage replyMsg = replyEnvelope.getMessage();
         throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
-        LOG.finest(() -> String.format("prepared, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
+        LOG.finest(() -> String.format("prepared, xid: %s ( %s ), XA_RDONLY: %b", PrettyPrinter.casualStringify(xid), xid, XAReturnCode.XA_RDONLY == replyMsg.getTransactionReturnCode()));
         return replyMsg.getTransactionReturnCode().getId();
     }
 
@@ -175,7 +175,7 @@ public class CasualXAResource implements XAResource
     @Override
     public void start(Xid xid, int i) throws XAException
     {
-        LOG.finest(()-> String.format("start, xid: %s ( %s ) flag: %d ", PrettyPrinter.casualStringify(xid), xid, i));
+        LOG.finest(()-> String.format("start, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, i, XAFlags.unmarshall(i)));
         readOnly = false;
         if(!(XAFlags.TMJOIN.getValue() == i || XAFlags.TMRESUME.getValue() == i) &&
             CasualResourceManager.getInstance().isPending(xid))

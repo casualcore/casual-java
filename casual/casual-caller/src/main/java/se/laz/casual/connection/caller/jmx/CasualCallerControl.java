@@ -10,6 +10,7 @@ import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.connection.caller.Cache;
 import se.laz.casual.connection.caller.ConnectionFactoryEntry;
 import se.laz.casual.connection.caller.ConnectionFactoryEntryStore;
+import se.laz.casual.connection.caller.config.ConfigurationService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,5 +109,11 @@ public class CasualCallerControl implements CasualCallerControlMBean
     {
         Optional<ConnectionFactoryEntry> queueEntry = cache.getSingle(QueueInfo.of(queueName));
         return queueEntry.map(ConnectionFactoryEntry::getJndiName).orElse(null);
+    }
+
+    @Override
+    public boolean transactionStickyEnabled()
+    {
+        return ConfigurationService.getInstance().getConfiguration().isTransactionStickyEnabled();
     }
 }
