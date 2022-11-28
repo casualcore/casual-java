@@ -8,6 +8,7 @@ package se.laz.casual.jca.work;
 
 import javax.resource.spi.work.WorkEvent;
 import javax.resource.spi.work.WorkListener;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -49,7 +50,7 @@ public class StartInboundServerListener implements WorkListener
     {
         if(null != e.getException())
         {
-            log.warning(() -> "workCompleted with exception: " + e.getException());
+            log.log(Level.WARNING, e.getException(), () -> "workCompleted failed");
         }
     }
 }
