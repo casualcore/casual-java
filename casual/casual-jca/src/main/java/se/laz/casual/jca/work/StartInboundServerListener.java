@@ -49,7 +49,7 @@ public class StartInboundServerListener implements WorkListener
     @Override
     public void workCompleted(WorkEvent e)
     {
-        logWorkEvent( e, Level.WARNING, ()-> "Casual inbound start, work completed." );
+        logWorkEvent( e, Level.FINEST, ()-> "Casual inbound start, work completed." );
     }
 
     private void logWorkEvent( WorkEvent e, Level level, Supplier<String> supplier )
