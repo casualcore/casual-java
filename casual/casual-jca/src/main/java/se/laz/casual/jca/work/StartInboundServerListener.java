@@ -8,6 +8,7 @@ package se.laz.casual.jca.work;
 
 import javax.resource.spi.work.WorkEvent;
 import javax.resource.spi.work.WorkListener;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,27 +31,33 @@ public class StartInboundServerListener implements WorkListener
     @Override
     public void workAccepted(WorkEvent e)
     {
-        //No Op
+        logWorkEvent( e, Level.FINEST, ()->"Casual inbound start, work accepted." );
     }
 
     @Override
     public void workRejected(WorkEvent e)
     {
-        log.warning(() -> "CasualStartInboundServerWork workRejected, inbound will not be started!!!");
+        logWorkEvent( e, Level.WARNING, ()-> "Casual inbound start, work rejected, inbound will not be started!!!"  );
     }
 
     @Override
     public void workStarted(WorkEvent e)
     {
-        //No Op
+        logWorkEvent( e, Level.FINEST, ()-> "Casual inbound start, work started." );
     }
 
     @Override
     public void workCompleted(WorkEvent e)
     {
-        if(null != e.getException())
+        logWorkEvent( e, Level.WARNING, ()-> "Casual inbound start, work completed." );
+    }
+
+    private void logWorkEvent( WorkEvent e, Level level, Supplier<String> supplier )
+    {
+        log.log( level, supplier );
+        if( e.getException() != null )
         {
-            log.log(Level.WARNING, e.getException(), () -> "workCompleted failed");
+            log.log(Level.WARNING, e.getException(), () -> "Casual inbound start WorkEvent contained an exception: ");
         }
     }
 }
