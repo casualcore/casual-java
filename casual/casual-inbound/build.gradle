@@ -6,28 +6,20 @@
 
 plugins {
   id 'jacoco'
-  id 'java'
+  id 'java-library'
   id 'groovy'
 }
 
 dependencies {
-  implementation project(':casual:casual-api')
-  implementation project(':casual:casual-internal')
-  implementation project(':casual:casual-network-protocol')
-  implementation project(':casual:casual-inbound-api')
+  api project(':casual:casual-inbound-api')
   implementation project(':casual:casual-inbound-handler-api')
   compileOnly libs.javaee_api
-  compileOnly libs.netty
 
-  testImplementation libs.javaee_api
-  testImplementation libs.netty
-  testImplementation project(':casual:casual-fielded-annotations')
-
-  testImplementation project(':casual:casual-inbound-handler-api')
-  testImplementation project(':casual:casual-inbound-handler-casual-service')
+  testRuntimeOnly libs.gson
+  testRuntimeOnly project(':casual:casual-inbound-handler-casual-service')
   testImplementation project(':casual:casual-service-discovery-extension')
   testImplementation project(':casual:casual-network')
-  testImplementation libs.gson
+
   // for spock
   testImplementation libs.groovy_all
   testImplementation libs.spock_core

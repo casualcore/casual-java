@@ -5,14 +5,13 @@
  */
 
 plugins {
-  id 'java'
+  id 'java-library'
   id 'jacoco'
   id 'groovy'
 }
 
 dependencies {
-
-  implementation project(":casual:casual-api")
+  api project(":casual:casual-api")
   compileOnly libs.javaee_api
 
   // for spock

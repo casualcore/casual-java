@@ -5,19 +5,15 @@
  */
 
 plugins {
-  id 'java'
+  id 'java-library'
   id 'jacoco'
   id 'groovy'
 }
 
 dependencies {
-
+  api project(':casual:casual-api')
   compileOnly libs.javaee_api
-  compileOnly project(':casual:casual-api')
 
-  testImplementation libs.javaee_api
-  testImplementation project(':casual:casual-api')
-  testImplementation project(':casual:casual-network-protocol')
   // for spock
   testImplementation libs.groovy_all
   testImplementation libs.spock_core
