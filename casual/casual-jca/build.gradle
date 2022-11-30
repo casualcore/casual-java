@@ -48,6 +48,7 @@ dependencies {
     resourceAdapterLib libs.netty
     resourceAdapterLib libs.netty_epoll
 
+    testImplementation libs.javaee_api
     testImplementation libs.hamcrest_all
     // for spock
     testImplementation libs.groovy_all

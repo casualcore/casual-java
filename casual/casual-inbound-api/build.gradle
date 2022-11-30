@@ -18,6 +18,7 @@ dependencies {
   compileOnly libs.javaee_api
   api libs.netty
 
+  testImplementation libs.javaee_api
   testRuntimeOnly libs.gson
 
   // for spock

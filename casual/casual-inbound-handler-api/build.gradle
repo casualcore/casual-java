@@ -14,6 +14,8 @@ dependencies {
   api project(':casual:casual-api')
   compileOnly libs.javaee_api
 
+  testImplementation libs.javaee_api
+
   // for spock
   testImplementation libs.groovy_all
   testImplementation libs.spock_core

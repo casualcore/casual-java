@@ -21,6 +21,7 @@ dependencies {
   implementation libs.netty
   compileOnly libs.javaee_api
 
+  testImplementation libs.javaee_api
   testImplementation libs.netty_epoll
   testImplementation libs.system_lambda
   // for spock

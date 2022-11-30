@@ -15,6 +15,7 @@ dependencies {
   implementation project(':casual:casual-inbound-handler-api')
   compileOnly libs.javaee_api
 
+  testImplementation libs.javaee_api
   testRuntimeOnly libs.gson
   testRuntimeOnly project(':casual:casual-inbound-handler-casual-service')
   testImplementation project(':casual:casual-service-discovery-extension')
