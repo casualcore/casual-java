@@ -86,4 +86,7 @@ javadoc {
     if(JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
     }
+    if(JavaVersion.current().isCompatibleWith( JavaVersion.VERSION_17 )) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
 }
