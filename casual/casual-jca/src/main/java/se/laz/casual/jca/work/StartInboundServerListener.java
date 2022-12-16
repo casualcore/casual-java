@@ -57,7 +57,7 @@ public class StartInboundServerListener implements WorkListener
         log.log( level, supplier );
         if( e.getException() != null )
         {
-            log.log(Level.WARNING, e.getException(), () -> "Casual inbound start WorkEvent contained an exception: ");
+            log.log(Level.SEVERE, e.getException(), () -> "Casual inbound start WorkEvent contained an exception: ");
         }
     }
 }
