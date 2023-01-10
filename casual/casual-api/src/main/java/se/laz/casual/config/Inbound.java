@@ -13,13 +13,17 @@ public class Inbound
 {
     public static final String CASUAL_INBOUND_STARTUP_MODE = "CASUAL_INBOUND_STARTUP_MODE";
     public static final String CASUAL_INBOUND_USE_EPOLL = "CASUAL_INBOUND_USE_EPOLL";
+    public static final String CASUAL_INBOUND_INITIAL_DELAY_ENV_NAME = "CASUAL_INBOUND_INITIAL_DELAY";
+
     private final Startup startup;
     private final boolean useEpoll;
+    private final long initialDelay;
 
     public Inbound( Builder builder )
     {
         this.startup = builder.startup;
         this.useEpoll = builder.useEpoll;
+        this.initialDelay = builder.initialDelay;
     }
 
     public Startup getStartup()
@@ -30,6 +34,11 @@ public class Inbound
     public boolean isUseEpoll()
     {
         return useEpoll;
+    }
+
+    public long getInitialDelay()
+    {
+        return initialDelay;
     }
 
     @Override
@@ -71,6 +80,7 @@ public class Inbound
     {
         private Startup startup;
         private Boolean useEpoll;
+        private Long initialDelay;
 
         private Builder()
         {
@@ -85,6 +95,12 @@ public class Inbound
         public Builder withStartup( Startup startup )
         {
             this.startup = startup;
+            return this;
+        }
+
+        public Builder withInitialDelay(long initialDelay)
+        {
+            this.initialDelay = initialDelay;
             return this;
         }
 
@@ -103,6 +119,12 @@ public class Inbound
             if( useEpoll == null )
             {
                 useEpoll = Boolean.parseBoolean( Optional.ofNullable( System.getenv( CASUAL_INBOUND_USE_EPOLL ) ).orElse( "false" ) );
+            }
+            if( initialDelay == null )
+            {
+                initialDelay = Optional.ofNullable( System.getenv( CASUAL_INBOUND_INITIAL_DELAY_ENV_NAME ) )
+                                       .map( delay -> delay.isEmpty() ? 0L : Long.parseLong( delay ) )
+                                       .orElse(0L );
             }
             return new Inbound( this );
         }
