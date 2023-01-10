@@ -112,7 +112,7 @@ public final class StartInboundServerWork<T> implements Work
         // That will then fail and continue to fail forever, even after endpointActivation for the resource adapter has completed - it should heal
         // This is a horrible "work around" for that specific problem - the user decides how long inbound startup has to be delayed
         // Never seen on wildfly
-        if(delay <= 0)
+        if(delay <= 0L)
         {
             log.info(() -> "no inbound startup delay");
             return;
