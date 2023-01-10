@@ -184,7 +184,7 @@ class ConfigurationServiceTest extends Specification
               .build()
       when:
       Configuration actual = null
-      withEnvironmentVariable( Inbound.CASUAL_INBOUND_INITIAL_DELAY_ENV_NAME, "${initialDelay}" )
+      withEnvironmentVariable( Inbound.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_ENV_NAME, "${initialDelay}" )
               .execute( {
                  reinitialiseConfigurationService( )
                  actual = instance.getConfiguration()} )

@@ -5,7 +5,7 @@
  */
 package se.laz.casual.jca.work;
 
-import se.laz.casual.jca.InboundStartupException;
+import se.laz.casual.jca.DelayFailedException;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -30,7 +30,7 @@ public class Delayer
         catch (InterruptedException e)
         {
             Thread.currentThread().interrupt();
-            throw new InboundStartupException("Interrupted while delaying inbound startup", e);
+            throw new DelayFailedException("Interrupted while delaying something", e);
         }
     }
 }
