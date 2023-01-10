@@ -15,6 +15,10 @@ import java.util.logging.Logger;
 public class Delayer
 {
     private static final Logger log = Logger.getLogger(Delayer.class.getName());
+
+    private Delayer()
+    {}
+
     public static void delay(long seconds)
     {
         try
