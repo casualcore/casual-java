@@ -64,16 +64,12 @@ public class ConfigurationService
         Mode mode = getEnv( CASUAL_INBOUND_STARTUP_MODE_ENV_NAME )
                 .map( name -> name.isEmpty() ? Mode.IMMEDIATE : Mode.fromName( name ) )
                 .orElse( Mode.IMMEDIATE );
-        long inboundInitialDelay = getEnv(Inbound.CASUAL_INBOUND_INITIAL_DELAY_ENV_NAME)
-                .map( delay -> delay.isEmpty() ? 0L : Long.parseLong(delay))
-                .orElse(0L);
         return Configuration.newBuilder()
                 .withDomain( Domain.getFromEnv() )
                 .withInbound( Inbound.newBuilder()
                         .withStartup( Startup.newBuilder()
                                 .withMode( mode )
                                 .build() )
-                        .withInitialDelay( inboundInitialDelay )
                         .build() )
                 .withOutbound(Outbound.newBuilder().build())
                 .build();
