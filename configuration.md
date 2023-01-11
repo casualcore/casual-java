@@ -13,12 +13,12 @@ Casual supports the following configuration options which can be set using envir
     See [Inbound Startup Configuration](inbound.md#startup-configuration) for more details.
 * `CASUAL_OUTBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO.
 * `CASUAL_INBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO.
-* `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_IN_SECONDS` - Delay the startup of the inbound server. Default is no delay.
+* `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS` - Delay the startup of the inbound server. Default is no delay.
 
 NB - if a `CASUAL_CONFIG_FILE` is provided, it take precedence over the `CASUAL_INBOUND_STARTUP_MODE` setting.
 However, if some configuration is missing from the configuration file but has a setting via an environment variable then this will be used before any hardcoded default setting.
 
-If `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_IN_SECONDS` is configured then it will always delay the startup by that amount of seconds regardless of startup mode.
+If `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS` is configured then it will always delay the startup by that amount of seconds regardless of startup mode.
 That is - discovery is not running concurrently and the delay is always executed after any potential discovery.
 
 ## Casual Config File

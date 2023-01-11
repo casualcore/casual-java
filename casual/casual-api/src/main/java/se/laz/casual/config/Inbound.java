@@ -13,7 +13,7 @@ public class Inbound
 {
     public static final String CASUAL_INBOUND_STARTUP_MODE = "CASUAL_INBOUND_STARTUP_MODE";
     public static final String CASUAL_INBOUND_USE_EPOLL = "CASUAL_INBOUND_USE_EPOLL";
-    public static final String CASUAL_INBOUND_STARTUP_INITIAL_DELAY_ENV_NAME = "CASUAL_INBOUND_STARTUP_INITIAL_DELAY_IN_SECONDS";
+    public static final String CASUAL_INBOUND_STARTUP_INITIAL_DELAY_ENV_NAME = "CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS";
 
     private final Startup startup;
     private final boolean useEpoll;
