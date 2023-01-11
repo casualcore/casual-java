@@ -81,3 +81,7 @@ The `discover` startup mode ensures that all inbound startup services that are s
 registered and therefore up and running before allowing the inbound server to start accepting requests.
 The inbound startup services are provided as a list of service names. See [Configuration](README.md#configuration) for more details. 
 If there are no services defined in the configuration, then `discover` mode is equivalent to `immediate` mode.
+
+#### Initial inbound startup delay
+If initial inbound startup delay is configured ( see [Configuration](README.md#configuration) ) - 
+then that always it will always delay the startup by that amount of seconds regardless of startup mode.

@@ -13,9 +13,13 @@ Casual supports the following configuration options which can be set using envir
     See [Inbound Startup Configuration](inbound.md#startup-configuration) for more details.
 * `CASUAL_OUTBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO.
 * `CASUAL_INBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO.
+* `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS` - Delay the startup of the inbound server. Default is no delay.
 
 NB - if a `CASUAL_CONFIG_FILE` is provided, it take precedence over the `CASUAL_INBOUND_STARTUP_MODE` setting.
 However, if some configuration is missing from the configuration file but has a setting via an environment variable then this will be used before any hardcoded default setting.
+
+If `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS` is configured then it will always delay the startup by that amount of seconds regardless of startup mode.
+That is - discovery is not running concurrently and the delay is always executed after any potential discovery.
 
 ## Casual Config File
 
@@ -26,7 +30,7 @@ Within the casual configuration file you can currently specify:
 
 In the following example configuration file shows `discover` startup mode enabled with 2 startup services. 
 Also domain name configured as `my-casual-java-domain`, which is equivalent to setting the `CASUAL_DOMAIN_NAME` env if environment based configuration is used.
-Inbound epoll is also enabled - default false.
+Inbound epoll is also enabled - default false. Initial delay of inbound server is configured as well, default is no delay.
 
 ```json
 {
@@ -38,7 +42,8 @@ Inbound epoll is also enabled - default false.
         "service2"
       ]
     },
-    "useEpoll": true
+    "useEpoll": true,
+    "initialDelay": 30
   },
   "domain": {
     "name": "my-casual-java-domain"
