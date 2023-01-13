@@ -49,6 +49,7 @@ class ConfigurationServiceTest extends Specification
                                     .withServices( services )
                                     .build(  ) )
                             .withUseEpoll( epoll )
+                            .withInitialDelay( initialDelay )
                             .build(  ) )
                 .build(  )
 
@@ -63,11 +64,12 @@ class ConfigurationServiceTest extends Specification
         actual == expected
 
         where:
-        file                               || mode           | services                         | epoll
-        "casual-config-immediate.json"     || Mode.IMMEDIATE | []                               | false
-        "casual-config-trigger.json"       || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE] | false
-        "casual-config-discover.json"      || Mode.DISCOVER  | ["service1", "service2"]         | false
-        "casual-config-inbound-epoll.json" || Mode.IMMEDIATE | []                               | true
+        file                                       || mode           | services                         | epoll | initialDelay
+        "casual-config-immediate.json"             || Mode.IMMEDIATE | []                               | false | 0
+        "casual-config-trigger.json"               || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE] | false | 0
+        "casual-config-discover.json"              || Mode.DISCOVER  | ["service1", "service2"]         | false | 0
+        "casual-config-inbound-epoll.json"         || Mode.IMMEDIATE | []                               | true  | 0
+        "casual-config-inbound-initial-delay.json" || Mode.IMMEDIATE | []                               | false | 30
     }
 
     @Unroll
@@ -170,6 +172,25 @@ class ConfigurationServiceTest extends Specification
         then:
         actual == expected
     }
+
+   def 'no inbound config, inbound initial delay set via env var'()
+   {
+      given:
+      def initialDelay = 10L
+      Configuration expected = Configuration.newBuilder()
+              .withInbound(Inbound.newBuilder()
+                      .withInitialDelay(initialDelay)
+                      .build())
+              .build()
+      when:
+      Configuration actual = null
+      withEnvironmentVariable( Inbound.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_ENV_NAME, "${initialDelay}" )
+              .execute( {
+                 reinitialiseConfigurationService( )
+                 actual = instance.getConfiguration()} )
+      then:
+      actual == expected
+   }
 
     def "Get configuration where file not found, throws CasualRuntimeException."()
     {

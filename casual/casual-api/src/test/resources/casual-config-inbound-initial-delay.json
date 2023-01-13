@@ -1,0 +1,6 @@
+{
+  "inbound":
+  {
+    "initialDelay": 30
+  }
+}

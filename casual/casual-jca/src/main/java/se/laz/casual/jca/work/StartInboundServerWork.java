@@ -30,22 +30,29 @@ public final class StartInboundServerWork<T> implements Work
     private final Consumer<T> consumer;
     private final Supplier<T> supplier;
     private final Supplier<String> logMessage;
+    private long delay;
 
-    private StartInboundServerWork( List<String> startupServices, Supplier<String> logMessage, Consumer<T> consumer, Supplier<T> supplier)
+    private StartInboundServerWork( List<String> startupServices, Supplier<String> logMessage, Consumer<T> consumer, Supplier<T> supplier, long delay)
     {
         this.startupServices = startupServices;
         this.consumer = consumer;
         this.supplier = supplier;
         this.logMessage = logMessage;
+        this.delay = delay;
     }
 
     public static <T> Work of(List<String> startupServices, Supplier<String> logMessage, Consumer<T> consumer, Supplier<T> supplier )
+    {
+        return of(startupServices, logMessage, consumer, supplier, 0);
+    }
+
+    public static <T> Work of(List<String> startupServices, Supplier<String> logMessage, Consumer<T> consumer, Supplier<T> supplier, long delay )
     {
         Objects.requireNonNull(startupServices, "Startup Services is null.");
         Objects.requireNonNull(consumer, "Consumer is null.");
         Objects.requireNonNull(supplier, "supplier is null");
         // note: only needed to make the compiler, java 8, not spew out warnings
-        StartInboundServerWork<T> work = new StartInboundServerWork<>(startupServices, logMessage, consumer, supplier);
+        StartInboundServerWork<T> work = new StartInboundServerWork<>(startupServices, logMessage, consumer, supplier, delay);
         return work;
     }
 
@@ -61,6 +68,7 @@ public final class StartInboundServerWork<T> implements Work
     public void run()
     {
         waitForInboundStartupServices();
+        maybeDelay();
         startInboundServer();
     }
 
@@ -94,6 +102,23 @@ public final class StartInboundServerWork<T> implements Work
             log.info( ()-> "Startup service registered: " + foundService );
         }
         return found.get( false );
+    }
+
+    private void maybeDelay()
+    {
+        // Note:
+        // This, optional, delay of inbound is due to an issue on wls where once in a blue moon - the MessageEndpointFactory is in fact not ready
+        // and there are incoming domain discoveries ( during restart)
+        // That will then fail and continue to fail forever, even after endpointActivation for the resource adapter has completed - it should heal
+        // This is a horrible "work around" for that specific problem - the user decides how long inbound startup has to be delayed
+        // Never seen on wildfly
+        if(delay <= 0L)
+        {
+            log.info(() -> "no inbound startup delay");
+            return;
+        }
+        Delayer.delay(delay);
+        log.info(() -> "inbound startup, delay of " + delay + " seconds - done");
     }
 
     private void startInboundServer()

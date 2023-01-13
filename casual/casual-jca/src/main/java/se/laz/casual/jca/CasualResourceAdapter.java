@@ -140,7 +140,8 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         Consumer<CasualServer> consumer = (CasualServer runningServer) -> server = runningServer;
         Supplier<CasualServer> supplier = () -> CasualServer.of(connectionInformation);
         Supplier<String> logMsg = () -> "Casual inbound server bound to port: " + connectionInformation.getPort();
-        Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier);
+        long delay = ConfigurationService.getInstance().getConfiguration().getInbound().getInitialDelay();
+        Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier, delay);
         startWork(work, StartInboundServerListener.of());
     }
 
