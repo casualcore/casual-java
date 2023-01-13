@@ -13,6 +13,7 @@ import javax.naming.NamingException;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class JndiUtil
@@ -98,7 +99,7 @@ public class JndiUtil
             }
             catch(NamingException e)
             {
-                logger.warning(() -> "lookup failed for: " + name);
+                logger.log( Level.FINEST, e, () -> "lookup failed for: " + name);
             }
         }
         return results;
