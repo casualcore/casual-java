@@ -73,6 +73,17 @@ class CacheTest extends Specification
    def lowerPriority = priority - 1
    @Shared
    def priorityMapping
+   @Shared
+   def allServiceNames = ([serviceName, serviceNameOnlyFromConnectionFactoryOne] + serviceNames).stream()
+                                                                                                 .distinct()
+                                                                                                 .sorted()
+                                                                                                 .collect(Collectors.toList())
+   @Shared
+   def allQueueNames = qInfoList.stream()
+                                .map({v -> v.getQueueName()})
+                                .distinct()
+                                .sorted()
+                                .collect(Collectors.toList())
 
    def setup()
    {
@@ -150,6 +161,16 @@ class CacheTest extends Specification
       connectionFactoryByPriority.getForPriority(priority).size() == 1
       connectionFactoryByPriority.getForPriority(priority).get(0) == cacheEntryOne
    }
+
+   def 'getAll queues and services'()
+   {
+      when:
+      def allEntries = instance.getAll()
+      then:
+      allEntries.get(CacheType.SERVICE).stream().distinct().sorted().collect(Collectors.toList()) == allServiceNames
+      allEntries.get(CacheType.QUEUE).stream().distinct().sorted().collect(Collectors.toList()) == allQueueNames
+   }
+
 
    def 'cache purge and repopulation via DiscoveryReturn - services'()
    {

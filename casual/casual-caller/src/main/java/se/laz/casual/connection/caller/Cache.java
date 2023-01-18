@@ -74,7 +74,7 @@ public class Cache
     {
         Map<CacheType, List<String>> entries = new EnumMap<>(CacheType.class);
         entries.put(CacheType.SERVICE, getServices());
-        entries.put(CacheType.QUEUE, getServices());
+        entries.put(CacheType.QUEUE, getQueues());
         return entries;
     }
     public void repopulate(DiscoveryReturn discoveryReturn, ConnectionFactoryEntry connectionFactoryEntry)
