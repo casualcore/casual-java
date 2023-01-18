@@ -140,13 +140,19 @@ public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkT
 
     private CasualDomainDiscoveryRequestMessage setServiceNames(List<String> serviceNames)
     {
-        this.serviceNames = new ArrayList<>(serviceNames);
+        this.serviceNames = serviceNames.stream()
+                                        .distinct()
+                                        .sorted()
+                                        .collect(Collectors.toList());
         return this;
     }
 
     private CasualDomainDiscoveryRequestMessage setQueueNames(List<String> queueNames)
     {
-        this.queueNames = new ArrayList<>(queueNames);
+        this.queueNames = queueNames.stream()
+                                    .distinct()
+                                    .sorted()
+                                    .collect(Collectors.toList());
         return this;
     }
 
