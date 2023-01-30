@@ -119,12 +119,12 @@ public class CasualXAResource implements XAResource
     @Override
     public boolean isSameRM(XAResource xaResource) throws XAException
     {
-        if(!(xaResource instanceof CasualXAResource))
+        if(xaResource instanceof CasualXAResource)
         {
-            return false;
+            CasualXAResource casualXAResource = (CasualXAResource) xaResource;
+            return casualXAResource.casualManagedConnection.getDomainId().equals(casualManagedConnection.getDomainId());
         }
-        CasualXAResource casualXAResource = (CasualXAResource) xaResource;
-        return casualXAResource.casualManagedConnection.getDomainId().equals(casualManagedConnection.getDomainId());
+        return false;
     }
 
     @Override
