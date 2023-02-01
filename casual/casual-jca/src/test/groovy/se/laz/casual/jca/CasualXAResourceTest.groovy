@@ -340,10 +340,40 @@ class CasualXAResourceTest extends Specification
         thrown UnsupportedOperationException
     }
 
-    def "IsSameRM"()
+    def "isSameRM"()
     {
-        expect:
-        instance.isSameRM( instance ) == false
+       setup:
+       def rmIdOne = 1
+       DomainId firstDomainId = DomainId.of(UUID.randomUUID())
+       CasualManagedConnection casualManagedConnectionOne = Mock(CasualManagedConnection) {
+           getDomainId() >> {
+              firstDomainId
+           }
+       }
+
+       def rmIdTwo = 2
+       DomainId secondDomainId = DomainId.of(UUID.randomUUID())
+       CasualManagedConnection casualManagedConnectionTwo = Mock(CasualManagedConnection) {
+           getDomainId() >> {
+              secondDomainId
+           }
+       }
+
+       def rmIdThree = 3
+       CasualManagedConnection casualManagedConnectionThree = Mock(CasualManagedConnection) {
+           getDomainId() >> {
+              firstDomainId
+           }
+       }
+       when:
+       CasualXAResource xaResourceOne = new CasualXAResource(casualManagedConnectionOne, rmIdOne)
+       CasualXAResource xaResourceTwo = new CasualXAResource(casualManagedConnectionTwo, rmIdTwo)
+       CasualXAResource xaResourceThree = new CasualXAResource(casualManagedConnectionThree, rmIdThree)
+
+       then:
+       !xaResourceOne.isSameRM(xaResourceTwo)
+       xaResourceOne.isSameRM(xaResourceThree)
+       !xaResourceTwo.isSameRM(xaResourceThree)
     }
 
     def "Prepare returns ok."()
@@ -486,4 +516,5 @@ class CasualXAResourceTest extends Specification
         instance.getTransactionTimeout() == timeout
         instance.getTransactionTimeout() != defaultTimeout
     }
+
 }
