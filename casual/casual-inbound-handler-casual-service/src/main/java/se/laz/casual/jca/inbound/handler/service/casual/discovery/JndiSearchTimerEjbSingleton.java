@@ -7,13 +7,22 @@
 package se.laz.casual.jca.inbound.handler.service.casual.discovery;
 
 import se.laz.casual.api.service.CasualService;
+import se.laz.casual.config.ConfigurationService;
+import se.laz.casual.config.Mode;
+import se.laz.casual.jca.Information;
 import se.laz.casual.jca.inbound.handler.HandlerException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
+import javax.ejb.Timeout;
+import javax.ejb.Timer;
+import javax.ejb.TimerConfig;
+import javax.ejb.TimerService;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.lang.reflect.Method;
@@ -22,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,9 +47,30 @@ public class JndiSearchTimerEjbSingleton
 {
     private static final Logger logger = Logger.getLogger(JndiSearchTimerEjbSingleton.class.getName());
 
-    @Schedule(hour = "*", minute = "*", second = "*/10", persistent = false)
+    @Resource
+    private TimerService timerService;
+
+    private Timer timer;
+
+    @PostConstruct
+    private void setup()
+    {
+        TimerConfig config = new TimerConfig();
+        config.setPersistent(false);
+        timer = timerService.createIntervalTimer(0, 10 * 1000, config);
+    }
+
+    @Timeout
     public void findServicesInJndi()
     {
+        if(isTriggerModeAndInboundHasStarted())
+        {
+            // if inbound startup mode is trigger and inbound has started - remove timer
+            // no dynamic deployments are expected in this scenario
+            logger.finest(() -> "Inbound startup mode is Trigger and inbound server has started, cancelling JndiSearchTimerEjbSingleton timer");
+            timer.cancel();
+            return;
+        }
         try
         {
             logger.finest( ()-> "Fetch all unresolved casual services." );
@@ -54,10 +85,18 @@ public class JndiSearchTimerEjbSingleton
 
             resolveAll( toFind, apps );
 
-        } catch (NamingException e)
+        }
+        catch (Exception e)
         {
+            // since method with @Timeout annotation are not allowed to throw
             logger.log( Level.WARNING, e, ()-> "Error with jndi lookup." );
         }
+    }
+
+    private boolean isTriggerModeAndInboundHasStarted()
+    {
+        boolean triggerMode = ConfigurationService.getInstance().getConfiguration().getInbound().getStartup().getMode() == Mode.TRIGGER;
+        return triggerMode && Information.isInboundStarted();
     }
 
     private void resolveAll(List<CasualServiceMetaData> toFind, Map<String,Map<String,Proxy>> apps )
