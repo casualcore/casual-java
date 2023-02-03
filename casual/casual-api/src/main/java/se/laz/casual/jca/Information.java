@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
 package se.laz.casual.jca;
 
 import java.util.Map;
@@ -14,12 +19,13 @@ public class Information
 
     public static boolean isInboundStarted()
     {
-        return Optional.ofNullable(information.containsKey(INBOUND_SERVER_STARTED)).orElse(false);
+        return Optional.ofNullable(information.get(INBOUND_SERVER_STARTED)).orElse(false);
     }
 
-    public static void setInboundStarted()
+    public static void setInboundStarted(boolean started)
     {
-        information.put(INBOUND_SERVER_STARTED, true);
+        information.put(INBOUND_SERVER_STARTED, started);
+        int i = 0;
     }
 
 }
