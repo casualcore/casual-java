@@ -1,7 +1,0 @@
-{
-  "inbound": {
-    "startup": {
-      "mode": "trigger"
-    }
-  }
-}
