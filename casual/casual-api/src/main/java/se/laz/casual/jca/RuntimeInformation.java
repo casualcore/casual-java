@@ -9,23 +9,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Information
+public class RuntimeInformation
 {
-    private final static String INBOUND_SERVER_STARTED = "INBOUND_SERVER_STARTED";
-    private final static Map<String, Boolean> information = new ConcurrentHashMap<>();
+    private static final String INBOUND_SERVER_STARTED = "INBOUND_SERVER_STARTED";
+    private static final Map<String, Boolean> CACHE = new ConcurrentHashMap<>();
 
-    private Information()
+    private RuntimeInformation()
     {}
 
     public static boolean isInboundStarted()
     {
-        return Optional.ofNullable(information.get(INBOUND_SERVER_STARTED)).orElse(false);
+        return Optional.ofNullable(CACHE.get(INBOUND_SERVER_STARTED)).orElse(false);
     }
 
     public static void setInboundStarted(boolean started)
     {
-        information.put(INBOUND_SERVER_STARTED, started);
-        int i = 0;
+        CACHE.put(INBOUND_SERVER_STARTED, started);
     }
-
 }

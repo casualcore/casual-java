@@ -9,7 +9,7 @@ import se.laz.casual.config.Configuration
 import se.laz.casual.config.Inbound
 import se.laz.casual.config.Mode
 import se.laz.casual.config.Startup
-import se.laz.casual.jca.Information
+import se.laz.casual.jca.RuntimeInformation
 import spock.lang.Specification
 
 class TimerStopConditionTest extends Specification
@@ -17,7 +17,7 @@ class TimerStopConditionTest extends Specification
    def 'should stop'()
    {
       expect:
-      Information.setInboundStarted(inboundStarted)
+      RuntimeInformation.setInboundStarted(inboundStarted)
       Configuration configuration = Configuration.newBuilder(  )
               .withInbound( Inbound.newBuilder(  )
                       .withStartup( Startup.newBuilder(  )

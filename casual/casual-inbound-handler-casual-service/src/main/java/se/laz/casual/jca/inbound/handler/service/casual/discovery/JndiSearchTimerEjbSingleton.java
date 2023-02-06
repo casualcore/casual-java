@@ -37,13 +37,12 @@ import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodM
 public class JndiSearchTimerEjbSingleton
 {
     private static final Logger logger = Logger.getLogger(JndiSearchTimerEjbSingleton.class.getName());
-
-    private TimerStopCondition timerStopCondition = TimerStopCondition.of();
+    private final TimerStopCondition stopCondition = TimerStopCondition.of();
 
     @Schedule(hour = "*", minute = "*", second = "*/10", persistent = false)
     public void findServicesInJndi(Timer timer)
     {
-        if(timerStopCondition.stop(ConfigurationService.getInstance().getConfiguration()))
+        if(stopCondition.stop(ConfigurationService.getInstance().getConfiguration()))
         {
             logger.finest(() -> "Inbound startup mode is Trigger and inbound server has started, cancelling JndiSearchTimerEjbSingleton timer");
             timer.cancel();

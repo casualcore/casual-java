@@ -139,7 +139,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     {
         Consumer<CasualServer> consumer = (CasualServer runningServer) -> {
             server = runningServer;
-            Information.setInboundStarted(true);
+            RuntimeInformation.setInboundStarted(true);
         };
         Supplier<CasualServer> supplier = () -> CasualServer.of(connectionInformation);
         Supplier<String> logMsg = () -> "Casual inbound server bound to port: " + connectionInformation.getPort();

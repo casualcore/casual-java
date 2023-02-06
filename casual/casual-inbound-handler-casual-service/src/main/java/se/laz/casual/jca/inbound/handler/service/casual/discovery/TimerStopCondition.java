@@ -7,13 +7,14 @@ package se.laz.casual.jca.inbound.handler.service.casual.discovery;
 
 import se.laz.casual.config.Configuration;
 import se.laz.casual.config.Mode;
-import se.laz.casual.jca.Information;
+import se.laz.casual.jca.RuntimeInformation;
 
 import java.util.logging.Logger;
 
 public class TimerStopCondition
 {
     private static final Logger log = Logger.getLogger( TimerStopCondition.class.getName());
+    private Boolean triggerMode;
     private TimerStopCondition()
     {}
 
@@ -24,9 +25,14 @@ public class TimerStopCondition
 
     public boolean stop(Configuration configuration)
     {
-        boolean triggerMode = configuration.getInbound().getStartup().getMode() == Mode.TRIGGER;
+        if(null == triggerMode)
+        {
+            // this does not change at runtime, if inbound is started or not does
+            // for testing purposes we cache it here instead of when the class is loaded
+            triggerMode = configuration.getInbound().getStartup().getMode() == Mode.TRIGGER;
+        }
         log.finest(() -> "startupmode TRIGGER?" + triggerMode);
-        log.finest(() -> "Information.isInboundStarted()?" + Information.isInboundStarted());
-        return triggerMode && Information.isInboundStarted();
+        log.finest(() -> "RuntimeInformation.isInboundStarted()?" + RuntimeInformation.isInboundStarted());
+        return triggerMode && RuntimeInformation.isInboundStarted();
     }
 }
