@@ -16,9 +16,9 @@ import java.util.logging.Logger;
 public class Startup
 {
     private static final Logger LOG = Logger.getLogger(Startup.class.getName());
-    private static final String CASUAL_INBOUND_STARTUP_MODE_ENV_NAME = "CASUAL_INBOUND_STARTUP_MODE";
     private final Mode mode;
     private final List<String> services;
+    public static final String CASUAL_INBOUND_STARTUP_MODE_ENV_NAME = "CASUAL_INBOUND_STARTUP_MODE";
 
     public Startup( Mode mode, List<String> services )
     {
@@ -82,7 +82,7 @@ public class Startup
 
     public static final class Builder
     {
-        private Mode mode;
+        private Mode mode = Mode.IMMEDIATE;
         private List<String> services = new ArrayList<>(  );
 
         private Builder()
@@ -103,7 +103,6 @@ public class Startup
 
         public Startup build()
         {
-            mode = (null == mode) ? Mode.fromName(Optional.ofNullable(System.getenv(CASUAL_INBOUND_STARTUP_MODE_ENV_NAME)).orElseGet(Mode.IMMEDIATE::getName)) : mode;
             LOG.info(() -> "Casual Inbound Startup mode is: " + mode);
             return new Startup( mode, services );
         }
