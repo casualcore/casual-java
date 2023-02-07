@@ -1,0 +1,7 @@
+{
+  "inbound": {
+    "startup": {
+      "mode": "immediate"
+    }
+  }
+}

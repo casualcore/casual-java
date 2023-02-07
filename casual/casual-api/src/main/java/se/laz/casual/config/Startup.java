@@ -17,6 +17,7 @@ public class Startup
     private static final Logger LOG = Logger.getLogger(Startup.class.getName());
     private final Mode mode;
     private final List<String> services;
+    public static final String CASUAL_INBOUND_STARTUP_MODE_ENV_NAME = "CASUAL_INBOUND_STARTUP_MODE";
 
     public Startup( Mode mode, List<String> services )
     {

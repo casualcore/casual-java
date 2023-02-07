@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,6 +7,7 @@
 package se.laz.casual.jca.inbound.handler.service.casual.discovery;
 
 import se.laz.casual.api.service.CasualService;
+import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.inbound.handler.HandlerException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData;
@@ -14,8 +15,8 @@ import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
 
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
+import javax.ejb.Timer;
 import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -36,10 +37,17 @@ import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodM
 public class JndiSearchTimerEjbSingleton
 {
     private static final Logger logger = Logger.getLogger(JndiSearchTimerEjbSingleton.class.getName());
+    private final TimerStopCondition stopCondition = TimerStopCondition.of();
 
     @Schedule(hour = "*", minute = "*", second = "*/10", persistent = false)
-    public void findServicesInJndi()
+    public void findServicesInJndi(Timer timer)
     {
+        if(stopCondition.stop(ConfigurationService.getInstance().getConfiguration()))
+        {
+            logger.finest(() -> "Inbound startup mode is Trigger and inbound server has started, cancelling JndiSearchTimerEjbSingleton timer");
+            timer.cancel();
+            return;
+        }
         try
         {
             logger.finest( ()-> "Fetch all unresolved casual services." );
@@ -54,8 +62,10 @@ public class JndiSearchTimerEjbSingleton
 
             resolveAll( toFind, apps );
 
-        } catch (NamingException e)
+        }
+        catch (Exception e)
         {
+            // since method with @Timeout annotation are not allowed to throw
             logger.log( Level.WARNING, e, ()-> "Error with jndi lookup." );
         }
     }
