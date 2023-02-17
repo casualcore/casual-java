@@ -163,7 +163,7 @@ class StartInboundServerWorkTest extends Specification
         Class<?> serviceClass = String.class
         Method serviceMethod = String.class.getMethod( "toString" )
 
-        CasualServiceMetaData metaData = CasualServiceMetaData.newBuilder(  )
+       CasualServiceMetaData metaData = CasualServiceMetaData.newBuilder(  )
                 .service( service )
                 .implementationClass( serviceClass )
                 .serviceMethod( serviceMethod )
