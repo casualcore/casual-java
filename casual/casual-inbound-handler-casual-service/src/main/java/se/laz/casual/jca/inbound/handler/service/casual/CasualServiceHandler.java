@@ -129,15 +129,16 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
 
         Method method = info.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provide required details about the method end point." ) );
 
+        serviceCallExtension.before(r, entry, request, bufferHandler);
+        Object[] params = serviceCallExtension.convert(info.getParams());
         Object result;
         try
         {
-            serviceCallExtension.before(r, entry, request, bufferHandler);
-            result = method.invoke( p, serviceCallExtension.convert(info.getParams()) );
+            result = method.invoke( p, params );
         }
         catch( IllegalArgumentException e )
         {
-            result = retryCallService( p, entry, request, bufferHandler, serviceCallExtension );
+            result = retryCallService( p, entry, request, bufferHandler, params );
         }
         finally
         {
@@ -152,7 +153,7 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
      * time this service is called the NoSuchMethodException will not occur again.
      * NoSuchMethodException never happens in wildfly so this should only be called in weblogic once for first invocation of the method.
      */
-    private Object retryCallService(Proxy p, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler, CasualServiceCallExtension paramsConverter) throws Throwable
+    private Object retryCallService(Proxy p, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler, Object[] params) throws Throwable
     {
         InvocationHandler handler = Proxy.getInvocationHandler( p );
         Method method = entry.getProxyMethod();
@@ -165,7 +166,7 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
 
         Method m = serviceCallInfo.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provided required details about the method end point." ) );
 
-        return handler.invoke( p, m, paramsConverter.convert(serviceCallInfo.getParams()) );
+        return handler.invoke( p, m, params );
     }
 
     Context getContext() throws NamingException
