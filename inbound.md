@@ -45,6 +45,32 @@ the domain discovery requests will respond accordingly.
 
 NB - undeployment of an application currently does not remove the associated casual services from the registry.
 
+### Extending Casual Service Handler
+
+If you want to use the service handler that is provided, but the default implementation does not suit your needs - you can then
+implement an SPI extension that derives from *CasualServiceCallExtension* with a priority lower than default *Priority.LEVEL_5*.
+
+```java
+public interface CasualServiceCallExtension extends Prioritisable, GenericExtensionPoint
+{
+    void before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler);
+    Object[] convert(Object[] params);
+    void after();
+    void handleError(InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger);
+    default boolean canHandle(String name)
+    {
+        return name.equals(DefaultCasualServiceHandler.class.getName());
+    }
+}
+```
+
+The order of the calls in *CasualServiceHandler* is as follows:
+* before
+* convert
+* actual service call
+* after
+* handleError - only if service call triggers some exception
+
 ### Startup configuration
 
 Depending on the configuration mode for inbound startup mode, you can control when the inbound server starts accepting requests.
