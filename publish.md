@@ -118,6 +118,8 @@ The casual public signature will be signed by others first.
 
 Question does the certificate validation change when you verify a file if you have signed with 1 chain of trust vs multiple chains of trust?
 
+Question what if a rando signs the public back up - is that desirable? unavoidable? necessary evil/....
+
 
 https://docs.gradle.org/current/userguide/signing_plugin.html
 
