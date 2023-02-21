@@ -74,10 +74,6 @@ Is this okay? (y/N) y
 ASCII armored output forced.
 Revocation certificate created.
 
-
-
-TODO dont forget to create a revocation certificate.
-
 ## Export
 
 secret binary
@@ -117,6 +113,29 @@ gpg:               imported: 1
 
 ## Import key from file
 
+gpg --import public.asc
+
+## Trust key
+
+gpg --edit-key 15362C063E05B561 trust
+Select trust level e.g. 5 - Ultimate
+y
+quit
+
+## Verify
+
+gpg --verify <filename>
+
+e.g.
+
+gpg --verify casual/casual-api/build/repo/snapshots/se/laz/casual/casual-api/2.2.16-SNAPSHOT/casual-api-2.2.16-20230220.142326-1.jar.asc
+gpg: assuming signed data in 'casual/casual-api/build/repo/snapshots/se/laz/casual/casual-api/2.2.16-SNAPSHOT/casual-api-2.2.16-20230220.142326-1.jar'
+gpg: Signature made mån 20 feb 2023 15:24:39 CET
+gpg:                using RSA key 15362C063E05B561
+gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   2  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 2u
+gpg: Good signature from "Casual Middleware (Software Signing Key) <casual@laz.se>" [ultimate]
 
 
 ### Signature / Secret Distribution
