@@ -80,14 +80,43 @@ TODO dont forget to create a revocation certificate.
 
 ## Export
 
-public binary
-public ascii
 secret binary
+$ gpg --export-secret-key 330916DA5D304C2B84DD94CE15362C063E05B561 > secret.pgp
 secret ascii
+$ gpg -a --export-secret-key 330916DA5D304C2B84DD94CE15362C063E05B561 > secret.asc
+
+public binary
+$ gpg --export 330916DA5D304C2B84DD94CE15362C063E05B561 > public.pgp
+public ascii
+$ gpg -a --export 330916DA5D304C2B84DD94CE15362C063E05B561 > public.asc
 
 ## Publish
-gpg --keyserver keyserver.ubuntu.com --send-keys
-gpg --keyserver hkps://keys.openpgp.org --send-keys
+gpg --keyserver keyserver.ubuntu.com --send-keys 330916DA5D304C2B84DD94CE15362C063E05B561
+gpg --keyserver hkps://keys.openpgp.org --send-keys 330916DA5D304C2B84DD94CE15362C063E05B561
+
+Chris@aqua MINGW64 ~
+$ gpg --keyserver keyserver.ubuntu.com --send-keys 330916DA5D304C2B84DD94CE15362C063E05B561
+gpg: sending key 15362C063E05B561 to hkp://keyserver.ubuntu.com
+
+Chris@aqua MINGW64 ~
+$ gpg --keyserver hkps://keys.openpgp.org --send-keys 330916DA5D304C2B84DD94CE15362C063E05B561
+gpg: sending key 15362C063E05B561 to hkps://keys.openpgp.org
+
+
+## Retrieve key from key server
+ck@node02:~/repos/casual-java$ gpg --keyserver hkp://keyserver.ubuntu.com --search-keys 330916DA5D304C2B84DD94CE15362C063E05B561
+gpg: data source: http://162.213.33.8:11371
+(1)     Casual Middleware (Software Signing Key) <casual@laz.se>
+4096 bit RSA key 15362C063E05B561, created: 2023-01-17
+Keys 1-1 of 1 for "330916DA5D304C2B84DD94CE15362C063E05B561".  Enter number(s), N)ext, or Q)uit > N
+ck@node02:~/repos/casual-java$ gpg --keyserver hkp://keyserver.ubuntu.com --receive-keys 330916DA5D304C2B84DD94CE15362C063E05B561
+gpg: key 15362C063E05B561: public key "Casual Middleware (Software Signing Key) <casual@laz.se>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+
+
+## Import key from file
+
 
 
 ### Signature / Secret Distribution
