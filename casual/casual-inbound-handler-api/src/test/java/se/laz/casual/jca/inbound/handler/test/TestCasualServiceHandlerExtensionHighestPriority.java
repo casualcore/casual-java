@@ -8,13 +8,13 @@ package se.laz.casual.jca.inbound.handler.test;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
-import se.laz.casual.jca.inbound.handler.service.CasualServiceCallExtension;
+import se.laz.casual.jca.inbound.handler.service.CasualServiceHandlerExtension;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry;
 import se.laz.casual.spi.Priority;
 
 import java.util.logging.Logger;
 
-public class TestCasualServiceCallExtensionHighestPriority implements CasualServiceCallExtension
+public class TestCasualServiceHandlerExtensionHighestPriority implements CasualServiceHandlerExtension
 {
     @Override
     public void before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler)

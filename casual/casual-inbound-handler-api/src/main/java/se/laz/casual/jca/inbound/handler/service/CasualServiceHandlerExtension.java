@@ -15,7 +15,7 @@ import se.laz.casual.spi.Prioritisable;
 
 import java.util.logging.Logger;
 
-public interface CasualServiceCallExtension extends Prioritisable, GenericExtensionPoint
+public interface CasualServiceHandlerExtension extends Prioritisable, GenericExtensionPoint
 {
     void before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler);
     Object[] convert(Object[] params);

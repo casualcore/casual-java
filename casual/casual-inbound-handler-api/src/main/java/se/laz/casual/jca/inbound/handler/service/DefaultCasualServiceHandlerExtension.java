@@ -3,30 +3,20 @@
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
-package se.laz.casual.jca.inbound.handler.test;
+package se.laz.casual.jca.inbound.handler.service;
 
+import se.laz.casual.api.flags.ErrorState;
+import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
-import se.laz.casual.jca.inbound.handler.service.CasualServiceCallExtension;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry;
-import se.laz.casual.jca.inbound.handler.service.casual.DefaultCasualServiceHandler;
-import se.laz.casual.spi.Priority;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class TestCasualServiceCallExtensionLowestPriority implements CasualServiceCallExtension
+public class DefaultCasualServiceHandlerExtension implements CasualServiceHandlerExtension
 {
-    @Override
-    public boolean canHandle(String name)
-    {
-        return name.equals(DefaultCasualServiceHandler.class.getName());
-    }
-
-    @Override
-    public void before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler)
-    {}
-
     @Override
     public Object[] convert(Object[] params)
     {
@@ -34,16 +24,19 @@ public class TestCasualServiceCallExtensionLowestPriority implements CasualServi
     }
 
     @Override
+    public void before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler)
+    {}
+
+    @Override
     public void after()
     {}
 
     @Override
     public void handleError(InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger)
-    {}
-
-    @Override
-    public Priority getPriority()
     {
-        return Priority.LEVEL_0;
+        logger.log( Level.WARNING, e, ()-> "Error invoking fielded: " + e.getMessage() );
+        responseBuilder
+                .errorState( ErrorState.TPESVCERR)
+                .transactionState( TransactionState.ROLLBACK_ONLY );
     }
 }

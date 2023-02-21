@@ -16,7 +16,7 @@ import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
-import se.laz.casual.jca.inbound.handler.service.CasualServiceCallExtension;
+import se.laz.casual.jca.inbound.handler.service.CasualServiceHandlerExtension;
 import se.laz.casual.jca.inbound.handler.service.CasualServiceCallExtensionFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.transaction.TransactionTypeMapperJTA;
@@ -78,7 +78,7 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
         CasualBuffer payload = ServiceBuffer.empty();
         InboundResponse.Builder responseBuilder = InboundResponse.createBuilder();
-        CasualServiceCallExtension serviceCallExtension = CasualServiceCallExtensionFactory.getExtension(DefaultCasualServiceHandler.class.getName());
+        CasualServiceHandlerExtension serviceCallExtension = CasualServiceCallExtensionFactory.getExtension(DefaultCasualServiceHandler.class.getName());
         try
         {
             Object r = loadService(entry.getJndiName() );
@@ -121,7 +121,7 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         return r;
     }
 
-    private InboundResponse callService(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler, CasualServiceCallExtension serviceCallExtension) throws Throwable
+    private InboundResponse callService(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler, CasualServiceHandlerExtension serviceCallExtension) throws Throwable
     {
         Proxy p = (Proxy)r;
 

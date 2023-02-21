@@ -3,24 +3,24 @@
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
-package se.laz.casual.jca.inbound.handler.service;
+package se.laz.casual.jca.inbound.handler.test;
 
-import se.laz.casual.api.flags.ErrorState;
-import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
+import se.laz.casual.jca.inbound.handler.service.CasualServiceHandlerExtension;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry;
+import se.laz.casual.jca.inbound.handler.service.casual.DefaultCasualServiceHandler;
+import se.laz.casual.spi.Priority;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DefaultCasualServiceCallExtension implements CasualServiceCallExtension
+public class TestCasualServiceHandlerExtensionLowestPriority implements CasualServiceHandlerExtension
 {
     @Override
-    public Object[] convert(Object[] params)
+    public boolean canHandle(String name)
     {
-        return params;
+        return name.equals(DefaultCasualServiceHandler.class.getName());
     }
 
     @Override
@@ -28,15 +28,22 @@ public class DefaultCasualServiceCallExtension implements CasualServiceCallExten
     {}
 
     @Override
+    public Object[] convert(Object[] params)
+    {
+        return params;
+    }
+
+    @Override
     public void after()
     {}
 
     @Override
     public void handleError(InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger)
+    {}
+
+    @Override
+    public Priority getPriority()
     {
-        logger.log( Level.WARNING, e, ()-> "Error invoking fielded: " + e.getMessage() );
-        responseBuilder
-                .errorState( ErrorState.TPESVCERR)
-                .transactionState( TransactionState.ROLLBACK_ONLY );
+        return Priority.LEVEL_0;
     }
 }

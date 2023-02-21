@@ -16,21 +16,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CasualServiceCallExtensionFactory
 {
-    private static final Map<String, CasualServiceCallExtension> casualServiceCallExtensionCache = new ConcurrentHashMap<>();
-    private static final DefaultCasualServiceCallExtension CASUAL_SERVICE_CALL_EXTENSION = new DefaultCasualServiceCallExtension();
+    private static final Map<String, CasualServiceHandlerExtension> casualServiceCallExtensionCache = new ConcurrentHashMap<>();
+    private static final DefaultCasualServiceHandlerExtension CASUAL_SERVICE_CALL_EXTENSION = new DefaultCasualServiceHandlerExtension();
 
     private CasualServiceCallExtensionFactory()
     {}
 
     /**
-     * Get all registered {@link CasualServiceCallExtension} instances.
+     * Get all registered {@link CasualServiceHandlerExtension} instances.
      *
      * @return available handlers.
      */
-    private static List<CasualServiceCallExtension> getHandlers()
+    private static List<CasualServiceHandlerExtension> getHandlers()
     {
-        List<CasualServiceCallExtension> handlers = new ArrayList<>();
-        for( CasualServiceCallExtension h: ServiceLoader.load( CasualServiceCallExtension.class ) )
+        List<CasualServiceHandlerExtension> handlers = new ArrayList<>();
+        for( CasualServiceHandlerExtension h: ServiceLoader.load( CasualServiceHandlerExtension.class ) )
         {
             handlers.add( h );
         }
@@ -38,24 +38,24 @@ public class CasualServiceCallExtensionFactory
     }
 
     /**
-     * Retrieve the most appropriate {@link CasualServiceCallExtension} base on it's {@link Priority}.
+     * Retrieve the most appropriate {@link CasualServiceHandlerExtension} base on it's {@link Priority}.
      *
      * If there is no registered handler a PassThoughHandler is returned, which will ensure no transformation takes place.
      *
      * @param name to get a handler for.
      * @return the error handler.
      */
-    public static CasualServiceCallExtension getExtension(String name)
+    public static CasualServiceHandlerExtension getExtension(String name)
     {
         if( casualServiceCallExtensionCache.containsKey( name ) )
         {
             return casualServiceCallExtensionCache.get( name );
         }
 
-        List<CasualServiceCallExtension> handlers = getHandlers();
+        List<CasualServiceHandlerExtension> handlers = getHandlers();
         Prioritise.highestToLowest( handlers );
 
-        for( CasualServiceCallExtension h: handlers )
+        for( CasualServiceHandlerExtension h: handlers )
         {
             casualServiceCallExtensionCache.put(name, h);
             if( h.canHandle( name ) )

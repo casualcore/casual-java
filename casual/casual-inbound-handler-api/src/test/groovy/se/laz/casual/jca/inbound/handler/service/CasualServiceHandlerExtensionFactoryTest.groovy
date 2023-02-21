@@ -7,22 +7,22 @@
 package se.laz.casual.jca.inbound.handler.service
 
 import se.laz.casual.jca.inbound.handler.service.casual.DefaultCasualServiceHandler
-import se.laz.casual.jca.inbound.handler.test.TestCasualServiceCallExtensionLowestPriority
+import se.laz.casual.jca.inbound.handler.test.TestCasualServiceHandlerExtensionLowestPriority
 import spock.lang.Specification
 
-class CasualServiceCallExtensionFactoryTest extends Specification
+class CasualServiceHandlerExtensionFactoryTest extends Specification
 {
    def "GetHandler service in the right order when multiple can handle, also get default when no extension registered for name"()
    {
       when:
-      CasualServiceCallExtension extension = CasualServiceCallExtensionFactory.getExtension( extensionName )
+      CasualServiceHandlerExtension extension = CasualServiceCallExtensionFactory.getExtension( extensionName )
 
       then:
       extension.getClass() == extensionType
 
       where:
       extensionName                               | extensionType
-      DefaultCasualServiceHandler.class.getName() | TestCasualServiceCallExtensionLowestPriority.class
-      'unknown'                                   | DefaultCasualServiceCallExtension.class
+      DefaultCasualServiceHandler.class.getName() | TestCasualServiceHandlerExtensionLowestPriority.class
+      'unknown'                                   | DefaultCasualServiceHandlerExtension.class
    }
 }
