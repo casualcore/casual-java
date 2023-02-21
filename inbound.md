@@ -48,7 +48,7 @@ NB - undeployment of an application currently does not remove the associated cas
 ### Extending Casual Service Handler
 
 If you want to use the service handler that is provided, but the default implementation does not suit your needs - you can then
-implement an SPI extension that derives from *CasualServiceCallExtension* with a priority lower than default *Priority.LEVEL_5*.
+create an SPI extension that implements *CasualServiceCallExtension* with a priority lower than default *Priority.LEVEL_5*.
 
 ```java
 public interface CasualServiceCallExtension extends Prioritisable, GenericExtensionPoint
