@@ -15,7 +15,7 @@ class CasualServiceHandlerExtensionFactoryTest extends Specification
    def "GetHandler service in the right order when multiple can handle, also get default when no extension registered for name"()
    {
       when:
-      CasualServiceHandlerExtension extension = CasualServiceCallExtensionFactory.getExtension( extensionName )
+      CasualServiceHandlerExtension extension = CasualServiceHandlerExtensionFactory.getExtension( extensionName )
 
       then:
       extension.getClass() == extensionType

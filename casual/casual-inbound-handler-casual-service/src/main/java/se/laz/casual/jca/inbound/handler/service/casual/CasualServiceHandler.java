@@ -17,7 +17,7 @@ import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.laz.casual.jca.inbound.handler.service.CasualServiceHandlerExtension;
-import se.laz.casual.jca.inbound.handler.service.CasualServiceCallExtensionFactory;
+import se.laz.casual.jca.inbound.handler.service.CasualServiceHandlerExtensionFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.transaction.TransactionTypeMapperJTA;
 import se.laz.casual.network.messages.domain.TransactionType;
@@ -78,7 +78,7 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
         CasualBuffer payload = ServiceBuffer.empty();
         InboundResponse.Builder responseBuilder = InboundResponse.createBuilder();
-        CasualServiceHandlerExtension serviceCallExtension = CasualServiceCallExtensionFactory.getExtension(DefaultCasualServiceHandler.class.getName());
+        CasualServiceHandlerExtension serviceCallExtension = CasualServiceHandlerExtensionFactory.getExtension(DefaultCasualServiceHandler.class.getName());
         try
         {
             Object r = loadService(entry.getJndiName() );

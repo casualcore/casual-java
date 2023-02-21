@@ -14,12 +14,12 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CasualServiceCallExtensionFactory
+public class CasualServiceHandlerExtensionFactory
 {
-    private static final Map<String, CasualServiceHandlerExtension> casualServiceCallExtensionCache = new ConcurrentHashMap<>();
-    private static final DefaultCasualServiceHandlerExtension CASUAL_SERVICE_CALL_EXTENSION = new DefaultCasualServiceHandlerExtension();
+    private static final Map<String, CasualServiceHandlerExtension> casualServiceHandlerExtensionCache = new ConcurrentHashMap<>();
+    private static final DefaultCasualServiceHandlerExtension CASUAL_SERVICE_HANDLER_EXTENSION = new DefaultCasualServiceHandlerExtension();
 
-    private CasualServiceCallExtensionFactory()
+    private CasualServiceHandlerExtensionFactory()
     {}
 
     /**
@@ -40,16 +40,16 @@ public class CasualServiceCallExtensionFactory
     /**
      * Retrieve the most appropriate {@link CasualServiceHandlerExtension} base on it's {@link Priority}.
      *
-     * If there is no registered handler a PassThoughHandler is returned, which will ensure no transformation takes place.
+     * If there is no registered extension, a default extension is used {@link DefaultCasualServiceHandlerExtension}.
      *
      * @param name to get a handler for.
      * @return the error handler.
      */
     public static CasualServiceHandlerExtension getExtension(String name)
     {
-        if( casualServiceCallExtensionCache.containsKey( name ) )
+        if( casualServiceHandlerExtensionCache.containsKey( name ) )
         {
-            return casualServiceCallExtensionCache.get( name );
+            return casualServiceHandlerExtensionCache.get( name );
         }
 
         List<CasualServiceHandlerExtension> handlers = getHandlers();
@@ -57,14 +57,14 @@ public class CasualServiceCallExtensionFactory
 
         for( CasualServiceHandlerExtension h: handlers )
         {
-            casualServiceCallExtensionCache.put(name, h);
+            casualServiceHandlerExtensionCache.put(name, h);
             if( h.canHandle( name ) )
             {
-                casualServiceCallExtensionCache.put( name, h );
+                casualServiceHandlerExtensionCache.put( name, h );
                 return h;
             }
         }
-        casualServiceCallExtensionCache.put( name, CASUAL_SERVICE_CALL_EXTENSION);
-        return CASUAL_SERVICE_CALL_EXTENSION;
+        casualServiceHandlerExtensionCache.put( name, CASUAL_SERVICE_HANDLER_EXTENSION);
+        return CASUAL_SERVICE_HANDLER_EXTENSION;
     }
 }
