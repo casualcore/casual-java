@@ -18,6 +18,7 @@ import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.laz.casual.jca.inbound.handler.service.CasualServiceHandlerExtension;
 import se.laz.casual.jca.inbound.handler.service.CasualServiceHandlerExtensionFactory;
+import se.laz.casual.jca.inbound.handler.service.CasualServiceHandlerExtensionState;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.transaction.TransactionTypeMapperJTA;
 import se.laz.casual.network.messages.domain.TransactionType;
@@ -78,17 +79,19 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
         CasualBuffer payload = ServiceBuffer.empty();
         InboundResponse.Builder responseBuilder = InboundResponse.createBuilder();
-        CasualServiceHandlerExtension serviceCallExtension = CasualServiceHandlerExtensionFactory.getExtension(DefaultCasualServiceHandler.class.getName());
+        CasualServiceHandlerExtension serviceHandlerExtension = CasualServiceHandlerExtensionFactory.getExtension(DefaultCasualServiceHandler.class.getName());
+        CasualServiceHandlerExtensionState serviceHandlerExtensionState = null;
         try
         {
             Object r = loadService(entry.getJndiName() );
             BufferHandler bufferHandler = BufferHandlerFactory.getHandler( request.getBuffer().getType() );
             tool.loadClassLoader( r );
-            return callService( r, entry, request, bufferHandler, serviceCallExtension );
+            serviceHandlerExtensionState = serviceHandlerExtension.before(r, entry, request, bufferHandler);
+            return callService( r, entry, request, bufferHandler, serviceHandlerExtension, serviceHandlerExtensionState);
         }
         catch( Throwable e )
         {
-            serviceCallExtension.handleError(request, responseBuilder, e, LOG);
+            serviceHandlerExtension.handleError(serviceHandlerExtensionState, request, responseBuilder, e, LOG);
         }
         finally
         {
@@ -121,7 +124,7 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         return r;
     }
 
-    private InboundResponse callService(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler, CasualServiceHandlerExtension serviceCallExtension) throws Throwable
+    private InboundResponse callService(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler, CasualServiceHandlerExtension serviceHandlerExtension, CasualServiceHandlerExtensionState serviceHandlerExtensionState) throws Throwable
     {
         Proxy p = (Proxy)r;
 
@@ -129,8 +132,7 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
 
         Method method = info.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provide required details about the method end point." ) );
 
-        serviceCallExtension.before(r, entry, request, bufferHandler);
-        Object[] params = serviceCallExtension.convert(info.getParams());
+        Object[] params = serviceHandlerExtension.convert(serviceHandlerExtensionState, info.getParams());
         Object result;
         try
         {
@@ -142,7 +144,7 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         }
         finally
         {
-            serviceCallExtension.after();
+            serviceHandlerExtension.after(serviceHandlerExtensionState);
         }
         return bufferHandler.toResponse( info, result );
     }

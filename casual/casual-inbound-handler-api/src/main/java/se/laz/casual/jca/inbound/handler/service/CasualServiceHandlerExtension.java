@@ -17,10 +17,10 @@ import java.util.logging.Logger;
 
 public interface CasualServiceHandlerExtension extends Prioritisable, GenericExtensionPoint
 {
-    void before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler);
-    Object[] convert(Object[] params);
-    void after();
-    void handleError(InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger);
+    CasualServiceHandlerExtensionState before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler);
+    Object[] convert(CasualServiceHandlerExtensionState state, Object[] params);
+    void after(CasualServiceHandlerExtensionState state);
+    void handleError(CasualServiceHandlerExtensionState state, InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger);
     default boolean canHandle(String name)
     {
         return name.equals(DefaultCasualServiceHandler.class.getName());
