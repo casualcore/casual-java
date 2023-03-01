@@ -32,7 +32,9 @@ public class DefaultCasualServiceHandlerExtension implements CasualServiceHandle
 
     @Override
     public void after(CasualServiceHandlerExtensionState state)
-    {}
+    {
+        //NOP
+    }
 
     @Override
     public void handleError(CasualServiceHandlerExtensionState state, InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger)
