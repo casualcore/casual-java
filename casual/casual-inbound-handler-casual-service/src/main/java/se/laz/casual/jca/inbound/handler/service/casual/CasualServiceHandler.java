@@ -6,7 +6,6 @@
 
 package se.laz.casual.jca.inbound.handler.service.casual;
 
-import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.internal.thread.ThreadClassLoaderTool;
@@ -23,8 +22,6 @@ import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.transaction.TransactionTypeMapperJTA;
 import se.laz.casual.network.messages.domain.TransactionType;
 
-import javax.ejb.Local;
-import javax.ejb.Stateless;
 import javax.ejb.TransactionAttributeType;
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -37,8 +34,6 @@ import java.util.logging.Logger;
 
 import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodMatcher.matches;
 
-@Stateless
-@Local( ServiceHandler.class )
 public class CasualServiceHandler implements ServiceHandler, DefaultCasualServiceHandler
 {
     private static final Logger LOG = Logger.getLogger(CasualServiceHandler.class.getName());
