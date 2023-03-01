@@ -17,27 +17,28 @@ import java.util.logging.Logger;
 
 public class DefaultCasualServiceHandlerExtension implements CasualServiceHandlerExtension
 {
-    private static final DefaultCasualServiceHandlerExtensionState DEFAULT_CASUAL_SERVICE_HANDLER_EXTENSION_STATE = new DefaultCasualServiceHandlerExtensionState();
-    @Override
-    public Object[] convert(CasualServiceHandlerExtensionState state, Object[] params)
-    {
-        return params;
-    }
+    private static final DefaultCasualServiceHandlerExtensionContext DEFAULT_CASUAL_SERVICE_HANDLER_EXTENSION_STATE = new DefaultCasualServiceHandlerExtensionContext();
 
     @Override
-    public CasualServiceHandlerExtensionState before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler)
+    public CasualServiceHandlerExtensionContext before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler)
     {
         return DEFAULT_CASUAL_SERVICE_HANDLER_EXTENSION_STATE;
     }
 
     @Override
-    public void after(CasualServiceHandlerExtensionState state)
+    public Object[] convert(CasualServiceHandlerExtensionContext context, Object[] params)
+    {
+        return params;
+    }
+
+    @Override
+    public void after(CasualServiceHandlerExtensionContext context)
     {
         //NOP
     }
 
     @Override
-    public void handleError(CasualServiceHandlerExtensionState state, InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger)
+    public void handleError(CasualServiceHandlerExtensionContext context, InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger)
     {
         logger.log( Level.WARNING, e, ()-> "Error invoking fielded: " + e.getMessage() );
         responseBuilder
