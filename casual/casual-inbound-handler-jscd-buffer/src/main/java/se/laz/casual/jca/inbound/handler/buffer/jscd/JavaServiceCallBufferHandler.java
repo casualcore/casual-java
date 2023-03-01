@@ -8,6 +8,7 @@ package se.laz.casual.jca.inbound.handler.buffer.jscd;
 
 import se.laz.casual.api.buffer.CasualBufferType;
 import se.laz.casual.api.buffer.type.JavaServiceCallDefinition;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.external.json.JsonProvider;
 import se.laz.casual.api.external.json.JsonProviderFactory;
 import se.laz.casual.api.external.json.impl.GsonJscdTypeAdapter;
@@ -16,18 +17,13 @@ import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 
-import javax.ejb.Local;
-import javax.ejb.Stateless;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-@Stateless
-@Local(BufferHandler.class)
 public class JavaServiceCallBufferHandler implements BufferHandler
 {
     private static final JsonProvider jp = JsonProviderFactory.getJsonProvider();

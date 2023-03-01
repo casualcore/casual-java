@@ -20,8 +20,6 @@ import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 
-import javax.ejb.Local;
-import javax.ejb.Stateless;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -30,8 +28,6 @@ import java.lang.reflect.Proxy;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Stateless
-@Local( ServiceHandler.class )
 public class JavaeeServiceHandler implements ServiceHandler
 {
     private static final Logger LOG = Logger.getLogger(JavaeeServiceHandler.class.getName());
