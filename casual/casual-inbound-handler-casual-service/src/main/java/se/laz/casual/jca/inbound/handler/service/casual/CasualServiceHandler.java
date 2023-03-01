@@ -74,18 +74,18 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
         InboundResponse.Builder responseBuilder = InboundResponse.createBuilder();
         CasualServiceHandlerExtension serviceHandlerExtension = CasualServiceHandlerExtensionFactory.getExtension(DefaultCasualServiceHandler.class.getName());
-        CasualServiceHandlerExtensionContext context = null;
+        CasualServiceHandlerExtensionContext extensionContext = null;
         try
         {
             Object r = loadService(entry.getJndiName() );
             BufferHandler bufferHandler = BufferHandlerFactory.getHandler( request.getBuffer().getType() );
             tool.loadClassLoader( r );
-            context = serviceHandlerExtension.before(r, entry, request, bufferHandler);
-            return callService( r, entry, request, bufferHandler, serviceHandlerExtension, context);
+            extensionContext = serviceHandlerExtension.before(r, entry, request, bufferHandler);
+            return callService( r, entry, request, bufferHandler, serviceHandlerExtension, extensionContext);
         }
         catch( Throwable e )
         {
-            serviceHandlerExtension.handleError(context, request, responseBuilder, e, LOG);
+            serviceHandlerExtension.handleError(extensionContext, request, responseBuilder, e, LOG);
         }
         finally
         {
