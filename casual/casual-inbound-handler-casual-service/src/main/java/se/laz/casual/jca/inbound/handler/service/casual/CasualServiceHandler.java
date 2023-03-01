@@ -77,7 +77,6 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         LOG.finest( ()->"Request received: " + request );
         CasualServiceEntry entry = CasualServiceRegistry.getInstance().getServiceEntry( request.getServiceName() );
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
-        CasualBuffer payload = ServiceBuffer.empty();
         InboundResponse.Builder responseBuilder = InboundResponse.createBuilder();
         CasualServiceHandlerExtension serviceHandlerExtension = CasualServiceHandlerExtensionFactory.getExtension(DefaultCasualServiceHandler.class.getName());
         CasualServiceHandlerExtensionState serviceHandlerExtensionState = null;
@@ -97,9 +96,11 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         {
             tool.revertClassLoader();
         }
-
-        return responseBuilder.buffer(payload).build();
-
+        if(responseBuilder.noBuffer())
+        {
+            responseBuilder.buffer(ServiceBuffer.empty());
+        }
+        return responseBuilder.build();
     }
 
     @Override

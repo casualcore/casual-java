@@ -93,6 +93,11 @@ public class InboundResponse implements Serializable
             return this;
         }
 
+        public boolean noBuffer()
+        {
+            return null == buffer;
+        }
+
         public InboundResponse build()
         {
             if( buffer == null )
