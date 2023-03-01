@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 
 public class DefaultCasualServiceHandlerExtension implements CasualServiceHandlerExtension
 {
+    private static final DefaultCasualServiceHandlerExtensionState DEFAULT_CASUAL_SERVICE_HANDLER_EXTENSION_STATE = new DefaultCasualServiceHandlerExtensionState();
     @Override
     public Object[] convert(CasualServiceHandlerExtensionState state, Object[] params)
     {
@@ -26,7 +27,7 @@ public class DefaultCasualServiceHandlerExtension implements CasualServiceHandle
     @Override
     public CasualServiceHandlerExtensionState before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler)
     {
-        return new DefaultCasualServiceHandlerExtensionState();
+        return DEFAULT_CASUAL_SERVICE_HANDLER_EXTENSION_STATE;
     }
 
     @Override
