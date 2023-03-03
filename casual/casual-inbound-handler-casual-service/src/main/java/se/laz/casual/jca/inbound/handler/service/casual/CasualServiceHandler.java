@@ -89,6 +89,7 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         }
         finally
         {
+            serviceHandlerExtension.after(extensionContext);
             tool.revertClassLoader();
         }
         if(responseBuilder.noBuffer())
@@ -137,10 +138,6 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         catch( IllegalArgumentException e )
         {
             result = retryCallService( p, entry, request, bufferHandler, params );
-        }
-        finally
-        {
-            serviceHandlerExtension.after(context);
         }
         return bufferHandler.toResponse( info, result );
     }
