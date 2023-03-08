@@ -15,6 +15,17 @@ import se.laz.casual.spi.Prioritisable;
 
 import java.util.logging.Logger;
 
+/**
+ * The order of the calls is as follows:
+ * before
+ * convert
+ * actual service call
+ * after
+ * handleError - only if service call triggers some exception
+ *
+ * Note that before has to return something derived from {@link CasualServiceHandlerExtensionContext}, this is where you would store any eventual - per call, state.
+ * If you do not have a need to do that you can just return the one and the same instance of {@link DefaultCasualServiceHandlerExtensionContext}.
+ */
 public interface CasualServiceHandlerExtension extends Prioritisable, GenericExtensionPoint
 {
     CasualServiceHandlerExtensionContext before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler);
