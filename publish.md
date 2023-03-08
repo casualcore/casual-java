@@ -76,6 +76,27 @@ If you find a mistake you can drop the staging repository, preventing the releas
 
 **NB- you can never delete a published artifact, only publish again with a new version.**
 
+#### SNAPSHOT publish
+
+A `SNAPSHOT` version, when published, is placed into the maven central snapshot repository, it is not available
+in the normal maven central, but can be access adding the following maven repository to your build.gradle.
+
+```groovy
+repositories {
+    maven {url 'https://s01.oss.sonatype.org/content/repositories/snapshots' }
+  }
+```
+
+#### Local publish
+
+If you want to test publishing locally you can update the publish.gradle lines 67-72 with the following:
+
+```groovy
+            def releasesRepoUrl = layout.buildDirectory.dir('repo/releases')
+            def snapshotsRepoUrl = layout.buildDirectory.dir('repo/snapshots')
+```
+This is not the same as command `publishToMavenLocal` as the above allows you to publish signed artifacts locally. 
+
 ### Release Staging
 
 In order to release from the staging repository:
