@@ -53,10 +53,10 @@ create an SPI extension that implements *CasualServiceHandlerExtension* with a p
 ```java
 public interface CasualServiceHandlerExtension extends Prioritisable, GenericExtensionPoint
 {
-    void before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler);
-    Object[] convert(Object[] params);
-    void after();
-    void handleError(InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger);
+    CasualServiceHandlerExtensionContext before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler);
+    Object[] convert(CasualServiceHandlerExtensionContext context, Object[] params);
+    void after(CasualServiceHandlerExtensionContext context);
+    void handleError(CasualServiceHandlerExtensionContext context, InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger);
     default boolean canHandle(String name)
     {
         return name.equals(DefaultCasualServiceHandler.class.getName());
@@ -70,6 +70,9 @@ The order of the calls in *CasualServiceHandler* is as follows:
 * actual service call
 * after
 * handleError - only if service call triggers some exception
+
+Note that before has to return something derived from CasualServiceHandlerExtensionContext, this is where you would store any eventual - per call, state.
+If you do not have a need to do that you can just return the one and the same instance of DefaultCasualServiceHandlerExtensionContext.
 
 ### Startup configuration
 
