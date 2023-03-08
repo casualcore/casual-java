@@ -19,6 +19,7 @@ public interface ConversationMessageStorage
 
     /**
      * Blocks until a message is available
+     * @param corrid ??? Ask Mathias - I have not idea what these id is
      * @return the first message available
      */
     CasualNWMessage<Request> takeFirst(UUID corrid);

@@ -302,7 +302,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
 
     /**
      * The domain id for this connection
-     * @return
+     * @return connection domain id.
      */
     public DomainId getDomainId()
     {

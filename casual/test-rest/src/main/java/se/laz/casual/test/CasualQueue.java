@@ -73,9 +73,9 @@ public class CasualQueue
 
     /**
      * In case of no uuid it will pop the oldest message of the queue - if any
-     * @param queueName
-     * @param uuid
-     * @return
+     * @param queueName name of the queue.
+     * @param uuid optional uuid to pop.
+     * @return response containing dequeued message if found.
      */
     @GET
     @Path("dequeue/{queueName}")

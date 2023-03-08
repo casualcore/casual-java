@@ -73,9 +73,9 @@ public class CasualXAResource implements XAResource
     /**
      * Removes the
      *
-     * @param xid
+     * @param xid transaction id
      * @param flag - TMSUCCESS, TMFAIL, or TMSUSPEND.
-     * @throws XAException
+     * @throws XAException if end fails.
      */
     @Override
     public void end(Xid xid, int flag) throws XAException

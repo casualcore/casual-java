@@ -23,11 +23,19 @@ public interface CasualConversationAPI
      * With AtmiFlags.TPSENDONLY the conversation caller is supposed to start sending data first, via tpsend.
      * AtmiFlags.TPSENDONLY then means that the conversation caller will start receiving data, via tprecv
      *
-     * @param serviceName
-     * @param data
-     * @param flags
+     * @param serviceName name of service to which to connect.
+     * @param flags to send with the connection request.
      * @return A conversation handle
      */
     Conversation tpconnect(String serviceName, Flag<AtmiFlags> flags);
+
+    /**
+     * As per {@link #tpconnect} though with additional data to be set during the connect request.
+     *
+     * @param serviceName name of service to which to connect.
+     * @param data to send during initial connection request.
+     * @param flags to send with the connection request.
+     * @return A conversation handle
+     */
     Conversation tpconnect(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
 }

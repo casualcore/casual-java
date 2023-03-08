@@ -30,3 +30,11 @@ ear{
   }
   archiveFileName = "casual-jca-app-${casualJCAVersion}.ear"
 }
+
+publishing {
+  publications {
+    mavenJava( MavenPublication ) {
+      artifact ear
+    }
+  }
+}

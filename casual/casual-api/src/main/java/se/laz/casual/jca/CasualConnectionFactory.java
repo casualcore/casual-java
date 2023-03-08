@@ -29,6 +29,7 @@ public interface CasualConnectionFactory extends Serializable, Referenceable
     /**
      * Get connection from factory
      *
+     * @param connectionRequestInfo connection specific data.
      * @return DefaultNetworkConnection instance
      * @exception ResourceException Thrown if a connection can't be obtained
      */

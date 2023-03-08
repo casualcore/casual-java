@@ -5,24 +5,22 @@
  */
 
 plugins {
-  id 'java'
+  id 'java-library'
   id 'jacoco'
   id 'groovy'
 }
 
 dependencies {
-  compileOnly project(':casual:casual-api')
-  compileOnly project(':casual:casual-inbound-handler-api')
-  implementation project(":casual:casual-internal")
-  implementation project(":casual:casual-network-protocol")
+  api project(':casual:casual-api')
+  implementation project(':casual:casual-inbound-handler-api')
+  api project(":casual:casual-network-protocol")
 
   compileOnly libs.javaee_api
-  compileOnly libs.netty
+  api libs.netty
 
-  testImplementation project(':casual:casual-api')
-  testImplementation project(':casual:casual-inbound-handler-api')
   testImplementation libs.javaee_api
-  testImplementation libs.gson
+  testRuntimeOnly libs.gson
+
   // for spock
   testImplementation libs.groovy_all
   testImplementation libs.spock_core

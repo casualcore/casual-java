@@ -1,0 +1,91 @@
+/*
+ * Copyright (c) 2017 - 2020, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
+//-*- coding: utf-8 -*-
+apply plugin: 'signing'
+apply plugin: 'maven-publish'
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava( MavenPublication ) {
+            from components.java
+            versionMapping {
+                usage( 'java-api' ) {
+                    fromResolutionOf( 'runtimeClasspath' )
+                }
+                usage( 'java-runtime' ) {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'Casual JCA'
+                description = 'Casual JCA - Resource Adapter for Casual middleware.'
+                url = 'http://casual.laz.se'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:ssh://github.com:casualcore/casual-java.git'
+                    developerConnection = 'scm:git:ssh://github.com:casualcore/casual-java.git'
+                    url = 'https://github.com/casualcore/casual-java'
+                }
+                developers {
+                    developer {
+                        id = 'Aliothe'
+                        name = 'Mathias Creutz'
+                        email = 'mathiascreutz@gmail.com'
+                    }
+                    developer {
+                        id = 'cklellie'
+                        name = 'Chris Kelly'
+                        email = 'christopherjkelly@gmail.com'
+                    }
+                    developer {
+                        id = 'tobiasleo'
+                        name = 'Tobias Leo'
+                        email = 'tobias@tobiasleo.se'
+                    }
+                }
+            }
+
+        }
+    }
+    repositories{
+        maven {
+            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            credentials {
+                username = project.hasProperty('ossrhUsername') ? ossrhUsername : null
+                password = project.hasProperty('ossrhPassword') ? ossrhPassword : null
+            }
+
+
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }
+}
+
+
+signing {
+    sign publishing.publications.mavenJava
+}
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+    if(JavaVersion.current().isCompatibleWith( JavaVersion.VERSION_17 )) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+}

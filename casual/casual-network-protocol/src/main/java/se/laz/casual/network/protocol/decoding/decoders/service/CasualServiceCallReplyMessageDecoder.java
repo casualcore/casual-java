@@ -42,7 +42,7 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
     /**
      * Number of maximum bytes before any chunk reading takes place
      * Defaults to Integer.MAX_VALUE
-     * @return
+     * @return maximum number of bytes for a single buffer payload.
      */
     public static int getMaxPayloadSingleBufferByteSize()
     {
@@ -53,7 +53,7 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
      * If not set, defaults to Integer.MAX_VALUE
      * Can be used in testing to force chunked reading
      * by for instance setting it to 1
-     * @return
+     * @param maxPayloadSingleBufferByteSize maximum number of byte for a single buffer payload.
      */
     public static void setMaxPayloadSingleBufferByteSize(int maxPayloadSingleBufferByteSize)
     {

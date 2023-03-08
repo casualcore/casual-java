@@ -6,14 +6,14 @@
 
 //-*- coding: utf-8 -*-
 plugins {
-    id 'java'
+    id 'java-library'
     id 'jacoco'
     id 'groovy'
 }
 defaultTasks 'build'
 
 dependencies {
-  implementation project(":casual:casual-fielded-annotations")
+  api project(":casual:casual-fielded-annotations")
   compileOnly libs.javaee_api
   compileOnly libs.gson
 

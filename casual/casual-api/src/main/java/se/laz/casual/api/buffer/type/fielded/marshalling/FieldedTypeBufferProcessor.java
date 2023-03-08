@@ -18,8 +18,7 @@ import java.util.ServiceLoader;
 
 /**
  * marshall/unmarshall FieldedTypeBuffer
- * methods or fields annotated with {@link CasualFieldElement} will be handled
- * @see CasualFieldElement
+ * methods or fields annotated with {@link CasualFieldElement} will be handled.
  *
  * Uses SPI to load the {@link FieldedMarshaller} with the highest {@link se.laz.casual.spi.Priority}
  */

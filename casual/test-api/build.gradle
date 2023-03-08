@@ -5,7 +5,7 @@
  */
 //-*- coding: utf-8 -*-
 plugins {
-    id 'java'
+    id 'java-library'
     id 'groovy'
 }
 

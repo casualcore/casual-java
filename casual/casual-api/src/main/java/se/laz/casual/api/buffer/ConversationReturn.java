@@ -55,7 +55,7 @@ public final class ConversationReturn<X extends CasualBuffer>
     /**
      * ErrorState is optional
      * If it does not exist it means that it didn't make sense in that context
-     * @return
+     * @return error if present.
      */
     public Optional<ErrorState> getErrorState()
     {

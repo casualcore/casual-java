@@ -110,7 +110,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
 
     /**
      * Defaults to Integer.MAX_VALUE
-     * @return
+     * @return max message size.
      */
     public int getMaxMessageSize()
     {
@@ -119,8 +119,8 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
 
     /**
      * Use in testing to force chunking of message
-     * @param maxMessageSize
-     * @return
+     * @param maxMessageSize max message size.
+     * @return this object with updated max message size.
      */
     public CasualServiceCallRequestMessage setMaxMessageSize(int maxMessageSize)
     {
@@ -130,7 +130,7 @@ public final class CasualServiceCallRequestMessage implements CasualNetworkTrans
 
     /**
      * Note, not immutable
-     * @return
+     * @return the service buffer.
      */
     public ServiceBuffer getServiceBuffer()
     {

@@ -6,10 +6,12 @@
 
 //-*- coding: utf-8 -*-
 plugins {
-    id 'java'
+    id 'java-library'
     id 'jacoco'
     id 'groovy'
 }
+
+version = "${casual_caller_app_version}"
 
 dependencies {
   compileOnly project(":casual:casual-caller-api")

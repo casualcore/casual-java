@@ -51,7 +51,7 @@ public final class Queue
     /**
      * We assume that everything for a Queue fits into Integer.MAX_VALUE
      * If not, we throw a CasualProtocolException
-     * @return
+     * @return the network bytes.
      */
     public List<byte[]> toNetworkBytes()
     {

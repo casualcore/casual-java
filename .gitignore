@@ -9,3 +9,5 @@
 *.orig
 dist/
 out/
+gradle.properties
+secret.*

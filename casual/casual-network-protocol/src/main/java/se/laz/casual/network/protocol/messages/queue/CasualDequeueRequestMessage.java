@@ -122,7 +122,7 @@ public final class CasualDequeueRequestMessage implements CasualNetworkTransmitt
     /**
      * note, may be the empty string
      *
-     * @return
+     * @return selector properties as a string.
      */
     public String getSelectorProperties()
     {
@@ -132,7 +132,7 @@ public final class CasualDequeueRequestMessage implements CasualNetworkTransmitt
     /**
      * note, may be the empty UUID - all 0's
      *
-     * @return
+     * @return selector uuid.
      */
     public UUID getSelectorUUID()
     {

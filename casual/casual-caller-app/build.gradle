@@ -8,6 +8,8 @@ plugins {
   id 'ear'
 }
 
+version = "${casual_caller_app_version}"
+
 dependencies {
   deploy project( path: ':casual:casual-caller')
   earlib project( path: ':casual:casual-caller-api')
@@ -19,5 +21,4 @@ ear{
     displayName = "Casual Caller App"
     description = "Casual application that provides an abstraction layer on top of n # of CasualConnectionFactories"
   }
-  archiveFileName = "casual-caller-app-${casual_caller_app_version}.ear"
 }

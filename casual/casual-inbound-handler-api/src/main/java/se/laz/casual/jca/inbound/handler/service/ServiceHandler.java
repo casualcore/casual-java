@@ -22,8 +22,8 @@ public interface ServiceHandler extends Prioritisable
      * in which case this method would return true,
      * but {@link #isServiceAvailable} would return false.
      *
-     * @param serviceName
-     * @return
+     * @param serviceName name of the service.
+     * @return if the service can be handled or not.
      */
     boolean canHandleService( String serviceName );
 
@@ -31,7 +31,7 @@ public interface ServiceHandler extends Prioritisable
      * Determine if the provided service is available
      * in this handler.
      * @param serviceName name
-     * @return
+     * @return if the service is available.
      */
     boolean isServiceAvailable( String serviceName );
 

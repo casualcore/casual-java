@@ -105,7 +105,7 @@ public final class CasualDomainDiscoveryReplyMessage implements CasualNetworkTra
 
     /**
      * May return several chunks since services and queues may be legion
-     * @return
+     * @return the network bytes.
      */
     @Override
     public List<byte[]> toNetworkBytes()

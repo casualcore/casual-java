@@ -6,7 +6,7 @@
 
 //-*- coding: utf-8 -*-
 plugins {
-    id 'java'
+    id 'java-library'
     id 'jacoco'
     id 'groovy'
 }
@@ -14,13 +14,9 @@ plugins {
 defaultTasks 'build'
 
 dependencies {
-  compileOnly libs.javaee_api
-  compileOnly libs.netty
-  compileOnly project(':casual:casual-api')
+  api libs.netty
+  api project(':casual:casual-api')
 
-  testImplementation libs.javaee_api
-  testImplementation libs.netty
-  testImplementation project(':casual:casual-api')
   // for spock
   testImplementation libs.groovy_all
   testImplementation libs.spock_core

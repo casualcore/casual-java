@@ -85,8 +85,8 @@ public final class CasualMessageDecoderUtils
      * Use this to read a string from the channel when you know that the structure is as follows
      * 8 bytes for the string size
      * the string of string size
-     * @param channel
-     * @return
+     * @param channel to read the string from.
+     * @return the read string.
      */
     public static String readString(final AsynchronousByteChannel channel)
     {
@@ -98,8 +98,8 @@ public final class CasualMessageDecoderUtils
      * Use this to read a string from the channel when you know that the structure is as follows
      * 8 bytes for the string size
      * the string of string size
-     * @param channel
-     * @return
+     * @param channel to read the string from.
+     * @return the read string.
      */
     public static String readString(final ReadableByteChannel channel)
     {
@@ -143,7 +143,11 @@ public final class CasualMessageDecoderUtils
      * Each subsequent arrays are to be in pairs:
      * 1st the byte size of that buffer
      * 2nd is the actual data
-     * @ return A DynamicArrayIndexPair that contains the data, converted using the supplied converter, and the current index in the list
+     * @param message to process.
+     * @param index the current index.
+     * @param converter the item converter.
+     * @return A DynamicArrayIndexPair that contains the data, converted using the supplied converter, and the current index in the list
+     * @param <T> converter type.
      */
     public static <T> DynamicArrayIndexPair<T> getDynamicArrayIndexPair(List<byte[]> message, int index, ItemConverter<T> converter)
     {

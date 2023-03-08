@@ -7,6 +7,7 @@
 //-*- coding: utf-8 -*-
 buildscript {
     repositories {
+        mavenCentral()
         maven { url 'https://repo.spring.io/plugins-release' }
     }
 }
@@ -40,8 +41,19 @@ allprojects{
 
 subprojects{
   apply from: "$rootProject.projectDir/versions.gradle"
+  apply plugin: 'java-library'
 }
 
+project.ext {
+    casual_jca_subprojects = subprojects.findAll {
+        !it.name.startsWith( "casual-caller" ) &&
+        !it.name.contains( "test" )
+    }
+}
+
+configure(project.casual_jca_subprojects) {
+    apply from: "$rootProject.projectDir/publish.gradle"
+}
 
 task dist(type: Sync) {
     allprojects { p ->

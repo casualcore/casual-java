@@ -54,7 +54,7 @@ public interface Conversation extends AutoCloseable
     /**
      * Note, blocks until a message is available
      * Throws if called when tpsend is supposed to be called
-     * @return The result - {@link ConversationReturn<CasualBuffer>}
+     * @return The received casual buffer.
      */
     ConversationReturn<CasualBuffer> tprecv();
 
@@ -73,7 +73,7 @@ public interface Conversation extends AutoCloseable
     /**
      * Note: blocks until message has successfully been sent
      * Throws if called when tprecv is supposed to be called
-     * @param data
+     * @param data to send.
      * @param handOverControl - true if you are in control but want to hand over control and start receiving
      */
     void tpsend(CasualBuffer data, boolean handOverControl);

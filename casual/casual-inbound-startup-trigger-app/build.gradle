@@ -24,3 +24,11 @@ ear{
   }
   archiveFileName = "casual-inbound-startup-trigger-app-" + appVersion + ".ear"
 }
+
+publishing {
+  publications {
+    mavenJava( MavenPublication ) {
+      artifact ear
+    }
+  }
+}

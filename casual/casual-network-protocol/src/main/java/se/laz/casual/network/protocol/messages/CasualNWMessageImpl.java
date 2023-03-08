@@ -46,7 +46,7 @@ public class CasualNWMessageImpl<T extends CasualNetworkTransmittable> implement
      * Creates a complete network transmittable unit including header
      * Note, the header is always alone in the first byte[]
      * Then the actual message is in the rest of the byte[] ( one or more depending on if the whole message fits into one byte[] or not)
-     * @return
+     * @return the network bytes.
      */
     @Override
     public List<byte[]> toNetworkBytes()

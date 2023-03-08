@@ -27,14 +27,16 @@ import java.util.Optional;
 public interface ConnectionFactoryLookup extends ServiceCacheMutator
 {
     /**
+     * Lookup cache entry for a queue.
      *
-     * @param qinfo
+     * @param qinfo queue to lookup.
      * @return an optional CacheEntry that may be empty if no connection factory handles the requested queue
      */
     Optional<ConnectionFactoryEntry> get(QueueInfo qinfo);
 
 
     /**
+     * Lookup cache entry for a service.
      *
      * @param serviceName - the name of the service
      * @return a List of 0-n CacheEntries

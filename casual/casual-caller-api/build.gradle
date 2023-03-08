@@ -6,9 +6,11 @@
 
 //-*- coding: utf-8 -*-
 plugins {
-    id 'java'
+    id 'java-library'
     id 'jacoco'
 }
+
+version = "${casual_caller_app_version}"
 
 dependencies {
   compileOnly project(":casual:casual-api")
