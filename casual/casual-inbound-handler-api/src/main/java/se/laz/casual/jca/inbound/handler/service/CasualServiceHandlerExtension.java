@@ -32,6 +32,10 @@ public interface CasualServiceHandlerExtension extends Prioritisable, GenericExt
     Object[] convert(CasualServiceHandlerExtensionContext context, Object[] params);
     void after(CasualServiceHandlerExtensionContext context);
     void handleError(CasualServiceHandlerExtensionContext context, InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger);
+    default InboundResponse handleSuccess(InboundResponse response)
+    {
+        return response;
+    }
     default boolean canHandle(String name)
     {
         return name.equals(DefaultCasualServiceHandler.class.getName());

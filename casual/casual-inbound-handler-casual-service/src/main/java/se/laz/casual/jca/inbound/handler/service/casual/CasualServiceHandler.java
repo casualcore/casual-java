@@ -96,7 +96,7 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
         {
             responseBuilder.buffer(ServiceBuffer.empty());
         }
-        return responseBuilder.build();
+        return serviceHandlerExtension.handleSuccess(responseBuilder.build());
     }
 
     @Override
