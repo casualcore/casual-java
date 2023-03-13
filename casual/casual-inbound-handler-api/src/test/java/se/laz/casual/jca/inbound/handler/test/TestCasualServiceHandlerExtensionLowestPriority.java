@@ -26,7 +26,7 @@ public class TestCasualServiceHandlerExtensionLowestPriority implements CasualSe
     }
 
     @Override
-    public CasualServiceHandlerExtensionContext before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler)
+    public CasualServiceHandlerExtensionContext before(InboundRequest request, BufferHandler bufferHandler)
     {
         return new DefaultCasualServiceHandlerExtensionContext();
     }

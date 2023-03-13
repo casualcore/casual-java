@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 public class TestCasualServiceHandlerExtensionHighestPriority implements CasualServiceHandlerExtension
 {
     @Override
-    public CasualServiceHandlerExtensionContext before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler)
+    public CasualServiceHandlerExtensionContext before(InboundRequest request, BufferHandler bufferHandler)
     {
         return new DefaultCasualServiceHandlerExtensionContext();
     }

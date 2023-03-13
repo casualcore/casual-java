@@ -20,7 +20,7 @@ public class DefaultCasualServiceHandlerExtension implements CasualServiceHandle
     private static final DefaultCasualServiceHandlerExtensionContext DEFAULT_CASUAL_SERVICE_HANDLER_EXTENSION_STATE = new DefaultCasualServiceHandlerExtensionContext();
 
     @Override
-    public CasualServiceHandlerExtensionContext before(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler)
+    public CasualServiceHandlerExtensionContext before(InboundRequest request, BufferHandler bufferHandler)
     {
         return DEFAULT_CASUAL_SERVICE_HANDLER_EXTENSION_STATE;
     }

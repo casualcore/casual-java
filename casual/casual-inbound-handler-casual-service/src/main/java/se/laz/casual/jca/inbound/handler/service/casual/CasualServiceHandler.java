@@ -80,7 +80,7 @@ public class CasualServiceHandler implements ServiceHandler, DefaultCasualServic
             Object r = loadService(entry.getJndiName() );
             BufferHandler bufferHandler = BufferHandlerFactory.getHandler( request.getBuffer().getType() );
             tool.loadClassLoader( r );
-            extensionContext = serviceHandlerExtension.before(r, entry, request, bufferHandler);
+            extensionContext = serviceHandlerExtension.before(request, bufferHandler);
             return callService( r, entry, request, bufferHandler, serviceHandlerExtension, extensionContext);
         }
         catch( Throwable e )
