@@ -56,7 +56,8 @@ The order of the calls in *CasualServiceHandler* is as follows:
 * before
 * convert
 * actual service call
-* after
+* after - is always called, regardless of outcome of service call
+* handleSuccess - if service call was successful
 * handleError - only if service call triggers some exception
 
 Note that before has to return something derived from CasualServiceHandlerExtensionContext, this is where you would store any eventual - per call, state.
