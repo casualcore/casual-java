@@ -5,45 +5,16 @@
  */
 package se.laz.casual.jca.inbound.handler.test;
 
-import se.laz.casual.jca.inbound.handler.InboundRequest;
-import se.laz.casual.jca.inbound.handler.InboundResponse;
-import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
-import se.laz.casual.jca.inbound.handler.service.CasualServiceHandlerExtensionContext;
-import se.laz.casual.jca.inbound.handler.service.CasualServiceHandlerExtension;
-import se.laz.casual.jca.inbound.handler.service.DefaultCasualServiceHandlerExtensionContext;
-import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry;
-import se.laz.casual.jca.inbound.handler.service.casual.DefaultCasualServiceHandler;
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtension;
 import se.laz.casual.spi.Priority;
 
-import java.util.logging.Logger;
-
-public class TestCasualServiceHandlerExtensionLowestPriority implements CasualServiceHandlerExtension
+public class TestCasualServiceHandlerExtensionLowestPriority implements ServiceHandlerExtension
 {
     @Override
     public boolean canHandle(String name)
     {
-        return name.equals(DefaultCasualServiceHandler.class.getName());
+        return name.equals( TestHandler.class.getName());
     }
-
-    @Override
-    public CasualServiceHandlerExtensionContext before(InboundRequest request, BufferHandler bufferHandler)
-    {
-        return new DefaultCasualServiceHandlerExtensionContext();
-    }
-
-    @Override
-    public Object[] convert(CasualServiceHandlerExtensionContext state, Object[] params)
-    {
-        return params;
-    }
-
-    @Override
-    public void after(CasualServiceHandlerExtensionContext state)
-    {}
-
-    @Override
-    public void handleError(CasualServiceHandlerExtensionContext state, InboundRequest request, InboundResponse.Builder responseBuilder, Throwable e, Logger logger)
-    {}
 
     @Override
     public Priority getPriority()

@@ -139,13 +139,13 @@ class InboundResponseTest extends Specification
         thrown NullPointerException.class
     }
 
-    def "buffer null build throws IllegalStateException"()
+    def "no buffer provided has empty buffer."()
     {
         when:
-        InboundResponse.createBuilder().build();
+        InboundResponse actual = InboundResponse.createBuilder().build();
 
         then:
-        thrown IllegalStateException.class
+        actual.getBuffer(  ) == ServiceBuffer.empty(  )
     }
 
     def "equals self is true"()
@@ -164,6 +164,18 @@ class InboundResponseTest extends Specification
     {
         expect:
         ! instance.equals( null )
+    }
+
+    def "Create from existing response is equal."()
+    {
+        when:
+        InboundResponse instance2 = InboundResponse.createBuilder(instance).build()
+
+        then:
+        instance2.getBuffer(  ) == instance.getBuffer(  )
+        instance2.getErrorState(  ) == instance.getErrorState(  )
+        instance2.getTransactionState(  ) == instance.getTransactionState(  )
+        instance2.getUserSuppliedErrorCode(  ) == instance.getUserSuppliedErrorCode(  )
     }
 
     def "toString returns value."()

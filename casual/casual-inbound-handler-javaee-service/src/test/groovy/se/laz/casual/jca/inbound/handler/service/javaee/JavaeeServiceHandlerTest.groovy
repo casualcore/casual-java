@@ -12,15 +12,21 @@ import se.laz.casual.api.external.json.JsonProvider
 import se.laz.casual.api.external.json.JsonProviderFactory
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
+import se.laz.casual.api.service.CasualService
 import se.laz.casual.api.service.ServiceInfo
 import se.laz.casual.jca.inbound.handler.HandlerException
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
+import se.laz.casual.jca.inbound.handler.service.extension.DefaultServiceHandlerExtensionContext
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtension
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionFactory
+import se.laz.casual.jca.inbound.handler.service.javaee.extension.TestExtension
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 
+import javax.ejb.Remote
 import javax.naming.Context
 import javax.naming.NamingException
 import java.lang.reflect.Proxy
@@ -158,6 +164,86 @@ class JavaeeServiceHandlerTest extends Specification
         reply.getErrorState() == ErrorState.TPESVCERR
         reply.getTransactionState() == TransactionState.ROLLBACK_ONLY
         reply.getBuffer().getBytes().isEmpty()
+    }
+
+    def "Call Service with buffer and return result. Check extension."()
+    {
+        given:
+        ServiceHandlerExtension extensionMock = Mock()
+
+        1* extensionMock.before( _, _ ) >> new DefaultServiceHandlerExtensionContext()
+        1* extensionMock.convertRequestParams( _, _ ) >> { _, params ->
+            return params
+        }
+        1* extensionMock.handleSuccess( _, _ ) >> { context, response ->
+            return response
+        }
+
+        TestExtension ext = (TestExtension) ServiceHandlerExtensionFactory.getExtension( Remote.class.getName(  ) )
+        ext.setMock( extensionMock )
+
+        1 * context.lookup( jndiServiceName ) >> {
+            return jndiObject
+        }
+
+        when:
+        InboundResponse reply = instance.invokeService( message )
+
+        then:
+        1 * proxyService.echo( methodParam ) >> {
+            return methodParam
+        }
+
+        reply.getErrorState() == ErrorState.OK
+        reply.getTransactionState() == TransactionState.TX_ACTIVE
+        String json = new String( reply.getBuffer().getBytes().get( 0 ), StandardCharsets.UTF_8 )
+        jp.fromJson( json, String.class ) == methodParam
+
+        0* extensionMock.handleError( _, _, _, _ )
+        1* extensionMock.after( _ )
+
+        cleanup:
+        ext.setMock( null )
+    }
+
+    def "Call Service with buffer service throws exception return ErrorState.TPSVCERR. Check extension."()
+    {
+        given:
+        ServiceHandlerExtension extensionMock = Mock()
+
+        1* extensionMock.before( _, _ ) >> new DefaultServiceHandlerExtensionContext()
+        1* extensionMock.convertRequestParams( _, _ ) >> { _, params ->
+            return params
+        }
+        1* extensionMock.handleError( _, _, _, _ ) >> { context, request, response, throwable ->
+            return response
+        }
+
+        TestExtension ext = (TestExtension)ServiceHandlerExtensionFactory.getExtension( Remote.class.getName(  ) )
+        ext.setMock( extensionMock )
+
+        1 * context.lookup( jndiServiceName ) >> {
+            return jndiObject
+        }
+        String exceptionMessage = "Simulated failure."
+
+        when:
+        InboundResponse reply = instance.invokeService( message )
+
+        then:
+        1 * proxyService.echo( methodParam ) >> {
+            throw new RuntimeException( exceptionMessage )
+        }
+
+        reply.getErrorState() == ErrorState.TPESVCERR
+        reply.getTransactionState() == TransactionState.ROLLBACK_ONLY
+        reply.getBuffer().getBytes().isEmpty()
+
+        0* extensionMock.handleSuccess( _, _ )
+        1* extensionMock.after( _ )
+
+        cleanup:
+        ext.setMock( null )
     }
 
     def "Call service with multiple payloads fails."()

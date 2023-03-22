@@ -6,6 +6,9 @@
 
 package se.laz.casual.jca.inbound.handler.service.javaee;
 
+import javax.ejb.Remote;
+
+@Remote
 public interface SimpleService
 {
     public String echo(String message);

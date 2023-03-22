@@ -12,7 +12,7 @@ plugins {
 
 dependencies {
   api project(":casual:casual-api")
-  api project(":casual:casual-inbound-handler-api")
+
   compileOnly libs.javaee_api
 
   // for spock

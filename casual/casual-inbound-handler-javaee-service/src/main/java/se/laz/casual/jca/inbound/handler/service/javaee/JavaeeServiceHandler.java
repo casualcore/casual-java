@@ -6,8 +6,6 @@
 
 package se.laz.casual.jca.inbound.handler.service.javaee;
 
-import se.laz.casual.api.buffer.CasualBuffer;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.service.ServiceInfo;
@@ -19,7 +17,11 @@ import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtension;
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionContext;
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionFactory;
 
+import javax.ejb.Remote;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -59,28 +61,31 @@ public class JavaeeServiceHandler implements ServiceHandler
     {
         LOG.finest( ()->"Request received: " + request );
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
-        CasualBuffer payload = ServiceBuffer.empty();
-        InboundResponse.Builder responseBuilder = InboundResponse.createBuilder();
+        ServiceHandlerExtension serviceHandlerExtension = ServiceHandlerExtensionFactory.getExtension( Remote.class.getName() );
+        ServiceHandlerExtensionContext extensionContext = null;
         try
         {
             Object r = loadService(request.getServiceName());
             BufferHandler bufferHandler = BufferHandlerFactory.getHandler( request.getBuffer().getType() );
             tool.loadClassLoader( r );
-            return callService( r, request, bufferHandler );
+            extensionContext = serviceHandlerExtension.before(request, bufferHandler);
+            InboundResponse response =  callService( r, request, bufferHandler,serviceHandlerExtension,  extensionContext );
+            return serviceHandlerExtension.handleSuccess( extensionContext, response );
         }
         catch( Throwable e )
         {
-            LOG.log( Level.WARNING, e, ()-> "Error invoking fielded: " + e.getMessage() );
-            responseBuilder
+            LOG.log( Level.WARNING, e, ()-> "Error invoking service: " + e.getMessage() );
+            InboundResponse response = InboundResponse.createBuilder()
                     .errorState( ErrorState.TPESVCERR )
-                    .transactionState( TransactionState.ROLLBACK_ONLY );
+                    .transactionState( TransactionState.ROLLBACK_ONLY )
+                    .build();
+            return serviceHandlerExtension.handleError( extensionContext, request, response, e );
         }
         finally
         {
+            serviceHandlerExtension.after( extensionContext );
             tool.revertClassLoader();
         }
-
-        return responseBuilder.buffer(payload).build();
     }
 
     @Override
@@ -104,15 +109,18 @@ public class JavaeeServiceHandler implements ServiceHandler
 
     //Use a specific exception. This is a help method for invokeService so any exceptions should bubble back up.
     @SuppressWarnings("squid:S00112")
-    private InboundResponse callService( Object r, InboundRequest payload, BufferHandler bufferHandler ) throws Throwable
+    private InboundResponse callService( Object r, InboundRequest payload, BufferHandler bufferHandler, ServiceHandlerExtension serviceHandlerExtension,
+                                         ServiceHandlerExtensionContext extensionContext ) throws Throwable
     {
         Proxy p = (Proxy) r;
 
         ServiceCallInfo serviceCallInfo = bufferHandler.fromRequest( p, null, payload );
 
         Method method = serviceCallInfo.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provided required details about the method end point." ) );
-        
-        Object result = method.invoke( p, serviceCallInfo.getParams() );
+
+        Object[] params = serviceHandlerExtension.convertRequestParams(extensionContext, serviceCallInfo.getParams());
+
+        Object result = method.invoke( p, params );
 
         LOG.finest( ()-> "Result: " + result );
         return bufferHandler.toResponse( serviceCallInfo, result );

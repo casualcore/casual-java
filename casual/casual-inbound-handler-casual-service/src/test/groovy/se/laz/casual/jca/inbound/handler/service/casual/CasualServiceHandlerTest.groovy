@@ -14,6 +14,10 @@ import se.laz.casual.api.service.ServiceInfo
 import se.laz.casual.jca.inbound.handler.HandlerException
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
+import se.laz.casual.jca.inbound.handler.service.casual.extension.TestExtension
+import se.laz.casual.jca.inbound.handler.service.extension.DefaultServiceHandlerExtensionContext
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtension
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionFactory
 import se.laz.casual.network.messages.domain.TransactionType
 import spock.lang.Shared
 import spock.lang.Specification
@@ -158,6 +162,87 @@ class CasualServiceHandlerTest extends Specification
 
         reply.getErrorState() == ErrorState.TPESVCERR
         reply.getTransactionState() == TransactionState.ROLLBACK_ONLY
+    }
+
+    def "Call Service with buffer and return result. Check extension is called."()
+    {
+        given:
+        ServiceHandlerExtension extensionMock = Mock()
+
+        1* extensionMock.before( _, _ ) >> new DefaultServiceHandlerExtensionContext()
+        1* extensionMock.convertRequestParams( _, _ ) >> { _, params ->
+            return params
+        }
+        1* extensionMock.handleSuccess( _, _ ) >> { context, response ->
+            return response
+        }
+
+        TestExtension ext = (TestExtension)ServiceHandlerExtensionFactory.getExtension( CasualService.class.getName(  ) )
+        ext.setMock( extensionMock )
+
+        1 * context.lookup( jndiServiceName ) >> {
+            return jndiObject
+        }
+
+        when:
+        InboundResponse reply = instance.invokeService( message )
+
+        then:
+        1 * proxyService.echo( methodObject ) >> {
+            return methodObject
+        }
+
+        reply.getErrorState() == ErrorState.OK
+        reply.getTransactionState() == TransactionState.TX_ACTIVE
+
+        FieldedTypeBuffer actual = FieldedTypeBuffer.create( reply.getBuffer().getBytes() )
+        actual == buffer
+
+        0* extensionMock.handleError( _, _, _, _ )
+        1* extensionMock.after( _ )
+
+        cleanup:
+        ext.setMock( null )
+    }
+
+    def "Call Service with buffer service throws exception return ErrorState.TPSVCERR. Check extension is called"()
+    {
+        given:
+        ServiceHandlerExtension extensionMock = Mock()
+
+        1* extensionMock.before( _, _ ) >> new DefaultServiceHandlerExtensionContext()
+        1* extensionMock.convertRequestParams( _, _ ) >> { _, params ->
+            return params
+        }
+        1* extensionMock.handleError( _, _, _, _ ) >> { context, request, response, throwable ->
+            return response
+        }
+
+        TestExtension ext = (TestExtension)ServiceHandlerExtensionFactory.getExtension( CasualService.class.getName(  ) )
+        ext.setMock( extensionMock )
+
+
+        1 * context.lookup( jndiServiceName ) >> {
+            return jndiObject
+        }
+        String exceptionMessage = "Simulated failure."
+
+        when:
+        InboundResponse reply = instance.invokeService( message )
+
+        then:
+        1 * proxyService.echo( methodObject ) >> {
+            return new RuntimeException( exceptionMessage )
+        }
+
+        reply.getErrorState() == ErrorState.TPESVCERR
+        reply.getTransactionState() == TransactionState.ROLLBACK_ONLY
+
+        0* extensionMock.handleSuccess( _, _ )
+        1* extensionMock.after( _ )
+
+        cleanup:
+        ext.setMock( null )
     }
 
     def "CanHandleService returns true when service exists in registry without jndi lookup."()
