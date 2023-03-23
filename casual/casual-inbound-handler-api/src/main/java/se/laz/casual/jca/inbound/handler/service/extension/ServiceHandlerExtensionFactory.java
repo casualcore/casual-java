@@ -65,6 +65,11 @@ public class ServiceHandlerExtensionFactory
                 break;
             }
         }
+        if( null == found )
+        {
+            throw new ServiceHandlerExtensionMissingException(() -> "No ServiceHandlerExtension found for name: " + name +
+                    " This should NEVER happen as DefaultServiceHandlerExtension should always be the fallback!");
+        }
         return found;
     }
 }
