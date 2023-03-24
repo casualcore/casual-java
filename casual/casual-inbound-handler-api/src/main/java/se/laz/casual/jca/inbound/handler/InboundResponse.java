@@ -7,6 +7,7 @@
 package se.laz.casual.jca.inbound.handler;
 
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 
@@ -59,9 +60,18 @@ public class InboundResponse implements Serializable
         return new Builder();
     }
 
+    public static Builder createBuilder( InboundResponse src )
+    {
+        return new Builder()
+                .buffer( src.getBuffer() )
+                .errorState( src.getErrorState() )
+                .transactionState( src.getTransactionState() )
+                .userSuppliedErrorCode( src.getUserSuppliedErrorCode() );
+    }
+
     public static class Builder
     {
-        private CasualBuffer buffer;
+        private CasualBuffer buffer = ServiceBuffer.empty();
         private ErrorState errorState = ErrorState.OK;
         private TransactionState transactionState = TransactionState.TX_ACTIVE;
         private long userSuppliedErrorCode = 0L;
@@ -95,10 +105,6 @@ public class InboundResponse implements Serializable
 
         public InboundResponse build()
         {
-            if( buffer == null )
-            {
-                throw new IllegalStateException( "Buffer must be set before you can build." );
-            }
             return new InboundResponse( buffer,errorState,transactionState, userSuppliedErrorCode);
         }
     }

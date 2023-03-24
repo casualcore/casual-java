@@ -1,15 +1,14 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.inbound.handler.service.casual;
 
-import se.laz.casual.api.buffer.CasualBuffer;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
+import se.laz.casual.api.service.CasualService;
 import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.internal.thread.ThreadClassLoaderTool;
 import se.laz.casual.jca.inbound.handler.HandlerException;
@@ -18,12 +17,13 @@ import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtension;
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionFactory;
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionContext;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.transaction.TransactionTypeMapperJTA;
 import se.laz.casual.network.messages.domain.TransactionType;
 
-import javax.ejb.Local;
-import javax.ejb.Stateless;
 import javax.ejb.TransactionAttributeType;
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -37,8 +37,6 @@ import java.util.logging.Logger;
 
 import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodMatcher.matches;
 
-@Stateless
-@Local( ServiceHandler.class )
 public class CasualServiceHandler implements ServiceHandler
 {
     private static final Logger LOG = Logger.getLogger(CasualServiceHandler.class.getName());
@@ -77,29 +75,31 @@ public class CasualServiceHandler implements ServiceHandler
         LOG.finest( ()->"Request received: " + request );
         CasualServiceEntry entry = CasualServiceRegistry.getInstance().getServiceEntry( request.getServiceName() );
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
-        CasualBuffer payload = ServiceBuffer.empty();
-        InboundResponse.Builder responseBuilder = InboundResponse.createBuilder();
+        ServiceHandlerExtension serviceHandlerExtension = ServiceHandlerExtensionFactory.getExtension( CasualService.class.getName() );
+        ServiceHandlerExtensionContext extensionContext = null;
         try
         {
             Object r = loadService(entry.getJndiName() );
             BufferHandler bufferHandler = BufferHandlerFactory.getHandler( request.getBuffer().getType() );
             tool.loadClassLoader( r );
-            return callService( r, entry, request, bufferHandler );
+            extensionContext = serviceHandlerExtension.before(request, bufferHandler);
+            InboundResponse response = callService( r, entry, request, bufferHandler, serviceHandlerExtension, extensionContext);
+            return serviceHandlerExtension.handleSuccess( extensionContext, response );
         }
         catch( Throwable e )
         {
-            LOG.log( Level.WARNING, e, ()-> "Error invoking fielded: " + e.getMessage() );
-            responseBuilder
-                    .errorState(ErrorState.TPESVCERR)
-                    .transactionState( TransactionState.ROLLBACK_ONLY );
+            LOG.log( Level.WARNING, e, ()-> "Error invoking service: " + e.getMessage() );
+            InboundResponse response = InboundResponse.createBuilder()
+                    .errorState( ErrorState.TPESVCERR )
+                    .transactionState( TransactionState.ROLLBACK_ONLY )
+                    .build();
+            return serviceHandlerExtension.handleError( extensionContext, request, response, e );
         }
         finally
         {
+            serviceHandlerExtension.after( extensionContext );
             tool.revertClassLoader();
         }
-
-        return responseBuilder.buffer(payload).build();
-
     }
 
     @Override
@@ -124,7 +124,7 @@ public class CasualServiceHandler implements ServiceHandler
         return r;
     }
 
-    private InboundResponse callService(Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler ) throws Throwable
+    private InboundResponse callService( Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler, ServiceHandlerExtension serviceHandlerExtension, ServiceHandlerExtensionContext context) throws Throwable
     {
         Proxy p = (Proxy)r;
 
@@ -132,16 +132,16 @@ public class CasualServiceHandler implements ServiceHandler
 
         Method method = info.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provide required details about the method end point." ) );
 
+        Object[] params = serviceHandlerExtension.convertRequestParams(context, info.getParams());
         Object result;
         try
         {
-            result = method.invoke( p, info.getParams() );
+            result = method.invoke( p, params );
         }
         catch( IllegalArgumentException e )
         {
-            result = retryCallService( p, entry, request, bufferHandler );
+            result = retryCallService( p, entry, request, bufferHandler, params );
         }
-
         return bufferHandler.toResponse( info, result );
     }
 
@@ -151,7 +151,7 @@ public class CasualServiceHandler implements ServiceHandler
      * time this service is called the NoSuchMethodException will not occur again.
      * NoSuchMethodException never happens in wildfly so this should only be called in weblogic once for first invocation of the method.
      */
-    private Object retryCallService(Proxy p, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler ) throws Throwable
+    private Object retryCallService(Proxy p, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler, Object[] params) throws Throwable
     {
         InvocationHandler handler = Proxy.getInvocationHandler( p );
         Method method = entry.getProxyMethod();
@@ -164,7 +164,7 @@ public class CasualServiceHandler implements ServiceHandler
 
         Method m = serviceCallInfo.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provided required details about the method end point." ) );
 
-        return handler.invoke( p, m, serviceCallInfo.getParams() );
+        return handler.invoke( p, m, params );
     }
 
     Context getContext() throws NamingException

@@ -45,6 +45,51 @@ the domain discovery requests will respond accordingly.
 
 NB - undeployment of an application currently does not remove the associated casual services from the registry.
 
+### Extending Casual Service Handler
+
+If you want to use the service handler that is provided, but the default implementation does not suit your needs - you can then
+create an SPI extension that implements *ServiceHandlerExtension* with a priority lower than default *Priority.LEVEL_5*.
+
+See [ServiceHandlerExtension](casual/casual-inbound-handler-api/src/main/java/se/laz/casual/jca/inbound/handler/service/extension/ServiceHandlerExtension.java)
+
+ServiceHandlers retrieve registered ServiceHandlerExtension and filters them using the canHandle method.
+
+ServiceHandlers filter by providing the name of, for example, the annotation they are associated with.
+
+Therefore to add an extension for CasualServices, which are normally handled within CasualServiceHandler, you would
+implement the canHandle method as follow:
+
+```java
+package mypackage;
+
+import se.laz.casual.api.service.CasualService;
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtension;
+
+public class MyServiceHandlerExtension implements ServiceHandlerExtension
+{
+    @Override
+    public boolean canHandle( String name )
+    {
+        return name.equals( CasualService.class.getName() );
+    }
+}
+```
+
+The order of the calls in *ServiceHandler* is as follows:
+* before - perform actions prior to service invocation.
+* convertRequestParams - convert the request parameters prior to service invocation.
+* actual service call
+* handleSuccess - if service call was successful
+* handleError - only if service call triggers some exception
+* after - perform actions after the service invocation. This is always called, regardless of outcome of service call.
+
+Extension method implementations should never allow exceptions be thrown.
+
+Note that before has to return something derived from ServiceHandlerExtensionContext, this is where you would 
+store any eventual - per call, state.
+If you do not have a need to do that you can just leave the default implementation which returns a static instance
+of DefaultServiceHandlerExtensionContext.
+
 ### Startup configuration
 
 Depending on the configuration mode for inbound startup mode, you can control when the inbound server starts accepting requests.
