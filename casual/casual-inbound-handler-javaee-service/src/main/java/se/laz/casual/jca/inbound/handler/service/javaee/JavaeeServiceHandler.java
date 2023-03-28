@@ -22,6 +22,7 @@ import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensi
 import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionFactory;
 
 import javax.ejb.Remote;
+import javax.ejb.Stateless;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -30,6 +31,7 @@ import java.lang.reflect.Proxy;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@Stateless
 public class JavaeeServiceHandler implements ServiceHandler
 {
     private static final Logger LOG = Logger.getLogger(JavaeeServiceHandler.class.getName());
