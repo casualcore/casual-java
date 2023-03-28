@@ -24,6 +24,7 @@ import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.transaction.TransactionTypeMapperJTA;
 import se.laz.casual.network.messages.domain.TransactionType;
 
+import javax.ejb.Stateless;
 import javax.ejb.TransactionAttributeType;
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -37,6 +38,7 @@ import java.util.logging.Logger;
 
 import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodMatcher.matches;
 
+@Stateless
 public class CasualServiceHandler implements ServiceHandler
 {
     private static final Logger LOG = Logger.getLogger(CasualServiceHandler.class.getName());
