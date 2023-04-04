@@ -9,8 +9,6 @@
 group = 'se.laz.casual'
 version = '2.2.19'
 
-ext.casual_test_app_version = '1.0.2'
-
 def netty_version = '4.1.90.Final'
 def gson_version = '2.10.1'
 
