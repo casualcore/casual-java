@@ -7,18 +7,19 @@
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '2.2.18'
+version = '2.2.19'
 
-ext.casual_caller_app_version = '2.2.7'
 ext.casual_test_app_version = '1.0.2'
 
 def netty_version = '4.1.90.Final'
 def gson_version = '2.10.1'
+def casual_caller_version = '2.2.7'
 
 ext.libs = [
   netty : "io.netty:netty-all:${netty_version}",
   netty_epoll: "io.netty:netty-transport-native-epoll:${netty_version}",
   javaee_api: 'javax:javaee-api:7.0',
+  casual_caller_api: "se.laz.casual:casual-caller-api:${casual_caller_version}",
   gson: "com.google.code.gson:gson:${gson_version}",
   objenesis: 'org.objenesis:objenesis:2.6',
   microprofile_config: 'org.eclipse.microprofile.config:microprofile-config-api:1.4',

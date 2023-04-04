@@ -14,7 +14,7 @@ dependencies {
     implementation project( ':casual:test-api' )
     implementation project( ':casual:test-ejb' )
     implementation project( ':casual:test-rest' )
-    implementation project( ':casual:casual-caller-api' )
+    implementation libs.casual_caller_api
 }
 
 war{

@@ -15,7 +15,7 @@ dependencies {
     compileOnly libs.microprofile_config
     compileOnly project( path: ':casual:test-api')
     compileOnly project( path: ':casual:casual-api')
-    compileOnly project( path: ':casual:casual-caller-api')
+    compileOnly libs.casual_caller_api
     compileOnly project( path: ':casual:casual-inbound-handler-api')
     compileOnly project( path: ':casual:casual-fielded-annotations')
 
@@ -24,7 +24,7 @@ dependencies {
     testImplementation project( path: ':casual:test-api')
     testImplementation project( path: ':casual:casual-inbound-handler-api')
     testImplementation project( path: ':casual:casual-api')
-    testImplementation project( path: ':casual:casual-caller-api')
+    testImplementation libs.casual_caller_api
     // for spock
     testImplementation libs.groovy_all
     testImplementation libs.spock_core

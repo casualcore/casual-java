@@ -14,7 +14,7 @@ dependencies {
     compileOnly project( ':casual:test-ejb' )
     compileOnly project( ':casual:test-api' )
     compileOnly project( path: ':casual:casual-api')
-    compileOnly project( path: ':casual:casual-caller-api')
+    compileOnly libs.casual_caller_api
     compileOnly project( path: ':casual:casual-inbound-handler-api')
     compileOnly project( path: ':casual:casual-fielded-annotations')
     compileOnly libs.javaee_api
