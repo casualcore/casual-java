@@ -7,9 +7,8 @@
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '2.2.18'
+version = '2.2.19'
 
-ext.casual_caller_app_version = '2.2.7'
 ext.casual_test_app_version = '1.0.2'
 
 def netty_version = '4.1.90.Final'

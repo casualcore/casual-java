@@ -1,5 +1,0 @@
-{
-  "jndiSearchRoot": "hello",
-  "validationIntervalMillis": 9001,
-  "transactionStickyEnabled": true
-}
