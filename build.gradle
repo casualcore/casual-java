@@ -45,8 +45,7 @@ subprojects{
 }
 
 project.ext {
-    casual_jca_subprojects = subprojects.findAll {
-        !it.name.startsWith( "casual-caller" ) &&
+    casual_jca_subprojects = subprojects.findAll {        
         !it.name.contains( "test" )
     }
 }
