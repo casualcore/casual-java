@@ -22,7 +22,4 @@ include 'casual:casual-fielded-annotations'
 include 'casual:casual-service-discovery-extension'
 include 'casual:casual-inbound-startup-trigger'
 include 'casual:casual-inbound-startup-trigger-app'
-include 'casual:test-api'
-include 'casual:test-ejb'
-include 'casual:test-rest'
-include 'casual:casual-test-app'
+
