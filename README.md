@@ -28,7 +28,7 @@ This is the JCA ResourceAdapter
 
 Abstraction layer on top of 1-n outbound connection pools
 
-See [casual caller documentation](casual/casual-caller-api/README.md) for more in depth information.
+See [casual caller documentation](https://github.com/casualcore/casual-caller) for more in depth information.
 
 ## Further information
 [Deployment](deployment.md)
