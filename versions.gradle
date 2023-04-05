@@ -12,13 +12,6 @@ version = '3.2.20'
 def netty_version = '4.1.90.Final'
 def gson_version = '2.10.1'
 
-/*
- implementation platform('org.apache.groovy:groovy-bom:4.0.5')
-  implementation 'org.apache.groovy:groovy'
-  testImplementation platform("org.spockframework:spock-bom:2.3-groovy-4.0")
-  testImplementation "org.spockframework:spock-core"
-*/
-
 ext.libs = [
   netty : "io.netty:netty-all:${netty_version}",
   netty_epoll: "io.netty:netty-transport-native-epoll:${netty_version}",
