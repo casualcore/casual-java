@@ -7,6 +7,10 @@ ResourceAdapter to allow for distributed XA
 transactions between a compliant JEE7+ server
 and casual-middleware
 
+## Note
+This 3.2 branch is for Jakarta EE.
+For Java EE see the 2.2 branch.
+
 ## Casual API
 
 This project is the casual API, compare this 
