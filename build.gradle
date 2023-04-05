@@ -30,8 +30,8 @@ sonarqube {
 
 allprojects{
   tasks.withType(JavaCompile) { 
-    sourceCompatibility = "8"
-    targetCompatibility = "8"
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     options.compilerArgs << "-Xlint:all" << "-Werror"
   }
   repositories {
