@@ -7,8 +7,8 @@ package se.laz.casual.api.util.work
 
 import spock.lang.Specification
 
-import javax.resource.spi.work.WorkException
-import javax.resource.spi.work.WorkManager
+import jakarta.resource.spi.work.WorkException
+import jakarta.resource.spi.work.WorkManager
 import java.util.function.Consumer
 import java.util.function.Supplier
 

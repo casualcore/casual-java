@@ -8,16 +8,16 @@ package se.laz.casual.jca.inbound.handler.service.transaction;
 
 import se.laz.casual.network.messages.domain.TransactionType;
 
-import javax.ejb.TransactionAttributeType;
+import jakarta.ejb.TransactionAttributeType;
 import java.util.EnumMap;
 import java.util.Objects;
 
-import static javax.ejb.TransactionAttributeType.MANDATORY;
-import static javax.ejb.TransactionAttributeType.NEVER;
-import static javax.ejb.TransactionAttributeType.NOT_SUPPORTED;
-import static javax.ejb.TransactionAttributeType.REQUIRED;
-import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
-import static javax.ejb.TransactionAttributeType.SUPPORTS;
+import static jakarta.ejb.TransactionAttributeType.MANDATORY;
+import static jakarta.ejb.TransactionAttributeType.NEVER;
+import static jakarta.ejb.TransactionAttributeType.NOT_SUPPORTED;
+import static jakarta.ejb.TransactionAttributeType.REQUIRED;
+import static jakarta.ejb.TransactionAttributeType.REQUIRES_NEW;
+import static jakarta.ejb.TransactionAttributeType.SUPPORTS;
 import static se.laz.casual.network.messages.domain.TransactionType.ATOMIC;
 import static se.laz.casual.network.messages.domain.TransactionType.AUTOMATIC;
 import static se.laz.casual.network.messages.domain.TransactionType.JOIN;

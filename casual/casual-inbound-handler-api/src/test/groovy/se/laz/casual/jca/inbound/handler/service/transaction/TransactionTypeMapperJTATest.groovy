@@ -10,7 +10,7 @@ import se.laz.casual.network.messages.domain.TransactionType
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import javax.ejb.TransactionAttributeType
+import jakarta.ejb.TransactionAttributeType
 
 class TransactionTypeMapperJTATest extends Specification
 {

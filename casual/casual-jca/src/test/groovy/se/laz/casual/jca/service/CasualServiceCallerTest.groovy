@@ -30,7 +30,7 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestM
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.resource.spi.work.WorkManager
+import jakarta.resource.spi.work.WorkManager
 import java.util.concurrent.CompletableFuture
 
 import static se.laz.casual.test.matchers.CasualNWMessageMatchers.matching

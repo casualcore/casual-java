@@ -175,7 +175,7 @@ public final class CasualServiceMetaData
         }
 
         /**
-         * The interface value of the {@link javax.ejb.Remote} annotation if present.
+         * The interface value of the {@link jakarta.ejb.Remote} annotation if present.
          * @param interfaceClass the interface class
          * @return builder
          */

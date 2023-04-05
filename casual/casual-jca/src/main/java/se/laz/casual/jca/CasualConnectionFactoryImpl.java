@@ -8,9 +8,9 @@ package se.laz.casual.jca;
 
 import javax.naming.NamingException;
 import javax.naming.Reference;
-import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ConnectionRequestInfo;
+import jakarta.resource.ResourceException;
+import jakarta.resource.spi.ConnectionManager;
+import jakarta.resource.spi.ConnectionRequestInfo;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -29,7 +29,7 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     private ConnectionManager connectionManager;
 
     /**
-     * NetworkConnection Factory instance is created from the {@link javax.resource.spi.ManagedConnectionFactory}
+     * NetworkConnection Factory instance is created from the {@link jakarta.resource.spi.ManagedConnectionFactory}
      * as part of the Application Server lifecycle.
      *
      * <p>When created a reference to the resources created by the application server

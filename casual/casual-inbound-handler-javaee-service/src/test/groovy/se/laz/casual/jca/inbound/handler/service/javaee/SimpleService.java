@@ -6,7 +6,7 @@
 
 package se.laz.casual.jca.inbound.handler.service.javaee;
 
-import javax.ejb.Remote;
+import jakarta.ejb.Remote;
 
 @Remote
 public interface SimpleService

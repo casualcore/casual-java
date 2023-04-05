@@ -9,8 +9,8 @@ package se.laz.casual.internal.server.work
 import se.laz.casual.internal.work.WorkContextFactory
 import spock.lang.Specification
 
-import javax.resource.spi.work.HintsContext
-import javax.resource.spi.work.WorkContext
+import jakarta.resource.spi.work.HintsContext
+import jakarta.resource.spi.work.WorkContext
 
 class WorkContextFactoryTest extends Specification
 {

@@ -6,8 +6,8 @@
 
 package se.laz.casual.internal.work;
 
-import javax.resource.spi.work.HintsContext;
-import javax.resource.spi.work.WorkContext;
+import jakarta.resource.spi.work.HintsContext;
+import jakarta.resource.spi.work.WorkContext;
 import java.util.ArrayList;
 import java.util.List;
 

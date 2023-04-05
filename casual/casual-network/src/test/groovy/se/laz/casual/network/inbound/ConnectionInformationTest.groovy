@@ -10,9 +10,9 @@ package se.laz.casual.network.inbound
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.resource.spi.XATerminator
-import javax.resource.spi.endpoint.MessageEndpointFactory
-import javax.resource.spi.work.WorkManager
+import jakarta.resource.spi.XATerminator
+import jakarta.resource.spi.endpoint.MessageEndpointFactory
+import jakarta.resource.spi.work.WorkManager
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
 

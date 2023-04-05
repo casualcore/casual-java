@@ -9,12 +9,12 @@ package se.laz.casual.jca.inflow;
 import io.netty.channel.Channel;
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
 
-import javax.resource.spi.work.WorkEvent;
-import javax.resource.spi.work.WorkListener;
+import jakarta.resource.spi.work.WorkEvent;
+import jakarta.resource.spi.work.WorkListener;
 
 /**
- * Work Listener to handle completion of {@link javax.resource.spi.work.Work} item by
- * {@link javax.resource.spi.work.WorkManager} to flush the response to the netty {@link Channel}.
+ * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
+ * {@link jakarta.resource.spi.work.WorkManager} to flush the response to the netty {@link Channel}.
  */
 public class ServiceCallWorkListener implements WorkListener
 {

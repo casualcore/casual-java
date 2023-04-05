@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  * method should be callable from casual. This places restrictions on
  * the method:
  * <ul>
- *     <li>Shall be annotated as {@link javax.ejb.Remote}.</li>
+ *     <li>Shall be annotated as {@link jakarta.ejb.Remote}.</li>
  *     <li>{@link #name()} shall be unique throughout all deployments on the application server.</li>
  *     <li>Annotated classes FQCN shall be unique throughout all deployments on the application server.</li>
  * </ul>

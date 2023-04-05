@@ -9,7 +9,7 @@ package se.laz.casual.jca.inflow
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.resource.spi.ResourceAdapter
+import jakarta.resource.spi.ResourceAdapter
 
 class CasualActivationSpecTest extends Specification
 {

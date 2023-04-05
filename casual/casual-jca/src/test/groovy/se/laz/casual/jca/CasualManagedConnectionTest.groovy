@@ -11,10 +11,10 @@ import se.laz.casual.internal.network.NetworkConnection
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.resource.NotSupportedException
-import javax.resource.ResourceException
-import javax.resource.spi.ConnectionEvent
-import javax.resource.spi.ConnectionEventListener
+import jakarta.resource.NotSupportedException
+import jakarta.resource.ResourceException
+import jakarta.resource.spi.ConnectionEvent
+import jakarta.resource.spi.ConnectionEventListener
 import javax.transaction.xa.XAResource
 import javax.transaction.xa.Xid
 

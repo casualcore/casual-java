@@ -15,8 +15,8 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
-import javax.resource.spi.XATerminator;
-import javax.resource.spi.work.WorkManager;
+import jakarta.resource.spi.XATerminator;
+import jakarta.resource.spi.work.WorkManager;
 
 /**
  * CasualMessageListener Inbound Message Listener.

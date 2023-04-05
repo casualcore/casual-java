@@ -9,7 +9,7 @@ package se.laz.casual.jca.work;
 import se.laz.casual.jca.InboundStartupException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
 
-import javax.resource.spi.work.Work;
+import jakarta.resource.spi.work.Work;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;

@@ -20,7 +20,7 @@ import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
-import javax.resource.spi.work.Work;
+import jakarta.resource.spi.work.Work;
 import java.util.UUID;
 import java.util.logging.Logger;
 

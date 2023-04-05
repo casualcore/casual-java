@@ -10,7 +10,7 @@ import se.laz.casual.api.service.CasualService
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.ejb.TransactionAttributeType
+import jakarta.ejb.TransactionAttributeType
 
 class TransactionAttributeTypeFinderTest extends Specification
 {

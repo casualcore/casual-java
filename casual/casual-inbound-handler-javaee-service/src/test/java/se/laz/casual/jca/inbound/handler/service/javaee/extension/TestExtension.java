@@ -7,7 +7,7 @@ import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensi
 import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionContext;
 import se.laz.casual.spi.Priority;
 
-import javax.ejb.Remote;
+import jakarta.ejb.Remote;
 
 public class TestExtension implements ServiceHandlerExtension
 {

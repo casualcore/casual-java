@@ -26,7 +26,7 @@ import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.ejb.Remote
+import jakarta.ejb.Remote
 import javax.naming.Context
 import javax.naming.NamingException
 import java.lang.reflect.Proxy

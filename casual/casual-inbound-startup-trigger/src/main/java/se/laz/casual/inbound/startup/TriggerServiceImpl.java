@@ -9,8 +9,8 @@ package se.laz.casual.inbound.startup;
 import se.laz.casual.api.service.CasualService;
 import se.laz.casual.config.Mode;
 
-import javax.ejb.Remote;
-import javax.ejb.Stateless;
+import jakarta.ejb.Remote;
+import jakarta.ejb.Stateless;
 
 @Stateless
 @Remote(TriggerService.class)

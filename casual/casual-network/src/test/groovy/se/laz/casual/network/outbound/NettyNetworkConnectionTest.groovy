@@ -10,6 +10,7 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import io.netty.channel.embedded.EmbeddedChannel
+import jakarta.enterprise.concurrent.ContextService
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.conversation.Duplex
@@ -27,8 +28,17 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMes
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.enterprise.concurrent.ManagedExecutorService
-import java.util.concurrent.*
+import jakarta.enterprise.concurrent.ManagedExecutorService
+
+import java.util.concurrent.Callable
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
+import java.util.concurrent.CompletionStage
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.function.Supplier
+
 
 class NettyNetworkConnectionTest extends Specification implements NetworkListener
 {
@@ -314,6 +324,56 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
       void execute(Runnable runnable)
       {
          CompletableFuture.runAsync(runnable)
+      }
+
+      @Override
+      def <U> CompletableFuture<U> completedFuture(U value) {
+         return null
+      }
+
+      @Override
+      def <U> CompletionStage<U> completedStage(U value) {
+         return null
+      }
+
+      @Override
+      def <T> CompletableFuture<T> copy(CompletableFuture<T> stage) {
+         return null
+      }
+
+      @Override
+      def <T> CompletionStage<T> copy(CompletionStage<T> stage) {
+         return null
+      }
+
+      @Override
+      def <U> CompletableFuture<U> failedFuture(Throwable ex) {
+         return null
+      }
+
+      @Override
+      def <U> CompletionStage<U> failedStage(Throwable ex) {
+         return null
+      }
+
+      @Override
+      ContextService getContextService() {
+         return null
+      }
+
+      @Override
+      def <U> CompletableFuture<U> newIncompleteFuture() {
+         return null
+      }
+
+      @Override
+      CompletableFuture<Void> runAsync(Runnable runnable) {
+         return null
+      }
+
+      @Override
+      def <U> CompletableFuture<U> supplyAsync(Supplier<U> supplier) {
+         return null
       }
    }
 }

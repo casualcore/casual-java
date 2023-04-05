@@ -6,9 +6,9 @@
 
 package se.laz.casual.jca;
 
-import javax.resource.Referenceable;
-import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionRequestInfo;
+import jakarta.resource.Referenceable;
+import jakarta.resource.ResourceException;
+import jakarta.resource.spi.ConnectionRequestInfo;
 import java.io.Serializable;
 
 /**

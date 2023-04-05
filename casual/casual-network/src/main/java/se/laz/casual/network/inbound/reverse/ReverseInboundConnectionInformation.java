@@ -14,9 +14,9 @@ import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.outbound.Correlator;
 import se.laz.casual.network.outbound.CorrelatorImpl;
 
-import javax.resource.spi.XATerminator;
-import javax.resource.spi.endpoint.MessageEndpointFactory;
-import javax.resource.spi.work.WorkManager;
+import jakarta.resource.spi.XATerminator;
+import jakarta.resource.spi.endpoint.MessageEndpointFactory;
+import jakarta.resource.spi.work.WorkManager;
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.UUID;

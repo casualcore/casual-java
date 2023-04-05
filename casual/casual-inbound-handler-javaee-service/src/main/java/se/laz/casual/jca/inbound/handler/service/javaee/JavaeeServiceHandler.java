@@ -21,8 +21,8 @@ import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensi
 import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionContext;
 import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionFactory;
 
-import javax.ejb.Remote;
-import javax.ejb.Stateless;
+import jakarta.ejb.Remote;
+import jakarta.ejb.Stateless;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;

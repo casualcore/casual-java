@@ -6,8 +6,8 @@
 
 package se.laz.casual.jca.inbound.handler.service.casual;
 
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.Optional;

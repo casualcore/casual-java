@@ -11,7 +11,7 @@ import se.laz.casual.network.reverse.inbound.ReverseInboundConnectListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
-import javax.resource.spi.work.WorkManager;
+import jakarta.resource.spi.work.WorkManager;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;

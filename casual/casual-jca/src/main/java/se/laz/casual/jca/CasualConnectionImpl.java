@@ -57,7 +57,7 @@ public class CasualConnectionImpl implements CasualConnection
 
     /**
      * Invalidate this connection handle removing its reference to
-     * the underlying {@link javax.resource.spi.ManagedConnection}.
+     * the underlying {@link jakarta.resource.spi.ManagedConnection}.
      */
     public void invalidate()
     {

@@ -6,8 +6,8 @@
 
 package se.laz.casual.api.util.work;
 
-import javax.resource.spi.work.WorkEvent;
-import javax.resource.spi.work.WorkListener;
+import jakarta.resource.spi.work.WorkEvent;
+import jakarta.resource.spi.work.WorkListener;
 import java.util.logging.Logger;
 
 public class RepeatUntilSuccessTaskWorkListener implements WorkListener

@@ -8,8 +8,8 @@ package se.laz.casual.jca.event;
 
 import se.laz.casual.network.connection.CasualConnectionException;
 
-import javax.resource.spi.ConnectionEvent;
-import javax.resource.spi.ConnectionEventListener;
+import jakarta.resource.spi.ConnectionEvent;
+import jakarta.resource.spi.ConnectionEventListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +20,7 @@ public class ConnectionEventHandler
 {
     private static final Logger logger = Logger.getLogger(ConnectionEventHandler.class.getName());
 
-    private final List<javax.resource.spi.ConnectionEventListener> listeners;
+    private final List<jakarta.resource.spi.ConnectionEventListener> listeners;
 
     public ConnectionEventHandler()
     {
@@ -63,7 +63,7 @@ public class ConnectionEventHandler
 
     public void sendEvent(ConnectionEvent event)
     {
-        List<javax.resource.spi.ConnectionEventListener> copy = new ArrayList<>();
+        List<jakarta.resource.spi.ConnectionEventListener> copy = new ArrayList<>();
         synchronized (listeners)
         {
             copy.addAll(listeners);

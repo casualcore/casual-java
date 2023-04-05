@@ -33,13 +33,13 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackReplyMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.MessageDriven;
-import javax.resource.NotSupportedException;
-import javax.resource.spi.XATerminator;
-import javax.resource.spi.work.TransactionContext;
-import javax.resource.spi.work.WorkException;
-import javax.resource.spi.work.WorkManager;
+import jakarta.ejb.ActivationConfigProperty;
+import jakarta.ejb.MessageDriven;
+import jakarta.resource.NotSupportedException;
+import jakarta.resource.spi.XATerminator;
+import jakarta.resource.spi.work.TransactionContext;
+import jakarta.resource.spi.work.WorkException;
+import jakarta.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.Xid;
 import java.time.Duration;

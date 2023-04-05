@@ -13,9 +13,9 @@ import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
 
-import javax.ejb.Schedule;
-import javax.ejb.Singleton;
-import javax.ejb.Timer;
+import jakarta.ejb.Schedule;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Timer;
 import javax.naming.InitialContext;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;

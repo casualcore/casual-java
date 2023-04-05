@@ -22,7 +22,7 @@ import se.laz.casual.network.outbound.EventLoopFactory;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
-import javax.resource.spi.work.WorkManager;
+import jakarta.resource.spi.work.WorkManager;
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.function.Supplier;

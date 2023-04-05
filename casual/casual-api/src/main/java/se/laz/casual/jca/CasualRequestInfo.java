@@ -5,7 +5,7 @@
  */
 package se.laz.casual.jca;
 
-import javax.resource.spi.ConnectionRequestInfo;
+import jakarta.resource.spi.ConnectionRequestInfo;
 import java.util.Objects;
 import java.util.Optional;
 

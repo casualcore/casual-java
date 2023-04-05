@@ -6,15 +6,15 @@
 
 package se.laz.casual.jca.work;
 
-import javax.resource.spi.work.WorkEvent;
-import javax.resource.spi.work.WorkListener;
+import jakarta.resource.spi.work.WorkEvent;
+import jakarta.resource.spi.work.WorkListener;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Work Listener to handle completion of {@link javax.resource.spi.work.Work} item by
- * {@link javax.resource.spi.work.WorkManager} to log if anything goes wrong with starting the inbound server
+ * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
+ * {@link jakarta.resource.spi.work.WorkManager} to log if anything goes wrong with starting the inbound server
  */
 public class StartInboundServerListener implements WorkListener
 {

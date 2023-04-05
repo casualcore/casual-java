@@ -25,7 +25,7 @@ import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.resource.spi.work.WorkEvent
+import jakarta.resource.spi.work.WorkEvent
 import javax.transaction.xa.Xid
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ThreadLocalRandom

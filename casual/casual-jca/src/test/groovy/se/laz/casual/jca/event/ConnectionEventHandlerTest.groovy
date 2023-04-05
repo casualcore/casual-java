@@ -11,9 +11,9 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import javax.resource.spi.ConnectionEvent
-import javax.resource.spi.ConnectionEventListener
-import javax.resource.spi.ManagedConnection
+import jakarta.resource.spi.ConnectionEvent
+import jakarta.resource.spi.ConnectionEventListener
+import jakarta.resource.spi.ManagedConnection
 
 class ConnectionEventHandlerTest extends Specification
 {

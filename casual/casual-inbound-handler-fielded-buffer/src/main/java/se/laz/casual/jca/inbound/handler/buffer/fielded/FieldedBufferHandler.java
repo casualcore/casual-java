@@ -14,7 +14,7 @@ import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 
-import javax.ejb.Stateless;
+import jakarta.ejb.Stateless;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 

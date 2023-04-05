@@ -11,7 +11,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import javax.naming.Reference
-import javax.resource.spi.ConnectionManager
+import jakarta.resource.spi.ConnectionManager
 
 class CasualConnectionFactoryImplTest extends Specification
 {

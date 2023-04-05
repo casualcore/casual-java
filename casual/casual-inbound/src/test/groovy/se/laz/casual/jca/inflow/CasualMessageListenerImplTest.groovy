@@ -32,11 +32,11 @@ import se.laz.casual.network.protocol.messages.transaction.*
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.resource.spi.XATerminator
-import javax.resource.spi.work.ExecutionContext
-import javax.resource.spi.work.WorkException
-import javax.resource.spi.work.WorkListener
-import javax.resource.spi.work.WorkManager
+import jakarta.resource.spi.XATerminator
+import jakarta.resource.spi.work.ExecutionContext
+import jakarta.resource.spi.work.WorkException
+import jakarta.resource.spi.work.WorkListener
+import jakarta.resource.spi.work.WorkManager
 import javax.transaction.xa.XAException
 import javax.transaction.xa.Xid
 import java.lang.annotation.Annotation

@@ -7,7 +7,7 @@ package se.laz.casual.jca;
 
 import se.laz.casual.internal.CasualConstants;
 
-import javax.resource.cci.ResourceAdapterMetaData;
+import jakarta.resource.cci.ResourceAdapterMetaData;
 
 /**
  * CasualRaMetaData

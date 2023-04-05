@@ -25,7 +25,7 @@ import se.laz.casual.network.protocol.messages.conversation.Request
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.resource.spi.work.WorkManager
+import jakarta.resource.spi.work.WorkManager
 import java.util.concurrent.CompletableFuture
 
 class CasualConversationImplTest extends Specification

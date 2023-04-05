@@ -8,8 +8,8 @@ package se.laz.casual.jca.inbound.handler.service.casual;
 
 import se.laz.casual.api.service.CasualService;
 
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
 
 public class MethodBasedTransactionAnnotation implements SomeInterface
 {
