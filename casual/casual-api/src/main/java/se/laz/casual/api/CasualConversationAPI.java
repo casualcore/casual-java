@@ -7,6 +7,7 @@
 package se.laz.casual.api;
 
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.api.conversation.TpConnectReturn;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 
@@ -21,21 +22,27 @@ public interface CasualConversationAPI
      *
      * It signifies what state the caller will start out in
      * With AtmiFlags.TPSENDONLY the conversation caller is supposed to start sending data first, via tpsend.
-     * AtmiFlags.TPSENDONLY then means that the conversation caller will start receiving data, via tprecv
+     * AtmiFlags.TPRECVONLY then means that the conversation caller will start receiving data, via tprecv
      *
-     * @param serviceName name of service to which to connect.
-     * @param flags to send with the connection request.
-     * @return A conversation handle
+     * The conversation is only available if {@link TpConnectReturn#getErrorState()} equals to {@link se.laz.casual.api.flags.ErrorState#OK}
+     * - if not, you should fail the call with the provided error.
+     *
+     * Note:
+     * Always issue the call using try-with-resources to make sure that nothing leaks
+     *
+     * @param serviceName - the service name
+     * @param data - initial data to be sent
+     * @param flags - the flags
+     * @return A TpConnectReturn with a conversation if {@link TpConnectReturn#getErrorState()} equals to {@link se.laz.casual.api.flags.ErrorState#OK}
      */
-    Conversation tpconnect(String serviceName, Flag<AtmiFlags> flags);
+    TpConnectReturn tpconnect(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
 
     /**
-     * As per {@link #tpconnect} though with additional data to be set during the connect request.
-     *
-     * @param serviceName name of service to which to connect.
-     * @param data to send during initial connection request.
-     * @param flags to send with the connection request.
-     * @return A conversation handle
+     * Same as tpconnect with data but no initial data is sent in this case
+     * @param serviceName - the service name
+     * @param flags - the flags
+     * @return A TpConnectReturn with a conversation if {@link TpConnectReturn#getErrorState()} equals to {@link se.laz.casual.api.flags.ErrorState#OK}
      */
-    Conversation tpconnect(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
+    TpConnectReturn tpconnect(String serviceName, Flag<AtmiFlags> flags);
+
 }
