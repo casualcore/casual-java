@@ -6,9 +6,9 @@
 
 package se.laz.casual.jca;
 
-import se.laz.casual.api.Conversation;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
+import se.laz.casual.api.conversation.TpConnectReturn;
 import se.laz.casual.api.discovery.DiscoveryReturn;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
@@ -170,7 +170,7 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
-    public Conversation tpconnect(String serviceName, Flag<AtmiFlags> flags)
+    public TpConnectReturn tpconnect(String serviceName, Flag<AtmiFlags> flags)
     {
         Objects.requireNonNull(serviceName,"serviceName can not be null");
         Objects.requireNonNull(flags, "flags can not be null");
@@ -178,7 +178,7 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
-    public Conversation tpconnect(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    public TpConnectReturn tpconnect(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         Objects.requireNonNull(serviceName,"serviceName can not be null");
         Objects.requireNonNull(data, "data can not be null");

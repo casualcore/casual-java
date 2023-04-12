@@ -18,8 +18,13 @@ import se.laz.casual.api.buffer.ConversationReturn;
  *      try(CasualConnection connection = connectionFactory.getConnection())
  *      {
  *          OctetBuffer buffer = OctetBuffer.of("Initial payload\n".getBytes(StandardCharsets.UTF_8));
- *          try(Conversation conversation = connection.tpconnect("some_service", buffer, Flag.of(AtmiFlags.TPSENDONLY)))
+ *          try(TpConnectReturn tpConnectReturn = connection.tpconnect("some_service", buffer, Flag.of(AtmiFlags.TPSENDONLY)))
  *          {
+ *              if(tpConnectReturn.getErrorState() != ErrorState.OK)
+ *              {
+ *                  throw new TPConnectFailedException(tpConnectReturn.getErrorState());
+ *              }
+ *              Conversation conversation = tpConnectReturn.getConversation().orElseThrow(() -> new TPConnectFailedException("ErrorState.OK but no conversation!"));
  *              StringBuilder b = new StringBuilder("Payload:\n");
  *              buffer = OctetBuffer.of("Extra, extra, read all about it!\n".getBytes(StandardCharsets.UTF_8));
  *              // send buffer and hand over control
@@ -54,7 +59,7 @@ public interface Conversation extends AutoCloseable
     /**
      * Note, blocks until a message is available
      * Throws if called when tpsend is supposed to be called
-     * @return The received casual buffer.
+     * @return The result - {@link ConversationReturn<CasualBuffer>}
      */
     ConversationReturn<CasualBuffer> tprecv();
 
@@ -73,7 +78,7 @@ public interface Conversation extends AutoCloseable
     /**
      * Note: blocks until message has successfully been sent
      * Throws if called when tprecv is supposed to be called
-     * @param data to send.
+     * @param data
      * @param handOverControl - true if you are in control but want to hand over control and start receiving
      */
     void tpsend(CasualBuffer data, boolean handOverControl);

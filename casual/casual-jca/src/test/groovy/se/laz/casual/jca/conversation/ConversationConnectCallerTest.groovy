@@ -11,6 +11,7 @@ import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
 
 import se.laz.casual.api.conversation.Duplex
+import se.laz.casual.api.conversation.TpConnectReturn
 import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.Flag
@@ -118,7 +119,11 @@ class ConversationConnectCallerTest extends Specification
             return CompletableFuture.completedFuture(connectReplyOK)
       }
       when:
-      Conversation conversation = instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPSENDONLY))
+      TpConnectReturn connectReturn = instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPSENDONLY))
+      then:
+      connectReturn.getErrorState() == ErrorState.OK
+      when:
+      Conversation conversation = connectReturn.getConversation().orElseThrow({ new RuntimeException('oopsie!')})
       then:
       conversation != null
       conversation.isSending()
@@ -139,7 +144,11 @@ class ConversationConnectCallerTest extends Specification
             return CompletableFuture.completedFuture(connectReplyOKUserCodeMissing)
       }
       when:
-      Conversation conversation = instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPSENDONLY))
+      TpConnectReturn connectReturn = instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPSENDONLY))
+      then:
+      connectReturn.getErrorState() == ErrorState.OK
+      when:
+      Conversation conversation = connectReturn.getConversation().orElseThrow({ new RuntimeException('oopsie!')})
       then:
       conversation != null
       conversation.isSending()
