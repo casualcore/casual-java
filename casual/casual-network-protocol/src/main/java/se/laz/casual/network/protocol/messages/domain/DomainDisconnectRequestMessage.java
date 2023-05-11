@@ -36,6 +36,11 @@ public class DomainDisconnectRequestMessage implements CasualNetworkTransmittabl
         return new DomainDisconnectRequestMessage(execution);
     }
 
+    public UUID getExecution()
+    {
+        return execution;
+    }
+
     @Override
     public CasualNWMessageType getType()
     {
