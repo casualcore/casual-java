@@ -19,6 +19,7 @@ import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.CasualNWMessageDecoder;
@@ -63,6 +64,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private final Supplier<ManagedExecutorService> managedExecutorService;
     private final ErrorInformer errorInformer;
     private DomainId domainId;
+    private ProtocolVersion protocolVersion;
 
     private NettyNetworkConnection(BaseConnectionInformation ci,
                                    Correlator correlator,
@@ -93,20 +95,28 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator);
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
-        if(ci.getProtocolVersion() == ProtocolVersion.VERSION_1_1.getVersion() || ci.getProtocolVersion() == ProtocolVersion.VERSION_1_2.getVersion())
+        LOG.finest(() -> networkConnection + " connected to: " + ci.getAddress());
+        ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
+        DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
+        networkConnection.setDomainId(id);
+        if(networkConnection.getProtocolVersion() == ProtocolVersion.VERSION_1_1 || networkConnection.getProtocolVersion() == ProtocolVersion.VERSION_1_2)
         {
             // domain disconnect only available in 1.1, 1.2
             messageHandler.setDomainDisconnectListener(networkConnection);
             correlator.setCorrelatorEmptyListener(networkConnection);
         }
-        LOG.finest(() -> networkConnection + " connected to: " + ci.getAddress());
-        ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
-        DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
-        networkConnection.setDomainId(id);
         return networkConnection;
     }
 
+    public ProtocolVersion getProtocolVersion()
+    {
+        return protocolVersion;
+    }
 
+    private void setProtocolVersion(ProtocolVersion protocolVersion)
+    {
+        this.protocolVersion = protocolVersion;
+    }
 
     private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)
     {
@@ -287,13 +297,13 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return ci.getProtocolVersion() == ProtocolVersion.VERSION_1_1.getVersion() || ci.getProtocolVersion() == ProtocolVersion.VERSION_1_2.getVersion();
     }
 
-    private DomainId throwIfProtocolVersionNotSupportedByEIS(long version, final UUID domainId, final String domainName)
+    private DomainId throwIfProtocolVersionNotSupportedByEIS(final UUID domainId, final String domainName)
     {
         CasualDomainConnectRequestMessage requestMessage = CasualDomainConnectRequestMessage.createBuilder()
                                                                                             .withExecution(UUID.randomUUID())
                                                                                             .withDomainId(domainId)
                                                                                             .withDomainName(domainName)
-                                                                                            .withProtocols(Arrays.asList(version))
+                                                                                            .withProtocols(ProtocolVersion.supportedVersions())
                                                                                             .build();
         CasualNWMessage<CasualDomainConnectRequestMessage> nwMessage = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage);
         LOG.finest(() -> "about to send handshake: " + this);
@@ -301,11 +311,13 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         LOG.finest(() -> "handshake sent: " + this);
         CasualNWMessage<CasualDomainConnectReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
         LOG.finest(() -> "received handshake reply: " + this);
-        if(replyEnvelope.getMessage().getProtocolVersion() != version)
-        {
-            LOG.warning(() -> "protocol version mismatch, requesting:  " + version + " reply version: " + replyEnvelope.getMessage().getProtocolVersion());
-            throw new CasualConnectionException("wanted protocol version " + version + " is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion());
-        }
+        long actualProtocolVersion = ProtocolVersion.supportedVersions()
+                                                              .stream()
+                                                              .filter(protocolVersion -> protocolVersion == replyEnvelope.getMessage().getProtocolVersion())
+                                                              .findFirst()
+                                                              .orElseThrow(() -> new CasualConnectionException("wanted one of protocol versions " + ProtocolVersion.supportedVersions() + " but it is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion()));
+        setProtocolVersion(ProtocolVersion.unmarshall(actualProtocolVersion));
+        LOG.info(() -> "using protocol version: " + protocolVersion + " asked for: " + ProtocolVersion.supportedVersions());
         return DomainId.of(replyEnvelope.getMessage().getDomainId());
     }
 
