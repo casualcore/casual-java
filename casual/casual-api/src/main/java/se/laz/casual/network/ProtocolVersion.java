@@ -8,6 +8,7 @@ package se.laz.casual.network;
 import se.laz.casual.network.connection.CasualConnectionException;
 
 import java.util.Arrays;
+import java.util.List;
 
 public enum ProtocolVersion
 {
@@ -15,6 +16,7 @@ public enum ProtocolVersion
     VERSION_1_1(1001),
     VERSION_1_2(1002);
 
+    private static final List<Long> supportedVersions = Arrays.asList(ProtocolVersion.VERSION_1_0.getVersion(), ProtocolVersion.VERSION_1_1.getVersion());
     private long version;
 
     ProtocolVersion(long version)
@@ -65,6 +67,11 @@ public enum ProtocolVersion
             default:
                 throw new CasualConnectionException("Unknown protocol version: " + version);
         }
+    }
+
+    public static List<Long> supportedVersions()
+    {
+        return supportedVersions;
     }
 
 }
