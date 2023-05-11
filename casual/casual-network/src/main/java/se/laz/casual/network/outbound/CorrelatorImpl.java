@@ -22,6 +22,7 @@ public final class CorrelatorImpl implements Correlator
 {
     private static final Logger log = Logger.getLogger(CorrelatorImpl.class.getName());
     private final Map<UUID, CompletableFuture<?>> requests = new ConcurrentHashMap<>();
+    // only in protocol version 1.1, 1.2
     private CorrelatorEmptyListener correlatorEmptyListener;
 
     private CorrelatorImpl()

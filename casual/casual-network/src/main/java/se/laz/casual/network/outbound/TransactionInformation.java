@@ -27,7 +27,7 @@ public class TransactionInformation
         return !transactions.isEmpty();
     }
 
-    public void pruneTransactions()
+    public TransactionInformation pruneTransactions()
     {
         synchronized (lock)
         {
@@ -36,6 +36,7 @@ public class TransactionInformation
                                        .collect(Collectors.toList());
             LOG.info(() -> "pruneTransactions: current number of transactions: " + transactions.size());
         }
+        return this;
     }
 
     public int numberOfCurrentTransactions()
@@ -61,7 +62,7 @@ public class TransactionInformation
         }
     }
 
-    public void addCurrentTransaction()
+    public TransactionInformation addCurrentTransaction()
     {
         getCurrentTransaction().ifPresent(transaction -> {
             synchronized (lock)
@@ -70,6 +71,7 @@ public class TransactionInformation
             }
         });
         LOG.info(() -> "addCurrentTransaction: current number of transactions: " + transactions.size());
+        return this;
     }
 
     private Optional<Transaction> getCurrentTransaction()

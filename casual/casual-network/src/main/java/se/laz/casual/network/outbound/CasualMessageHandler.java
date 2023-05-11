@@ -10,7 +10,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
-import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage;
 
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -20,7 +19,7 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
     private static final Logger LOG = Logger.getLogger(CasualMessageHandler.class.getName());
     private final Correlator correlator;
 
-    private DomainDisconnectListener domainDisconnectListener;
+    private CasualOutboundMessageListener casualOutboundMessageListener;
 
     private CasualMessageHandler(final Correlator correlator)
     {
@@ -33,10 +32,10 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
         return new CasualMessageHandler(correlator);
     }
 
-    public void setDomainDisconnectListener(DomainDisconnectListener domainDisconnectListener)
+    public void setCasualOutboundMessageListener(CasualOutboundMessageListener casualOutboundMessageListener)
     {
-        Objects.requireNonNull(domainDisconnectListener, "domainDisconnectObserver can not be null");
-        this.domainDisconnectListener = domainDisconnectListener;
+        Objects.requireNonNull(casualOutboundMessageListener, "casualOutboundMessageListener can not be null");
+        this.casualOutboundMessageListener = casualOutboundMessageListener;
     }
 
     @Override
@@ -49,16 +48,11 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
             ctx.fireChannelRead(msg);
             return;
         }
-        if(isDomainDisconnectMessage(msg.getType()))
+        if(null != casualOutboundMessageListener && casualOutboundMessageListener.isInterestedIn(msg.getType()))
         {
-            LOG.info(() -> "Got domain disconnect message, listener: " + (null != domainDisconnectListener));
-            if((null != domainDisconnectListener))
-            {
-                // for protocol version [1.1, 1.2]
-                DomainDisconnectRequestMessage requestMessage = (DomainDisconnectRequestMessage) msg.getMessage();
-                domainDisconnectListener.domainDisconnecting(requestMessage.getExecution());
-                return;
-            }
+            LOG.info(() -> "got domain disconnect message, listener: " + (null != casualOutboundMessageListener));
+            casualOutboundMessageListener.handleMessage(msg);
+            return;
         }
         correlator.complete(msg);
     }
@@ -66,10 +60,5 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
     private boolean isConversationalMessage(CasualNWMessageType type)
     {
         return type == CasualNWMessageType.CONVERSATION_REQUEST;
-    }
-
-    private boolean isDomainDisconnectMessage(CasualNWMessageType type)
-    {
-        return type == CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST;
     }
 }
