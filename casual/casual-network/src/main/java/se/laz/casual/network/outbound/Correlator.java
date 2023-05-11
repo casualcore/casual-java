@@ -20,4 +20,5 @@ public interface Correlator
     void completeAllExceptionally(final Exception e);
     void put(final UUID corrid, final CompletableFuture<?> f);
     <T extends CasualNetworkTransmittable>  void complete(final CasualNWMessage<T> msg);
+    void setCorrelatorEmptyListener(CorrelatorEmptyListener observer);
 }

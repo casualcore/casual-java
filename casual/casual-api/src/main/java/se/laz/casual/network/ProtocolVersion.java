@@ -27,12 +27,44 @@ public enum ProtocolVersion
         return version;
     }
 
+    public String getVersionAsString()
+    {
+        if(version == ProtocolVersion.VERSION_1_0.getVersion())
+        {
+            return "1.0";
+        }
+        if(version == ProtocolVersion.VERSION_1_1.getVersion())
+        {
+            return "1.1";
+        }
+        if(version == ProtocolVersion.VERSION_1_2.getVersion())
+        {
+            return "1.2";
+        }
+        throw new CasualConnectionException("Unknown protocol version: " + version);
+    }
+
     public static ProtocolVersion unmarshall(long version)
     {
         return Arrays.stream(values())
                      .filter(protocolVersion -> protocolVersion.getVersion() == version)
                      .findFirst()
                      .orElseThrow(() -> new CasualConnectionException("Version: " + version + " is not supported"));
+    }
+
+    public static ProtocolVersion unmarshall(String version)
+    {
+        switch(version)
+        {
+            case "1.0":
+                return VERSION_1_0;
+            case "1.1":
+                return VERSION_1_1;
+            case "1.2":
+                return VERSION_1_2;
+            default:
+                throw new CasualConnectionException("Unknown protocol version: " + version);
+        }
     }
 
 }

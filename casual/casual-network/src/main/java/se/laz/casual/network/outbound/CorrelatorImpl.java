@@ -22,6 +22,8 @@ public final class CorrelatorImpl implements Correlator
 {
     private static final Logger log = Logger.getLogger(CorrelatorImpl.class.getName());
     private final Map<UUID, CompletableFuture<?>> requests = new ConcurrentHashMap<>();
+    private CorrelatorEmptyListener correlatorEmptyListener;
+
     private CorrelatorImpl()
     {}
     public static CorrelatorImpl of()
@@ -49,6 +51,13 @@ public final class CorrelatorImpl implements Correlator
         {
             f.complete(msg);
         }
+        maybeInformThatCorrelatorIsEmpty();
+    }
+
+    @Override
+    public void setCorrelatorEmptyListener(CorrelatorEmptyListener correlatorEmptyListener)
+    {
+        this.correlatorEmptyListener = correlatorEmptyListener;
     }
 
     @Override
@@ -62,13 +71,16 @@ public final class CorrelatorImpl implements Correlator
     {
         l.stream()
          .forEach(v -> completeExceptionally(requests.remove(v), e));
+        maybeInformThatCorrelatorIsEmpty();
     }
 
     @Override
     public void completeAllExceptionally(Exception e)
     {
+        log.info(() -> "complete all exceptionally, number of service requests: " + requests.keySet().size());
         completeExceptionally(requests.keySet().stream()
                                       .collect(Collectors.toList()), e);
+        maybeInformThatCorrelatorIsEmpty();
     }
 
     @Override
@@ -98,6 +110,14 @@ public final class CorrelatorImpl implements Correlator
         if(!f.isCancelled())
         {
             f.completeExceptionally(e);
+        }
+    }
+
+    private void maybeInformThatCorrelatorIsEmpty()
+    {
+        if(isEmpty() && null != correlatorEmptyListener)
+        {
+            correlatorEmptyListener.correlatorEmpty();
         }
     }
 }
