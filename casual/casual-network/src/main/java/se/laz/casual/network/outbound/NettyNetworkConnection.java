@@ -19,7 +19,6 @@ import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
-import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.CasualNWMessageDecoder;
@@ -36,7 +35,6 @@ import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessa
 import javax.enterprise.concurrent.ManagedExecutorService;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -392,7 +390,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public void correlatorEmpty()
     {
-        if(!domainDisconnected.get() || transactionInformation.transactionsInFlight())
+        if(domainHasNotBeenDisconnectedOrThereAreTransactionsInFlight())
         {
             return;
         }
@@ -407,6 +405,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         }
         domainDisconnectedHandled.set(true);
         handleClose(this, errorInformer);
+    }
+
+    private boolean domainHasNotBeenDisconnectedOrThereAreTransactionsInFlight()
+    {
+        return !domainDisconnected.get() || transactionInformation.transactionsInFlight();
     }
 
     private void logDisconnectedDomainInfo()
