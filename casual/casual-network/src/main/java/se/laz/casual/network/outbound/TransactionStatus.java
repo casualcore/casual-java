@@ -21,6 +21,11 @@ public enum TransactionStatus
         this.id = id;
     }
 
+    public int getValue()
+    {
+        return id;
+    }
+
     public static final TransactionStatus unmarshal(int id)
     {
         for (TransactionStatus c : TransactionStatus.values())

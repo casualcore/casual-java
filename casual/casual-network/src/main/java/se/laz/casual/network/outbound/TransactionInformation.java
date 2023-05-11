@@ -90,8 +90,10 @@ public class TransactionInformation
         }
     }
 
-    public void clear()
+    // for test
+    void setTransactionManager(TransactionManager transactionManager)
     {
-        transactions.clear();
+        this.transactionManager = transactionManager;
     }
+
 }
