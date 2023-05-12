@@ -7,9 +7,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 public class DomainDisconnectHandler implements DomainDisconnectListener
 {
+    private static final Logger log = Logger.getLogger(DomainDisconnectHandler.class.getName());
     private static final Map<NetworkConnectionId, UUID> disconnectedDomains = new ConcurrentHashMap<>();
     private final Map<NetworkConnectionId, TransactionInformation> transactionInformation = new ConcurrentHashMap<>();
 
@@ -52,17 +54,16 @@ public class DomainDisconnectHandler implements DomainDisconnectListener
     public void addCurrentTransaction(NetworkConnectionId id)
     {
         Objects.requireNonNull(id, "id can not be null");
-        Optional.ofNullable(transactionInformation.get(id))
-                .orElseThrow(() -> new CasualConnectionException(""))
-                .pruneTransactions()
-                .addCurrentTransaction();
+        transactionInformation.computeIfAbsent(id, theId -> TransactionInformation.of())
+                              .pruneTransactions()
+                              .addCurrentTransaction();
     }
 
     public boolean transactionsInfFlight(NetworkConnectionId id)
     {
         Objects.requireNonNull(id, "id can not be null");
         return Optional.ofNullable(transactionInformation.get(id))
-                       .orElseThrow(() -> new CasualConnectionException(""))
+                       .orElseThrow(() -> new CasualConnectionException("No TransactionInformation for id: " + id + " this should never happen!"))
                        .transactionsInFlight();
     }
 }

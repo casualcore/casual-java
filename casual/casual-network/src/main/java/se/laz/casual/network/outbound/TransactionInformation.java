@@ -39,12 +39,6 @@ public class TransactionInformation
         return this;
     }
 
-    public int numberOfCurrentTransactions()
-    {
-        pruneTransactions();
-        return transactions.size();
-    }
-
     private static boolean isInFlight(Transaction transaction)
     {
         try
@@ -67,6 +61,17 @@ public class TransactionInformation
         getCurrentTransaction().ifPresent(transaction -> {
             synchronized (lock)
             {
+                LOG.info(() -> {
+                    TransactionStatus transactionStatus = null;
+                    try
+                    {
+                        transactionStatus = TransactionStatus.unmarshal(transaction.getStatus());
+                    }catch(SystemException e)
+                    {
+                        LOG.warning(() -> "could not get status for current transaction!");
+                    }
+                    return "Adding transaction: " + transaction + " with status: " + ((null != transactionStatus) ? transactionStatus : " could not get status");
+                });
                 transactions.add(transaction);
             }
         });
