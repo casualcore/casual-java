@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DomainDisconnectHandler implements DomainDisconnectListener
 {
-    private static final Map<NettyNetworkConnection, UUID> disconnectedDomains = new ConcurrentHashMap<>();
-    private final Map<NettyNetworkConnection, TransactionInformation> transactionInformation = new ConcurrentHashMap<>();
+    private static final Map<NetworkConnectionId, UUID> disconnectedDomains = new ConcurrentHashMap<>();
+    private final Map<NetworkConnectionId, TransactionInformation> transactionInformation = new ConcurrentHashMap<>();
 
     private DomainDisconnectHandler()
     {}
@@ -22,52 +22,47 @@ public class DomainDisconnectHandler implements DomainDisconnectListener
     }
 
     @Override
-    public void domainDisconnecting(NettyNetworkConnection networkConnection, UUID execution)
+    public void domainDisconnecting(NetworkConnectionId id, UUID execution)
     {
-        Objects.requireNonNull(networkConnection, "networkConnection can not be null");
+        Objects.requireNonNull(id, "id can not be null");
         Objects.requireNonNull(execution, "execution can not be null");
-        disconnectedDomains.put(networkConnection, execution);
+        disconnectedDomains.put(id, execution);
     }
 
-    public UUID getExecution(NettyNetworkConnection networkConnection)
+    public UUID getExecution(NetworkConnectionId id)
     {
-        Objects.requireNonNull(networkConnection, "networkConnection can not be null");
-        return Optional.ofNullable(disconnectedDomains.get(networkConnection))
+        Objects.requireNonNull(id, "id can not be null");
+        return Optional.ofNullable(disconnectedDomains.get(id))
                        .orElseThrow(() -> new CasualConnectionException(""));
     }
 
-    public boolean hasDomainBeenDisconnected(NettyNetworkConnection networkConnection)
+    public boolean hasDomainBeenDisconnected(NetworkConnectionId id)
     {
-        Objects.requireNonNull(networkConnection, "networkConnection can not be null");
-        return null != disconnectedDomains.get(networkConnection);
+        Objects.requireNonNull(id, "id can not be null");
+        return null != disconnectedDomains.get(id);
     }
 
-    public void removeDomain(NettyNetworkConnection networkConnection)
+    public void removeDomain(NetworkConnectionId id)
     {
-        Objects.requireNonNull(networkConnection, "networkConnection can not be null");
-        disconnectedDomains.remove(networkConnection);
-        transactionInformation.remove(networkConnection);
+        Objects.requireNonNull(id, "id can not be null");
+        disconnectedDomains.remove(id);
+        transactionInformation.remove(id);
     }
 
-    public void addCurrentTransaction(NettyNetworkConnection networkConnection)
+    public void addCurrentTransaction(NetworkConnectionId id)
     {
-        Objects.requireNonNull(networkConnection, "networkConnection can not be null");
-        Optional.ofNullable(transactionInformation.get(networkConnection))
+        Objects.requireNonNull(id, "id can not be null");
+        Optional.ofNullable(transactionInformation.get(id))
                 .orElseThrow(() -> new CasualConnectionException(""))
                 .pruneTransactions()
                 .addCurrentTransaction();
     }
 
-    public boolean transactionsInfFlight(NettyNetworkConnection networkConnection)
+    public boolean transactionsInfFlight(NetworkConnectionId id)
     {
-        Objects.requireNonNull(networkConnection, "networkConnection can not be null");
-        return Optional.ofNullable(transactionInformation.get(networkConnection))
+        Objects.requireNonNull(id, "id can not be null");
+        return Optional.ofNullable(transactionInformation.get(id))
                        .orElseThrow(() -> new CasualConnectionException(""))
                        .transactionsInFlight();
-    }
-
-    public boolean domainDisconnectedButThereArePendingTransactions(NettyNetworkConnection nettyNetworkConnection)
-    {
-        return hasDomainBeenDisconnected(nettyNetworkConnection) || transactionsInfFlight(nettyNetworkConnection);
     }
 }
