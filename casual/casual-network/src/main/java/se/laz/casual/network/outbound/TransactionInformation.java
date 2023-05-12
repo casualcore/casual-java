@@ -33,6 +33,7 @@ public class TransactionInformation
         {
             transactions = transactions.stream()
                                        .filter(TransactionInformation::isInFlight)
+                                       .distinct()
                                        .collect(Collectors.toList());
             LOG.info(() -> "pruneTransactions: current number of transactions: " + transactions.size());
         }
