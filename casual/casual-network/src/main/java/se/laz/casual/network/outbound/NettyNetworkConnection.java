@@ -242,17 +242,14 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public void close()
     {
-        if(isProtocolVersionOneOneOrOneTwo() &&
-                domainDisconnectHandler.domainDisconnectedButThereArePendingTransactions(this))
-        {
-            LOG.finest(()-> "network connection close called by appserver but domain disconnected, appserver is not allowed to close connection for: " + this);
-            return;
-        }
         if(domainDisconnectHandler.hasDomainBeenDisconnected(this))
         {
             sendDomainDisconnectReply();
-            domainDisconnectHandler.removeDomain(this);
         }
+        // we can always do this even for protocol version v1.0 - it's pretty much a NOP
+        // for v1.1, v1.2 we'll always do it since it may be so that casual sent domain disconnect
+        // and then went away before we could handle it
+        domainDisconnectHandler.removeDomain(this);
         connected.set(false);
         LOG.finest(() -> this + " network connection close called by appserver, closing");
         channel.close();
