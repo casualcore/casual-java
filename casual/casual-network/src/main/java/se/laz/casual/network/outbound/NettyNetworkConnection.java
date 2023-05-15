@@ -395,6 +395,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         // only handling DomainDisconnectRequest for now
         DomainDisconnectRequestMessage requestMessage = (DomainDisconnectRequestMessage) message.getMessage();
         domainDisconnectHandler.domainDisconnecting(id, requestMessage.getExecution());
+        // in case we are in fact not having any traffic when casual disconnects
+        if(correlator.isEmpty())
+        {
+            correlatorEmpty();
+        }
     }
 
 

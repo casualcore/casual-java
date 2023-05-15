@@ -7,11 +7,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 public class DomainDisconnectHandler implements DomainDisconnectListener
 {
-    private static final Logger log = Logger.getLogger(DomainDisconnectHandler.class.getName());
     private static final Map<NetworkConnectionId, UUID> disconnectedDomains = new ConcurrentHashMap<>();
     private final Map<NetworkConnectionId, TransactionInformation> transactionInformation = new ConcurrentHashMap<>();
 
