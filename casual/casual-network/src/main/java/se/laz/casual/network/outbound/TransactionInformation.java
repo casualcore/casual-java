@@ -6,6 +6,7 @@ import javax.transaction.TransactionManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -32,7 +33,7 @@ public class TransactionInformation
         synchronized (lock)
         {
             transactions = transactions.stream()
-                                       .filter(TransactionInformation::isInFlight)
+                                       .filter(this::isInFlight)
                                        .distinct()
                                        .collect(Collectors.toList());
             LOG.info(() -> "pruneTransactions: current number of transactions: " + transactions.size());
@@ -40,7 +41,7 @@ public class TransactionInformation
         return this;
     }
 
-    private static boolean isInFlight(Transaction transaction)
+    private boolean isInFlight(Transaction transaction)
     {
         try
         {
@@ -52,7 +53,7 @@ public class TransactionInformation
         }
         catch (SystemException e)
         {
-            // transaction.getStatus() failed, thus we lack information, we are then being negative default
+            LOG.log(Level.WARNING, e, () -> "isInFlight, transaction: " + transaction + " getStatus failed for: " + this);
             return false;
         }
     }

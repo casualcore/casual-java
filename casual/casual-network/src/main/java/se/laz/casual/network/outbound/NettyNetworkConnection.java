@@ -170,6 +170,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         correlator.put(message.getCorrelationId(), f);
         if(isProtocolVersionOneOneOrOneTwo())
         {
+            LOG.info(() -> "request msg type: " + message.getType());
             domainDisconnectHandler.addCurrentTransaction(id);
         }
         ChannelFuture cf = channel.writeAndFlush(message);
