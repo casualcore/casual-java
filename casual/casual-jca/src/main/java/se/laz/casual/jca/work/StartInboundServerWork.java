@@ -8,7 +8,6 @@ package se.laz.casual.jca.work;
 
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Mode;
-import se.laz.casual.config.Startup;
 import se.laz.casual.jca.InboundStartupException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
 
@@ -81,9 +80,9 @@ public final class StartInboundServerWork<T> implements Work
         Set<String> remaining = checkRemainingServices( new HashSet<>( this.startupServices ) );
         while(!remaining.isEmpty())
         {
-            int remainingServices = remaining.size();
+            int previouslyNumberOfServicesRemaining = remaining.size();
             remaining = checkRemainingServices( remaining );
-            if(!remaining.isEmpty() && remaining.size() < remainingServices)
+            if(!remaining.isEmpty() && remaining.size() < previouslyNumberOfServicesRemaining)
             {
                 logWaitingForStartupServices(remaining);
             }
