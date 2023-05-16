@@ -80,9 +80,9 @@ public final class StartInboundServerWork<T> implements Work
         Set<String> remaining = checkRemainingServices( new HashSet<>( this.startupServices ) );
         while(!remaining.isEmpty())
         {
-            int previouslyNumberOfServicesRemaining = remaining.size();
+            int previousNumberOfServicesRemaining = remaining.size();
             remaining = checkRemainingServices( remaining );
-            if(!remaining.isEmpty() && remaining.size() < previouslyNumberOfServicesRemaining)
+            if(!remaining.isEmpty() && remaining.size() < previousNumberOfServicesRemaining)
             {
                 logWaitingForStartupServices(remaining);
             }
