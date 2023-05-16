@@ -101,21 +101,16 @@ public final class StartInboundServerWork<T> implements Work
 
     private void logInitialStartupServices(List<String> startupServices)
     {
-        if(ConfigurationService.getInstance().getConfiguration().getInbound().getStartup().getMode() == Mode.DISCOVER)
-        {
-            log.info(() -> "Waiting for " + startupServices.size() + " services to be registered before inbound starts.");
-            log.info(() -> "Initial services list: " + startupServices.stream()
-                                                                      .collect(Collectors.joining()));
-        }
+        log.info(() -> "Inbound startup mode: " + ConfigurationService.getInstance().getConfiguration().getInbound().getStartup().getMode());
+        log.info(() -> "Waiting for " + startupServices.size() + " services to be registered before inbound starts.");
+        log.info(() -> "Initial services list: " + startupServices.stream()
+                                                                  .collect(Collectors.joining()));
     }
 
     private void logWaitingForStartupServices(Set<String> remaining)
     {
-        if(ConfigurationService.getInstance().getConfiguration().getInbound().getStartup().getMode() == Mode.DISCOVER)
-        {
-            log.info(() -> "Waiting for registration of the following services: " + remaining.stream()
-                                                                                             .collect(Collectors.joining()));
-        }
+        log.info(() -> "Waiting for registration of the following services: " + remaining.stream()
+                                                                                         .collect(Collectors.joining()));
     }
 
     private Set<String> checkRemainingServices( Set<String> remaining )
