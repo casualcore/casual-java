@@ -79,11 +79,14 @@ public final class StartInboundServerWork<T> implements Work
     {
         logInitialStartupServices(startupServices);
         Set<String> remaining = checkRemainingServices( new HashSet<>( this.startupServices ) );
-        logWaitingForStartupServices(remaining);
         while(!remaining.isEmpty())
         {
+            int remainingServices = remaining.size();
             remaining = checkRemainingServices( remaining );
-            logWaitingForStartupServices(remaining);
+            if(!remaining.isEmpty() && remaining.size() < remainingServices)
+            {
+                logWaitingForStartupServices(remaining);
+            }
             try
             {
                 Thread.sleep( 1000 );
