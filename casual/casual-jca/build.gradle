@@ -41,6 +41,7 @@ dependencies {
     implementation project(':casual:casual-network-protocol')
     implementation libs.netty
     compileOnly libs.javaee_api
+    compileOnly libs.gson
 
     resourceAdapter( project(':casual:casual-network') )
     resourceAdapter project(':casual:casual-network-protocol')

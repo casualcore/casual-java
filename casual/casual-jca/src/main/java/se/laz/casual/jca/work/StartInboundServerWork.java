@@ -6,6 +6,8 @@
 
 package se.laz.casual.jca.work;
 
+import se.laz.casual.config.ConfigurationService;
+import se.laz.casual.config.Mode;
 import se.laz.casual.jca.InboundStartupException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
 
@@ -74,11 +76,16 @@ public final class StartInboundServerWork<T> implements Work
 
     private void waitForInboundStartupServices()
     {
-        log.info(() -> "Waiting for " + startupServices.size() + " startup services to be registered before inbound starts.");
+        logInitialStartupServices(startupServices);
         Set<String> remaining = checkRemainingServices( new HashSet<>( this.startupServices ) );
         while(!remaining.isEmpty())
         {
+            int previousNumberOfServicesRemaining = remaining.size();
             remaining = checkRemainingServices( remaining );
+            if(!remaining.isEmpty() && remaining.size() < previousNumberOfServicesRemaining)
+            {
+                logWaitingForStartupServices(remaining);
+            }
             try
             {
                 Thread.sleep( 1000 );
@@ -90,6 +97,20 @@ public final class StartInboundServerWork<T> implements Work
             }
         }
         log.info(() -> "All startup services registered.");
+    }
+
+    private void logInitialStartupServices(List<String> startupServices)
+    {
+        log.info(() -> "Inbound startup mode: " + ConfigurationService.getInstance().getConfiguration().getInbound().getStartup().getMode());
+        log.info(() -> "Waiting for " + startupServices.size() + " services to be registered before inbound starts.");
+        log.info(() -> "Initial services list: " + startupServices.stream()
+                                                                  .collect(Collectors.joining()));
+    }
+
+    private void logWaitingForStartupServices(Set<String> remaining)
+    {
+        log.info(() -> "Waiting for registration of the following services: " + remaining.stream()
+                                                                                         .collect(Collectors.joining()));
     }
 
     private Set<String> checkRemainingServices( Set<String> remaining )
