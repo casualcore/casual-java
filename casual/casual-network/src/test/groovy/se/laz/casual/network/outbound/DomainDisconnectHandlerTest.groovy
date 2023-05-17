@@ -17,4 +17,21 @@ class DomainDisconnectHandlerTest extends Specification
       !disconnectHandler.transactionsInfFlight()
    }
 
+   def 'domain disconnect transactions in flight'()
+   {
+      given:
+      TransactionInformation transactionInformation = Mock(TransactionInformation){
+         transactionsInFlight() >> true
+      }
+      DomainDisconnectHandler disconnectHandler = DomainDisconnectHandler.of()
+      disconnectHandler.transactionInformation = transactionInformation
+      UUID execution = UUID.randomUUID()
+      when:
+      disconnectHandler.domainDisconnecting(execution)
+      then:
+      disconnectHandler.hasDomainBeenDisconnected()
+      disconnectHandler.getExecution() == execution
+      disconnectHandler.transactionsInfFlight()
+   }
+
 }
