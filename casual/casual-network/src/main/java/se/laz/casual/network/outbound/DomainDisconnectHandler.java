@@ -44,6 +44,6 @@ public class DomainDisconnectHandler implements DomainDisconnectListener
 
     public boolean transactionsInfFlight()
     {
-        return null == transactionInformation ? false : transactionInformation.transactionsInFlight();
+        return null != transactionInformation && transactionInformation.transactionsInFlight();
     }
 }

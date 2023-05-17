@@ -1,11 +1,15 @@
+/*
+ * Copyright (c) 2023, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network.outbound
 
 import spock.lang.Specification
 
 import javax.transaction.Transaction
 import javax.transaction.TransactionManager
-import java.util.logging.Level
-import java.util.logging.Logger
 
 class TransactionInformationTest extends Specification
 {
@@ -15,9 +19,6 @@ class TransactionInformationTest extends Specification
    def setup()
    {
       instance = TransactionInformation.of()
-      // note:
-      // we do this since the logging in addCurrentTransaction also gets the current status
-      Logger.getLogger(TransactionInformation.class.getName()).setLevel(Level.OFF)
    }
 
    def 'normal sequence'()

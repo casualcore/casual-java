@@ -290,7 +290,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         LOG.finest(() -> "received handshake reply: " + this);
         long actualProtocolVersion = ProtocolVersion.supportedVersions()
                                                               .stream()
-                                                              .filter(protocolVersion -> protocolVersion == replyEnvelope.getMessage().getProtocolVersion())
+                                                              .filter(version -> version == replyEnvelope.getMessage().getProtocolVersion())
                                                               .findFirst()
                                                               .orElseThrow(() -> new CasualConnectionException("wanted one of protocol versions " + ProtocolVersion.supportedVersions() + " but it is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion()));
         setProtocolVersion(ProtocolVersion.unmarshall(actualProtocolVersion));
