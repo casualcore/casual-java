@@ -19,6 +19,7 @@ import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.CasualNWMessageDecoder;
@@ -98,7 +99,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         {
             // domain disconnect only available in 1.1, 1.2
             correlator.setCorrelatorEmptyListener(networkConnection);
-            messageHandler.setCasualOutboundMessageListener(networkConnection);
+            messageHandler.setMessageListener(networkConnection);
         }
         return networkConnection;
     }
@@ -193,6 +194,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         DomainDisconnectReplyMessage replyMessage = DomainDisconnectReplyMessage.of(domainDisconnectHandler.getExecution());
         try
         {
+            LOG.info(() -> "sending domain disconnect reply to domain: " + domainId
+                    + " using execution: " + PrettyPrinter.casualStringify(domainDisconnectHandler.getExecution()));
             channel.writeAndFlush(CasualNWMessageImpl.of(UUID.randomUUID(), replyMessage));
         }
         catch(Exception e)

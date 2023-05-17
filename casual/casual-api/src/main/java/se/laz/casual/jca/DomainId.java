@@ -6,6 +6,8 @@
 
 package se.laz.casual.jca;
 
+import se.laz.casual.api.util.PrettyPrinter;
+
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
@@ -55,7 +57,7 @@ public class DomainId implements Serializable
     public String toString()
     {
         return "DomainId{" +
-                "id=" + id +
+                "id=" + PrettyPrinter.casualStringify(id) +
                 '}';
     }
 }

@@ -19,7 +19,7 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
     private static final Logger LOG = Logger.getLogger(CasualMessageHandler.class.getName());
     private final Correlator correlator;
 
-    private CasualOutboundMessageListener casualOutboundMessageListener;
+    private CasualOutboundMessageListener messageListener;
 
     private CasualMessageHandler(final Correlator correlator)
     {
@@ -32,10 +32,10 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
         return new CasualMessageHandler(correlator);
     }
 
-    public void setCasualOutboundMessageListener(CasualOutboundMessageListener casualOutboundMessageListener)
+    public void setMessageListener(CasualOutboundMessageListener messageListener)
     {
-        Objects.requireNonNull(casualOutboundMessageListener, "casualOutboundMessageListener can not be null");
-        this.casualOutboundMessageListener = casualOutboundMessageListener;
+        Objects.requireNonNull(messageListener, "messageListener can not be null");
+        this.messageListener = messageListener;
     }
 
     @Override
@@ -48,10 +48,10 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
             ctx.fireChannelRead(msg);
             return;
         }
-        if(null != casualOutboundMessageListener && casualOutboundMessageListener.isInterestedIn(msg.getType()))
+        if(null != messageListener && messageListener.isInterestedIn(msg.getType()))
         {
-            LOG.info(() -> "got domain disconnect message, listener: " + (null != casualOutboundMessageListener));
-            casualOutboundMessageListener.handleMessage(msg);
+            LOG.info(() -> "got domain disconnect message, listener: " + (null != messageListener));
+            messageListener.handleMessage(msg);
             return;
         }
         correlator.complete(msg);

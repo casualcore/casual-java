@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -20,5 +20,5 @@ public interface Correlator
     void completeAllExceptionally(final Exception e);
     void put(final UUID corrid, final CompletableFuture<?> f);
     <T extends CasualNetworkTransmittable>  void complete(final CasualNWMessage<T> msg);
-    void setCorrelatorEmptyListener(CorrelatorEmptyListener observer);
+    void setCorrelatorEmptyListener(CorrelatorEmptyListener correlatorEmptyListener);
 }

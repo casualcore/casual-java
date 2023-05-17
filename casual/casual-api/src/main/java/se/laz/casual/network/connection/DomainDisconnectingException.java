@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,9 +10,6 @@ import se.laz.casual.api.CasualRuntimeException;
 
 import javax.ejb.ApplicationException;
 
-/**
- * Created by jone on 2017-04-26.
- */
 @ApplicationException(rollback = true)
 public class DomainDisconnectingException extends CasualRuntimeException
 {
