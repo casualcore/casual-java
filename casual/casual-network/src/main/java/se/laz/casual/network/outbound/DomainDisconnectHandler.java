@@ -1,17 +1,12 @@
 package se.laz.casual.network.outbound;
 
-import se.laz.casual.network.connection.CasualConnectionException;
-
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class DomainDisconnectHandler implements DomainDisconnectListener
 {
-    private static final Map<NetworkConnectionId, UUID> disconnectedDomains = new ConcurrentHashMap<>();
-    private final Map<NetworkConnectionId, TransactionInformation> transactionInformation = new ConcurrentHashMap<>();
+    private UUID execution;
+    private TransactionInformation transactionInformation;
 
     private DomainDisconnectHandler()
     {}
@@ -22,46 +17,33 @@ public class DomainDisconnectHandler implements DomainDisconnectListener
     }
 
     @Override
-    public void domainDisconnecting(NetworkConnectionId id, UUID execution)
+    public void domainDisconnecting(UUID execution)
     {
-        Objects.requireNonNull(id, "id can not be null");
         Objects.requireNonNull(execution, "execution can not be null");
-        disconnectedDomains.put(id, execution);
+        this.execution = execution;
     }
 
-    public UUID getExecution(NetworkConnectionId id)
+    public UUID getExecution()
     {
-        Objects.requireNonNull(id, "id can not be null");
-        return Optional.ofNullable(disconnectedDomains.get(id))
-                       .orElseThrow(() -> new CasualConnectionException(""));
+        return execution;
     }
 
-    public boolean hasDomainBeenDisconnected(NetworkConnectionId id)
+    public boolean hasDomainBeenDisconnected()
     {
-        Objects.requireNonNull(id, "id can not be null");
-        return null != disconnectedDomains.get(id);
+        return null != execution;
     }
 
-    public void removeDomain(NetworkConnectionId id)
+    public void addCurrentTransaction()
     {
-        Objects.requireNonNull(id, "id can not be null");
-        disconnectedDomains.remove(id);
-        transactionInformation.remove(id);
+        if(null == transactionInformation)
+        {
+            transactionInformation = TransactionInformation.of();
+        }
+        transactionInformation.addCurrentTransaction();
     }
 
-    public void addCurrentTransaction(NetworkConnectionId id)
+    public boolean transactionsInfFlight()
     {
-        Objects.requireNonNull(id, "id can not be null");
-        transactionInformation.computeIfAbsent(id, theId -> TransactionInformation.of())
-                              .pruneTransactions()
-                              .addCurrentTransaction();
-    }
-
-    public boolean transactionsInfFlight(NetworkConnectionId id)
-    {
-        Objects.requireNonNull(id, "id can not be null");
-        return Optional.ofNullable(transactionInformation.get(id))
-                       .orElseThrow(() -> new CasualConnectionException("No TransactionInformation for id: " + id + " this should never happen!"))
-                       .transactionsInFlight();
+        return null == transactionInformation ? false : transactionInformation.transactionsInFlight();
     }
 }

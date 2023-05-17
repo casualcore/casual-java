@@ -4,5 +4,5 @@ import java.util.UUID;
 
 public interface DomainDisconnectListener
 {
-    void domainDisconnecting(NetworkConnectionId id, UUID execution);
+    void domainDisconnecting(UUID execution);
 }

@@ -58,7 +58,6 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private final Supplier<ManagedExecutorService> managedExecutorService;
     private final ErrorInformer errorInformer;
     private final DomainDisconnectHandler domainDisconnectHandler = DomainDisconnectHandler.of();
-    private final NetworkConnectionId id = NetworkConnectionId.of();
     private DomainId domainId;
     private ProtocolVersion protocolVersion;
 
@@ -155,7 +154,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message)
     {
         LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
-        if(isProtocolVersionOneOneOrOneTwo() && message.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST && domainDisconnectHandler.hasDomainBeenDisconnected(id))
+        if(isProtocolVersionOneOneOrOneTwo() && message.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST && domainDisconnectHandler.hasDomainBeenDisconnected())
         {
 
             throw new DomainDisconnectingException("domain: " + domainId + " is disconnecting, sending new service calls is not allowed");
@@ -170,8 +169,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         correlator.put(message.getCorrelationId(), f);
         if(isProtocolVersionOneOneOrOneTwo())
         {
-            LOG.info(() -> "request msg type: " + message.getType());
-            domainDisconnectHandler.addCurrentTransaction(id);
+            domainDisconnectHandler.addCurrentTransaction();
         }
         ChannelFuture cf = channel.writeAndFlush(message);
         //this handles any exceptional behaviour when writing
@@ -192,7 +190,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 
     private void sendDomainDisconnectReply()
     {
-        DomainDisconnectReplyMessage replyMessage = DomainDisconnectReplyMessage.of(domainDisconnectHandler.getExecution(id));
+        DomainDisconnectReplyMessage replyMessage = DomainDisconnectReplyMessage.of(domainDisconnectHandler.getExecution());
         try
         {
             channel.writeAndFlush(CasualNWMessageImpl.of(UUID.randomUUID(), replyMessage));
@@ -201,14 +199,15 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         {
             // if we did not manage to send the domain disconnect message it is due to the connection being gone
             // which is fine
-            LOG.info(() -> "Could not send domain disconnect reply: " + e);
+            LOG.info(() -> "Could not send domain disconnect reply: " + e
+                    + " this means that casual sent domain disconnect and then went away before we could send domain disconnect reply");
         }
     }
 
     @Override
     public <X extends CasualNetworkTransmittable> void send(CasualNWMessage<X> message)
     {
-        if(domainDisconnectHandler.hasDomainBeenDisconnected(id))
+        if(domainDisconnectHandler.hasDomainBeenDisconnected())
         {
             throw new DomainDisconnectingException("domain: " + domainId + " is disconnecting, sending messages is not allowed");
         }
@@ -244,14 +243,10 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public void close()
     {
-        if(domainDisconnectHandler.hasDomainBeenDisconnected(id))
+        if(domainDisconnectHandler.hasDomainBeenDisconnected())
         {
             sendDomainDisconnectReply();
         }
-        // we can always do this even for protocol version v1.0 - it's pretty much a NOP
-        // for v1.1, v1.2 we'll always do it since it may be so that casual sent domain disconnect
-        // and then went away before we could handle it
-        domainDisconnectHandler.removeDomain(id);
         connected.set(false);
         LOG.finest(() -> this + " network connection close called by appserver, closing");
         channel.close();
@@ -303,6 +298,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return DomainId.of(replyEnvelope.getMessage().getDomainId());
     }
 
+
     @Override
     public boolean equals(Object o)
     {
@@ -315,13 +311,13 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
             return false;
         }
         NettyNetworkConnection that = (NettyNetworkConnection) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(channel, that.channel) && Objects.equals(getDomainId(), that.getDomainId());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(id);
+        return Objects.hash(channel, getDomainId());
     }
 
     @Override
@@ -329,12 +325,9 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     {
         return "NettyNetworkConnection{" +
                 "ci=" + ci +
-                ", correlator=" + correlator +
+                "correlator=" + correlator +
                 ", channel=" + channel +
-                ", domainDisconnectedHandled=" + domainDisconnectedHandled +
                 ", domainId=" + domainId +
-                ", protocolVersion=" + protocolVersion +
-                ", id=" + id +
                 '}';
     }
 
@@ -380,7 +373,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 
     private boolean domainHasNotBeenDisconnectedOrThereAreTransactionsInFlight()
     {
-        return !domainDisconnectHandler.hasDomainBeenDisconnected(id) || domainDisconnectHandler.transactionsInfFlight(id);
+        return !domainDisconnectHandler.hasDomainBeenDisconnected() || domainDisconnectHandler.transactionsInfFlight();
     }
 
     @Override
@@ -394,7 +387,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     {
         // only handling DomainDisconnectRequest for now
         DomainDisconnectRequestMessage requestMessage = (DomainDisconnectRequestMessage) message.getMessage();
-        domainDisconnectHandler.domainDisconnecting(id, requestMessage.getExecution());
+        domainDisconnectHandler.domainDisconnecting(requestMessage.getExecution());
         // in case we are in fact not having any traffic when casual disconnects
         if(correlator.isEmpty())
         {
