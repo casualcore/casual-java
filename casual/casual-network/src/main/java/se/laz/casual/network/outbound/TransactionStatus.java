@@ -18,7 +18,7 @@ public enum TransactionStatus
     STATUS_PREPARING(Status.STATUS_PREPARING),
     STATUS_ROLLEDBACK(Status.STATUS_ROLLEDBACK),
     STATUS_ROLLING_BACK(Status.STATUS_ROLLING_BACK),
-    STATUS_UNKNOWN(Status. 	STATUS_UNKNOWN);
+    STATUS_UNKNOWN(Status.STATUS_UNKNOWN);
 
     private int id;
     TransactionStatus(int id)
