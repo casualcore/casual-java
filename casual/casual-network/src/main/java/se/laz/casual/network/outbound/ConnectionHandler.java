@@ -7,10 +7,10 @@ package se.laz.casual.network.outbound;
 
 import se.laz.casual.jca.ConnectionListener;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -18,7 +18,7 @@ public class ConnectionHandler implements ConnectionListener
 {
     private final Consumer<UUID> domainDisconnectReplyFunction;
     private UUID execution;
-    private List<ConnectionListener> connectionListeners = Collections.synchronizedList(new ArrayList<>());
+    private final Set<ConnectionListener> connectionListeners = Collections.synchronizedSet(new HashSet<>());
 
     private ConnectionHandler(Consumer<UUID> domainDisconnectReplyFunction)
     {
@@ -69,7 +69,7 @@ public class ConnectionHandler implements ConnectionListener
     {
         synchronized (connectionListeners)
         {
-            connectionListeners.forEach(listener -> listener.connectionDisabled());
+            connectionListeners.forEach(ConnectionListener::connectionDisabled);
             sendDomainDisconnectReply();
         }
     }
@@ -78,12 +78,13 @@ public class ConnectionHandler implements ConnectionListener
     {
         synchronized (connectionListeners)
         {
-            connectionListeners.forEach(listener -> listener.connectionEnabled());
+            connectionListeners.forEach(ConnectionListener::connectionEnabled);
         }
     }
 
     private void sendDomainDisconnectReply()
     {
+        Objects.requireNonNull(execution, "execution can not be null");
         domainDisconnectReplyFunction.accept(execution);
     }
 
