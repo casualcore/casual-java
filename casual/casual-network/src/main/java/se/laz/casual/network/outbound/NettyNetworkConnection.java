@@ -283,7 +283,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                                                                                             .withExecution(UUID.randomUUID())
                                                                                             .withDomainId(domainId)
                                                                                             .withDomainName(domainName)
-                                                                                            .withProtocols(ProtocolVersion.supportedVersions())
+                                                                                            .withProtocols(ProtocolVersion.supportedVersionNumbers())
                                                                                             .build();
         CasualNWMessage<CasualDomainConnectRequestMessage> nwMessage = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage);
         LOG.finest(() -> "about to send handshake: " + this);
@@ -291,11 +291,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         LOG.finest(() -> "handshake sent: " + this);
         CasualNWMessage<CasualDomainConnectReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
         LOG.finest(() -> "received handshake reply: " + this);
-        long actualProtocolVersion = ProtocolVersion.supportedVersions()
+        long actualProtocolVersion = ProtocolVersion.supportedVersionNumbers()
                                                               .stream()
                                                               .filter(version -> version == replyEnvelope.getMessage().getProtocolVersion())
                                                               .findFirst()
-                                                              .orElseThrow(() -> new CasualConnectionException("wanted one of protocol versions " + ProtocolVersion.supportedVersions() + " but it is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion()));
+                                                              .orElseThrow(() -> new CasualConnectionException("wanted one of protocol versions " + ProtocolVersion.supportedVersionNumbers() + " but it is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion()));
         setProtocolVersion(ProtocolVersion.unmarshall(actualProtocolVersion));
         LOG.info(() -> "using protocol version: " + protocolVersion + " asked for: " + ProtocolVersion.supportedVersions());
         return DomainId.of(replyEnvelope.getMessage().getDomainId());

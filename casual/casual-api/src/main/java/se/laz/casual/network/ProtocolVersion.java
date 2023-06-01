@@ -9,6 +9,7 @@ import se.laz.casual.network.connection.CasualConnectionException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public enum ProtocolVersion
 {
@@ -31,15 +32,15 @@ public enum ProtocolVersion
 
     public String getVersionAsString()
     {
-        if(version == ProtocolVersion.VERSION_1_0.getVersion())
+        if (version == ProtocolVersion.VERSION_1_0.getVersion())
         {
             return "1.0";
         }
-        if(version == ProtocolVersion.VERSION_1_1.getVersion())
+        if (version == ProtocolVersion.VERSION_1_1.getVersion())
         {
             return "1.1";
         }
-        if(version == ProtocolVersion.VERSION_1_2.getVersion())
+        if (version == ProtocolVersion.VERSION_1_2.getVersion())
         {
             return "1.2";
         }
@@ -56,7 +57,7 @@ public enum ProtocolVersion
 
     public static ProtocolVersion unmarshall(String version)
     {
-        switch(version)
+        switch (version)
         {
             case "1.0":
                 return VERSION_1_0;
@@ -69,9 +70,16 @@ public enum ProtocolVersion
         }
     }
 
-    public static List<Long> supportedVersions()
+    public static List<Long> supportedVersionNumbers()
     {
         return supportedVersions;
+    }
+
+    public static List<String> supportedVersions()
+    {
+        return supportedVersionNumbers().stream()
+                                        .map(version -> unmarshall(version).getVersionAsString())
+                                        .collect(Collectors.toList());
     }
 
 }
