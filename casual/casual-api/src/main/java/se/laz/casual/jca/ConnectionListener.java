@@ -3,9 +3,10 @@
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
-package se.laz.casual.network.outbound;
+package se.laz.casual.jca;
 
-public interface CorrelatorEmptyListener
+public interface ConnectionListener
 {
-    void correlatorEmpty();
+    void connectionDisabled();
+    void connectionEnabled();
 }

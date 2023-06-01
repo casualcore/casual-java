@@ -23,4 +23,5 @@ public interface CasualConnection extends CasualServiceApi, CasualQueueApi, Casu
      */
     @Override
     void close();
+    void addListener(ConnectionListener listener);
 }
