@@ -11,41 +11,34 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public class ConnectionHandler implements ConnectionListener
 {
-    private final Consumer<UUID> domainDisconnectReplyFunction;
-    private UUID execution;
+    private final Consumer<DomainDisconnectReplyInfo> domainDisconnectReplyFunction;
+    private DomainDisconnectReplyInfo domainDisconnectReplyInfo;
     private final Set<ConnectionListener> connectionListeners = Collections.synchronizedSet(new HashSet<>());
 
-    private ConnectionHandler(Consumer<UUID> domainDisconnectReplyFunction)
+    private ConnectionHandler(Consumer<DomainDisconnectReplyInfo> domainDisconnectReplyFunction)
     {
         this.domainDisconnectReplyFunction = domainDisconnectReplyFunction;
     }
 
-    public static ConnectionHandler of(Consumer<UUID> domainDisconnectReplyFunction)
+    public static ConnectionHandler of(Consumer<DomainDisconnectReplyInfo> domainDisconnectReplyFunction)
     {
         Objects.requireNonNull(domainDisconnectReplyFunction, "domainDisconnectReplyFunction can not be null");
         return new ConnectionHandler(domainDisconnectReplyFunction);
     }
 
-    public void domainDisconnecting(UUID execution)
+    public void domainDisconnecting(DomainDisconnectReplyInfo domainDisconnectReplyInfo)
     {
-        Objects.requireNonNull(execution, "execution can not be null");
-        this.execution = execution;
-
-    }
-
-    public UUID getExecution()
-    {
-        return execution;
+        Objects.requireNonNull(domainDisconnectReplyInfo, "domainDisconnectReplyInfo can not be null");
+        this.domainDisconnectReplyInfo = domainDisconnectReplyInfo;
     }
 
     public boolean hasDomainBeenDisconnected()
     {
-        return null != execution;
+        return null != domainDisconnectReplyInfo;
     }
 
     public void addConnectionListener(ConnectionListener listener)
@@ -84,8 +77,8 @@ public class ConnectionHandler implements ConnectionListener
 
     private void sendDomainDisconnectReply()
     {
-        Objects.requireNonNull(execution, "execution can not be null");
-        domainDisconnectReplyFunction.accept(execution);
+        Objects.requireNonNull(domainDisconnectReplyInfo, "execution can not be null");
+        domainDisconnectReplyFunction.accept(domainDisconnectReplyInfo);
     }
 
 }

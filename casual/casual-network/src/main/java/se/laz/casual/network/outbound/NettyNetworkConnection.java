@@ -19,7 +19,6 @@ import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
-import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.ConnectionListener;
 import se.laz.casual.jca.DomainId;
@@ -184,21 +183,20 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return f;
     }
 
-    private void sendDomainDisconnectReply(UUID execution)
+    private void sendDomainDisconnectReply(DomainDisconnectReplyInfo domainDisconnectReplyInfo)
     {
-        DomainDisconnectReplyMessage replyMessage = DomainDisconnectReplyMessage.of(execution);
+        DomainDisconnectReplyMessage replyMessage = DomainDisconnectReplyMessage.of(domainDisconnectReplyInfo.getExecution());
         try
         {
-            LOG.info(() -> "sending domain disconnect reply to domain: " + domainId
-                    + " using execution: " + PrettyPrinter.casualStringify(execution));
-            channel.writeAndFlush(CasualNWMessageImpl.of(UUID.randomUUID(), replyMessage));
+            LOG.finest(() -> "sending domain disconnect reply to domain: " + domainId + " using domain disconnect reply info: " + domainDisconnectReplyInfo);
+            channel.writeAndFlush(CasualNWMessageImpl.of(domainDisconnectReplyInfo.getCorrid(), replyMessage));
         }
         catch(Exception e)
         {
             // if we did not manage to send the domain disconnect message it is due to the connection being gone
             // which is fine
             LOG.info(() -> "Could not send domain disconnect reply: " + e
-                    + " this means that casual sent domain disconnect and then went away before we could send domain disconnect reply");
+                    + " this means that casual sent domain disconnect and then went away before we could send domain disconnect reply - this is ok");
         }
     }
 
@@ -238,13 +236,13 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     public void close()
     {
         connected.set(false);
+        LOG.finest(() -> this + " network connection close called by appserver, closing");
+        channel.close();
         if(hasDomainBeenDisconnected())
         {
             // it is now fine to create new connections
             connectionHandler.connectionEnabled();
         }
-        LOG.finest(() -> this + " network connection close called by appserver, closing");
-        channel.close();
     }
 
     private boolean hasDomainBeenDisconnected()
@@ -368,11 +366,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     }
 
     @Override
-    public <T extends CasualNetworkTransmittable> void handleMessage(CasualNWMessage<T> message)
+    public <T extends CasualNetworkTransmittable> void handleMessage(final CasualNWMessage<T> message)
     {
-        // only handling DomainDisconnectRequest for now
+        LOG.info(() -> "handling domain disconnect request message, domain: " + domainId + " is going away");
         DomainDisconnectRequestMessage requestMessage = (DomainDisconnectRequestMessage) message.getMessage();
-        connectionHandler.domainDisconnecting(requestMessage.getExecution());
+        connectionHandler.domainDisconnecting(DomainDisconnectReplyInfo.of(message.getCorrelationId(), requestMessage.getExecution()));
         connectionHandler.connectionDisabled();
     }
 

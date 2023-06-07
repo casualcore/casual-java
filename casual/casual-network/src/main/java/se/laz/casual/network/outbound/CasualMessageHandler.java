@@ -50,7 +50,6 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
         }
         if(null != messageListener && messageListener.isInterestedIn(msg.getType()))
         {
-            LOG.info(() -> "got domain disconnect message, listener: " + (null != messageListener));
             messageListener.handleMessage(msg);
             return;
         }
