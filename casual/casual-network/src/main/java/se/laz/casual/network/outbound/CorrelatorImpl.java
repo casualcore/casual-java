@@ -22,7 +22,6 @@ public final class CorrelatorImpl implements Correlator
 {
     private static final Logger log = Logger.getLogger(CorrelatorImpl.class.getName());
     private final Map<UUID, CompletableFuture<?>> requests = new ConcurrentHashMap<>();
-
     private CorrelatorImpl()
     {}
     public static CorrelatorImpl of()
@@ -68,7 +67,6 @@ public final class CorrelatorImpl implements Correlator
     @Override
     public void completeAllExceptionally(Exception e)
     {
-        log.info(() -> "complete all exceptionally, number of service requests: " + requests.keySet().size());
         completeExceptionally(requests.keySet().stream()
                                       .collect(Collectors.toList()), e);
     }
