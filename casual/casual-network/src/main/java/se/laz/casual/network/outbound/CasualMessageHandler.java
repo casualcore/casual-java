@@ -19,6 +19,8 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
     private static final Logger LOG = Logger.getLogger(CasualMessageHandler.class.getName());
     private final Correlator correlator;
 
+    private CasualOutboundMessageListener messageListener;
+
     private CasualMessageHandler(final Correlator correlator)
     {
         this.correlator = correlator;
@@ -28,6 +30,12 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
     {
         Objects.requireNonNull(correlator, "correlator can not be null");
         return new CasualMessageHandler(correlator);
+    }
+
+    public void setMessageListener(CasualOutboundMessageListener messageListener)
+    {
+        Objects.requireNonNull(messageListener, "messageListener can not be null");
+        this.messageListener = messageListener;
     }
 
     @Override
@@ -40,6 +48,11 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
             ctx.fireChannelRead(msg);
             return;
         }
+        if(null != messageListener && messageListener.isInterestedIn(msg.getType()))
+        {
+            messageListener.handleMessage(msg);
+            return;
+        }
         correlator.complete(msg);
     }
 
@@ -47,5 +60,4 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
     {
         return type == CasualNWMessageType.CONVERSATION_REQUEST;
     }
-
 }
