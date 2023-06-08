@@ -1,6 +1,8 @@
 package se.laz.casual.network.connection;
 
-public class DomainDisconnectedException extends CasualConnectionException
+import se.laz.casual.api.CasualRuntimeException;
+
+public class DomainDisconnectedException extends CasualRuntimeException
 {
     private static final long serialVersionUID = 1L;
     public DomainDisconnectedException(Throwable t)
