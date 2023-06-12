@@ -17,21 +17,24 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
+import se.laz.casual.network.connection.DomainDisconnectedException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage;
 
 import jakarta.enterprise.concurrent.ManagedExecutorService;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
-public class NettyNetworkConnection implements NetworkConnection, ConversationClose
+public class NettyNetworkConnection implements NetworkConnection, ConversationClose, CasualOutboundMessageListener
 {
     private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
@@ -53,6 +56,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private final Supplier<ManagedExecutorService> managedExecutorService;
     private final ErrorInformer errorInformer;
     private DomainId domainId;
+    private ProtocolVersion protocolVersion;
+    private DomainDisconnectHandler domainDisconnectHandler;
 
     private NettyNetworkConnection(BaseConnectionInformation ci,
                                    Correlator correlator,
@@ -80,16 +85,31 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         ConversationMessageStorage conversationMessageStorage = ConversationMessageStorageImpl.of();
         OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenersIfNotConnected(channel, errorInformer);
         ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of( conversationMessageStorage);
-        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
+        CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator);
+        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
         LOG.finest(() -> networkConnection + " connected to: " + ci.getAddress());
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
-        DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getProtocolVersion(), ci.getDomainId(), ci.getDomainName());
+        DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
         networkConnection.setDomainId(id);
+        if(networkConnection.getProtocolVersion() == ProtocolVersion.VERSION_1_1 || networkConnection.getProtocolVersion() == ProtocolVersion.VERSION_1_2)
+        {
+            // domain disconnect only available in 1.1, 1.2
+            messageHandler.setMessageListener(networkConnection);
+            networkConnection.setConnectionHandler(DomainDisconnectHandler.of(networkConnection.channel, networkConnection.getDomainId()));
+        }
         return networkConnection;
     }
 
+    public ProtocolVersion getProtocolVersion()
+    {
+        return protocolVersion;
+    }
 
+    private void setProtocolVersion(ProtocolVersion protocolVersion)
+    {
+        this.protocolVersion = protocolVersion;
+    }
 
     private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)
     {
@@ -114,6 +134,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return b.connect(address).syncUninterruptibly().channel();
     }
 
+    private void setConnectionHandler(DomainDisconnectHandler domainDisconnectHandler)
+    {
+        this.domainDisconnectHandler = domainDisconnectHandler;
+    }
+
     private static void handleClose(final NettyNetworkConnection connection, ErrorInformer errorInformer)
     {
         // always complete any outstanding requests exceptionally
@@ -131,6 +156,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message)
     {
+        if(hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(message))
+        {
+            // new service calls are not ok when domain has been disconnected
+            throw new DomainDisconnectedException("Domain: " + domainId + " has disconnected, no service or queue calls allowed");
+        }
         LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
         CompletableFuture<CasualNWMessage<T>> f = new CompletableFuture<>();
         if(!channel.isActive())
@@ -197,6 +227,14 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         channel.close();
     }
 
+    private <T extends CasualNetworkTransmittable> boolean hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(CasualNWMessage<T> message)
+    {
+        return isProtocolVersionOneOneOrOneTwo() && domainDisconnectHandler.hasDomainBeenDisconnected() &&
+                (message.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST ||
+                        message.getType() == CasualNWMessageType.DEQUEUE_REQUEST ||
+                        message.getType() == CasualNWMessageType.ENQUEUE_REQUEST);
+    }
+
     @Override
     public boolean isActive()
     {
@@ -214,13 +252,18 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         this.domainId = domainId;
     }
 
-    private DomainId throwIfProtocolVersionNotSupportedByEIS(long version, final UUID domainId, final String domainName)
+    private boolean isProtocolVersionOneOneOrOneTwo()
+    {
+        return protocolVersion == ProtocolVersion.VERSION_1_1 || protocolVersion == ProtocolVersion.VERSION_1_2;
+    }
+
+    private DomainId throwIfProtocolVersionNotSupportedByEIS(final UUID domainId, final String domainName)
     {
         CasualDomainConnectRequestMessage requestMessage = CasualDomainConnectRequestMessage.createBuilder()
                                                                                             .withExecution(UUID.randomUUID())
                                                                                             .withDomainId(domainId)
                                                                                             .withDomainName(domainName)
-                                                                                            .withProtocols(Arrays.asList(version))
+                                                                                            .withProtocols(ProtocolVersion.supportedVersionNumbers())
                                                                                             .build();
         CasualNWMessage<CasualDomainConnectRequestMessage> nwMessage = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage);
         LOG.finest(() -> "about to send handshake: " + this);
@@ -228,13 +271,16 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         LOG.finest(() -> "handshake sent: " + this);
         CasualNWMessage<CasualDomainConnectReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
         LOG.finest(() -> "received handshake reply: " + this);
-        if(replyEnvelope.getMessage().getProtocolVersion() != version)
-        {
-            LOG.warning(() -> "protocol version mismatch, requesting:  " + version + " reply version: " + replyEnvelope.getMessage().getProtocolVersion());
-            throw new CasualConnectionException("wanted protocol version " + version + " is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion());
-        }
+        long actualProtocolVersion = ProtocolVersion.supportedVersionNumbers()
+                                                              .stream()
+                                                              .filter(version -> version == replyEnvelope.getMessage().getProtocolVersion())
+                                                              .findFirst()
+                                                              .orElseThrow(() -> new CasualConnectionException("wanted one of protocol versions " + ProtocolVersion.supportedVersionNumbers() + " but it is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion()));
+        setProtocolVersion(ProtocolVersion.unmarshall(actualProtocolVersion));
+        LOG.info(() -> "using protocol version: " + protocolVersion + " asked for: " + ProtocolVersion.supportedVersions());
         return DomainId.of(replyEnvelope.getMessage().getDomainId());
     }
+
 
     @Override
     public boolean equals(Object o)
@@ -274,15 +320,37 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return this::close;
     }
 
-
     @Override
     public void close(UUID conversationalCorrId)
     {
         ConversationMessageStorageImpl.remove(conversationalCorrId);
     }
 
-   public void addListener(NetworkListener listener)
-   {
-       errorInformer.addListener(listener);
-   }
+    public void addListener(NetworkListener listener)
+    {
+        errorInformer.addListener(listener);
+    }
+
+    @Override
+    public boolean isInterestedIn(CasualNWMessageType type)
+    {
+        return isProtocolVersionOneOneOrOneTwo() && type == CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST;
+    }
+
+    @Override
+    public <T extends CasualNetworkTransmittable> void handleMessage(CasualNWMessage<T> message)
+    {
+        LOG.finest(() -> "message: " + LogTool.asLogEntry(message));
+        if(message.getMessage() instanceof DomainDisconnectRequestMessage)
+        {
+            DomainDisconnectRequestMessage requestMessage = (DomainDisconnectRequestMessage) message.getMessage();
+            domainDisconnectHandler.domainDisconnected(DomainDisconnectReplyInfo.of(message.getCorrelationId(), requestMessage.getExecution()));
+        }
+        else
+        {
+            LOG.warning(() -> "message type: " + message.getType() + " not handled!");
+        }
+
+    }
+
 }
