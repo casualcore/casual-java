@@ -8,6 +8,8 @@ package se.laz.casual.network;
 import se.laz.casual.network.connection.CasualConnectionException;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public enum ProtocolVersion
 {
@@ -15,6 +17,7 @@ public enum ProtocolVersion
     VERSION_1_1(1001),
     VERSION_1_2(1002);
 
+    private static final List<Long> supportedVersions = Arrays.asList(ProtocolVersion.VERSION_1_0.getVersion(), ProtocolVersion.VERSION_1_1.getVersion());
     private long version;
 
     ProtocolVersion(long version)
@@ -27,12 +30,56 @@ public enum ProtocolVersion
         return version;
     }
 
+    public String getVersionAsString()
+    {
+        if (version == ProtocolVersion.VERSION_1_0.getVersion())
+        {
+            return "1.0";
+        }
+        if (version == ProtocolVersion.VERSION_1_1.getVersion())
+        {
+            return "1.1";
+        }
+        if (version == ProtocolVersion.VERSION_1_2.getVersion())
+        {
+            return "1.2";
+        }
+        throw new CasualConnectionException("Unknown protocol version: " + version);
+    }
+
     public static ProtocolVersion unmarshall(long version)
     {
         return Arrays.stream(values())
                      .filter(protocolVersion -> protocolVersion.getVersion() == version)
                      .findFirst()
                      .orElseThrow(() -> new CasualConnectionException("Version: " + version + " is not supported"));
+    }
+
+    public static ProtocolVersion unmarshall(String version)
+    {
+        switch (version)
+        {
+            case "1.0":
+                return VERSION_1_0;
+            case "1.1":
+                return VERSION_1_1;
+            case "1.2":
+                return VERSION_1_2;
+            default:
+                throw new CasualConnectionException("Unknown protocol version: " + version);
+        }
+    }
+
+    public static List<Long> supportedVersionNumbers()
+    {
+        return supportedVersions;
+    }
+
+    public static List<String> supportedVersions()
+    {
+        return supportedVersionNumbers().stream()
+                                        .map(version -> unmarshall(version).getVersionAsString())
+                                        .collect(Collectors.toList());
     }
 
 }
