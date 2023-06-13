@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages;
 
+import io.netty.buffer.ByteBuf;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
@@ -63,6 +64,13 @@ public class CasualNWMessageImpl<T extends CasualNetworkTransmittable> implement
         completeMessage.addAll(payload);
         return completeMessage;
     }
+
+    @Override
+    public ByteBuf toByteBuf()
+    {
+        return message.toByteBuf();
+    }
+
     @Override
     public UUID getCorrelationId()
     {

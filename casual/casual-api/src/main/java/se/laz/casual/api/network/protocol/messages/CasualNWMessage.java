@@ -6,6 +6,8 @@
 
 package se.laz.casual.api.network.protocol.messages;
 
+import io.netty.buffer.ByteBuf;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -17,6 +19,7 @@ public interface CasualNWMessage<T extends CasualNetworkTransmittable>
 {
     CasualNWMessageType getType();
     List<byte[]> toNetworkBytes();
+    ByteBuf toByteBuf();
     UUID getCorrelationId();
     T getMessage();
 }

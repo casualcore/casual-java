@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.messages.conversation;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
@@ -57,6 +59,17 @@ public class ConnectReply implements CasualNetworkTransmittable
         final int messageSize = ConversationConnectReplySizes.EXECUTION.getNetworkSize() +
                 ConversationConnectReplySizes.RESULT_CODE.getNetworkSize();
         return toNetworkBytes(messageSize);
+    }
+
+    @Override
+    public ByteBuf toByteBuf()
+    {
+        final int messageSize = ConversationConnectReplySizes.EXECUTION.getNetworkSize() +
+                ConversationConnectReplySizes.RESULT_CODE.getNetworkSize();
+        ByteBuf buffer = Unpooled.buffer(messageSize);
+        CasualEncoderUtils.writeUUID(execution, buffer);
+        buffer.writeInt(resultCode);
+        return buffer;
     }
 
     private List<byte[]> toNetworkBytes(int messageSize)

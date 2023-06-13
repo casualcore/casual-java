@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.encoding.utils;
 
+import io.netty.buffer.ByteBuf;
 import se.laz.casual.api.xa.XIDFormatType;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
@@ -129,5 +130,23 @@ public final class CasualEncoderUtils
         return l;
     }
 
+    public static void writeUUID(UUID id, ByteBuf buffer)
+    {
+        buffer.writeLong(id.getMostSignificantBits())
+              .writeLong(id.getLeastSignificantBits());
+    }
 
+    public static void writeXID(Xid xid, ByteBuf buffer)
+    {
+        buffer.writeLong(xid.getFormatId());
+        if(!XIDFormatType.isNullType(xid.getFormatId()))
+        {
+            final byte[] gtridId = xid.getGlobalTransactionId();
+            final byte[] bqual = xid.getBranchQualifier();
+            buffer.writeLong(gtridId.length)
+             .writeLong(bqual.length)
+             .writeBytes(gtridId)
+             .writeBytes(bqual);
+        }
+    }
 }

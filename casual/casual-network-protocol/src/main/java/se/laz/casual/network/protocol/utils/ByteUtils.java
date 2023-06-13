@@ -27,11 +27,11 @@ public final class ByteUtils
 
     // We suppress this since it is bogus
     @SuppressWarnings("squid:AssignmentInSubExpressionCheck")
-    public static long sumNumberOfBytes(List<byte[]> l)
+    public static int sumNumberOfBytes(List<byte[]> l)
     {
         return l.stream()
-                .map(b -> (long)b.length)
-                .reduce(0L,(sum, v) -> sum += v);
+                .map(b -> b.length)
+                .reduce(0,(sum, v) -> sum += v);
     }
 
     public static CompletableFuture<ByteBuffer> readFully(AsynchronousByteChannel channel, int length)
