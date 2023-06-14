@@ -7,10 +7,11 @@
 package se.laz.casual.network.protocol.decoding.decoders.transaction;
 
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.XAFlags;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
-import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
@@ -18,9 +19,7 @@ import se.laz.casual.network.protocol.utils.ByteUtils;
 import se.laz.casual.network.protocol.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
-import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
-import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -31,7 +30,10 @@ public abstract class AbstractCasualTransactionRequestDecoder<T extends CasualNe
     @Override
     public T readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
-        return createRequestMessage(ByteUtils.readFully(channel, messageSize).array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(ByteUtils.readFully(channel, messageSize).array());
+        T msg = createRequestMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -46,27 +48,19 @@ public abstract class AbstractCasualTransactionRequestDecoder<T extends CasualNe
     }
 
     @Override
-    public T readSingleBuffer(final byte[] data)
+    public T readSingleBuffer(final ByteBuf buffer)
     {
-        return createRequestMessage(data);
+        return createRequestMessage(buffer);
     }
 
     protected abstract T createTransactionRequestMessage(final UUID execution, final Xid xid, int resourceId, final Flag<XAFlags> flags);
 
-    private T createRequestMessage(final byte[] data)
+    private T createRequestMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
-        currentOffset += CommonSizes.EXECUTION.getNetworkSize();
-
-        Pair<Integer, Xid> xidInfo = CasualMessageDecoderUtils.readXid(data, currentOffset);
-        currentOffset = xidInfo.first();
-        final Xid xid = xidInfo.second();
-        final ByteBuffer resourceIdBuffer = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize());
-        final int resourceId = resourceIdBuffer.getInt();
-        currentOffset += CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize();
-        final ByteBuffer flagBuffer = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize());
-        final int flagValue = (int)flagBuffer.getLong();
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        final Xid xid = CasualMessageDecoderUtils.readXid(buffer);
+        final int resourceId = buffer.readInt();
+        final int flagValue = (int)buffer.readLong();
         final Flag<XAFlags> flags = new Flag.Builder<XAFlags>(flagValue).build();
         return createTransactionRequestMessage(execution, xid, resourceId, flags);
     }

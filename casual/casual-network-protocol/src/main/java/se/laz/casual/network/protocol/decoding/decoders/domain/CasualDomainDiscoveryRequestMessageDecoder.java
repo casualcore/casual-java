@@ -6,17 +6,18 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.domain;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
-import se.laz.casual.network.protocol.decoding.decoders.utils.DynamicArrayIndexPair;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,7 +46,10 @@ public final class CasualDomainDiscoveryRequestMessageDecoder implements Network
     public CasualDomainDiscoveryRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        CasualDomainDiscoveryRequestMessage msg = getMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -67,34 +71,38 @@ public final class CasualDomainDiscoveryRequestMessageDecoder implements Network
     }
 
     @Override
-    public CasualDomainDiscoveryRequestMessage readSingleBuffer(byte[] data)
+    public CasualDomainDiscoveryRequestMessage readSingleBuffer(final ByteBuf buffer)
     {
-        return getMessage(data);
+        return getMessage(buffer);
     }
 
-    public static CasualDomainDiscoveryRequestMessage getMessage(final byte[] bytes)
+    public static CasualDomainDiscoveryRequestMessage getMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, DiscoveryRequestSizes.EXECUTION.getNetworkSize()));
-        currentOffset +=  DiscoveryRequestSizes.EXECUTION.getNetworkSize();
-        final UUID domainId = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, currentOffset + DiscoveryRequestSizes.DOMAIN_ID.getNetworkSize()));
-        currentOffset += DiscoveryRequestSizes.DOMAIN_ID.getNetworkSize();
-        final int domainNameSize = (int)ByteBuffer.wrap(bytes, currentOffset , DiscoveryRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += DiscoveryRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize();
-        final String domainName = CasualMessageDecoderUtils.getAsString(bytes, currentOffset, domainNameSize);
-        currentOffset += domainNameSize;
-        final DynamicArrayIndexPair<String> serviceNames = CasualMessageDecoderUtils.getDynamicArrayIndexPair(bytes, currentOffset, DiscoveryRequestSizes.SERVICES_SIZE.getNetworkSize(), DiscoveryRequestSizes.SERVICES_ELEMENT_SIZE.getNetworkSize(),
-                CasualMessageDecoderUtils::getAsString);
-        currentOffset = serviceNames.getIndex();
-        final DynamicArrayIndexPair<String> queueNames = CasualMessageDecoderUtils.getDynamicArrayIndexPair(bytes, currentOffset, DiscoveryRequestSizes.QUEUES_SIZE.getNetworkSize(), DiscoveryRequestSizes.QUEUES_ELEMENT_SIZE.getNetworkSize(),
-                CasualMessageDecoderUtils::getAsString);
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        final UUID domainId = CasualMessageDecoderUtils.readUUID(buffer);
+        final int domainNameSize = (int)buffer.readLong();
+        final String domainName = CasualMessageDecoderUtils.readAsString(buffer, domainNameSize);
+        List<String> serviceNames = readNames(buffer);
+        List<String> queueNames = readNames(buffer);
         return CasualDomainDiscoveryRequestMessage.createBuilder()
                                                   .setExecution(execution)
                                                   .setDomainId(domainId)
                                                   .setDomainName(domainName)
-                                                  .setServiceNames(serviceNames.getBytes())
-                                                  .setQueueNames(queueNames.getBytes())
+                                                  .setServiceNames(serviceNames)
+                                                  .setQueueNames(queueNames)
                                                   .build();
+    }
+
+    private static List<String> readNames(ByteBuf buffer)
+    {
+        long numberOfNames = buffer.readLong();
+        List<String> names = new ArrayList<>();
+        for(int i = 0; i < numberOfNames; ++i)
+        {
+            int nameLength = (int)buffer.readLong();
+            names.add(buffer.readBytes(nameLength).toString(StandardCharsets.UTF_8));
+        }
+        return names;
     }
 
     private static List<String> readQueues(final ReadableByteChannel channel)

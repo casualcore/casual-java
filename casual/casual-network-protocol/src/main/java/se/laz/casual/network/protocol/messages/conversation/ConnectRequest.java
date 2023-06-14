@@ -71,37 +71,6 @@ public class ConnectRequest implements CasualNetworkTransmittable
         return toNetworkBytes((int)messageSize, serviceNameBytes, parentNameBytes, serviceBytes);
     }
 
-    @Override
-    public ByteBuf toByteBuf()
-    {
-        final byte[] serviceNameBytes = serviceName.getBytes(StandardCharsets.UTF_8);
-        final byte[] parentNameBytes = parentName.getBytes(StandardCharsets.UTF_8);
-        final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
-        final int messageSize = ConversationConnectRequestSizes.EXECUTION.getNetworkSize() +
-                ConversationConnectRequestSizes.CALL_DESCRIPTOR.getNetworkSize() +
-                ConversationConnectRequestSizes.SERVICE_NAME_SIZE.getNetworkSize() + serviceNameBytes.length +
-                ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize() +
-                ConversationConnectRequestSizes.PARENT_NAME_SIZE.getNetworkSize() + parentNameBytes.length +
-                XIDUtils.getXIDNetworkSize(xid) +
-                ConversationConnectRequestSizes.DUPLEX.getNetworkSize() +
-                ConversationConnectRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ConversationConnectRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
-        ByteBuf buffer = Unpooled.buffer(messageSize);
-        CasualEncoderUtils.writeUUID(execution, buffer);
-        buffer.writeLong(serviceNameBytes.length)
-         .writeBytes(serviceNameBytes)
-         .writeLong(timeout)
-         .writeLong(parentNameBytes.length)
-         .writeBytes(parentNameBytes);
-        CasualEncoderUtils.writeXID(xid, buffer);
-        buffer.writeShort(duplex.getValue());
-        buffer.writeLong(serviceBytes.get(0).length).writeBytes(serviceBytes.get(0));
-        serviceBytes.remove(0);
-        final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
-        buffer.writeLong(payloadSize);
-        serviceBytes.forEach(buffer::writeBytes);
-        return null;
-    }
-
     public static ConnectRequestBuilder createBuilder()
     {
         return new ConnectRequestBuilder();

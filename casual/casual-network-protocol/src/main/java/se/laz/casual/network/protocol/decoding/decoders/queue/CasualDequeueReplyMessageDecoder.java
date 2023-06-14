@@ -6,12 +6,12 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.queue;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.queue.QueueMessage;
-import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
-import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DequeueReplySizes;
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueReplyMessage;
 import se.laz.casual.network.protocol.messages.queue.DequeueMessage;
@@ -20,7 +20,6 @@ import se.laz.casual.network.protocol.utils.ByteUtils;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,7 +37,10 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
     public CasualDequeueReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        CasualDequeueReplyMessage msg = getMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -58,9 +60,9 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
     }
 
     @Override
-    public CasualDequeueReplyMessage readSingleBuffer(byte[] data)
+    public CasualDequeueReplyMessage readSingleBuffer(final ByteBuf buffer)
     {
-        return getMessage(data);
+        return getMessage(buffer);
     }
 
     private static DequeueMessage readDequeueMessage(final ReadableByteChannel channel)
@@ -85,56 +87,37 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
                                              .build());
     }
 
-    private static Pair<Integer, DequeueMessage> readDequeueMessage(final byte[] bytes, int offset)
+    private static DequeueMessage readDequeueMessage(ByteBuf buffer)
     {
-        int currentOffset = offset;
-        UUID msgId = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, currentOffset + DequeueReplySizes.MESSAGE_ID.getNetworkSize()));
-        currentOffset += DequeueReplySizes.MESSAGE_ID.getNetworkSize();
-        int propertiesSize = (int)ByteBuffer.wrap(bytes, currentOffset , DequeueReplySizes.MESSAGE_PROPERTIES_SIZE.getNetworkSize()).getLong();
-        currentOffset += DequeueReplySizes.MESSAGE_PROPERTIES_SIZE.getNetworkSize();
-        String properties = CasualMessageDecoderUtils.getAsString(bytes, currentOffset, propertiesSize);
-        currentOffset += propertiesSize;
+        UUID msgId = CasualMessageDecoderUtils.readUUID(buffer);
+        int propertiesSize = (int)buffer.readLong();
+        String properties = CasualMessageDecoderUtils.readAsString(buffer, propertiesSize);
+        int replyDataSize = (int)buffer.readLong();
+        String replyData = CasualMessageDecoderUtils.readAsString(buffer, replyDataSize);
+        long availableSinceEpoc = buffer.readLong();
+        ServiceBuffer serviceBuffer = CasualMessageDecoderUtils.readServiceBuffer(buffer);
 
-        int replyDataSize = (int)ByteBuffer.wrap(bytes, currentOffset , DequeueReplySizes.MESSAGE_REPLY_SIZE.getNetworkSize()).getLong();
-        currentOffset += DequeueReplySizes.MESSAGE_REPLY_SIZE.getNetworkSize();
-        String replyData = CasualMessageDecoderUtils.getAsString(bytes, currentOffset, replyDataSize);
-        currentOffset += replyDataSize;
-
-        long availableSinceEpoc = ByteBuffer.wrap(bytes, currentOffset , DequeueReplySizes.MESSAGE_AVAILABLE_SINCE_EPOC.getNetworkSize()).getLong();
-        currentOffset += DequeueReplySizes.MESSAGE_AVAILABLE_SINCE_EPOC.getNetworkSize();
-
-        Pair<Integer, ServiceBuffer> p = CasualMessageDecoderUtils.readServiceBuffer(bytes, currentOffset);
-        currentOffset = p.first();
-
-        long redelivered = ByteBuffer.wrap(bytes, currentOffset , DequeueReplySizes.MESSAGE_REDELIVERED_COUNT.getNetworkSize()).getLong();
-        currentOffset += DequeueReplySizes.MESSAGE_REDELIVERED_COUNT.getNetworkSize();
-        long timestampSinceEpoc = ByteBuffer.wrap(bytes, currentOffset , DequeueReplySizes.MESSAGE_TIMESTAMP_SINCE_EPOC.getNetworkSize()).getLong();
-        currentOffset += DequeueReplySizes.MESSAGE_TIMESTAMP_SINCE_EPOC.getNetworkSize();
-        DequeueMessage msg =  DequeueMessage.of(QueueMessage.createBuilder()
-                                                                  .withId(msgId)
-                                                                  .withCorrelationInformation(properties)
-                                                                  .withReplyQueue(replyData)
-                                                                  .withAvailableSince(availableSinceEpoc)
-                                                                  .withTimestamp(timestampSinceEpoc)
-                                                                  .withRedelivered(redelivered)
-                                                                  .withPayload(p.second())
-                                                                  .build());
-        return Pair.of(currentOffset, msg);
+        long redelivered = buffer.readLong();
+        long timestampSinceEpoc = buffer.readLong();
+        return  DequeueMessage.of(QueueMessage.createBuilder()
+                                              .withId(msgId)
+                                              .withCorrelationInformation(properties)
+                                              .withReplyQueue(replyData)
+                                              .withAvailableSince(availableSinceEpoc)
+                                              .withTimestamp(timestampSinceEpoc)
+                                              .withRedelivered(redelivered)
+                                              .withPayload(serviceBuffer)
+                                              .build());
     }
 
-    private static CasualDequeueReplyMessage getMessage(byte[] bytes)
+    private static CasualDequeueReplyMessage getMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
-        currentOffset += CommonSizes.EXECUTION.getNetworkSize();
-        long numberOfMessages = ByteBuffer.wrap(bytes, currentOffset , DequeueReplySizes.NUMBER_OF_MESSAGES.getNetworkSize()).getLong();
-        currentOffset += DequeueReplySizes.NUMBER_OF_MESSAGES.getNetworkSize();
+        UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        long numberOfMessages = buffer.readLong();
         List<DequeueMessage> l = new ArrayList<>();
         for(int i = 0; i < numberOfMessages; ++i)
         {
-            Pair<Integer, DequeueMessage> p = readDequeueMessage(bytes, currentOffset);
-            currentOffset = p.first();
-            l.add(p.second());
+            l.add(readDequeueMessage(buffer));
         }
         return CasualDequeueReplyMessage.createBuilder()
                                         .withExecution(execution)

@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.domain;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage;
@@ -31,7 +33,10 @@ public final class DomainDisconnectRequestMessageDecoder implements NetworkDecod
     public DomainDisconnectRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        DomainDisconnectRequestMessage msg = getMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -42,15 +47,14 @@ public final class DomainDisconnectRequestMessageDecoder implements NetworkDecod
     }
 
     @Override
-    public DomainDisconnectRequestMessage readSingleBuffer(byte[] data)
+    public DomainDisconnectRequestMessage readSingleBuffer(final ByteBuf buffer)
     {
-        return getMessage(data);
+        return getMessage(buffer);
     }
 
-    private DomainDisconnectRequestMessage getMessage(final byte[] bytes)
+    private DomainDisconnectRequestMessage getMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, ConnectRequestSizes.EXECUTION.getNetworkSize()));
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
         return DomainDisconnectRequestMessage.of(execution);
     }
 

@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.queue;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.api.util.Pair;
@@ -38,7 +40,10 @@ public class CasualEnqueueRequestMessageDecoder implements NetworkDecoder<Casual
     public CasualEnqueueRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        CasualEnqueueRequestMessage msg = getMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -57,25 +62,18 @@ public class CasualEnqueueRequestMessageDecoder implements NetworkDecoder<Casual
     }
 
     @Override
-    public CasualEnqueueRequestMessage readSingleBuffer(byte[] data)
+    public CasualEnqueueRequestMessage readSingleBuffer(final ByteBuf buffer)
     {
-        return getMessage(data);
+        return getMessage(buffer);
     }
 
-    private static CasualEnqueueRequestMessage getMessage(final byte[] bytes)
+    private static CasualEnqueueRequestMessage getMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
-        currentOffset += CommonSizes.EXECUTION.getNetworkSize();
-        int queueNameSize = (int)ByteBuffer.wrap(bytes, currentOffset , EnqueueRequestSizes.NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += EnqueueRequestSizes.NAME_SIZE.getNetworkSize();
-        String queueName = CasualMessageDecoderUtils.getAsString(bytes, currentOffset, queueNameSize);
-        currentOffset += queueNameSize;
-        Pair<Integer, Xid> xidInfo = CasualMessageDecoderUtils.readXid(bytes, currentOffset);
-        currentOffset = xidInfo.first();
-        Xid xid = xidInfo.second();
-
-        EnqueueMessage msg = readEnqueueMessage(bytes, currentOffset);
+        UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        int queueNameSize = (int)buffer.readLong();
+        String queueName = CasualMessageDecoderUtils.readAsString(buffer, queueNameSize);
+        Xid xid = CasualMessageDecoderUtils.readXid(buffer);
+        EnqueueMessage msg = readEnqueueMessage(buffer);
         return CasualEnqueueRequestMessage.createBuilder()
                                           .withExecution(execution)
                                           .withQueueName(queueName)
@@ -102,31 +100,21 @@ public class CasualEnqueueRequestMessageDecoder implements NetworkDecoder<Casual
                                              .build());
     }
 
-    private static EnqueueMessage readEnqueueMessage(final byte[] bytes, int offset)
+    private static EnqueueMessage readEnqueueMessage(final ByteBuf buffer)
     {
-        int currentOffset = offset;
-        UUID msgId = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset,  currentOffset +EnqueueRequestSizes.MESSAGE_ID.getNetworkSize()));
-        currentOffset += EnqueueRequestSizes.MESSAGE_ID.getNetworkSize();
-        int propertiesSize = (int)ByteBuffer.wrap(bytes, currentOffset , EnqueueRequestSizes.MESSAGE_PROPERTIES_SIZE.getNetworkSize()).getLong();
-        currentOffset += EnqueueRequestSizes.MESSAGE_PROPERTIES_SIZE.getNetworkSize();
-        String properties = CasualMessageDecoderUtils.getAsString(bytes, currentOffset, propertiesSize);
-        currentOffset += propertiesSize;
-
-        int replyDataSize = (int)ByteBuffer.wrap(bytes, currentOffset , EnqueueRequestSizes.MESSAGE_REPLY_SIZE.getNetworkSize()).getLong();
-        currentOffset += EnqueueRequestSizes.MESSAGE_REPLY_SIZE.getNetworkSize();
-        String replyData = CasualMessageDecoderUtils.getAsString(bytes, currentOffset, replyDataSize);
-        currentOffset += replyDataSize;
-
-        long availableSinceEpoc = ByteBuffer.wrap(bytes, currentOffset , EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize()).getLong();
-        currentOffset += EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize();
-
-        Pair<Integer, ServiceBuffer> p = CasualMessageDecoderUtils.readServiceBuffer(bytes, currentOffset);
+        UUID msgId = CasualMessageDecoderUtils.readUUID(buffer);
+        int propertiesSize = (int)buffer.readLong();
+        String properties = CasualMessageDecoderUtils.readAsString(buffer, propertiesSize);
+        int replyDataSize = (int)buffer.readLong();
+        String replyData = CasualMessageDecoderUtils.readAsString(buffer, replyDataSize);
+        long availableSinceEpoc = buffer.readLong();
+        ServiceBuffer serviceBuffer = CasualMessageDecoderUtils.readServiceBuffer(buffer);
         return EnqueueMessage.of(QueueMessage.createBuilder()
                                              .withId(msgId)
                                              .withCorrelationInformation(properties)
                                              .withReplyQueue(replyData)
                                              .withAvailableSince(availableSinceEpoc)
-                                             .withPayload(p.second())
+                                             .withPayload(serviceBuffer)
                                              .build());
     }
 

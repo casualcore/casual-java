@@ -7,6 +7,8 @@
 package se.laz.casual.network;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
@@ -69,9 +71,8 @@ public class CasualNWMessageDecoder extends ByteToMessageDecoder
         }
         try
         {
-            byte[] messageBytes = new byte[(int)header.getPayloadSize()];
-            in.readBytes(messageBytes);
-            return Optional.of( CasualMessageDecoder.read(messageBytes, header) );
+            Optional<CasualNWMessage<?>> msg =  Optional.of( CasualMessageDecoder.read(in, header) );
+            return msg;
         }
         catch(Exception e)
         {

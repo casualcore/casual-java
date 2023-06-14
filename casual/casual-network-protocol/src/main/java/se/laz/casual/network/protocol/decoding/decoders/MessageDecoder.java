@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.decoding.decoders;
 
+import io.netty.buffer.ByteBuf;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 
 import java.nio.channels.ReadableByteChannel;
@@ -47,10 +48,10 @@ public final class MessageDecoder<T extends CasualNetworkTransmittable>
         return networkDecoder.readChunked(channel);
     }
 
-    public T read(final byte[] data)
+    public T read(final ByteBuf buffer)
     {
-        Objects.requireNonNull(data, "data is null");
-        return networkDecoder.readSingleBuffer(data);
+        Objects.requireNonNull(buffer, "buffer is null");
+        return networkDecoder.readSingleBuffer(buffer);
     }
 
 }

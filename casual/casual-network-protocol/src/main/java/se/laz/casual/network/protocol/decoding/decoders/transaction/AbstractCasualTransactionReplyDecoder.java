@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.transaction;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.api.util.Pair;
 import se.laz.casual.api.xa.XAReturnCode;
@@ -30,7 +32,10 @@ public abstract class AbstractCasualTransactionReplyDecoder<T extends CasualNetw
     @Override
     public T readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
-        return createReplyMessage(ByteUtils.readFully(channel, messageSize).array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(ByteUtils.readFully(channel, messageSize).array());
+        T msg = createReplyMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -45,28 +50,20 @@ public abstract class AbstractCasualTransactionReplyDecoder<T extends CasualNetw
     }
 
     @Override
-    public T readSingleBuffer(final byte[] data)
+    public T readSingleBuffer(final ByteBuf buffer)
     {
-        return createReplyMessage(data);
+        return createReplyMessage(buffer);
     }
 
     protected abstract T createTransactionReplyMessage(UUID execution, Xid xid, int resourceId, XAReturnCode r);
 
 
-    private T createReplyMessage(final byte[] data)
+    private T createReplyMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
-        currentOffset += CommonSizes.EXECUTION.getNetworkSize();
-
-        Pair<Integer, Xid> xidInfo = CasualMessageDecoderUtils.readXid(data, currentOffset);
-        currentOffset = xidInfo.first();
-        final Xid xid = xidInfo.second();
-
-        final ByteBuffer resourceIdBuffer = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize());
-        final int resourceId = resourceIdBuffer.getInt();
-        currentOffset += CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize();
-        final int xaReturnCode = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_STATE.getNetworkSize()).getInt();
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        final Xid xid = CasualMessageDecoderUtils.readXid(buffer);
+        final int resourceId = buffer.readInt();
+        final int xaReturnCode = buffer.readInt();
         final XAReturnCode r = XAReturnCode.unmarshal(xaReturnCode);
         return createTransactionReplyMessage(execution, xid, resourceId, r);
     }

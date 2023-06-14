@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.service;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.util.Pair;
@@ -20,6 +22,7 @@ import se.laz.casual.network.protocol.utils.XIDUtils;
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,7 +67,10 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
     public CasualServiceCallRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return createMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        CasualServiceCallRequestMessage msg = createMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -91,45 +97,32 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
     }
 
     @Override
-    public CasualServiceCallRequestMessage readSingleBuffer(byte[] data)
+    public CasualServiceCallRequestMessage readSingleBuffer(final ByteBuf buffer)
     {
-        return createMessage(data);
+        return createMessage(buffer);
     }
 
-    private static CasualServiceCallRequestMessage createMessage(final byte[] data)
+    private static CasualServiceCallRequestMessage createMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ServiceCallRequestSizes.EXECUTION.getNetworkSize()));
-        currentOffset += ServiceCallRequestSizes.EXECUTION.getNetworkSize();
-
-        int serviceNameLen = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize();
-        final String serviceName = CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceNameLen);
-        currentOffset += serviceNameLen;
-
-        long timeout  = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
-        currentOffset += ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
-
-        final int parentNameSize = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize();
-        final String parentName = CasualMessageDecoderUtils.getAsString(data, currentOffset, parentNameSize);
-        currentOffset += parentNameSize;
-
-        Pair<Integer, Xid> xidInfo = CasualMessageDecoderUtils.readXid(data, currentOffset);
-        currentOffset = xidInfo.first();
-        final Xid xid = xidInfo.second();
-
-        int flags = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.FLAGS.getNetworkSize()).getLong();
-        currentOffset += ServiceCallRequestSizes.FLAGS.getNetworkSize();
-        int serviceBufferTypeSize = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize();
-        final String serviceTypeName = CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceBufferTypeSize);
-        currentOffset += serviceBufferTypeSize;
-        // this can be huge, ie not fitting into one ByteBuffer
-        // but since the whole message fits into Integer.MAX_VALUE that is not true of this message
-        int serviceBufferPayloadSize = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize()).getLong();
-        currentOffset += ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize();
-        final byte[] payloadData = Arrays.copyOfRange(data, currentOffset, currentOffset + serviceBufferPayloadSize);
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        int serviceNameSize = (int)buffer.readLong();
+        byte[] serviceNameBuffer = new byte[serviceNameSize];
+        buffer.readBytes(serviceNameBuffer);
+        final String serviceName = CasualMessageDecoderUtils.getAsString(serviceNameBuffer);
+        long timeout  = buffer.readLong();
+        final int parentNameSize = (int)buffer.readLong();
+        byte[] parentNameBuffer = new byte[parentNameSize];
+        buffer.readBytes(parentNameBuffer);
+        final String parentName = CasualMessageDecoderUtils.getAsString(parentNameBuffer);
+        final Xid xid = CasualMessageDecoderUtils.readXid(buffer);
+        int flags = (int) buffer.readLong();
+        int serviceBufferTypeSize = (int) buffer.readLong();
+        byte[] serviceBufferTypeBuffer = new byte[serviceBufferTypeSize];
+        buffer.readBytes(serviceBufferTypeBuffer);
+        final String serviceTypeName = CasualMessageDecoderUtils.getAsString(serviceBufferTypeBuffer);
+        int serviceBufferPayloadSize = (int) buffer.readLong();
+        final byte[] payloadData = new byte[serviceBufferPayloadSize];
+        buffer.readBytes(payloadData);
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
         serviceBufferPayload.add(payloadData);
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);

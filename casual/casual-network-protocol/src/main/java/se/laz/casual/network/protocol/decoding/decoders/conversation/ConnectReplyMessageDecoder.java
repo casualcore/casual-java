@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.conversation;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.conversation.ConnectReply;
@@ -34,7 +36,11 @@ public final class ConnectReplyMessageDecoder implements NetworkDecoder<ConnectR
     public ConnectReply readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return createMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        ConnectReply msg = createMessage(buffer);
+        buffer.release();
+        return msg;
+
     }
 
     @Override
@@ -44,19 +50,15 @@ public final class ConnectReplyMessageDecoder implements NetworkDecoder<ConnectR
     }
 
     @Override
-    public ConnectReply readSingleBuffer(byte[] data)
+    public ConnectReply readSingleBuffer(final ByteBuf buffer)
     {
-        return createMessage(data);
+        return createMessage(buffer);
     }
 
-    private static ConnectReply createMessage(final byte[] data)
+    private static ConnectReply createMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ConversationConnectReplySizes.EXECUTION.getNetworkSize()));
-        currentOffset += ConversationConnectReplySizes.EXECUTION.getNetworkSize();
-
-        int resultCode = ByteBuffer.wrap(data, currentOffset, ConversationConnectReplySizes.RESULT_CODE.getNetworkSize()).getInt();
-
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        int resultCode = buffer.readInt();
         return ConnectReply.createBuilder()
                 .setExecution(execution)
                 .setResultCode(resultCode)

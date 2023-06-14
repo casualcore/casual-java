@@ -6,7 +6,6 @@
 
 package se.laz.casual.api.network.protocol.messages;
 
-import io.netty.buffer.ByteBuf;
 import se.laz.casual.network.ProtocolVersion;
 
 import java.util.Arrays;
@@ -20,7 +19,6 @@ public interface CasualNetworkTransmittable
 {
     CasualNWMessageType getType();
     List<byte[]> toNetworkBytes();
-    ByteBuf toByteBuf();
     default List<ProtocolVersion> supportedProtocolVersions()
     {
         return Arrays.asList(ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2);

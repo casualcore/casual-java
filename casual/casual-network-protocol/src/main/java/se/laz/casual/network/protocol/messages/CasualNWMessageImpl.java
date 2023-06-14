@@ -66,12 +66,6 @@ public class CasualNWMessageImpl<T extends CasualNetworkTransmittable> implement
     }
 
     @Override
-    public ByteBuf toByteBuf()
-    {
-        return message.toByteBuf();
-    }
-
-    @Override
     public UUID getCorrelationId()
     {
         return correlationId;

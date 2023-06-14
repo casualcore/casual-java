@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.domain;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
@@ -31,7 +33,10 @@ public final class CasualDomainConnectReplyMessageDecoder implements NetworkDeco
     public CasualDomainConnectReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        CasualDomainConnectReplyMessage msg = getMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -51,23 +56,18 @@ public final class CasualDomainConnectReplyMessageDecoder implements NetworkDeco
     }
 
     @Override
-    public CasualDomainConnectReplyMessage readSingleBuffer(byte[] data)
+    public CasualDomainConnectReplyMessage readSingleBuffer(final ByteBuf buffer)
     {
-        return getMessage(data);
+        return getMessage(buffer);
     }
 
-    private CasualDomainConnectReplyMessage getMessage(final byte[] bytes)
+    private CasualDomainConnectReplyMessage getMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, ConnectReplySizes.EXECUTION.getNetworkSize()));
-        currentOffset +=  ConnectReplySizes.EXECUTION.getNetworkSize();
-        final UUID domainId = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, currentOffset + ConnectReplySizes.DOMAIN_ID.getNetworkSize()));
-        currentOffset += ConnectReplySizes.DOMAIN_ID.getNetworkSize();
-        final int domainNameSize = (int)ByteBuffer.wrap(bytes, currentOffset , ConnectReplySizes.DOMAIN_NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += ConnectReplySizes.DOMAIN_NAME_SIZE.getNetworkSize();
-        final String domainName = CasualMessageDecoderUtils.getAsString(bytes, currentOffset, domainNameSize);
-        currentOffset += domainNameSize;
-        long protocol = ByteBuffer.wrap(bytes, currentOffset, ConnectReplySizes.PROTOCOL_VERSION_SIZE.getNetworkSize()).getLong();
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        final UUID domainId = CasualMessageDecoderUtils.readUUID(buffer);
+        final int domainNameSize = (int)buffer.readLong();
+        final String domainName = CasualMessageDecoderUtils.readAsString(buffer, domainNameSize);
+        long protocol = buffer.readLong();
         return CasualDomainConnectReplyMessage.createBuilder()
                                               .withExecution(execution)
                                               .withDomainId(domainId)

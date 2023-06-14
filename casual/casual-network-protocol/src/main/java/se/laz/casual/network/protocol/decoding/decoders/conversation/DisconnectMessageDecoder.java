@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.conversation;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.conversation.Disconnect;
@@ -34,7 +36,10 @@ public final class DisconnectMessageDecoder implements NetworkDecoder<Disconnect
     public Disconnect readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return createMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        Disconnect msg = createMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -44,15 +49,14 @@ public final class DisconnectMessageDecoder implements NetworkDecoder<Disconnect
     }
 
     @Override
-    public Disconnect readSingleBuffer(byte[] data)
+    public Disconnect readSingleBuffer(final ByteBuf buffer)
     {
-        return createMessage(data);
+        return createMessage(buffer);
     }
 
-    private static Disconnect createMessage(final byte[] data)
+    private static Disconnect createMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ConversationDisconnectSizes.EXECUTION.getNetworkSize()));
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
         return Disconnect.createBuilder()
                 .setExecution(execution)
                 .build();

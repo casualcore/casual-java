@@ -6,18 +6,18 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.conversation;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.conversation.Request;
-import se.laz.casual.network.protocol.messages.parseinfo.ConversationRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,7 +38,10 @@ public final class RequestMessageDecoder implements NetworkDecoder<Request>
     public Request readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return createMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        Request msg = createMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -48,33 +51,22 @@ public final class RequestMessageDecoder implements NetworkDecoder<Request>
     }
 
     @Override
-    public Request readSingleBuffer(byte[] data)
+    public Request readSingleBuffer(final ByteBuf buffer)
     {
-        return createMessage(data);
+        return createMessage(buffer);
     }
 
-    private static Request createMessage(final byte[] data)
+    private static Request createMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ConversationRequestSizes.EXECUTION.getNetworkSize()));
-        currentOffset += ConversationRequestSizes.EXECUTION.getNetworkSize();
-
-        Duplex duplex = Duplex.unmarshall(ByteBuffer.wrap(data, currentOffset, ConversationRequestSizes.DUPLEX.getNetworkSize()).getShort());
-        currentOffset += ConversationRequestSizes.DUPLEX.getNetworkSize();
-
-        int resultCode  = ByteBuffer.wrap(data, currentOffset, ConversationRequestSizes.RESULT_CODE.getNetworkSize()).getInt();
-        currentOffset += ConversationRequestSizes.RESULT_CODE.getNetworkSize();
-
-        long userCode  = ByteBuffer.wrap(data, currentOffset, ConversationRequestSizes.USER_CODE.getNetworkSize()).getLong();
-        currentOffset += ConversationRequestSizes.USER_CODE.getNetworkSize();
-
-        int serviceBufferTypeSize = (int) ByteBuffer.wrap(data, currentOffset, ConversationRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += ConversationRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize();
-        final String serviceTypeName = CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceBufferTypeSize);
-        currentOffset += serviceBufferTypeSize;
-        int serviceBufferPayloadSize = (int) ByteBuffer.wrap(data, currentOffset, ConversationRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize()).getLong();
-        currentOffset += ConversationRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize();
-        final byte[] payloadData = Arrays.copyOfRange(data, currentOffset, currentOffset + serviceBufferPayloadSize);
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        Duplex duplex = Duplex.unmarshall(buffer.readShort());
+        int resultCode = buffer.readInt();
+        long userCode  = buffer.readLong();
+        int serviceBufferTypeSize = (int) buffer.readLong();
+        final String serviceTypeName = CasualMessageDecoderUtils.readAsString(buffer, serviceBufferTypeSize);
+        int serviceBufferPayloadSize = (int) buffer.readLong();
+        final byte[] payloadData = new byte[serviceBufferPayloadSize];
+        buffer.readBytes(payloadData);
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
         serviceBufferPayload.add(payloadData);
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);

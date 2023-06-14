@@ -6,11 +6,12 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.domain;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.messages.domain.TransactionType;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
-import se.laz.casual.network.protocol.decoding.decoders.utils.DynamicArrayIndexPair;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.Queue;
 import se.laz.casual.network.protocol.messages.domain.Service;
@@ -19,8 +20,8 @@ import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,7 +41,10 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
     @Override
     public CasualDomainDiscoveryReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
-        return getMessage(ByteUtils.readFully(channel, messageSize).array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(ByteUtils.readFully(channel, messageSize).array());
+        CasualDomainDiscoveryReplyMessage msg = getMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -71,9 +75,9 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
     }
 
     @Override
-    public CasualDomainDiscoveryReplyMessage readSingleBuffer(byte[] data)
+    public CasualDomainDiscoveryReplyMessage readSingleBuffer(final ByteBuf buffer)
     {
-        return getMessage(data);
+        return getMessage(buffer);
     }
 
     private static List<byte[]> readService(final ReadableByteChannel channel)
@@ -117,39 +121,39 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         return l;
     }
 
-    public static CasualDomainDiscoveryReplyMessage getMessage(final byte[] bytes)
+    public static CasualDomainDiscoveryReplyMessage getMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, DiscoveryReplySizes.EXECUTION.getNetworkSize()));
-        currentOffset +=  DiscoveryReplySizes.EXECUTION.getNetworkSize();
-        final UUID domainId = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, currentOffset + DiscoveryReplySizes.DOMAIN_ID.getNetworkSize()));
-        currentOffset += DiscoveryReplySizes.DOMAIN_ID.getNetworkSize();
-        final int domainNameSize = (int) ByteBuffer.wrap(bytes, currentOffset , DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize();
-        final String domainName = CasualMessageDecoderUtils.getAsString(bytes, currentOffset, domainNameSize);
-        currentOffset += domainNameSize;
-        final long numberOfServices = ByteBuffer.wrap(bytes, currentOffset, DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize()).getLong();
-        currentOffset += DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize();
-        DynamicArrayIndexPair<Service> services = getServices(bytes, currentOffset, numberOfServices);
-        currentOffset = services.getIndex();
-        final long numberOfQueues = ByteBuffer.wrap(bytes, currentOffset, DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize()).getLong();
-        currentOffset += DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize();
-        DynamicArrayIndexPair<Queue> queues = getQueues(bytes, currentOffset, numberOfQueues);
-
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        final UUID domainId = CasualMessageDecoderUtils.readUUID(buffer);
+        final int domainNameSize = (int) buffer.readLong();
+        ByteBuf domainNameBuffer = buffer.readBytes(domainNameSize);
+        final String domainName = domainNameBuffer.toString(StandardCharsets.UTF_8);
+        final long numberOfServices = buffer.readLong();
+        List<Service> services = getServices(buffer, numberOfServices);
+        final long numberOfQueues = buffer.readLong();
+        List<Queue> queues = getQueues(buffer, numberOfQueues);
         return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
-                                                .setServices(services.getBytes())
-                                                .setQueues(queues.getBytes());
+                                                .setServices(services)
+                                                .setQueues(queues);
     }
 
-    private static DynamicArrayIndexPair<Service> getServices(final byte[] bytes, int currentOffset, long numberOfServices)
+    private static List<Service> getServices(ByteBuf buffer, long numberOfServices)
     {
-        final List<Service> l = new ArrayList<>();
-        int offset = currentOffset;
+        List<Service> l = new ArrayList<>();
         for(int i = 0; i < numberOfServices; ++i)
         {
-            offset = addService(bytes, offset, l);
+            int nameSize = (int)buffer.readLong();
+            String name = CasualMessageDecoderUtils.readAsString(buffer, nameSize);
+            int categorySize = (int)buffer.readLong();
+            String category = CasualMessageDecoderUtils.readAsString(buffer, categorySize);
+            short transaction = buffer.readShort();
+            long timeout  = buffer.readLong();
+            long hops = buffer.readLong();
+            l.add(Service.of(name, category, TransactionType.unmarshal(transaction))
+                   .setTimeout(timeout)
+                   .setHops(hops));
         }
-        return DynamicArrayIndexPair.of(l, offset);
+        return l;
     }
 
     private static int addService(final byte[] bytes, final int currentOffset, final List<Service> l)
@@ -176,15 +180,18 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         return offset;
     }
 
-    private static DynamicArrayIndexPair<Queue> getQueues(final byte[] bytes, int currentOffset, long numberOfServices)
+    private static List<Queue> getQueues(ByteBuf buffer, long numberOfQueues)
     {
         final List<Queue> l = new ArrayList<>();
-        int offset = currentOffset;
-        for(int i = 0; i < numberOfServices; ++i)
+        for(int i = 0; i < numberOfQueues; ++i)
         {
-            offset = addQueue(bytes, offset, l);
+            int nameSize = (int)buffer.readLong();
+            String name = CasualMessageDecoderUtils.readAsString(buffer, nameSize);
+            long retries = buffer.readLong();
+            l.add(Queue.of(name)
+                       .setRetries(retries));
         }
-        return DynamicArrayIndexPair.of(l, offset);
+        return l;
     }
 
     private static int addQueue(final byte[] bytes, int currentOffset, final List<Queue> l)

@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.conversation;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.api.util.Pair;
@@ -37,7 +39,10 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
     public ConnectRequest readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return createMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        ConnectRequest msg = createMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -47,44 +52,27 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
     }
 
     @Override
-    public ConnectRequest readSingleBuffer(byte[] data)
+    public ConnectRequest readSingleBuffer(final ByteBuf buffer)
     {
-        return createMessage(data);
+        return createMessage(buffer);
     }
 
-    private static ConnectRequest createMessage(final byte[] data)
+    private static ConnectRequest createMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ConversationConnectRequestSizes.EXECUTION.getNetworkSize()));
-        currentOffset += ConversationConnectRequestSizes.EXECUTION.getNetworkSize();
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        int serviceNameLen = (int)buffer.readLong();
+        final String serviceName = CasualMessageDecoderUtils.readAsString(buffer, serviceNameLen);
+        long timeout  = buffer.readLong();
+        final int parentNameSize = (int)buffer.readLong();
+        final String parentName = CasualMessageDecoderUtils.readAsString(buffer, parentNameSize);
+        final Xid xid = CasualMessageDecoderUtils.readXid(buffer);
 
-        int serviceNameLen = (int)ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += ConversationConnectRequestSizes.SERVICE_NAME_SIZE.getNetworkSize();
-        final String serviceName = CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceNameLen);
-        currentOffset += serviceNameLen;
-
-        long timeout  = ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
-        currentOffset += ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
-
-        final int parentNameSize = (int)ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += ConversationConnectRequestSizes.PARENT_NAME_SIZE.getNetworkSize();
-        final String parentName = CasualMessageDecoderUtils.getAsString(data, currentOffset, parentNameSize);
-        currentOffset += parentNameSize;
-
-        Pair<Integer, Xid> xidInfo = CasualMessageDecoderUtils.readXid(data, currentOffset);
-        currentOffset = xidInfo.first();
-        final Xid xid = xidInfo.second();
-
-        Duplex duplex = Duplex.unmarshall(ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.DUPLEX.getNetworkSize()).getShort());
-        currentOffset += ConversationConnectRequestSizes.DUPLEX.getNetworkSize();
-
-        int serviceBufferTypeSize = (int) ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += ConversationConnectRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize();
-        final String serviceTypeName = CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceBufferTypeSize);
-        currentOffset += serviceBufferTypeSize;
-        int serviceBufferPayloadSize = (int) ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize()).getLong();
-        currentOffset += ConversationConnectRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize();
-        final byte[] payloadData = Arrays.copyOfRange(data, currentOffset, currentOffset + serviceBufferPayloadSize);
+        Duplex duplex = Duplex.unmarshall(buffer.readShort());
+        int serviceBufferTypeSize = (int) buffer.readLong();
+        final String serviceTypeName = CasualMessageDecoderUtils.readAsString(buffer, serviceBufferTypeSize);
+        int serviceBufferPayloadSize = (int)buffer.readLong();
+        final byte[] payloadData = new byte[serviceBufferPayloadSize];
+        buffer.readBytes(payloadData);
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
         if(payloadData.length > 0)
         {

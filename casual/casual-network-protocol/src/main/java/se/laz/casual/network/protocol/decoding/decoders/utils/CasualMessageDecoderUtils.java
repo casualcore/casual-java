@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.utils;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.api.util.Pair;
@@ -41,11 +43,9 @@ public final class CasualMessageDecoderUtils
     {}
     public static UUID getAsUUID(final byte[] message)
     {
-        final ByteBuffer mostSignificant = ByteBuffer.wrap(message, 0,
-            message.length/2);
-        final ByteBuffer leastSignificant = ByteBuffer.wrap(message, message.length/2,
-            message.length/2);
-        return new UUID(mostSignificant.getLong(), leastSignificant.getLong());
+        final ByteBuf mostSignificant = Unpooled.wrappedBuffer(message,0 , message.length/2);
+        final ByteBuf leastSignificant = Unpooled.wrappedBuffer(message, message.length/2,message.length/2);
+        return new UUID(mostSignificant.readLong(), leastSignificant.readLong());
     }
 
     public static String getAsString(final byte[] bytes, int offset, int length, final Charset charset)
@@ -210,6 +210,18 @@ public final class CasualMessageDecoderUtils
         return Pair.of(currentOffset, serviceBuffer);
     }
 
+    public static ServiceBuffer readServiceBuffer(ByteBuf buffer)
+    {
+        int serviceBufferTypeSize = (int) buffer.readLong();
+        String serviceTypeName = CasualMessageDecoderUtils.readAsString(buffer, serviceBufferTypeSize);
+        int serviceBufferPayloadSize = (int) buffer.readLong();
+        byte[] payloadData = new byte[serviceBufferPayloadSize];
+        buffer.readBytes(payloadData);
+        List<byte[]> serviceBufferPayload = new ArrayList<>();
+        serviceBufferPayload.add(payloadData);
+        return ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
+    }
+
     public static Pair<Integer, Xid> readXid(final byte[] data, int offset)
     {
         int currentOffset = offset;
@@ -229,6 +241,21 @@ public final class CasualMessageDecoderUtils
             xid = XID.of(gtridLength, bqualLength, xidPayload, xidFormat);
         }
         return Pair.of(currentOffset, xid);
+    }
+
+    public static Xid readXid(ByteBuf buffer)
+    {
+        long xidFormat = buffer.readLong();
+        Xid xid = XID.NULL_XID;
+        if(!XIDFormatType.isNullType(xidFormat))
+        {
+            int gtridLength = (int) buffer.readLong();
+            int bqualLength = (int) buffer.readLong();
+            byte[] xidPayload = new byte[gtridLength + bqualLength];
+            buffer.readBytes(xidPayload);
+            xid = XID.of(gtridLength, bqualLength, xidPayload, xidFormat);
+        }
+        return xid;
     }
 
     private static List<byte[]> readPayload(final ReadableByteChannel channel, long payloadSize, int maxPayloadSize)
@@ -268,4 +295,22 @@ public final class CasualMessageDecoderUtils
         return l;
     }
 
+    public static UUID readUUID(ByteBuf buffer)
+    {
+        long mostSignificant = buffer.readLong();
+        long leastSignificant = buffer.readLong();
+        return new UUID(mostSignificant, leastSignificant);
+    }
+
+
+    public static String readAsString(ByteBuf buffer, int size)
+    {
+        if(0 == size)
+        {
+            return "";
+        }
+        byte[] stringBuffer = new byte[size];
+        buffer.readBytes(stringBuffer);
+        return getAsString(stringBuffer);
+    }
 }

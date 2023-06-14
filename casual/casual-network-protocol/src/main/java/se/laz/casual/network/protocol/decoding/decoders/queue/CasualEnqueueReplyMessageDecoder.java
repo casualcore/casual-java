@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.queue;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
@@ -31,7 +33,9 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
     public CasualEnqueueReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        CasualEnqueueReplyMessage msg = getMessage(buffer);
+        return msg;
     }
 
     @Override
@@ -46,17 +50,15 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
     }
 
     @Override
-    public CasualEnqueueReplyMessage readSingleBuffer(byte[] data)
+    public CasualEnqueueReplyMessage readSingleBuffer(final ByteBuf buffer)
     {
-        return getMessage(data);
+        return getMessage(buffer);
     }
 
-    private static CasualEnqueueReplyMessage getMessage(final byte[] bytes)
+    private static CasualEnqueueReplyMessage getMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
-        currentOffset += CommonSizes.EXECUTION.getNetworkSize();
-        UUID id = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, currentOffset + CommonSizes.EXECUTION.getNetworkSize()));
+        UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        UUID id = CasualMessageDecoderUtils.readUUID(buffer);
         return CasualEnqueueReplyMessage.createBuilder()
                                         .withExecution(execution)
                                         .withId(id)

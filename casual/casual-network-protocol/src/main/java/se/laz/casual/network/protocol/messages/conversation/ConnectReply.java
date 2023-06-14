@@ -61,17 +61,6 @@ public class ConnectReply implements CasualNetworkTransmittable
         return toNetworkBytes(messageSize);
     }
 
-    @Override
-    public ByteBuf toByteBuf()
-    {
-        final int messageSize = ConversationConnectReplySizes.EXECUTION.getNetworkSize() +
-                ConversationConnectReplySizes.RESULT_CODE.getNetworkSize();
-        ByteBuf buffer = Unpooled.buffer(messageSize);
-        CasualEncoderUtils.writeUUID(execution, buffer);
-        buffer.writeInt(resultCode);
-        return buffer;
-    }
-
     private List<byte[]> toNetworkBytes(int messageSize)
     {
         List<byte[]> l = new ArrayList<>();

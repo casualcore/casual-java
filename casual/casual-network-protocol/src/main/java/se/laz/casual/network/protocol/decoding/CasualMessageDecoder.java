@@ -7,6 +7,7 @@
 package se.laz.casual.network.protocol.decoding;
 
 
+import io.netty.buffer.ByteBuf;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
@@ -58,10 +59,10 @@ public final class CasualMessageDecoder
         return CasualNWMessageHeaderDecoder.fromNetworkBytes(message);
     }
 
-    public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final byte[] data, CasualNWMessageHeader header)
+    public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ByteBuf buffer, CasualNWMessageHeader header)
     {
         NetworkDecoder<T> networkReader = getDecoder( header );
-        return readMessage( data, header, networkReader );
+        return readMessage( buffer, header, networkReader );
     }
 
     @SuppressWarnings({"unchecked", "squid:MethodCyclomaticComplexity"})
@@ -122,10 +123,10 @@ public final class CasualMessageDecoder
         }
     }
 
-    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readMessage(final byte[] data, final CasualNWMessageHeader header, NetworkDecoder<T> nr )
+    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readMessage(final ByteBuf buffer, final CasualNWMessageHeader header, NetworkDecoder<T> nr )
     {
         final MessageDecoder<T> reader = MessageDecoder.of(nr, getMaxSingleBufferByteSize() );
-        final T msg = reader.read(data);
+        final T msg = reader.read(buffer);
         return CasualNWMessageImpl.of(header.getCorrelationId(), msg);
     }
 

@@ -6,7 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.queue;
 
-import se.laz.casual.api.util.Pair;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
@@ -18,7 +19,6 @@ import se.laz.casual.network.protocol.utils.XIDUtils;
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
-import java.util.Arrays;
 import java.util.UUID;
 
 public final class CasualDequeueRequestMessageDecoder implements NetworkDecoder<CasualDequeueRequestMessage>
@@ -35,7 +35,10 @@ public final class CasualDequeueRequestMessageDecoder implements NetworkDecoder<
     public CasualDequeueRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(b.array());
+        CasualDequeueRequestMessage msg = getMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -60,30 +63,23 @@ public final class CasualDequeueRequestMessageDecoder implements NetworkDecoder<
     }
 
     @Override
-    public CasualDequeueRequestMessage readSingleBuffer(byte[] data)
+    public CasualDequeueRequestMessage readSingleBuffer(final ByteBuf buffer)
     {
-        return getMessage(data);
+        return getMessage(buffer);
     }
 
-    private static CasualDequeueRequestMessage getMessage(final byte[] bytes)
+    private static CasualDequeueRequestMessage getMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
-        currentOffset += CommonSizes.EXECUTION.getNetworkSize();
-        int queueNameSize = (int)ByteBuffer.wrap(bytes, currentOffset , DequeueRequestSizes.NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += DequeueRequestSizes.NAME_SIZE.getNetworkSize();
-        String queueName = CasualMessageDecoderUtils.getAsString(bytes, currentOffset, queueNameSize);
-        currentOffset += queueNameSize;
-        Pair<Integer, Xid> xidInfo = CasualMessageDecoderUtils.readXid(bytes, currentOffset);
-        currentOffset = xidInfo.first();
-        Xid xid = xidInfo.second();
-        int selectorPropertiesSize = (int)ByteBuffer.wrap(bytes, currentOffset , DequeueRequestSizes.SELECTOR_PROPERTIES_SIZE.getNetworkSize()).getLong();
-        currentOffset += DequeueRequestSizes.SELECTOR_PROPERTIES_SIZE.getNetworkSize();
-        String selectorProperties = (0 == selectorPropertiesSize) ? "" : CasualMessageDecoderUtils.getAsString(bytes, currentOffset, selectorPropertiesSize);
-        currentOffset += selectorPropertiesSize;
-        UUID selectorId = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, currentOffset + DequeueRequestSizes.SELECTOR_ID_SIZE.getNetworkSize()));
-        currentOffset += CommonSizes.EXECUTION.getNetworkSize();
-        boolean block = (1 == ByteBuffer.wrap(bytes, currentOffset , DequeueRequestSizes.BLOCK.getNetworkSize()).get());
+        UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        int queueNameSize = (int)buffer.readLong();
+        byte[] queueNameBuffer = new byte[queueNameSize];
+        buffer.readBytes(queueNameBuffer);
+        String queueName = CasualMessageDecoderUtils.getAsString(queueNameBuffer);
+        Xid xid = CasualMessageDecoderUtils.readXid(buffer);
+        int selectorPropertiesSize = (int)buffer.readLong();
+        String selectorProperties = CasualMessageDecoderUtils.readAsString(buffer, selectorPropertiesSize);
+        UUID selectorId = CasualMessageDecoderUtils.readUUID(buffer);
+        boolean block = (1 == buffer.readByte());
         return CasualDequeueRequestMessage.createBuilder()
                                           .withExecution(execution)
                                           .withQueueName(queueName)

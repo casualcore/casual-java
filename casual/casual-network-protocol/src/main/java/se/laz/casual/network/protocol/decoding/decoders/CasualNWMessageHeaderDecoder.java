@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
@@ -32,23 +34,16 @@ public final class CasualNWMessageHeaderDecoder
         {
             throw new CasualProtocolException("Expected network header size of: " + MessageHeaderSizes.getHeaderNetworkSize() + " but got: " + message.length);
         }
-        final CasualNWMessageType type = getMessageType(message);
-        final UUID correlationId = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(message,
-                                                                                         MessageHeaderSizes.HEADER_TYPE.getNetworkSize(),
-                                                                                     MessageHeaderSizes.HEADER_TYPE.getNetworkSize() +
-                                                                                         MessageHeaderSizes.HEADER_CORRELATION.getNetworkSize()));
+        ByteBuf buffer = Unpooled.wrappedBuffer(message);
+        final CasualNWMessageType type = CasualNWMessageType.unmarshal((int)buffer.readLong());
+        final UUID correlationId = CasualMessageDecoderUtils.readUUID(buffer);
+        buffer.release();
         final long payloadSize = getPayloadSize(message);
-        return  CasualNWMessageHeader.createBuilder()
+        return CasualNWMessageHeader.createBuilder()
                                      .setType(type)
                                      .setCorrelationId(correlationId)
                                      .setPayloadSize(payloadSize)
                                      .build();
-    }
-
-    private static CasualNWMessageType getMessageType(final byte[] message)
-    {
-        final ByteBuffer b = ByteBuffer.wrap(message, 0, MessageHeaderSizes.HEADER_TYPE.getNetworkSize());
-        return CasualNWMessageType.unmarshal((int)b.getLong());
     }
 
     private static long getPayloadSize(final byte[] message)
@@ -58,4 +53,6 @@ public final class CasualNWMessageHeaderDecoder
                                                                  MessageHeaderSizes.HEADER_PAYLOAD_SIZE.getNetworkSize());
         return payloadSize.getLong();
     }
+
+
 }

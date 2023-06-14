@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.service;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.util.Pair;
@@ -20,6 +22,7 @@ import se.laz.casual.network.protocol.utils.XIDUtils;
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -63,7 +66,10 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
     @Override
     public CasualServiceCallReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
-        return createMessage(ByteUtils.readFully(channel, messageSize).array());
+        ByteBuf buffer = Unpooled.wrappedBuffer(ByteUtils.readFully(channel, messageSize).array());
+        CasualServiceCallReplyMessage msg = createMessage(buffer);
+        buffer.release();
+        return msg;
     }
 
     @Override
@@ -86,49 +92,29 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
     }
 
     @Override
-    public CasualServiceCallReplyMessage readSingleBuffer(byte[] data)
+    public CasualServiceCallReplyMessage readSingleBuffer(final ByteBuf buffer)
     {
-        return createMessage(data);
+        return createMessage(buffer);
     }
 
-    private CasualServiceCallReplyMessage createMessage(final byte[] data)
+    private CasualServiceCallReplyMessage createMessage(final ByteBuf buffer)
     {
-        int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ServiceCallReplySizes.EXECUTION.getNetworkSize()));
-        currentOffset += ServiceCallReplySizes.EXECUTION.getNetworkSize();
-
-        final ByteBuffer callErrorBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.CALL_ERROR.getNetworkSize());
-        int callError = callErrorBuffer.getInt();
-        currentOffset += ServiceCallReplySizes.CALL_ERROR.getNetworkSize();
-
-        final ByteBuffer userErrorBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.CALL_CODE.getNetworkSize());
-        long userError = userErrorBuffer.getLong();
-        currentOffset += ServiceCallReplySizes.CALL_CODE.getNetworkSize();
-
-        Pair<Integer, Xid> xidInfo = CasualMessageDecoderUtils.readXid(data, currentOffset);
-        currentOffset = xidInfo.first();
-        final Xid xid = xidInfo.second();
-
-        final ByteBuffer transactionStateBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize());
-        int transactionState = transactionStateBuffer.get();
-        currentOffset += ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize();
-
-        int serviceBufferTypeSize = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize()).getLong();
-        currentOffset += ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize();
-        String serviceTypeName = ( 0 == serviceBufferTypeSize) ? "" : CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceBufferTypeSize);
-        currentOffset += serviceBufferTypeSize;
-        // this can be huge, ie not fitting into one ByteBuffer
-        // but since the whole message fits into Integer.MAX_VALUE that is not true of this message
+        final UUID execution = CasualMessageDecoderUtils.readUUID(buffer);
+        int callError = buffer.readInt();
+        long userError = buffer.readLong();
+        final Xid xid = CasualMessageDecoderUtils.readXid(buffer);
+        int transactionState = buffer.readByte();
+        int serviceBufferTypeSize = (int) buffer.readLong();
+        String serviceTypeName = CasualMessageDecoderUtils.readAsString(buffer, serviceBufferTypeSize);
         // The payload may also not exist at all in the reply message
         // If so, then the typename does not exist either
         // This could happen for instance on TPESVCERR
-        int serviceBufferPayloadSize = (int) ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize()).getLong();
-        currentOffset += ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize();
-
+        int serviceBufferPayloadSize = (int) buffer.readLong();
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
         if(serviceBufferPayloadSize > 0)
         {
-            final byte[] payloadData = Arrays.copyOfRange(data, currentOffset, currentOffset + serviceBufferPayloadSize);
+            final byte[] payloadData = new byte[serviceBufferPayloadSize];
+            buffer.readBytes(payloadData);
             serviceBufferPayload.add(payloadData);
         }
         // since serviceTypeName can be NULL in case there is no payload
