@@ -18,6 +18,7 @@ dependencies {
   // for spock
   testImplementation libs.groovy_all
   testImplementation libs.spock_core
+
   testImplementation libs.cglib_nodep
   testImplementation libs.objenesis
 }
