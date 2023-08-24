@@ -9,6 +9,7 @@ import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.internal.network.NetworkConnection;
+import se.laz.casual.jca.ConnectionObserver;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
@@ -96,6 +97,12 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
     public DomainId getDomainId()
     {
         return networkConnection.getDomainId();
+    }
+
+    @Override
+    public void addConnectionObserver(ConnectionObserver observer)
+    {
+        networkConnection.addConnectionObserver(observer);
     }
 
     @Override

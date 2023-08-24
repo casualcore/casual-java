@@ -82,6 +82,12 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
+    public void addConnectionObserver(ConnectionObserver observer)
+    {
+        getManagedConnection().getNetworkConnection().addConnectionObserver(observer);
+    }
+
+    @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         throwIfInvalidated();

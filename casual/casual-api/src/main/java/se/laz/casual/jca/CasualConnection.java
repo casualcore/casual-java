@@ -23,4 +23,10 @@ public interface CasualConnection extends CasualServiceApi, CasualQueueApi, Casu
      */
     @Override
     void close();
+
+    /**
+     * Add connection observer
+     * @param observer - a connection observer
+     */
+    void addConnectionObserver(ConnectionObserver observer);
 }

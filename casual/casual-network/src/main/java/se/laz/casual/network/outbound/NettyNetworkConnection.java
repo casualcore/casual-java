@@ -20,6 +20,7 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.internal.network.NetworkConnection;
+import se.laz.casual.jca.ConnectionObserver;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
@@ -262,6 +263,16 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return domainId;
     }
 
+    @Override
+    public void addConnectionObserver(ConnectionObserver observer)
+    {
+        if(isProtocolVersionOneTwo())
+        {
+            // NOOP if not
+            domainDiscoveryTopologyUpdateHandler.addConnectionObserver(observer);
+        }
+    }
+
     private void setDomainId(DomainId domainId)
     {
         this.domainId = domainId;
@@ -371,8 +382,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         }
         else if(msg instanceof DomainDiscoveryTopologyUpdateMessage)
         {
-            DomainDiscoveryTopologyUpdateMessage domainDiscoveryTopologyUpdateMessage = (DomainDiscoveryTopologyUpdateMessage)msg;
-            // domainDiscoveryTopologyUpdateHandler
+            // note, we do not care about the data just that we got the actual message
+            domainDiscoveryTopologyUpdateHandler.notifyConnectionObservers();
         }
         else
         {
