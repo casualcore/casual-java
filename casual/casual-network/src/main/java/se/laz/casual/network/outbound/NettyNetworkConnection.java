@@ -33,6 +33,8 @@ import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequest
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage;
 
 import javax.enterprise.concurrent.ManagedExecutorService;
+import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpdateMessage;
+
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +60,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private DomainId domainId;
     private ProtocolVersion protocolVersion;
     private DomainDisconnectHandler domainDisconnectHandler;
+    private DomainDiscoveryTopologyUpdateHandler domainDiscoveryTopologyUpdateHandler;
 
     private NettyNetworkConnection(BaseConnectionInformation ci,
                                    Correlator correlator,
@@ -97,6 +100,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
             // domain disconnect only available in 1.1, 1.2
             messageHandler.setMessageListener(networkConnection);
             networkConnection.setConnectionHandler(DomainDisconnectHandler.of(networkConnection.channel, networkConnection.getDomainId()));
+            if(networkConnection.getProtocolVersion() == ProtocolVersion.VERSION_1_2)
+            {
+                // only exists in 1.2
+                networkConnection.setDomainDiscoveryTopologyUpdateHandler(DomainDiscoveryTopologyUpdateHandler.of());
+            }
         }
         return networkConnection;
     }
@@ -136,7 +144,14 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 
     private void setConnectionHandler(DomainDisconnectHandler domainDisconnectHandler)
     {
+        Objects.requireNonNull(domainDisconnectHandler, "domainDisconnectHandler can not be null");
         this.domainDisconnectHandler = domainDisconnectHandler;
+    }
+
+    private void setDomainDiscoveryTopologyUpdateHandler(DomainDiscoveryTopologyUpdateHandler domainDiscoveryTopologyUpdateHandler)
+    {
+        Objects.requireNonNull(domainDiscoveryTopologyUpdateHandler, "domainDiscoveryTopologyUpdateHandler can not be null");
+        this.domainDiscoveryTopologyUpdateHandler = domainDiscoveryTopologyUpdateHandler;
     }
 
     private static void handleClose(final NettyNetworkConnection connection, ErrorInformer errorInformer)
@@ -257,6 +272,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return protocolVersion == ProtocolVersion.VERSION_1_1 || protocolVersion == ProtocolVersion.VERSION_1_2;
     }
 
+    private boolean isProtocolVersionOneTwo()
+    {
+        return protocolVersion == ProtocolVersion.VERSION_1_2;
+    }
+
     private DomainId throwIfProtocolVersionNotSupportedByEIS(final UUID domainId, final String domainName)
     {
         CasualDomainConnectRequestMessage requestMessage = CasualDomainConnectRequestMessage.createBuilder()
@@ -334,17 +354,25 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public boolean isInterestedIn(CasualNWMessageType type)
     {
-        return isProtocolVersionOneOneOrOneTwo() && type == CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST;
+        return  isProtocolVersionOneOneOrOneTwo() && type == CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST ||
+                isProtocolVersionOneTwo() && type == CasualNWMessageType.DOMAIN_DISCOVERY_TOPOLOGY_UPDATE;
+
     }
 
     @Override
     public <T extends CasualNetworkTransmittable> void handleMessage(CasualNWMessage<T> message)
     {
         LOG.finest(() -> "message: " + LogTool.asLogEntry(message));
-        if(message.getMessage() instanceof DomainDisconnectRequestMessage)
+        final T msg = message.getMessage();
+        if(msg instanceof DomainDisconnectRequestMessage)
         {
             DomainDisconnectRequestMessage requestMessage = (DomainDisconnectRequestMessage) message.getMessage();
             domainDisconnectHandler.domainDisconnected(DomainDisconnectReplyInfo.of(message.getCorrelationId(), requestMessage.getExecution()));
+        }
+        else if(msg instanceof DomainDiscoveryTopologyUpdateMessage)
+        {
+            DomainDiscoveryTopologyUpdateMessage domainDiscoveryTopologyUpdateMessage = (DomainDiscoveryTopologyUpdateMessage)msg;
+            // domainDiscoveryTopologyUpdateHandler
         }
         else
         {
