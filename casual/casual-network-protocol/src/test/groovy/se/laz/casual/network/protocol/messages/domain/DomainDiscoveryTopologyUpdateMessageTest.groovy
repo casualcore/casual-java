@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.domain
 
+import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
@@ -34,6 +35,7 @@ class DomainDiscoveryTopologyUpdateMessageTest extends Specification
                                                                          .withDomainsSize(domainsSize)
                                                                          .withDomainId(domainId)
                                                                          .withDomainName(domainName)
+                                                                         .build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage)
         when:
         def networkBytes = msg.toNetworkBytes()
