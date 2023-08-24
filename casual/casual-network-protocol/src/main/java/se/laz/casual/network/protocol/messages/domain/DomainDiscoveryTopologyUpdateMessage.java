@@ -35,6 +35,26 @@ public class DomainDiscoveryTopologyUpdateMessage implements CasualNetworkTransm
         domainName = builder.domainName;
     }
 
+    public UUID getExecution()
+    {
+        return execution;
+    }
+
+    public long getDomainsSize()
+    {
+        return domainsSize;
+    }
+
+    public UUID getDomainId()
+    {
+        return domainId;
+    }
+
+    public String getDomainName()
+    {
+        return domainName;
+    }
+
     @Override
     public CasualNWMessageType getType()
     {

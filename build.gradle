@@ -43,7 +43,16 @@ subprojects{
   apply from: "$rootProject.projectDir/versions.gradle"
   apply plugin: 'java-library'
   apply from: "$rootProject.projectDir/publish.gradle"
+
+  tasks.withType(Test) {
+    // This is needed to be able to run test cases using IntelliJ(2023.2) and JDK 17+	
+    useJUnitPlatform()
+    testLogging {    
+        events("passed", "skipped", "failed")
+    }
+  }
 }
+
 
 task dist(type: Sync) {
     allprojects { p ->
