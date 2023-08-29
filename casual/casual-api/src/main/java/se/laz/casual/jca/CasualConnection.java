@@ -25,8 +25,15 @@ public interface CasualConnection extends CasualServiceApi, CasualQueueApi, Casu
     void close();
 
     /**
-     * Add connection observer
+     * Add a connection observer
      * @param observer - a connection observer
      */
     void addConnectionObserver(ConnectionObserver observer);
+
+    /**
+     * Returns the domain id of the connected domain.
+     * @return DomainId - the domain id of the connected domain
+     */
+    DomainId getDomainId();
+
 }

@@ -7,5 +7,11 @@ package se.laz.casual.jca;
 
 public interface ConnectionObserver
 {
-    void topologyUpdated();
+    /**
+     * Notifies when a topology has changed
+     * Note:
+     * You may NOT issue any outbound calls in this callback!
+     * @param domainId
+     */
+    void topologyChanged(DomainId domainId);
 }

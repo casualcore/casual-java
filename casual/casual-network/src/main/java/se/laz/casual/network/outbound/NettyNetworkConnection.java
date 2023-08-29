@@ -61,7 +61,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private DomainId domainId;
     private ProtocolVersion protocolVersion;
     private DomainDisconnectHandler domainDisconnectHandler;
-    private DomainDiscoveryTopologyUpdateHandler domainDiscoveryTopologyUpdateHandler;
+    private DomainDiscoveryTopologyChangedHandler domainDiscoveryTopologyChangedHandler;
 
     private NettyNetworkConnection(BaseConnectionInformation ci,
                                    Correlator correlator,
@@ -104,7 +104,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
             if(networkConnection.getProtocolVersion() == ProtocolVersion.VERSION_1_2)
             {
                 // only exists in 1.2
-                networkConnection.setDomainDiscoveryTopologyUpdateHandler(DomainDiscoveryTopologyUpdateHandler.of());
+                networkConnection.setDomainDiscoveryTopologyChangedHandler(DomainDiscoveryTopologyChangedHandler.of());
             }
         }
         return networkConnection;
@@ -149,10 +149,10 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         this.domainDisconnectHandler = domainDisconnectHandler;
     }
 
-    private void setDomainDiscoveryTopologyUpdateHandler(DomainDiscoveryTopologyUpdateHandler domainDiscoveryTopologyUpdateHandler)
+    private void setDomainDiscoveryTopologyChangedHandler(DomainDiscoveryTopologyChangedHandler domainDiscoveryTopologyChangedHandler)
     {
-        Objects.requireNonNull(domainDiscoveryTopologyUpdateHandler, "domainDiscoveryTopologyUpdateHandler can not be null");
-        this.domainDiscoveryTopologyUpdateHandler = domainDiscoveryTopologyUpdateHandler;
+        Objects.requireNonNull(domainDiscoveryTopologyChangedHandler, "domainDiscoveryTopologyUpdateHandler can not be null");
+        this.domainDiscoveryTopologyChangedHandler = domainDiscoveryTopologyChangedHandler;
     }
 
     private static void handleClose(final NettyNetworkConnection connection, ErrorInformer errorInformer)
@@ -212,7 +212,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         cf.addListener(v -> {
             if(!v.isSuccess())
             {
-                future.completeExceptionally(new CasualConnectionException("NetttyNetworkConnection::send failed\nmsg: " + message, v.cause()));
+                future.completeExceptionally(new CasualConnectionException("NettyNetworkConnection::send failed\nmsg: " + message, v.cause()));
             }
             else
             {
@@ -269,7 +269,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         if(isProtocolVersionOneTwo())
         {
             // NOOP if not
-            domainDiscoveryTopologyUpdateHandler.addConnectionObserver(observer);
+            domainDiscoveryTopologyChangedHandler.addConnectionObserver(observer);
         }
     }
 
@@ -383,7 +383,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         else if(msg instanceof DomainDiscoveryTopologyUpdateMessage)
         {
             // note, we do not care about the data just that we got the actual message
-            domainDiscoveryTopologyUpdateHandler.notifyConnectionObservers();
+            domainDiscoveryTopologyChangedHandler.notifyTopologyChanged(domainId);
         }
         else
         {

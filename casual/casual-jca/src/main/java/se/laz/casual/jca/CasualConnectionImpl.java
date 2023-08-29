@@ -88,6 +88,12 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
+    public DomainId getDomainId()
+    {
+        return getManagedConnection().getNetworkConnection().getDomainId();
+    }
+
+    @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         throwIfInvalidated();

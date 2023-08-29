@@ -6,16 +6,17 @@
 package se.laz.casual.network.outbound;
 
 import se.laz.casual.jca.ConnectionObserver;
+import se.laz.casual.jca.DomainId;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DomainDiscoveryTopologyUpdateHandler
+public class DomainDiscoveryTopologyChangedHandler
 {
     private final Set<ConnectionObserver> observers = ConcurrentHashMap.newKeySet();
-    public static DomainDiscoveryTopologyUpdateHandler of()
+    public static DomainDiscoveryTopologyChangedHandler of()
     {
-        return new DomainDiscoveryTopologyUpdateHandler();
+        return new DomainDiscoveryTopologyChangedHandler();
     }
 
     public void addConnectionObserver(ConnectionObserver observer)
@@ -23,8 +24,8 @@ public class DomainDiscoveryTopologyUpdateHandler
         observers.add(observer);
     }
 
-    public void notifyConnectionObservers()
+    public void notifyTopologyChanged(DomainId domainId)
     {
-        observers.forEach(observer -> observer.topologyUpdated());
+        observers.forEach(observer -> observer.topologyChanged(domainId));
     }
 }
