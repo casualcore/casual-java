@@ -378,7 +378,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         final T msg = message.getMessage();
         if(msg instanceof DomainDisconnectRequestMessage)
         {
-            DomainDisconnectRequestMessage requestMessage = (DomainDisconnectRequestMessage) message.getMessage();
+            DomainDisconnectRequestMessage requestMessage = (DomainDisconnectRequestMessage) msg;
             domainDisconnectHandler.domainDisconnected(DomainDisconnectReplyInfo.of(message.getCorrelationId(), requestMessage.getExecution()));
         }
         else if(msg instanceof DomainDiscoveryTopologyUpdateMessage)
