@@ -7,7 +7,6 @@
 package se.laz.casual.jca.work;
 
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.config.Mode;
 import se.laz.casual.jca.InboundStartupException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
 

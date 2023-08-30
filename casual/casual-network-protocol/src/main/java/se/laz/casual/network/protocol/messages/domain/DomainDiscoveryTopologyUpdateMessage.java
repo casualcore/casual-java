@@ -129,9 +129,6 @@ public class DomainDiscoveryTopologyUpdateMessage implements CasualNetworkTransm
         private UUID domainId;
         private String domainName;
 
-        public Builder()
-        {}
-
         public Builder withExecution(UUID execution)
         {
             Objects.requireNonNull(execution, "execution can not be null");
