@@ -96,14 +96,14 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
         DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
         networkConnection.setDomainId(id);
-        if(networkConnection.getProtocolVersion() == ProtocolVersion.VERSION_1_1 || networkConnection.getProtocolVersion() == ProtocolVersion.VERSION_1_2)
+        if(networkConnection.isProtocolVersionOneOneOrOneTwo())
         {
-            // domain disconnect only available in 1.1, 1.2
+            // domain disconnect only available from 1.1 - thus also available in 1.2
             messageHandler.setMessageListener(networkConnection);
             networkConnection.setConnectionHandler(DomainDisconnectHandler.of(networkConnection.channel, networkConnection.getDomainId()));
-            if(networkConnection.getProtocolVersion() == ProtocolVersion.VERSION_1_2)
+            if(networkConnection.isProtocolVersionOneTwo())
             {
-                // only exists in 1.2
+                // exists from 1.2
                 networkConnection.setDomainDiscoveryTopologyChangedHandler(DomainDiscoveryTopologyChangedHandler.of());
             }
         }
@@ -280,7 +280,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 
     private boolean isProtocolVersionOneOneOrOneTwo()
     {
-        return protocolVersion == ProtocolVersion.VERSION_1_1 || protocolVersion == ProtocolVersion.VERSION_1_2;
+        return protocolVersion == ProtocolVersion.VERSION_1_1 || isProtocolVersionOneTwo();
     }
 
     private boolean isProtocolVersionOneTwo()
@@ -342,6 +342,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                 "correlator=" + correlator +
                 ", channel=" + channel +
                 ", domainId=" + domainId +
+                ", protocolVersion=" + protocolVersion +
                 '}';
     }
 
