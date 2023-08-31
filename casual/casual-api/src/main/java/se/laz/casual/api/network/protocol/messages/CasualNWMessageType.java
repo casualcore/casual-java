@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -21,6 +21,7 @@ public enum CasualNWMessageType
     DOMAIN_DISCONNECT_REPLY(7203),
     DOMAIN_DISCOVERY_REQUEST(7300),
     DOMAIN_DISCOVERY_REPLY(7301),
+    DOMAIN_DISCOVERY_TOPOLOGY_UPDATE(7302),
     SERVICE_CALL_REQUEST(3100),
     SERVICE_CALL_REPLY(3101),
     ENQUEUE_REQUEST(6100),
