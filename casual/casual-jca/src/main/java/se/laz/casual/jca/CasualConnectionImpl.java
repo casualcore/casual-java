@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -79,6 +79,18 @@ public class CasualConnectionImpl implements CasualConnection
     {
         throwIfInvalidated();
         managedConnection.closeHandle(this);
+    }
+
+    @Override
+    public void addConnectionObserver(ConnectionObserver observer)
+    {
+        getManagedConnection().getNetworkConnection().addConnectionObserver(observer);
+    }
+
+    @Override
+    public DomainId getDomainId()
+    {
+        return getManagedConnection().getNetworkConnection().getDomainId();
     }
 
     @Override

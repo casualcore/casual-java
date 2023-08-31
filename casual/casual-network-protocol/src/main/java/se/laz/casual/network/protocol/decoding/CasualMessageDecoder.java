@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -22,6 +22,7 @@ import se.laz.casual.network.protocol.decoding.decoders.domain.CasualDomainDisco
 import se.laz.casual.network.protocol.decoding.decoders.domain.CasualDomainDiscoveryRequestMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.domain.DomainDisconnectReplyMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.domain.DomainDisconnectRequestMessageDecoder;
+import se.laz.casual.network.protocol.decoding.decoders.domain.DomainDiscoveryTopologyUpdateMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.queue.CasualDequeueReplyMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.queue.CasualDequeueRequestMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.queue.CasualEnqueueReplyMessageDecoder;
@@ -77,6 +78,8 @@ public final class CasualMessageDecoder
                 return (NetworkDecoder<T>) DomainDisconnectRequestMessageDecoder.of();
             case DOMAIN_DISCONNECT_REPLY:
                 return (NetworkDecoder<T>) DomainDisconnectReplyMessageDecoder.of();
+            case DOMAIN_DISCOVERY_TOPOLOGY_UPDATE:
+                return (NetworkDecoder<T>) DomainDiscoveryTopologyUpdateMessageDecoder.of();
             case DOMAIN_CONNECT_REQUEST:
                 return (NetworkDecoder<T>) CasualDomainConnectRequestMessageDecoder.of();
             case DOMAIN_CONNECT_REPLY:

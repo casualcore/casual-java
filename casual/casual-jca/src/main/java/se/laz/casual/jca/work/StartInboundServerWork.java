@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021-2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,7 +7,6 @@
 package se.laz.casual.jca.work;
 
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.config.Mode;
 import se.laz.casual.jca.InboundStartupException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
 
