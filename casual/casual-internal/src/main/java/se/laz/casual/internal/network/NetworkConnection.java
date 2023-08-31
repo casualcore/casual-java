@@ -9,6 +9,7 @@ package se.laz.casual.internal.network;
 import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.jca.ConnectionObserver;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 
@@ -31,4 +32,6 @@ public interface NetworkConnection
     boolean isActive();
 
     DomainId getDomainId();
+
+    void addConnectionObserver(ConnectionObserver observer);
 }

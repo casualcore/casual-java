@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -23,4 +23,17 @@ public interface CasualConnection extends CasualServiceApi, CasualQueueApi, Casu
      */
     @Override
     void close();
+
+    /**
+     * Add a connection observer
+     * @param observer - a connection observer
+     */
+    void addConnectionObserver(ConnectionObserver observer);
+
+    /**
+     * Returns the domain id of the connected domain.
+     * @return DomainId - the domain id of the connected domain
+     */
+    DomainId getDomainId();
+
 }

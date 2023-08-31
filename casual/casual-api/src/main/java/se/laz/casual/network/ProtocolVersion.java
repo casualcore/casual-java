@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022-2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -17,7 +17,7 @@ public enum ProtocolVersion
     VERSION_1_1(1001),
     VERSION_1_2(1002);
 
-    private static final List<Long> supportedVersions = Arrays.asList(ProtocolVersion.VERSION_1_0.getVersion(), ProtocolVersion.VERSION_1_1.getVersion());
+    private static final List<Long> supportedVersions = Arrays.asList(ProtocolVersion.VERSION_1_0.getVersion(), ProtocolVersion.VERSION_1_1.getVersion(), ProtocolVersion.VERSION_1_2.getVersion());
     private long version;
 
     ProtocolVersion(long version)
