@@ -96,16 +96,14 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
         DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
         networkConnection.setDomainId(id);
-        if(networkConnection.isProtocolVersionOneOneOrOneTwo())
+        if(networkConnection.protocolSupportsDomainDisconnect())
         {
-            // domain disconnect only available from 1.1 - thus also available in 1.2
             messageHandler.setMessageListener(networkConnection);
             networkConnection.setConnectionHandler(DomainDisconnectHandler.of(networkConnection.channel, networkConnection.getDomainId()));
-            if(networkConnection.isProtocolVersionOneTwo())
-            {
-                // exists from 1.2
-                networkConnection.setDomainDiscoveryTopologyChangedHandler(DomainDiscoveryTopologyChangedHandler.of());
-            }
+        }
+        if(networkConnection.protocolSupportsDomainTopologyChange())
+        {
+            networkConnection.setDomainDiscoveryTopologyChangedHandler(DomainDiscoveryTopologyChangedHandler.of());
         }
         return networkConnection;
     }
@@ -245,7 +243,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 
     private <T extends CasualNetworkTransmittable> boolean hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(CasualNWMessage<T> message)
     {
-        return isProtocolVersionOneOneOrOneTwo() && domainDisconnectHandler.hasDomainBeenDisconnected() &&
+        return protocolSupportsDomainDisconnect() && domainDisconnectHandler.hasDomainBeenDisconnected() &&
                 (message.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST ||
                         message.getType() == CasualNWMessageType.DEQUEUE_REQUEST ||
                         message.getType() == CasualNWMessageType.ENQUEUE_REQUEST);
@@ -266,7 +264,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public void addConnectionObserver(ConnectionObserver observer)
     {
-        if(isProtocolVersionOneTwo())
+        if(protocolSupportsDomainTopologyChange())
         {
             // NOOP if not
             domainDiscoveryTopologyChangedHandler.addConnectionObserver(observer);
@@ -276,6 +274,16 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private void setDomainId(DomainId domainId)
     {
         this.domainId = domainId;
+    }
+
+    private boolean protocolSupportsDomainDisconnect()
+    {
+        return isProtocolVersionOneOneOrOneTwo();
+    }
+
+    private boolean protocolSupportsDomainTopologyChange()
+    {
+        return isProtocolVersionOneTwo();
     }
 
     private boolean isProtocolVersionOneOneOrOneTwo()
@@ -366,8 +374,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public boolean isInterestedIn(CasualNWMessageType type)
     {
-        return  isProtocolVersionOneOneOrOneTwo() && type == CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST ||
-                isProtocolVersionOneTwo() && type == CasualNWMessageType.DOMAIN_DISCOVERY_TOPOLOGY_UPDATE;
+        return  protocolSupportsDomainDisconnect() && type == CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST ||
+                protocolSupportsDomainTopologyChange() && type == CasualNWMessageType.DOMAIN_DISCOVERY_TOPOLOGY_UPDATE;
 
     }
 
