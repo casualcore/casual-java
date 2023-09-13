@@ -162,7 +162,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
-        log.finest( "prepareRequest()." + message + "corrid: " + PrettyPrinter.casualStringify(message.getCorrelationId())  + "\nxid: " + PrettyPrinter.casualStringify(message.getMessage().getXid()) + " execution: " + PrettyPrinter.casualStringify(message.getMessage().getExecution()));
+        log.finest(() -> "prepareRequest()." + message + "corrid: " + PrettyPrinter.casualStringify(message.getCorrelationId())  + "\nxid: " + PrettyPrinter.casualStringify(message.getMessage().getXid()) + " execution: " + PrettyPrinter.casualStringify(message.getMessage().getExecution()));
 
         Xid xid = message.getMessage().getXid();
         int status = -1;
