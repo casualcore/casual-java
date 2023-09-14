@@ -29,6 +29,7 @@ public final class GlobalTransactionIdHandler
     public void addGtrid(GlobalTransactionId globalTransactionId, DomainId belongsTo)
     {
         Objects.requireNonNull(globalTransactionId, GLOBAL_TRANSACTION_ID_CAN_NOT_BE_NULL);
+        Objects.requireNonNull(belongsTo, "belongsTo can not be null");
         domainIdToPreparedGtrids.computeIfAbsent(belongsTo, domainId -> ConcurrentHashMap.newKeySet()).add(globalTransactionId);
     }
 
