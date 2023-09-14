@@ -10,11 +10,14 @@ import io.netty.channel.Channel;
 import se.laz.casual.api.flags.XAFlags;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.service.ServiceInfo;
+import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.api.xa.XAReturnCode;
 import se.laz.casual.api.xa.XID;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
 import se.laz.casual.jca.CasualResourceAdapterException;
+import se.laz.casual.jca.GlobalTransactionId;
+import se.laz.casual.jca.RuntimeInformation;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
@@ -41,6 +44,7 @@ import javax.resource.spi.work.TransactionContext;
 import javax.resource.spi.work.WorkException;
 import javax.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAException;
+import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -158,13 +162,20 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
-        log.finest( "prepareRequest()." );
+        log.finest(() -> "prepareRequest()." + message + "corrid: " + PrettyPrinter.casualStringify(message.getCorrelationId())  + "\nxid: " + PrettyPrinter.casualStringify(message.getMessage().getXid()) + " execution: " + PrettyPrinter.casualStringify(message.getMessage().getExecution()));
 
         Xid xid = message.getMessage().getXid();
         int status = -1;
         try
         {
-            status = xaTerminator.prepare( xid );
+           if(RuntimeInformation.exists(GlobalTransactionId.of(xid.getGlobalTransactionId())))
+           {
+              status = XAResource.XA_RDONLY;
+           }
+           else
+           {
+              status = xaTerminator.prepare(xid);
+           }
 
         } catch (XAException e)
         {

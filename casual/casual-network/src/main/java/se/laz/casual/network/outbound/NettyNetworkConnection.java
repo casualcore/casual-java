@@ -21,6 +21,7 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.DomainId;
+import se.laz.casual.jca.RuntimeInformation;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.ProtocolVersion;
@@ -225,6 +226,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         connected.set(false);
         LOG.finest(() -> this + " network connection close called by appserver, closing");
         channel.close();
+        RuntimeInformation.removeAllGtridsFor(getDomainId());
     }
 
     private <T extends CasualNetworkTransmittable> boolean hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(CasualNWMessage<T> message)

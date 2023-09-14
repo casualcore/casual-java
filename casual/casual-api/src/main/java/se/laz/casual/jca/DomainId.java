@@ -21,6 +21,11 @@ public class DomainId implements Serializable
         this.id = id;
     }
 
+    public static DomainId of()
+    {
+        return of(UUID.randomUUID());
+    }
+
     public static DomainId of(UUID id)
     {
         Objects.requireNonNull(id, "id can not be null");
