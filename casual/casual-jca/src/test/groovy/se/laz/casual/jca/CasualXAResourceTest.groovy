@@ -24,6 +24,7 @@ import javax.transaction.xa.Xid
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletableFuture
 
+
 class CasualXAResourceTest extends Specification
 {
     @Shared CasualManagedConnectionFactory mcf

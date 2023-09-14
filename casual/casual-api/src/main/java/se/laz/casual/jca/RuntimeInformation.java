@@ -6,9 +6,7 @@
 package se.laz.casual.jca;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class RuntimeInformation
@@ -40,9 +38,9 @@ public final class RuntimeInformation
         return GLOBAL_TRANSACTION_ID_HANDLER.exists(globalTransactionId);
     }
 
-    public static void removeGtrid(GlobalTransactionId globalTransactionId)
+    public static void removeGtrid(GlobalTransactionId globalTransactionId, DomainId domainId)
     {
-        GLOBAL_TRANSACTION_ID_HANDLER.removeGtrid(globalTransactionId);
+        GLOBAL_TRANSACTION_ID_HANDLER.removeGtrid(globalTransactionId, domainId);
     }
 
     public static void removeAllGtridsFor(DomainId domainId)

@@ -58,7 +58,7 @@ public class CasualXAResource implements XAResource
         {
             flags = Flag.of(XAFlags.TMONEPHASE);
         }
-        RuntimeInformation.removeGtrid(GlobalTransactionId.of(xid.getGlobalTransactionId()));
+        RuntimeInformation.removeGtrid(GlobalTransactionId.of(xid.getGlobalTransactionId()), casualManagedConnection.getNetworkConnection().getDomainId());
         LOG.finest(() -> String.format("trying to commit, xid: %s ( %s ) onePhase?%b", PrettyPrinter.casualStringify(xid), xid, onePhaseCommit));
         CasualTransactionResourceCommitRequestMessage commitRequest =
             CasualTransactionResourceCommitRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
@@ -161,7 +161,7 @@ public class CasualXAResource implements XAResource
     {
         LOG.finest(() -> String.format("trying to rollback, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
-        RuntimeInformation.removeGtrid(GlobalTransactionId.of(xid.getGlobalTransactionId()));
+        RuntimeInformation.removeGtrid(GlobalTransactionId.of(xid.getGlobalTransactionId()), casualManagedConnection.getNetworkConnection().getDomainId());
         CasualTransactionResourceRollbackRequestMessage request =
                 CasualTransactionResourceRollbackRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), request);
