@@ -11,52 +11,43 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class RuntimeInformation
+public final class RuntimeInformation
 {
-   private static final String INBOUND_SERVER_STARTED = "INBOUND_SERVER_STARTED";
-   private static final Map<String, Boolean> CACHE = new ConcurrentHashMap<>();
-   private static final Set<GlobalTransactionId> PREPARED_GTRIDS = ConcurrentHashMap.newKeySet();
-   private static final Map<DomainId, Set<GlobalTransactionId>> DOMAIN_ID_TO_PREPARED_GTRID = new ConcurrentHashMap<>();
+    private static final String INBOUND_SERVER_STARTED = "INBOUND_SERVER_STARTED";
+    private static final Map<String, Boolean> CACHE = new ConcurrentHashMap<>();
+    private static final GlobalTransactionIdHandler GLOBAL_TRANSACTION_ID_HANDLER = GlobalTransactionIdHandler.of();
 
-   private RuntimeInformation()
-   {}
+    private RuntimeInformation()
+    {}
 
-   public static boolean isInboundStarted()
-   {
-      return Optional.ofNullable(CACHE.get(INBOUND_SERVER_STARTED)).orElse(false);
-   }
+    public static boolean isInboundStarted()
+    {
+        return Optional.ofNullable(CACHE.get(INBOUND_SERVER_STARTED)).orElse(false);
+    }
 
-   public static void setInboundStarted(boolean started)
-   {
-      CACHE.put(INBOUND_SERVER_STARTED, started);
-   }
+    public static void setInboundStarted(boolean started)
+    {
+        CACHE.put(INBOUND_SERVER_STARTED, started);
+    }
 
-   public static void addGtrid(GlobalTransactionId globalTransactionId, DomainId belongsTo)
-   {
-      Objects.requireNonNull(globalTransactionId);
-      PREPARED_GTRIDS.add(globalTransactionId);
-      DOMAIN_ID_TO_PREPARED_GTRID.computeIfAbsent(belongsTo, domainId -> ConcurrentHashMap.newKeySet()).add(globalTransactionId);
-   }
+    public static void addGtrid(GlobalTransactionId globalTransactionId, DomainId belongsTo)
+    {
+        GLOBAL_TRANSACTION_ID_HANDLER.addGtrid(globalTransactionId, belongsTo);
+    }
 
-   public static boolean exists(GlobalTransactionId globalTransactionId)
-   {
-      Objects.requireNonNull(globalTransactionId);
-      return PREPARED_GTRIDS.contains(globalTransactionId);
-   }
+    public static boolean exists(GlobalTransactionId globalTransactionId)
+    {
+        return GLOBAL_TRANSACTION_ID_HANDLER.exists(globalTransactionId);
+    }
 
-   public static void removeGtrid(GlobalTransactionId globalTransactionId)
-   {
-      Objects.requireNonNull(globalTransactionId);
-      PREPARED_GTRIDS.remove(globalTransactionId);
-   }
+    public static void removeGtrid(GlobalTransactionId globalTransactionId)
+    {
+        GLOBAL_TRANSACTION_ID_HANDLER.removeGtrid(globalTransactionId);
+    }
 
-   public static void removeAllGtridsFor(DomainId domainId)
-   {
-       Set<GlobalTransactionId> domainIds = DOMAIN_ID_TO_PREPARED_GTRID.remove(domainId);
-       if(null != domainIds)
-       {
-           PREPARED_GTRIDS.removeAll(domainIds);
-       }
-   }
+    public static void removeAllGtridsFor(DomainId domainId)
+    {
+        GLOBAL_TRANSACTION_ID_HANDLER.removeAllGtridsFor(domainId);
+    }
 
 }
