@@ -137,7 +137,7 @@ public class CasualXAResource implements XAResource
         }
 
         LOG.finest(() -> String.format("trying to prepare, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
-        RuntimeInformation.addGtrid(GlobalTransactionId.of(xid.getGlobalTransactionId()));
+        RuntimeInformation.addGtrid(GlobalTransactionId.of(xid.getGlobalTransactionId()), casualManagedConnection.getDomainId());
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
         CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), prepareRequest);

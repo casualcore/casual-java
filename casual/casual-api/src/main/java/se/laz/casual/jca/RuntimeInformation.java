@@ -16,7 +16,7 @@ public class RuntimeInformation
    private static final String INBOUND_SERVER_STARTED = "INBOUND_SERVER_STARTED";
    private static final Map<String, Boolean> CACHE = new ConcurrentHashMap<>();
    private static final Set<GlobalTransactionId> PREPARED_GTRIDS = ConcurrentHashMap.newKeySet();
-
+   private static final Map<DomainId, Set<GlobalTransactionId>> DOMAIN_ID_TO_PREPARED_GTRID = new ConcurrentHashMap<>();
 
    private RuntimeInformation()
    {}
@@ -31,10 +31,11 @@ public class RuntimeInformation
       CACHE.put(INBOUND_SERVER_STARTED, started);
    }
 
-   public static void addGtrid(GlobalTransactionId globalTransactionId)
+   public static void addGtrid(GlobalTransactionId globalTransactionId, DomainId belongsTo)
    {
       Objects.requireNonNull(globalTransactionId);
       PREPARED_GTRIDS.add(globalTransactionId);
+      DOMAIN_ID_TO_PREPARED_GTRID.computeIfAbsent(belongsTo, domainId -> ConcurrentHashMap.newKeySet()).add(globalTransactionId);
    }
 
    public static boolean exists(GlobalTransactionId globalTransactionId)
@@ -47,6 +48,15 @@ public class RuntimeInformation
    {
       Objects.requireNonNull(globalTransactionId);
       PREPARED_GTRIDS.remove(globalTransactionId);
+   }
+
+   public static void removeAllGtridsFor(DomainId domainId)
+   {
+       Set<GlobalTransactionId> domainIds = DOMAIN_ID_TO_PREPARED_GTRID.remove(domainId);
+       if(null != domainIds)
+       {
+           PREPARED_GTRIDS.removeAll(domainIds);
+       }
    }
 
 }

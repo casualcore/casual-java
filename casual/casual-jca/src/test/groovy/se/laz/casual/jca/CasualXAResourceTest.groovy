@@ -42,6 +42,7 @@ class CasualXAResourceTest extends Specification
     @Shared CasualNWMessageImpl<CasualTransactionResourceCommitReplyMessage> commitReplyMessage
     @Shared CasualResourceManager transactionResources
     @Shared int resourceId = 42
+    @Shared DomainId domainId = DomainId.of(UUID.randomUUID());
 
     def setup()
     {
@@ -49,7 +50,9 @@ class CasualXAResourceTest extends Specification
         mcf.getResourceId() >> {
             resourceId
         }
-        networkConnection = Mock(NetworkConnection)
+        networkConnection = Mock(NetworkConnection) {
+           getDomainId() >> domainId
+        }
         managedConnection = new CasualManagedConnection( Mock(CasualManagedConnectionFactory) )
         managedConnection.networkConnection = networkConnection
         instance = new CasualXAResource( managedConnection, mcf.getResourceId() )
