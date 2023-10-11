@@ -17,7 +17,7 @@ ext.libs = [
   netty_epoll: "io.netty:netty-transport-native-epoll:${netty_version}",
   javaee_api: 'jakarta.platform:jakarta.jakartaee-api:10.0.0',
   gson: "com.google.code.gson:gson:${gson_version}",
-  objenesis: 'org.objenesis:objenesis:2.6',
+  objenesis: 'org.objenesis:objenesis:3.3',
   microprofile_config: 'org.eclipse.microprofile.config:microprofile-config-api:1.4',
   // test
   hamcrest_all: 'org.hamcrest:hamcrest-all:1.3',
@@ -29,5 +29,5 @@ ext.libs = [
   spock_bom: 'org.spockframework:spock-bom:2.3-groovy-4.0',
   spock_core: 'org.spockframework:spock-core',
   spock_junit4: 'org.spockframework:spock-junit4',
-  cglib_nodep: 'cglib:cglib-nodep:3.3.0',
+  byte_buddy: 'net.bytebuddy:byte-buddy:1.14.8',
 ]
