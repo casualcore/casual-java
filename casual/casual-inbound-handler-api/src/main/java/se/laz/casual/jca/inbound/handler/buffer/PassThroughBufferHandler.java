@@ -32,7 +32,7 @@ public class PassThroughBufferHandler implements BufferHandler
     public ServiceCallInfo fromRequest(InboundRequest request, InboundRequestInfo requestInfo)
     {
         Object[] params;
-        Method proxyMethod = requestInfo.getProxyMethod().orElseThrow(() -> new InboundRequestException("Missing proxy method"));
+        Method proxyMethod = requestInfo.getProxyMethod().orElseThrow(() -> new InboundRequestException("Missing proxy method, requestInfo: " + requestInfo));
         if( methodAccepts( proxyMethod, request ) )
         {
             params = toMethodParams( proxyMethod, request );

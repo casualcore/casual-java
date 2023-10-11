@@ -35,8 +35,8 @@ public class FieldedBufferHandler implements BufferHandler
     public ServiceCallInfo fromRequest(InboundRequest request, InboundRequestInfo requestInfo)
     {
         Object[] params;
-        Method proxyMethod = requestInfo.getProxyMethod().orElseThrow(() -> new InboundRequestException("Missing proxy method"));
-        Method realMethod =  requestInfo.getRealMethod().orElseThrow(() -> new InboundRequestException("Missing real method"));
+        Method proxyMethod = requestInfo.getProxyMethod().orElseThrow(() -> new InboundRequestException("Missing proxy method, requestInfo: " + requestInfo));
+        Method realMethod =  requestInfo.getRealMethod().orElseThrow(() -> new InboundRequestException("Missing real method, requestInfo: " + requestInfo));
         if( methodAccepts( proxyMethod, request ) )
         {
             params = toMethodParams( proxyMethod, request );
