@@ -6,7 +6,7 @@
 
 package se.laz.casual.jca.inbound.handler.buffer.fielded;
 
-import se.laz.casual.api.CasualRuntimeException;
+import jakarta.ejb.Stateless;
 import se.laz.casual.api.buffer.CasualBufferType;
 import se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer;
 import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessor;
@@ -17,9 +17,7 @@ import se.laz.casual.jca.inbound.handler.buffer.InboundRequestException;
 import se.laz.casual.jca.inbound.handler.buffer.InboundRequestInfo;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 
-import jakarta.ejb.Stateless;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 
 import static se.laz.casual.jca.inbound.handler.buffer.DispatchMethodUtil.methodAccepts;
 import static se.laz.casual.jca.inbound.handler.buffer.DispatchMethodUtil.toMethodParams;
