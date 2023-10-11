@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.inbound.handler.service.casual
 
+import se.laz.casual.api.service.CasualService
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -18,10 +19,15 @@ class CasualServiceEntryTest extends Specification
     @Shared String name = "test-service-name"
     @Shared String jndi = "java:global/app/ejb!interface"
     @Shared Method method = String.class.getMethod( "toString" )
+    @Shared CasualServiceMetaData metaData = CasualServiceMetaData.newBuilder()
+            .service(Mock(CasualService))
+            .implementationClass(String.class)
+            .serviceMethod(Object.class.getMethods()[0])
+            .build()
 
     def setup()
     {
-        instance = CasualServiceEntry.of( name, jndi, method )
+        instance = CasualServiceEntry.of( name, jndi, method, metaData )
     }
 
     def "Get service name"()
@@ -41,4 +47,11 @@ class CasualServiceEntryTest extends Specification
         expect:
         instance.getProxyMethod() == method
     }
+
+   def "Get metaData"()
+   {
+      expect:
+      instance.getMetaData() == metaData
+   }
+
 }

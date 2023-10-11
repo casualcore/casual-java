@@ -11,12 +11,12 @@ import se.laz.casual.api.buffer.CasualBufferType
 import se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
+import se.laz.casual.jca.inbound.handler.buffer.InboundRequestInfo
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 
@@ -68,8 +68,15 @@ class FieldedBufferHandlerTest extends Specification
     {
         given:
         InboundRequest request = InboundRequest.of( methodName, buffer )
+
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                .withProxy(jndiObject)
+                .withProxyMethod(method)
+                .withRealMethod(method)
+                .build()
+
         when:
-        ServiceCallInfo info = instance.fromRequest( jndiObject, method, request )
+        ServiceCallInfo info = instance.fromRequest( request, requestInfo )
 
         then:
         info.getMethod().get() == method
@@ -84,8 +91,14 @@ class FieldedBufferHandlerTest extends Specification
         InboundRequest request = InboundRequest.of( "echoBuffer", buffer )
         Method m = SimpleService.getMethod( "echoBuffer", InboundRequest.class )
 
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                .withProxy(jndiObject)
+                .withProxyMethod(m)
+                .withRealMethod(m)
+                .build()
+
         when:
-        ServiceCallInfo info = instance.fromRequest( jndiObject, m, request )
+        ServiceCallInfo info = instance.fromRequest( request, requestInfo )
 
         then:
         info.getMethod().get() == m
@@ -100,8 +113,14 @@ class FieldedBufferHandlerTest extends Specification
         InboundRequest request = InboundRequest.of( "echoFieldedBuffer", buffer )
         Method m = SimpleService.getMethod( "echoFieldedBuffer", FieldedTypeBuffer.class )
 
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                .withProxy(jndiObject)
+                .withProxyMethod(m)
+                .withRealMethod(m)
+                .build()
+
         when:
-        ServiceCallInfo info = instance.fromRequest( jndiObject, m, request )
+        ServiceCallInfo info = instance.fromRequest( request, requestInfo )
 
         then:
         info.getMethod().get() == m

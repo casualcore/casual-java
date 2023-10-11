@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 /**
- * Different buffers can required transformation before they are dispatched to their respective service.
+ * Different buffers can require transformation before they are dispatched to their respective service.
  * This interface provides a mechanism for creating custom handlers.
  */
 public interface BufferHandler extends Prioritisable
@@ -30,12 +30,11 @@ public interface BufferHandler extends Prioritisable
     /**
      * Convert an inbound request to the appropriate {@link ServiceCallInfo}.
      *
-     * @param p the proxy for service invocation.
-     * @param method that the buffer will be dispatched to.
      * @param request that contains the buffer.
+     * @param requestInfo further request information
      * @return the transformed buffer and service call information.
      */
-    ServiceCallInfo fromRequest(Proxy p, Method method, InboundRequest request );
+    ServiceCallInfo fromRequest( InboundRequest request, InboundRequestInfo requestInfo );
 
     /**
      * Convert the response of the service request back to the appropriate {@link InboundResponse}.
@@ -44,5 +43,5 @@ public interface BufferHandler extends Prioritisable
      * @param result of calling the service.
      * @return response containing result buffer and/or error data.
      */
-    InboundResponse toResponse(ServiceCallInfo info, Object result );
+    InboundResponse toResponse( ServiceCallInfo info, Object result );
 }

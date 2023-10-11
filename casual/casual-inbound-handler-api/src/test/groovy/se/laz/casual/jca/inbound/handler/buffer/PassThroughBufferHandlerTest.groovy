@@ -5,11 +5,13 @@ import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
+import se.laz.casual.jca.inbound.handler.test.ForwardingInvocationHandler
 import se.laz.casual.jca.inbound.handler.test.TestService
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.lang.reflect.Method
+import java.lang.reflect.Proxy
 
 class PassThroughBufferHandlerTest extends Specification
 {
@@ -18,10 +20,22 @@ class PassThroughBufferHandlerTest extends Specification
     @Shared Method echoRequest = TestService.getMethod( "echo", InboundRequest.class )
     @Shared Method echoBuffer = TestService.getMethod( "echo", FieldedTypeBuffer.class )
     @Shared Method echoString = TestService.getMethod( "echo", String.class )
+    @Shared TestService proxyService
+    @Shared Proxy jndiObject
 
     def setup()
     {
         instance = new PassThroughBufferHandler()
+        proxyService = Mock( TestService )
+
+        Class[] c = new Class[1]
+        c[0] = TestService.class
+
+        jndiObject = (Proxy)Proxy.newProxyInstance(
+               PassThroughBufferHandlerTest.getClassLoader(),
+               c,
+               new ForwardingInvocationHandler( proxyService )
+        )
     }
 
     def "Can handle buffer all"()
@@ -39,8 +53,13 @@ class PassThroughBufferHandlerTest extends Specification
         CasualBuffer buffer = FieldedTypeBuffer.create()
         InboundRequest request = InboundRequest.of( "test123", buffer )
 
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                .withProxy(jndiObject)
+                .withProxyMethod(echoRequest)
+                .build()
+
         when:
-        ServiceCallInfo actual = instance.fromRequest( null, echoRequest, request )
+        ServiceCallInfo actual = instance.fromRequest( request, requestInfo )
 
         then:
         actual != null
@@ -54,9 +73,13 @@ class PassThroughBufferHandlerTest extends Specification
         given:
         CasualBuffer buffer = FieldedTypeBuffer.create()
         InboundRequest request = InboundRequest.of( "test123", buffer )
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                .withProxy(jndiObject)
+                .withProxyMethod(echoBuffer)
+                .build()
 
         when:
-        ServiceCallInfo actual = instance.fromRequest( null, echoBuffer, request )
+        ServiceCallInfo actual = instance.fromRequest( request, requestInfo )
 
         then:
         actual != null
@@ -71,8 +94,13 @@ class PassThroughBufferHandlerTest extends Specification
         CasualBuffer buffer = FieldedTypeBuffer.create()
         InboundRequest request = InboundRequest.of( "test123", buffer )
 
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                .withProxy(jndiObject)
+                .withProxyMethod(echoString)
+                .build()
+
         when:
-        ServiceCallInfo actual = instance.fromRequest( null, echoString, request )
+        ServiceCallInfo actual = instance.fromRequest( request, requestInfo )
 
         then:
         thrown CasualRuntimeException
@@ -104,5 +132,8 @@ class PassThroughBufferHandlerTest extends Specification
         then:
         actual == response
     }
+
+    class TestPojo
+    {}
 
 }

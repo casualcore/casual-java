@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.inbound.handler.buffer;
 
+import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.jca.inbound.handler.HandlerException;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
@@ -30,23 +31,23 @@ public class PassThroughBufferHandler implements BufferHandler
     }
 
     @Override
-    public ServiceCallInfo fromRequest(Proxy p, Method method, InboundRequest request)
+    public ServiceCallInfo fromRequest(InboundRequest request, InboundRequestInfo requestInfo)
     {
         Object[] params;
-
-        if( methodAccepts( method, request ) )
+        Method proxyMethod = requestInfo.getProxyMethod().orElseThrow(() -> new InboundRequestException("Missing proxy method"));
+        if( methodAccepts( proxyMethod, request ) )
         {
-            params = toMethodParams( method, request );
+            params = toMethodParams( proxyMethod, request );
         }
-        else if( methodAccepts( method, request.getBuffer() ) )
+        else if( methodAccepts( proxyMethod, request.getBuffer() ) )
         {
-            params = toMethodParams( method, request.getBuffer() );
+            params = toMethodParams( proxyMethod, request.getBuffer() );
         }
         else
         {
             throw new HandlerException("Unable to perform passthrough as dispatch method does not accept required parameter.");
         }
-        return ServiceCallInfo.of( method, params );
+        return ServiceCallInfo.of( proxyMethod, params );
     }
 
     @Override

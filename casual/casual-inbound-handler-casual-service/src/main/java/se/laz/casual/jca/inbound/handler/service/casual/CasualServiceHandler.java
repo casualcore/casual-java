@@ -16,6 +16,7 @@ import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
+import se.laz.casual.jca.inbound.handler.buffer.InboundRequestInfo;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtension;
 import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionFactory;
@@ -129,9 +130,13 @@ public class CasualServiceHandler implements ServiceHandler
     private InboundResponse callService( Object r, CasualServiceEntry entry, InboundRequest request, BufferHandler bufferHandler, ServiceHandlerExtension serviceHandlerExtension, ServiceHandlerExtensionContext context) throws Throwable
     {
         Proxy p = (Proxy)r;
-
-        ServiceCallInfo info = bufferHandler.fromRequest( p, entry.getProxyMethod(), request );
-
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                                                           .withProxy(p)
+                                                           .withProxyMethod(entry.getProxyMethod())
+                                                           .withRealMethod(entry.getMetaData().getServiceMethod())
+                                                           .withServiceName(entry.getServiceName())
+                                                           .build();
+        ServiceCallInfo info = bufferHandler.fromRequest( request, requestInfo );
         Method method = info.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provide required details about the method end point." ) );
 
         Object[] params = serviceHandlerExtension.convertRequestParams(context, info.getParams());
@@ -162,8 +167,14 @@ public class CasualServiceHandler implements ServiceHandler
                 .findFirst()
                 .orElseThrow( () -> new NoSuchMethodException( "Unable to find method in proxy matching: " + method ));
         entry.setProxyMethod( proxyMethod );
-        ServiceCallInfo serviceCallInfo = bufferHandler.fromRequest( p, proxyMethod, request );
 
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                                                           .withProxy(p)
+                                                           .withProxyMethod(proxyMethod)
+                                                           .withRealMethod(entry.getMetaData().getServiceMethod())
+                                                           .withServiceName(entry.getServiceName())
+                                                           .build();
+        ServiceCallInfo serviceCallInfo = bufferHandler.fromRequest( request, requestInfo );
         Method m = serviceCallInfo.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provided required details about the method end point." ) );
 
         return handler.invoke( p, m, params );
