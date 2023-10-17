@@ -13,9 +13,6 @@ import se.laz.casual.spi.Priority;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-
 public class TestBufferHandler implements BufferHandler
 {
     public static final String BUFFER_TYPE_1 = "test123";
@@ -28,7 +25,7 @@ public class TestBufferHandler implements BufferHandler
     }
 
     @Override
-    public ServiceCallInfo fromRequest(InboundRequest request, InboundRequestInfo requestInfo)
+    public ServiceCallInfo fromRequest(InboundRequestInfo requestInfo, InboundRequest request)
     {
         return null;
     }

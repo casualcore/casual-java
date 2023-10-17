@@ -76,7 +76,7 @@ class FieldedBufferHandlerTest extends Specification
                 .build()
 
         when:
-        ServiceCallInfo info = instance.fromRequest( request, requestInfo )
+        ServiceCallInfo info = instance.fromRequest(requestInfo, request)
 
         then:
         info.getMethod().get() == method
@@ -98,7 +98,7 @@ class FieldedBufferHandlerTest extends Specification
                 .build()
 
         when:
-        ServiceCallInfo info = instance.fromRequest( request, requestInfo )
+        ServiceCallInfo info = instance.fromRequest(requestInfo, request)
 
         then:
         info.getMethod().get() == m
@@ -120,7 +120,7 @@ class FieldedBufferHandlerTest extends Specification
                 .build()
 
         when:
-        ServiceCallInfo info = instance.fromRequest( request, requestInfo )
+        ServiceCallInfo info = instance.fromRequest(requestInfo, request)
 
         then:
         info.getMethod().get() == m

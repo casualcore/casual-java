@@ -10,9 +10,6 @@ import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.spi.Prioritisable;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-
 /**
  * Different buffers can require transformation before they are dispatched to their respective service.
  * This interface provides a mechanism for creating custom handlers.
@@ -30,11 +27,11 @@ public interface BufferHandler extends Prioritisable
     /**
      * Convert an inbound request to the appropriate {@link ServiceCallInfo}.
      *
-     * @param request that contains the buffer.
      * @param requestInfo further request information
+     * @param request     that contains the buffer.
      * @return the transformed buffer and service call information.
      */
-    ServiceCallInfo fromRequest( InboundRequest request, InboundRequestInfo requestInfo );
+    ServiceCallInfo fromRequest(InboundRequestInfo requestInfo, InboundRequest request );
 
     /**
      * Convert the response of the service request back to the appropriate {@link InboundResponse}.

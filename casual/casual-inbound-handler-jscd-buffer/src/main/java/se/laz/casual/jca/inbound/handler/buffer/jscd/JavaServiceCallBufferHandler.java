@@ -21,7 +21,6 @@ import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 
 import jakarta.ejb.Stateless;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +37,7 @@ public class JavaServiceCallBufferHandler implements BufferHandler
     }
 
     @Override
-    public ServiceCallInfo fromRequest(InboundRequest request, InboundRequestInfo requestInfo)
+    public ServiceCallInfo fromRequest(InboundRequestInfo requestInfo, InboundRequest request)
     {
         if( request.getBuffer().getBytes().size() != 1 )
         {

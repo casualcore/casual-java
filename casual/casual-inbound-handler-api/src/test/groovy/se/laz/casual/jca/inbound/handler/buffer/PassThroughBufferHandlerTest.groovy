@@ -5,7 +5,6 @@ import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
-import se.laz.casual.jca.inbound.handler.test.ForwardingInvocationHandler
 import se.laz.casual.jca.inbound.handler.test.TestService
 import spock.lang.Shared
 import spock.lang.Specification
@@ -31,11 +30,7 @@ class PassThroughBufferHandlerTest extends Specification
         Class[] c = new Class[1]
         c[0] = TestService.class
 
-        jndiObject = (Proxy)Proxy.newProxyInstance(
-               PassThroughBufferHandlerTest.getClassLoader(),
-               c,
-               new ForwardingInvocationHandler( proxyService )
-        )
+        jndiObject = Mock(Proxy)
     }
 
     def "Can handle buffer all"()
@@ -59,7 +54,7 @@ class PassThroughBufferHandlerTest extends Specification
                 .build()
 
         when:
-        ServiceCallInfo actual = instance.fromRequest( request, requestInfo )
+        ServiceCallInfo actual = instance.fromRequest(requestInfo, request)
 
         then:
         actual != null
@@ -79,7 +74,7 @@ class PassThroughBufferHandlerTest extends Specification
                 .build()
 
         when:
-        ServiceCallInfo actual = instance.fromRequest( request, requestInfo )
+        ServiceCallInfo actual = instance.fromRequest(requestInfo, request)
 
         then:
         actual != null
@@ -100,7 +95,7 @@ class PassThroughBufferHandlerTest extends Specification
                 .build()
 
         when:
-        ServiceCallInfo actual = instance.fromRequest( request, requestInfo )
+        ServiceCallInfo actual = instance.fromRequest(requestInfo, request)
 
         then:
         thrown CasualRuntimeException

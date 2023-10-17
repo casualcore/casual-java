@@ -136,7 +136,7 @@ public class CasualServiceHandler implements ServiceHandler
                                                            .withRealMethod(entry.getMetaData().getServiceMethod())
                                                            .withServiceName(entry.getServiceName())
                                                            .build();
-        ServiceCallInfo info = bufferHandler.fromRequest( request, requestInfo );
+        ServiceCallInfo info = bufferHandler.fromRequest(requestInfo, request);
         Method method = info.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provide required details about the method end point." ) );
 
         Object[] params = serviceHandlerExtension.convertRequestParams(context, info.getParams());
@@ -174,7 +174,7 @@ public class CasualServiceHandler implements ServiceHandler
                                                            .withRealMethod(entry.getMetaData().getServiceMethod())
                                                            .withServiceName(entry.getServiceName())
                                                            .build();
-        ServiceCallInfo serviceCallInfo = bufferHandler.fromRequest( request, requestInfo );
+        ServiceCallInfo serviceCallInfo = bufferHandler.fromRequest(requestInfo, request);
         Method m = serviceCallInfo.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provided required details about the method end point." ) );
 
         return handler.invoke( p, m, params );

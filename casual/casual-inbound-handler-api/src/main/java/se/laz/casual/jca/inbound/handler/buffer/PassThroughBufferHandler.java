@@ -29,7 +29,7 @@ public class PassThroughBufferHandler implements BufferHandler
     }
 
     @Override
-    public ServiceCallInfo fromRequest(InboundRequest request, InboundRequestInfo requestInfo)
+    public ServiceCallInfo fromRequest(InboundRequestInfo requestInfo, InboundRequest request)
     {
         Object[] params;
         Method proxyMethod = requestInfo.getProxyMethod().orElseThrow(() -> new InboundRequestException("Missing proxy method, requestInfo: " + requestInfo));

@@ -87,7 +87,7 @@ class JavaServiceCallBufferHandlerTest extends Specification
         InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
                 .withProxy(jndiObject)
                 .build()
-        ServiceCallInfo info = instance.fromRequest( request, requestInfo )
+        ServiceCallInfo info = instance.fromRequest(requestInfo, request)
 
         then:
         info.getMethod().get() == jndiObject.getClass().getMethod( methodName, String.class )
@@ -109,7 +109,7 @@ class JavaServiceCallBufferHandlerTest extends Specification
                 .build()
 
         when:
-        instance.fromRequest( request, requestInfo )
+        instance.fromRequest(requestInfo, request)
 
         then:
         thrown IllegalArgumentException
@@ -132,7 +132,7 @@ class JavaServiceCallBufferHandlerTest extends Specification
                 .build()
 
         when:
-        instance.fromRequest( request, requestInfo )
+        instance.fromRequest(requestInfo, request)
 
         then:
         thrown HandlerException

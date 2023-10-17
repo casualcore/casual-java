@@ -119,7 +119,7 @@ public class JavaeeServiceHandler implements ServiceHandler
         InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
                                                            .withProxy(p)
                                                            .build();
-        ServiceCallInfo serviceCallInfo = bufferHandler.fromRequest( request, requestInfo);
+        ServiceCallInfo serviceCallInfo = bufferHandler.fromRequest(requestInfo, request);
 
         Method method = serviceCallInfo.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provided required details about the method end point." ) );
 
