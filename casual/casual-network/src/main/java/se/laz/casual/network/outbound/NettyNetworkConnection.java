@@ -170,35 +170,73 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message)
     {
-        if(hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(message))
-        {
-            // new service calls are not ok when domain has been disconnected
-            throw new DomainDisconnectedException("Domain: " + domainId + " has disconnected, no service or queue calls allowed");
-        }
-        LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
+        preRequest(message);
+        Optional<CompletableFuture<CasualNWMessage<T>>> value = doRequest(message, false);
+        return value.get();
+    }
+
+    @Override
+    public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> void requestNoReply(CasualNWMessage<X> message)
+    {
+        preRequest(message);
+        Optional<CompletableFuture<CasualNWMessage<T>>> value = doRequest(message, false);
+        value.ifPresent(casualNWMessageCompletableFuture -> casualNWMessageCompletableFuture.whenComplete((v, e) -> {
+            if (null != e) {
+                LOG.severe("request: " + message + " expecting no return value, error: " + e);
+                return;
+            }
+            LOG.severe("request: " + message + " expecting no return value, message: " + v);
+        }));
+    }
+
+    private <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> Optional<CompletableFuture<CasualNWMessage<T>>> doRequest(CasualNWMessage<X> message, boolean noReply)
+    {
+        preRequest(message);
         CompletableFuture<CasualNWMessage<T>> f = new CompletableFuture<>();
         if(!channel.isActive())
         {
-            LOG.finest("channel not active, connection gone");
+            if(noReply){
+                LOG.warning(() -> "request expecting no reply: " + message + " but network connection is gone");
+            }else {
+                LOG.finest("channel not active, connection gone");
+            }
             f.completeExceptionally(new CasualConnectionException("can not write msg: " + message + " connection is gone"));
-            return f;
+            return noReply ? Optional.empty() : Optional.of(f);
         }
-        correlator.put(message.getCorrelationId(), f);
+        if(!noReply)
+        {
+            correlator.put(message.getCorrelationId(), f);
+        }
         ChannelFuture cf = channel.writeAndFlush(message);
         //this handles any exceptional behaviour when writing
         cf.addListener(v -> {
             if(!v.isSuccess()){
                 List<UUID> l = new ArrayList<>();
                 l.add(message.getCorrelationId());
-                LOG.finest(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
+                if(noReply){
+                    LOG.warning(() -> String.format("failed request expecting no reply: %s", message));
+                }else {
+                    LOG.finest(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
+                }
                 // This since all outstanding requests may already have been completed exceptionally
-                if(!f.isCompletedExceptionally())
-                {
+                if(!f.isCompletedExceptionally()) {
                     correlator.completeExceptionally(l, new CasualConnectionException(cf.cause()));
                 }
             }// successful correlation is done in CasualMessageHandler
         });
-        return f;
+        return noReply ? Optional.empty() : Optional.of(f);
+    }
+
+
+
+    private <X extends CasualNetworkTransmittable> void preRequest(CasualNWMessage<X> message)
+    {
+        if(hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(message))
+        {
+            // new service calls are not ok when domain has been disconnected
+            throw new DomainDisconnectedException("Domain: " + domainId + " has disconnected, no service or queue calls allowed");
+        }
+        LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
     }
 
     @Override

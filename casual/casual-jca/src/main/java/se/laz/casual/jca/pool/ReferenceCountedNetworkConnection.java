@@ -58,6 +58,12 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
     }
 
     @Override
+    public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> void requestNoReply(CasualNWMessage<X> message)
+    {
+        networkConnection.requestNoReply(message);
+    }
+
+    @Override
     public <X extends CasualNetworkTransmittable> void send(CasualNWMessage<X> message)
     {
         networkConnection.send(message);
