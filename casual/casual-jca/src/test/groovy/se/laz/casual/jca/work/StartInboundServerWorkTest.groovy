@@ -171,7 +171,7 @@ class StartInboundServerWorkTest extends Specification
 
         registry.register( metaData )
 
-        return CasualServiceEntry.of( serviceName, "", null )
+        return CasualServiceEntry.of( serviceName, "", null, null )
     }
 
 }

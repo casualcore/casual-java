@@ -28,6 +28,12 @@ class CasualServiceMetaDataTest extends Specification
     @Shared String serviceName = "service name"
     @Shared String category = "some category"
     @Shared Method method = String.class.getMethod( "toString" )
+    @Shared CasualServiceMetaData metaData = CasualServiceMetaData.newBuilder()
+            .service(Mock(CasualService))
+            .implementationClass(String.class)
+            .serviceMethod(Object.class.getMethods()[0])
+            .build()
+
 
     def setup()
     {
@@ -97,7 +103,7 @@ class CasualServiceMetaDataTest extends Specification
     def "Set resolved entry."()
     {
         given:
-        instance.setResolvedEntry( CasualServiceEntry.of( serviceName, jndiName, method ) )
+        instance.setResolvedEntry( CasualServiceEntry.of( serviceName, jndiName, method, metaData ) )
 
         expect:
         ! instance.isUnresolved()

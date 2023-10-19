@@ -8,12 +8,10 @@ package se.laz.casual.jca.inbound.handler.test;
 
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
+import se.laz.casual.jca.inbound.handler.buffer.InboundRequestInfo;
 import se.laz.casual.spi.Priority;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 
 public class TestBufferHandler2 implements BufferHandler
 {
@@ -27,7 +25,7 @@ public class TestBufferHandler2 implements BufferHandler
     }
 
     @Override
-    public ServiceCallInfo fromRequest(Proxy p, Method method, InboundRequest buffer)
+    public ServiceCallInfo fromRequest(InboundRequestInfo requestInfo, InboundRequest request)
     {
         return null;
     }

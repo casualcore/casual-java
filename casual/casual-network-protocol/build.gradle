@@ -18,8 +18,10 @@ dependencies {
   api project(':casual:casual-api')
 
   // for spock
-  testImplementation libs.groovy_all
+  testImplementation platform(libs.groovy_bom)
+  testImplementation libs.groovy
+  testImplementation platform(libs.spock_bom)
   testImplementation libs.spock_core
-  testImplementation libs.cglib_nodep
+  testImplementation libs.byte_buddy
   testImplementation libs.objenesis
 }

@@ -111,7 +111,7 @@ public class JndiSearchTimerEjbSingleton
 
             Method proxyMethod = findMatchingProxyMethod( app.get( jndi ), method );
 
-            return jndi != null ? CasualServiceEntry.of( entry.getServiceName(), jndi, proxyMethod ) : null;
+            return jndi != null ? CasualServiceEntry.of( entry.getServiceName(), jndi, proxyMethod, entry ) : null;
         }
         catch( ClassNotFoundException | NoSuchMethodException e)
         {
