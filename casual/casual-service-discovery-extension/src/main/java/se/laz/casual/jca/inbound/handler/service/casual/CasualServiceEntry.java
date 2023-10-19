@@ -17,17 +17,19 @@ public final class CasualServiceEntry
     private final String serviceName;
     private final String jndiName;
     private Method proxyMethod;
+    private final CasualServiceMetaData metaData;
 
-    private CasualServiceEntry( String serviceName, String jndiName, Method proxyMethod )
+    private CasualServiceEntry( String serviceName, String jndiName, Method proxyMethod, CasualServiceMetaData metaData )
     {
         this.serviceName = serviceName;
         this.jndiName = jndiName;
         this.proxyMethod = proxyMethod;
+        this.metaData = metaData;
     }
 
-    public static CasualServiceEntry of( String serviceName, String jndiName, Method proxyMethod )
+    public static CasualServiceEntry of( String serviceName, String jndiName, Method proxyMethod, CasualServiceMetaData metaData )
     {
-        return new CasualServiceEntry( serviceName, jndiName, proxyMethod );
+        return new CasualServiceEntry( serviceName, jndiName, proxyMethod, metaData );
     }
 
     public String getServiceName()
@@ -45,7 +47,12 @@ public final class CasualServiceEntry
         return proxyMethod;
     }
 
-    public void setProxyMethod( Method proxyMethod )
+    public CasualServiceMetaData getMetaData()
+    {
+        return metaData;
+    }
+
+    public void setProxyMethod(Method proxyMethod )
     {
         this.proxyMethod = proxyMethod;
     }

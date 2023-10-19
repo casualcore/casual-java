@@ -6,17 +6,18 @@
 
 package se.laz.casual.jca.inbound.handler.buffer.fielded;
 
+import javax.ejb.Stateless;
 import se.laz.casual.api.buffer.CasualBufferType;
 import se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer;
 import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessor;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
+import se.laz.casual.jca.inbound.handler.buffer.InboundRequestException;
+import se.laz.casual.jca.inbound.handler.buffer.InboundRequestInfo;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 
-import javax.ejb.Stateless;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 
 import static se.laz.casual.jca.inbound.handler.buffer.DispatchMethodUtil.methodAccepts;
 import static se.laz.casual.jca.inbound.handler.buffer.DispatchMethodUtil.toMethodParams;
@@ -31,24 +32,26 @@ public class FieldedBufferHandler implements BufferHandler
     }
 
     @Override
-    public ServiceCallInfo fromRequest(Proxy p, Method method, InboundRequest request)
+    public ServiceCallInfo fromRequest(InboundRequestInfo requestInfo, InboundRequest request)
     {
         Object[] params;
-        if( methodAccepts( method, request ) )
+        Method proxyMethod = requestInfo.getProxyMethod().orElseThrow(() -> new InboundRequestException("Missing proxy method, requestInfo: " + requestInfo));
+        Method realMethod =  requestInfo.getRealMethod().orElseThrow(() -> new InboundRequestException("Missing real method, requestInfo: " + requestInfo));
+        if( methodAccepts( realMethod, request ) )
         {
-            params = toMethodParams( method, request );
+            params = toMethodParams( realMethod, request );
         }
-        else if( methodAccepts( method, request.getBuffer() ) )
+        else if( methodAccepts( realMethod, request.getBuffer() ) )
         {
-            params = toMethodParams( method, request.getBuffer() );
+            params = toMethodParams( realMethod, request.getBuffer() );
         }
         else
         {
             FieldedTypeBuffer fieldedBuffer = FieldedTypeBuffer.create( request.getBuffer().getBytes() );
-            params = FieldedTypeBufferProcessor.unmarshall(fieldedBuffer, method);
+            params = FieldedTypeBufferProcessor.unmarshall(fieldedBuffer, realMethod);
         }
 
-        return ServiceCallInfo.of( method, params );
+        return ServiceCallInfo.of( proxyMethod, params );
     }
 
     @Override

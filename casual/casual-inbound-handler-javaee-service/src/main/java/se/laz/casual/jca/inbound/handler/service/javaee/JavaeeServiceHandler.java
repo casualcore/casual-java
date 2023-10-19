@@ -15,6 +15,7 @@ import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
+import se.laz.casual.jca.inbound.handler.buffer.InboundRequestInfo;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtension;
@@ -111,12 +112,14 @@ public class JavaeeServiceHandler implements ServiceHandler
 
     //Use a specific exception. This is a help method for invokeService so any exceptions should bubble back up.
     @SuppressWarnings("squid:S00112")
-    private InboundResponse callService( Object r, InboundRequest payload, BufferHandler bufferHandler, ServiceHandlerExtension serviceHandlerExtension,
+    private InboundResponse callService( Object r, InboundRequest request, BufferHandler bufferHandler, ServiceHandlerExtension serviceHandlerExtension,
                                          ServiceHandlerExtensionContext extensionContext ) throws Throwable
     {
         Proxy p = (Proxy) r;
-
-        ServiceCallInfo serviceCallInfo = bufferHandler.fromRequest( p, null, payload );
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                                                           .withProxy(p)
+                                                           .build();
+        ServiceCallInfo serviceCallInfo = bufferHandler.fromRequest(requestInfo, request);
 
         Method method = serviceCallInfo.getMethod().orElseThrow( ()-> new HandlerException( "Buffer did not provided required details about the method end point." ) );
 
