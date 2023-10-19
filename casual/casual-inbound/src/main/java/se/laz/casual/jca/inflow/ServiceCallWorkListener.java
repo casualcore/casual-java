@@ -11,6 +11,7 @@ import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
 
 import javax.resource.spi.work.WorkEvent;
 import javax.resource.spi.work.WorkListener;
+import java.util.logging.Logger;
 
 /**
  * Work Listener to handle completion of {@link javax.resource.spi.work.Work} item by
@@ -18,11 +19,19 @@ import javax.resource.spi.work.WorkListener;
  */
 public class ServiceCallWorkListener implements WorkListener
 {
+    private static final Logger LOG = Logger.getLogger(ServiceCallWorkListener.class.getName());
     private final Channel channel;
+    private final boolean isTpNoReply;
 
     public ServiceCallWorkListener(Channel channel )
     {
+        this(channel, false);
+    }
+
+    public ServiceCallWorkListener(Channel channel, boolean isTpNoReply)
+    {
         this.channel = channel;
+        this.isTpNoReply = isTpNoReply;
     }
 
     public Channel getSocketChannel()
@@ -51,7 +60,14 @@ public class ServiceCallWorkListener implements WorkListener
     @Override
     public void workCompleted(WorkEvent e)
     {
-        CasualServiceCallWork work = (CasualServiceCallWork)e.getWork();
-        channel.writeAndFlush(work.getResponse());
+        if(!isTpNoReply)
+        {
+            CasualServiceCallWork work = (CasualServiceCallWork) e.getWork();
+            channel.writeAndFlush(work.getResponse());
+        }
+        else
+        {
+            LOG.finest(() -> "service call, tpnoresult, finished: " + e);
+        }
     }
 }

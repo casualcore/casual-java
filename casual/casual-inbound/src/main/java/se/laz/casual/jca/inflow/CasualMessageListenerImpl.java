@@ -7,9 +7,12 @@
 package se.laz.casual.jca.inflow;
 
 import io.netty.channel.Channel;
+import se.laz.casual.api.flags.AtmiFlags;
+import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.XAFlags;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.service.ServiceInfo;
+import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.api.xa.XAReturnCode;
 import se.laz.casual.api.xa.XID;
 import se.laz.casual.config.ConfigurationService;
@@ -114,14 +117,18 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     {
         log.finest( "serviceCallRequest()." );
 
-        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() );
-
         Xid xid = message.getMessage().getXid();
+        if(validateMessageFlags( message, isServiceCallTransactional( xid ))){
+            // we do nothing, out of protocol call, logging is done in validation method
+            return;
+        }
+        boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
+        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply);
 
         try
         {
             long startup = isServiceCallTransactional( xid ) ?
-                    workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
+                    workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel, isTpNoReply ) ) :
                     workManager.startWork( work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener( channel ));
             log.finest( ()->"Service call startup: "+ startup + "ms.");
         }
@@ -129,6 +136,21 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         {
             throw new CasualResourceAdapterException( "Error starting work.", e );
         }
+    }
+
+    private boolean validateMessageFlags(CasualNWMessage<CasualServiceCallRequestMessage> message, boolean serviceCallTransactional)
+    {
+        Flag<AtmiFlags> flags = message.getMessage().getXatmiFlags();
+        if(flags.isSet(AtmiFlags.TPNOREPLY) && serviceCallTransactional)
+        {
+            log.severe(() ->{
+                String casualMessageInfo = String.format("xid: %s, correlation: %s, execution: %s",PrettyPrinter.casualStringify(message.getMessage().getXid()),
+                        PrettyPrinter.casualStringify(message.getCorrelationId()), PrettyPrinter.casualStringify(message.getMessage().getExecution()));
+                return "For message: " + message + " TPNOREPLY is set but the call is transactional - that is not allowed!\n" + casualMessageInfo;
+            });
+            return false;
+        }
+        return true;
     }
 
     private boolean isServiceCallTransactional( Xid xid )

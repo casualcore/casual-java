@@ -34,6 +34,7 @@ public final class CasualServiceCallWork implements Work
     private final CasualServiceCallRequestMessage message;
 
     private final UUID correlationId;
+    private final boolean isTpNoReply;
 
     private CasualNWMessage<CasualServiceCallReplyMessage> response;
 
@@ -41,8 +42,14 @@ public final class CasualServiceCallWork implements Work
 
     public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message )
     {
+        this(correlationId, message, false);
+    }
+
+    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply)
+    {
         this.correlationId = correlationId;
         this.message = message;
+        this.isTpNoReply = isTpNoReply;
     }
 
     public CasualServiceCallRequestMessage getMessage()
@@ -73,10 +80,35 @@ public final class CasualServiceCallWork implements Work
     @Override
     public void run()
     {
-        CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
-                .setXid( message.getXid() )
-                .setExecution( message.getExecution() );
+        if(isTpNoReply)
+        {
+            issueCallNoReply();
+        }
+        else
+        {
+            issueCall();
+        }
+    }
 
+    private void issueCallNoReply()
+    {
+        try
+        {
+            ServiceHandler h = getHandler(message.getServiceName());
+            InboundRequest request = InboundRequest.of( message.getServiceName(), message.getServiceBuffer() );
+            h.invokeService( request );
+        }
+        catch( ServiceHandlerNotFoundException e)
+        {
+            log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
+        }
+    }
+
+    private void issueCall()
+    {
+        CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
+                                                                                          .setXid( message.getXid() )
+                                                                                          .setExecution( message.getExecution() );
         CasualBuffer serviceResult = ServiceBuffer.empty();
         try
         {
@@ -94,7 +126,7 @@ public final class CasualServiceCallWork implements Work
         catch( ServiceHandlerNotFoundException e )
         {
             replyBuilder.setError( ErrorState.TPENOENT )
-                    .setTransactionState( TransactionState.ROLLBACK_ONLY );
+                        .setTransactionState( TransactionState.ROLLBACK_ONLY );
             log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
         }
         finally
