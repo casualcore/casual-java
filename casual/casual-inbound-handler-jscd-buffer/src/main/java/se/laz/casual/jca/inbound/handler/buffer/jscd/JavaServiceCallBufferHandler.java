@@ -16,11 +16,11 @@ import se.laz.casual.jca.inbound.handler.HandlerException;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
+import se.laz.casual.jca.inbound.handler.buffer.InboundRequestInfo;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
 
 import jakarta.ejb.Stateless;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,7 @@ public class JavaServiceCallBufferHandler implements BufferHandler
     }
 
     @Override
-    public ServiceCallInfo fromRequest(Proxy p, Method m, InboundRequest request)
+    public ServiceCallInfo fromRequest(InboundRequestInfo requestInfo, InboundRequest request)
     {
         if( request.getBuffer().getBytes().size() != 1 )
         {
@@ -55,7 +55,7 @@ public class JavaServiceCallBufferHandler implements BufferHandler
             {
                 params[i] = Class.forName(methodParamTypes[i], true, Thread.currentThread().getContextClassLoader());
             }
-            Method method = p.getClass().getMethod(callDef.getMethodName(), params);
+            Method method = requestInfo.getProxy().getClass().getMethod(callDef.getMethodName(), params);
 
             return ServiceCallInfo.of(method, callDef.getMethodParams());
         }

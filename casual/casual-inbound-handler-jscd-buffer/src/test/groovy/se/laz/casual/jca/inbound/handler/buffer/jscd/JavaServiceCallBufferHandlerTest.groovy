@@ -14,6 +14,7 @@ import se.laz.casual.api.external.json.JsonProviderFactory
 import se.laz.casual.jca.inbound.handler.HandlerException
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
+import se.laz.casual.jca.inbound.handler.buffer.InboundRequestInfo
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
@@ -83,7 +84,10 @@ class JavaServiceCallBufferHandlerTest extends Specification
         InboundRequest request = InboundRequest.of( methodName, buffer )
 
         when:
-        ServiceCallInfo info = instance.fromRequest( jndiObject, null, request )
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                .withProxy(jndiObject)
+                .build()
+        ServiceCallInfo info = instance.fromRequest(requestInfo, request)
 
         then:
         info.getMethod().get() == jndiObject.getClass().getMethod( methodName, String.class )
@@ -100,8 +104,12 @@ class JavaServiceCallBufferHandlerTest extends Specification
 
         InboundRequest request = InboundRequest.of( methodName, buffer )
 
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                .withProxy(jndiObject)
+                .build()
+
         when:
-        instance.fromRequest( jndiObject, null, request )
+        instance.fromRequest(requestInfo, request)
 
         then:
         thrown IllegalArgumentException
@@ -119,8 +127,12 @@ class JavaServiceCallBufferHandlerTest extends Specification
 
         InboundRequest request = InboundRequest.of( methodName, buffer )
 
+        InboundRequestInfo requestInfo = InboundRequestInfo.createBuilder()
+                .withProxy(jndiObject)
+                .build()
+
         when:
-        instance.fromRequest( jndiObject, null, request )
+        instance.fromRequest(requestInfo, request)
 
         then:
         thrown HandlerException

@@ -22,7 +22,7 @@ dependencies {
   testImplementation libs.groovy
   testImplementation platform(libs.spock_bom)
   testImplementation libs.spock_core
-  testImplementation libs.cglib_nodep
+  testImplementation libs.byte_buddy
   testImplementation libs.objenesis
    
 }

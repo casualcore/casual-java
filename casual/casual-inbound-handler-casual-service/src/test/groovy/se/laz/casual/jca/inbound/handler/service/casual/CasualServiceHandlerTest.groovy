@@ -58,7 +58,7 @@ class CasualServiceHandlerTest extends Specification
                 .serviceMethod( method)
                 .implementationClass( SimpleService.class )
                 .build()
-        CasualServiceEntry e = CasualServiceEntry.of( casualServiceName, jndiServiceName, method )
+        CasualServiceEntry e = CasualServiceEntry.of( casualServiceName, jndiServiceName, method, s )
         CasualServiceRegistry.getInstance().register( s )
         CasualServiceRegistry.getInstance().register( e )
 
