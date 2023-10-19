@@ -118,8 +118,8 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         log.finest( "serviceCallRequest()." );
 
         Xid xid = message.getMessage().getXid();
-        if(validateMessageFlags( message, isServiceCallTransactional( xid ))){
-            // we do nothing, out of protocol call, logging is done in validation method
+        if(outOfProtocol( message, isServiceCallTransactional( xid ))){
+            // we do nothing, out of protocol call
             return;
         }
         boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
@@ -138,7 +138,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         }
     }
 
-    private boolean validateMessageFlags(CasualNWMessage<CasualServiceCallRequestMessage> message, boolean serviceCallTransactional)
+    private boolean outOfProtocol(CasualNWMessage<CasualServiceCallRequestMessage> message, boolean serviceCallTransactional)
     {
         Flag<AtmiFlags> flags = message.getMessage().getXatmiFlags();
         if(flags.isSet(AtmiFlags.TPNOREPLY) && serviceCallTransactional)
@@ -148,9 +148,9 @@ public class CasualMessageListenerImpl implements CasualMessageListener
                         PrettyPrinter.casualStringify(message.getCorrelationId()), PrettyPrinter.casualStringify(message.getMessage().getExecution()));
                 return "For message: " + message + " TPNOREPLY is set but the call is transactional - that is not allowed!\n" + casualMessageInfo;
             });
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     private boolean isServiceCallTransactional( Xid xid )
