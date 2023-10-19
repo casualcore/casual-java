@@ -44,11 +44,11 @@ subprojects{
   apply plugin: 'java-library'
   apply from: "$rootProject.projectDir/publish.gradle"
   test {
-	useJUnitPlatform()
-	testLogging {
-	    events "passed", "skipped", "failed"
-	}
-  }
+    useJUnitPlatform()
+      testLogging {
+        events "passed", "skipped", "failed"
+      }
+    }
 }
 
 task dist(type: Sync) {

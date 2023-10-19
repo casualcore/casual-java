@@ -26,10 +26,6 @@ class PassThroughBufferHandlerTest extends Specification
     {
         instance = new PassThroughBufferHandler()
         proxyService = Mock( TestService )
-
-        Class[] c = new Class[1]
-        c[0] = TestService.class
-
         jndiObject = Mock(Proxy)
     }
 
