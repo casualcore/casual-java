@@ -14,9 +14,10 @@ class InboundRequestInfoTest extends Specification
    def 'creation'()
    {
       given:
-      def methodName = 'toString'
-      Method proxyMethod = String.class.getMethod(methodName)
-      Method realMethod = String.class.getMethod(methodName)
+      def realMethodName = 'endsWith'
+      def proxyMethodName = 'startsWith'
+      Method realMethod = String.class.getMethod(realMethodName, String.class)
+      Method proxyMethod = String.class.getMethod(proxyMethodName, String.class)
       String serviceName = 'shiny lemon'
       Proxy proxy = Mock(Proxy)
       when:
