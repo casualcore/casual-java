@@ -56,7 +56,6 @@ class CasualServiceCallerTest extends Specification
     @Shared mcf
     @Shared ra
     @Shared workManager
-    @Shared json = '{"hello":"world"}'
 
     def setup()
     {
@@ -226,6 +225,26 @@ class CasualServiceCallerTest extends Specification
 
         expect actualServiceRequest, matching( expectedServiceRequest )
     }
+
+   def "Tpacall service is available, flags are TPNORETURN but missing TPNOTRAN"()
+   {
+      when:
+      instance.tpacall( serviceName, message, Flag.of( AtmiFlags.TPNOREPLY)).get()
+
+      then:
+      thrown(CasualProtocolException)
+   }
+
+   def "Tpacall service is available, flags are TPNORETURN and TPNOTRAN"()
+   {
+      when:
+      ServiceReturn<CasualBuffer> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.TPNOREPLY).setFlag (AtmiFlags.TPNOTRAN)).get()
+
+      then:
+      noExceptionThrown()
+      result != null
+      result == ServiceReturn.NO_RETURN
+   }
 
     def 'tpacall fails'()
     {

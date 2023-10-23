@@ -6,6 +6,7 @@
 
 package se.laz.casual.api.buffer;
 
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.ServiceReturnState;
 
@@ -24,6 +25,8 @@ public final class ServiceReturn<X extends CasualBuffer>
     private final ErrorState errorState;
 
     private final long userDefinedCode;
+
+    public static final ServiceReturn<CasualBuffer> NO_RETURN = new ServiceReturn<>(ServiceBuffer.nullBuffer(), ServiceReturnState.TPSUCCESS, ErrorState.OK, 0);
 
     public ServiceReturn(X replyBuffer, ServiceReturnState serviceReturnState, ErrorState errorState, long userDefinedCode)
     {

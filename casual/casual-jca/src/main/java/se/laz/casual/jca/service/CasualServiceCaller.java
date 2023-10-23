@@ -88,6 +88,10 @@ public class CasualServiceCaller implements CasualServiceApi
                 f.complete(toServiceReturn(v));
             });
         });
+        if(noReply)
+        {
+            f.complete(ServiceReturn.NO_RETURN);
+        }
         return f;
     }
 
