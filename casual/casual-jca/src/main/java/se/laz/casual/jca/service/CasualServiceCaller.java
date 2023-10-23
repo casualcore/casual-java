@@ -95,7 +95,7 @@ public class CasualServiceCaller implements CasualServiceApi
     {
         if(flags.isSet(AtmiFlags.TPNOREPLY))
         {
-            throw new CasualProtocolException("tpCall to: + " + serviceName + " with TPNOREPLY - not allowed");
+            throw new CasualProtocolException("tpCall to: + " + serviceName + " with TPNOREPLY - not allowed, should use tpacall");
         }
     }
 

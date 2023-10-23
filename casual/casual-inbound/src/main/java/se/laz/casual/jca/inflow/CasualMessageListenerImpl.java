@@ -118,8 +118,8 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         log.finest( "serviceCallRequest()." );
 
         Xid xid = message.getMessage().getXid();
-        if(outOfProtocol( message, isServiceCallTransactional( xid ))){
-            // we do nothing, out of protocol call
+        if(tpNoReplyOutOfProtocol( message, isServiceCallTransactional( xid )))
+        {
             return;
         }
         boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
@@ -138,7 +138,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         }
     }
 
-    private boolean outOfProtocol(CasualNWMessage<CasualServiceCallRequestMessage> message, boolean serviceCallTransactional)
+    private boolean tpNoReplyOutOfProtocol(CasualNWMessage<CasualServiceCallRequestMessage> message, boolean serviceCallTransactional)
     {
         Flag<AtmiFlags> flags = message.getMessage().getXatmiFlags();
         if(flags.isSet(AtmiFlags.TPNOREPLY) && serviceCallTransactional)
