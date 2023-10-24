@@ -253,7 +253,7 @@ class CasualServiceCallerTest extends Specification
       noExceptionThrown()
       result != null
       // note, ideally we should have an optional return for tpacall but we do not want to change that interface currently
-      // thus ServiceReturn.NO_RETURN when you call tpacall with TPNOREPLY & TPNOTRAN
+      // thus ServiceReturn.NO_REPLY when you call tpacall with TPNOREPLY & TPNOTRAN
       // Just in case somebody looks at the result even though they should not due to TPNOREPLY
       result == ServiceReturn.NO_REPLY
    }
