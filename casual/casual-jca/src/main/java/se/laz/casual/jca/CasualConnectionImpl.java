@@ -26,6 +26,7 @@ import se.laz.casual.network.connection.CasualConnectionException;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -101,7 +102,7 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
-    public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         throwIfInvalidated();
         return getCasualServiceCaller().tpacall( serviceName, data, flags);

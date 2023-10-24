@@ -61,7 +61,7 @@ public class CasualServiceCaller implements CasualServiceApi
         try
         {
             validateTpCallFlags(serviceName, flags);
-            return tpacall(serviceName, data, flags).join();
+            return tpacall(serviceName, data, flags).join().get();
         }
         catch (Exception e)
         {
@@ -70,10 +70,10 @@ public class CasualServiceCaller implements CasualServiceApi
     }
 
     @Override
-    public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         validateTpacallFlags(serviceName, flags);
-        CompletableFuture<ServiceReturn<CasualBuffer>> f = new CompletableFuture<>();
+        CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> f = new CompletableFuture<>();
         UUID corrId = UUID.randomUUID();
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
         Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, noReply);
@@ -85,12 +85,12 @@ public class CasualServiceCaller implements CasualServiceApi
                     return;
                 }
                 LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
-                f.complete(toServiceReturn(v));
+                f.complete(Optional.of(toServiceReturn(v)));
             });
         });
         if(noReply)
         {
-            f.complete(ServiceReturn.NO_REPLY);
+            f.complete(Optional.empty());
         }
         return f;
     }

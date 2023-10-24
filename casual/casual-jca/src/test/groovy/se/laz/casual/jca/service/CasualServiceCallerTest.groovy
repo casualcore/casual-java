@@ -219,12 +219,13 @@ class CasualServiceCallerTest extends Specification
     def "Tpacall service is available performs service call and returns result of service call."()
     {
         when:
-        ServiceReturn<CasualBuffer> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG)).get()
+        Optional<ServiceReturn<CasualBuffer>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG)).get()
 
         then:
         noExceptionThrown()
         result != null
-        result.getServiceReturnState() == ServiceReturnState.TPSUCCESS
+        result.isPresent()
+        result.get().getServiceReturnState() == ServiceReturnState.TPSUCCESS
 
         1 * networkConnection.request( _ ) >> {
             CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
@@ -247,21 +248,18 @@ class CasualServiceCallerTest extends Specification
    def "Tpacall service is available, flags are TPNOREPLY and TPNOTRAN"()
    {
       when:
-      ServiceReturn<CasualBuffer> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.TPNOREPLY).setFlag (AtmiFlags.TPNOTRAN)).get()
+      Optional<ServiceReturn<CasualBuffer>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.TPNOREPLY).setFlag (AtmiFlags.TPNOTRAN)).get()
 
       then:
       noExceptionThrown()
       result != null
-      // note, ideally we should have an optional return for tpacall but we do not want to change that interface currently
-      // thus ServiceReturn.NO_REPLY when you call tpacall with TPNOREPLY & TPNOTRAN
-      // Just in case somebody looks at the result even though they should not due to TPNOREPLY
-      result == ServiceReturn.NO_REPLY
+      result.isPresent() == false
    }
 
     def 'tpacall fails'()
     {
         when:
-        CompletableFuture<ServiceReturn<CasualBuffer>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
+        CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
         then:
         noExceptionThrown()
         result.isCompletedExceptionally()
