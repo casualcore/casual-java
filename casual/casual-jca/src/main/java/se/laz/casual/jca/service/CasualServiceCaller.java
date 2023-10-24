@@ -90,7 +90,7 @@ public class CasualServiceCaller implements CasualServiceApi
         });
         if(noReply)
         {
-            f.complete(ServiceReturn.NO_RETURN);
+            f.complete(ServiceReturn.NO_REPLY);
         }
         return f;
     }

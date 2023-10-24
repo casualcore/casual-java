@@ -26,7 +26,7 @@ public final class ServiceReturn<X extends CasualBuffer>
 
     private final long userDefinedCode;
 
-    public static final ServiceReturn<CasualBuffer> NO_RETURN = new ServiceReturn<>(ServiceBuffer.nullBuffer(), ServiceReturnState.TPSUCCESS, ErrorState.OK, 0);
+    public static final ServiceReturn<CasualBuffer> NO_REPLY = new ServiceReturn<>(ServiceBuffer.nullBuffer(), ServiceReturnState.TPSUCCESS, ErrorState.OK, 0);
 
     public ServiceReturn(X replyBuffer, ServiceReturnState serviceReturnState, ErrorState errorState, long userDefinedCode)
     {
