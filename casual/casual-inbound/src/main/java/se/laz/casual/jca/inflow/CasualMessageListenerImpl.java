@@ -120,16 +120,20 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         Xid xid = message.getMessage().getXid();
         if(tpNoReplyOutOfProtocol( message, isServiceCallTransactional( xid )))
         {
-            return;
+            log.severe(() ->{
+                String casualMessageInfo = String.format("xid: %s, correlation: %s, execution: %s",PrettyPrinter.casualStringify(message.getMessage().getXid()),
+                        PrettyPrinter.casualStringify(message.getCorrelationId()), PrettyPrinter.casualStringify(message.getMessage().getExecution()));
+                return "For message: " + message + " TPNOREPLY is set but the call is transactional. It is out of protocol so call will be issued but non transactional\n" + casualMessageInfo;
+            });
         }
         boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
         CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply);
 
         try
         {
-            long startup = isServiceCallTransactional( xid ) ?
-                    workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel, isTpNoReply ) ) :
-                    workManager.startWork( work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener( channel ));
+            long startup = !isTpNoReply && isServiceCallTransactional( xid ) ?
+                    workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
+                    workManager.startWork( work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener( channel, isTpNoReply ));
             log.finest( ()->"Service call startup: "+ startup + "ms.");
         }
         catch (WorkException e)
@@ -143,11 +147,6 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         Flag<AtmiFlags> flags = message.getMessage().getXatmiFlags();
         if(flags.isSet(AtmiFlags.TPNOREPLY) && serviceCallTransactional)
         {
-            log.severe(() ->{
-                String casualMessageInfo = String.format("xid: %s, correlation: %s, execution: %s",PrettyPrinter.casualStringify(message.getMessage().getXid()),
-                        PrettyPrinter.casualStringify(message.getCorrelationId()), PrettyPrinter.casualStringify(message.getMessage().getExecution()));
-                return "For message: " + message + " TPNOREPLY is set but the call is transactional - that is not allowed!\n" + casualMessageInfo;
-            });
             return true;
         }
         return false;

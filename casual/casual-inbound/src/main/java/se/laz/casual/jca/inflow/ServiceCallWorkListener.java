@@ -67,7 +67,7 @@ public class ServiceCallWorkListener implements WorkListener
         }
         else
         {
-            LOG.finest(() -> "service call, tpnoresult, finished: " + e);
+            LOG.finest(() -> "service call, TPNOREPLY, finished: " + e);
         }
     }
 }

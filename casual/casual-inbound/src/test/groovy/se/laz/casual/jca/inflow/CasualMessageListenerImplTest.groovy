@@ -8,6 +8,7 @@ package se.laz.casual.jca.inflow
 
 import io.netty.channel.embedded.EmbeddedChannel
 import se.laz.casual.api.buffer.type.JsonBuffer
+import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.XAFlags
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
@@ -219,6 +220,90 @@ class CasualMessageListenerImplTest extends Specification
 
         actualWork != null
         actualWork.getCorrelationId() == correlationId
+    }
+
+    def "ServiceCallRequest TPNOREPLY, non transactional"()
+    {
+       given:
+       CasualServiceCallWork actualWork
+       long actualStartTimeout
+       ExecutionContext actualExecutionContext
+       WorkListener actualWorkListener
+       long timeout = 12L
+       Duration timeoutDuration = Duration.of(timeout, ChronoUnit.SECONDS)
+       String serviceName = "echo"
+       CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of( correlationId,
+               CasualServiceCallRequestMessage.createBuilder()
+                      .setXid( XID.NULL_XID )
+                      .setExecution(execution)
+                      .setServiceName( serviceName )
+                      .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
+                      .setXatmiFlags( Flag.of(AtmiFlags.TPNOREPLY))
+                      .setTimeout( timeoutDuration.toNanos() )
+                      .build()
+       )
+
+       when:
+       instance.serviceCallRequest( message, channel, workManager )
+
+       then:
+       1 * workManager.startWork( _,_,_,_ ) >> {
+          CasualServiceCallWork work, long startTimeout, ExecutionContext executionContext, WorkListener workListener ->
+             actualWork = work
+             actualStartTimeout = startTimeout
+             actualExecutionContext = executionContext
+             actualWorkListener = workListener
+             return 1L
+       }
+
+       actualWork != null
+       actualWork.getCorrelationId() == correlationId
+       actualStartTimeout != null
+       actualStartTimeout == WorkManager.INDEFINITE
+       actualExecutionContext == null
+       actualWorkListener != null
+    }
+
+    def "ServiceCallRequest TPNOREPLY, transactional - out of protocol, call will be issued but non transactional"()
+    {
+       given:
+       CasualServiceCallWork actualWork
+       long actualStartTimeout
+       ExecutionContext actualExecutionContext
+       WorkListener actualWorkListener
+       long timeout = 12L
+       Duration timeoutDuration = Duration.of(timeout, ChronoUnit.SECONDS)
+       String serviceName = "echo"
+       CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of( correlationId,
+               CasualServiceCallRequestMessage.createBuilder()
+                      .setXid( xid )
+                       .setExecution(execution)
+                       .setServiceName( serviceName )
+                       .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
+                       .setXatmiFlags( Flag.of(AtmiFlags.TPNOREPLY))
+                       .setTimeout( timeoutDuration.toNanos() )
+                       .build()
+       )
+
+       when:
+       instance.serviceCallRequest( message, channel, workManager )
+
+       then:
+       1 * workManager.startWork( _,_,_,_ ) >> {
+          CasualServiceCallWork work, long startTimeout, ExecutionContext executionContext, WorkListener workListener ->
+             actualWork = work
+             actualStartTimeout = startTimeout
+             actualExecutionContext = executionContext
+             actualWorkListener = workListener
+             return 1L
+       }
+
+       actualWork != null
+       actualWork.getCorrelationId() == correlationId
+       actualStartTimeout != null
+       actualStartTimeout == WorkManager.INDEFINITE
+       actualExecutionContext == null
+       actualWorkListener != null
     }
 
     def "ServiceCallRequest startWork throws exception, wrapped and thrown."()
