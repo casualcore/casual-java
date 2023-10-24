@@ -207,6 +207,15 @@ class CasualServiceCallerTest extends Specification
         expect actualServiceRequest, matching( expectedServiceRequest )
     }
 
+    def "Tpcall with TPNOREPLY - exceptional"()
+    {
+       when:
+       instance.tpcall( serviceName, message, Flag.of( AtmiFlags.TPNOREPLY))
+       then:
+       def e = thrown(CasualConnectionException)
+       e.cause.class == CasualProtocolException.class
+    }
+
     def "Tpacall service is available performs service call and returns result of service call."()
     {
         when:
@@ -226,7 +235,7 @@ class CasualServiceCallerTest extends Specification
         expect actualServiceRequest, matching( expectedServiceRequest )
     }
 
-   def "Tpacall service is available, flags are TPNORETURN but missing TPNOTRAN"()
+   def "Tpacall service is available, flags are TPNOREPLY but missing TPNOTRAN"()
    {
       when:
       instance.tpacall( serviceName, message, Flag.of( AtmiFlags.TPNOREPLY)).get()
@@ -235,7 +244,7 @@ class CasualServiceCallerTest extends Specification
       thrown(CasualProtocolException)
    }
 
-   def "Tpacall service is available, flags are TPNORETURN and TPNOTRAN"()
+   def "Tpacall service is available, flags are TPNOREPLY and TPNOTRAN"()
    {
       when:
       ServiceReturn<CasualBuffer> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.TPNOREPLY).setFlag (AtmiFlags.TPNOTRAN)).get()

@@ -96,7 +96,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         reply == replyMessage
     }
 
-    def 'tpacall TPNORETURN'()
+    def 'tpacall TPNOREPLY'()
     {
        setup:
        CasualNWMessageImpl<CasualServiceCallRequestMessage> requestMessage = createServiceCallRequestMessage(true, false)
@@ -249,14 +249,14 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
        return CasualNWMessageImpl.of(corrid, message)
    }
 
-    def createServiceCallRequestMessage(boolean tpnoreturn, boolean transactional)
+    def createServiceCallRequestMessage(boolean tpnoreply, boolean transactional)
     {
        ServiceBuffer buffer = ServiceBuffer.of(CStringBuffer.of('asdf'))
        CasualServiceCallRequestMessage.Builder builder = CasualServiceCallRequestMessage.createBuilder()
                 .setExecution(UUID.randomUUID())
                 .setServiceName('test-service')
                 .setServiceBuffer(buffer)
-       if(tpnoreturn)
+       if(tpnoreply)
        {
           builder.setXatmiFlags(Flag.of(AtmiFlags.TPNOREPLY))
        }
