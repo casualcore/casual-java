@@ -170,7 +170,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message)
     {
         preRequest(message);
-        Optional<CompletableFuture<CasualNWMessage<T>>> value = doRequest(message, false);
+        Optional<CompletableFuture<CasualNWMessage<T>>> value = issueRequest(message, false);
         return value.get();
     }
 
@@ -178,7 +178,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> void requestNoReply(CasualNWMessage<X> message)
     {
         preRequest(message);
-        Optional<CompletableFuture<CasualNWMessage<T>>> value = doRequest(message, true);
+        Optional<CompletableFuture<CasualNWMessage<T>>> value = issueRequest(message, true);
         value.ifPresent(casualNWMessageCompletableFuture -> casualNWMessageCompletableFuture.whenComplete((v, e) -> {
             if (null != e) {
                 LOG.severe("request: " + message + " expecting no return value, error: " + e);
@@ -238,7 +238,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
     }
 
-    private <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> Optional<CompletableFuture<CasualNWMessage<T>>> doRequest(CasualNWMessage<X> message, boolean noReply)
+    private <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> Optional<CompletableFuture<CasualNWMessage<T>>> issueRequest(CasualNWMessage<X> message, boolean noReply)
     {
         preRequest(message);
         CompletableFuture<CasualNWMessage<T>> f = new CompletableFuture<>();
