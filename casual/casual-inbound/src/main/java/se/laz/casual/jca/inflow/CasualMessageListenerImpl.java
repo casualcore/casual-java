@@ -120,7 +120,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         Xid xid = message.getMessage().getXid();
         if(tpNoReplyOutOfProtocol( message, isServiceCallTransactional( xid )))
         {
-            log.severe(() ->{
+            log.warning(() ->{
                 String casualMessageInfo = String.format("xid: %s, correlation: %s, execution: %s",PrettyPrinter.casualStringify(message.getMessage().getXid()),
                         PrettyPrinter.casualStringify(message.getCorrelationId()), PrettyPrinter.casualStringify(message.getMessage().getExecution()));
                 return "For message: " + message + " TPNOREPLY is set but the call is transactional. It is out of protocol so call will be issued but non transactional\n" + casualMessageInfo;

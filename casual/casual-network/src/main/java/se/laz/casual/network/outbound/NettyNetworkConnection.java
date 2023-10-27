@@ -181,7 +181,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         Optional<CompletableFuture<CasualNWMessage<T>>> value = issueRequest(message, true);
         value.ifPresent(casualNWMessageCompletableFuture -> casualNWMessageCompletableFuture.whenComplete((v, e) -> {
             if (null != e) {
-                LOG.severe("requestNoReply: " + message + " error: " + e);
+                LOG.warning("requestNoReply: " + message + " error: " + e);
                 return;
             }
             LOG.warning("requestNoReply: " + message + " got reply: " + v);
