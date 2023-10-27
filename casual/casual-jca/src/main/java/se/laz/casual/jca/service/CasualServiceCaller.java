@@ -72,7 +72,7 @@ public class CasualServiceCaller implements CasualServiceApi
     @Override
     public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        validateTpacallFlags(serviceName, flags);
+        throwIfFlagsOutOfProtocol(serviceName, flags);
         CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> f = new CompletableFuture<>();
         UUID corrId = UUID.randomUUID();
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
@@ -103,7 +103,7 @@ public class CasualServiceCaller implements CasualServiceApi
         }
     }
 
-    private void validateTpacallFlags(String serviceName, Flag<AtmiFlags> flags)
+    private void throwIfFlagsOutOfProtocol(String serviceName, Flag<AtmiFlags> flags)
     {
         if(flags.isSet(AtmiFlags.TPNOREPLY) && !flags.isSet(AtmiFlags.TPNOTRAN))
         {
