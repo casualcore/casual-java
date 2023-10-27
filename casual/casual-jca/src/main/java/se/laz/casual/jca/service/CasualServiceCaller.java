@@ -60,7 +60,7 @@ public class CasualServiceCaller implements CasualServiceApi
     {
         try
         {
-            validateTpCallFlags(serviceName, flags);
+            throwIfTpCallFlagsInvalid(serviceName, flags);
             return tpacall(serviceName, data, flags).join().get();
         }
         catch (Exception e)
@@ -72,7 +72,7 @@ public class CasualServiceCaller implements CasualServiceApi
     @Override
     public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        throwIfFlagsOutOfProtocol(serviceName, flags);
+        throwIfTpacallFlagsInvalid(serviceName, flags);
         CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> f = new CompletableFuture<>();
         UUID corrId = UUID.randomUUID();
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
@@ -95,7 +95,7 @@ public class CasualServiceCaller implements CasualServiceApi
         return f;
     }
 
-    private void validateTpCallFlags(String serviceName, Flag<AtmiFlags> flags)
+    private void throwIfTpCallFlagsInvalid(String serviceName, Flag<AtmiFlags> flags)
     {
         if(flags.isSet(AtmiFlags.TPNOREPLY))
         {
@@ -103,7 +103,7 @@ public class CasualServiceCaller implements CasualServiceApi
         }
     }
 
-    private void throwIfFlagsOutOfProtocol(String serviceName, Flag<AtmiFlags> flags)
+    private void throwIfTpacallFlagsInvalid(String serviceName, Flag<AtmiFlags> flags)
     {
         if(flags.isSet(AtmiFlags.TPNOREPLY) && !flags.isSet(AtmiFlags.TPNOTRAN))
         {
