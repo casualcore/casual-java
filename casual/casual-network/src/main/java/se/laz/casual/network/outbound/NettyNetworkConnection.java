@@ -169,7 +169,6 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message)
     {
-        preRequest(message);
         Optional<CompletableFuture<CasualNWMessage<T>>> value = issueRequest(message, false);
         return value.get();
     }
@@ -177,7 +176,6 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> void requestNoReply(CasualNWMessage<X> message)
     {
-        preRequest(message);
         Optional<CompletableFuture<CasualNWMessage<T>>> value = issueRequest(message, true);
         value.ifPresent(casualNWMessageCompletableFuture -> casualNWMessageCompletableFuture.whenComplete((v, e) -> {
             if (null != e) {
@@ -244,11 +242,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         CompletableFuture<CasualNWMessage<T>> f = new CompletableFuture<>();
         if(!channel.isActive())
         {
-            if(noReply){
-                LOG.warning(() -> "request expecting no reply: " + message + " but network connection is gone");
-            }else {
-                LOG.finest("channel not active, connection gone");
-            }
+            LOG.finest("channel not active, connection gone");
             f.completeExceptionally(new CasualConnectionException("can not write msg: " + message + " connection is gone"));
             return noReply ? Optional.empty() : Optional.of(f);
         }
@@ -262,12 +256,9 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
             if(!v.isSuccess()){
                 List<UUID> l = new ArrayList<>();
                 l.add(message.getCorrelationId());
-                if(noReply){
-                    LOG.warning(() -> String.format("failed request expecting no reply: %s", message));
-                }else {
-                    LOG.finest(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
-                }
+                LOG.finest(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
                 // This since all outstanding requests may already have been completed exceptionally
+                // when no reply - nobody is listening Dave
                 if(!f.isCompletedExceptionally() && !noReply) {
                     correlator.completeExceptionally(l, new CasualConnectionException(cf.cause()));
                 }
