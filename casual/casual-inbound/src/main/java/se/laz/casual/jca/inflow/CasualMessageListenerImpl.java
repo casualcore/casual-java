@@ -145,11 +145,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     private boolean tpNoReplyOutOfProtocol(CasualNWMessage<CasualServiceCallRequestMessage> message, boolean serviceCallTransactional)
     {
         Flag<AtmiFlags> flags = message.getMessage().getXatmiFlags();
-        if(flags.isSet(AtmiFlags.TPNOREPLY) && serviceCallTransactional)
-        {
-            return true;
-        }
-        return false;
+        return flags.isSet(AtmiFlags.TPNOREPLY) && serviceCallTransactional;
     }
 
     private boolean isServiceCallTransactional( Xid xid )

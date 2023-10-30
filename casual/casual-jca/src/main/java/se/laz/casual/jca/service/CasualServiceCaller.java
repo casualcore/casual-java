@@ -61,7 +61,7 @@ public class CasualServiceCaller implements CasualServiceApi
         try
         {
             throwIfTpCallFlagsInvalid(serviceName, flags);
-            return tpacall(serviceName, data, flags).join().get();
+            return tpacall(serviceName, data, flags).join().orElseThrow(() -> new CasualConnectionException("result is missing, it should always be returned"));
         }
         catch (Exception e)
         {
