@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 public interface NetworkConnection
 {
     <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message);
-    <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> void requestNoReply(CasualNWMessage<X> message);
+    <X extends CasualNetworkTransmittable> void requestNoReply(CasualNWMessage<X> message);
 
     <X extends CasualNetworkTransmittable> void send(CasualNWMessage<X> message);
     CompletableFuture<CasualNWMessage<Request>> receive(UUID corrid);

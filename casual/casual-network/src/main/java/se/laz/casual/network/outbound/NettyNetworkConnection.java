@@ -170,14 +170,13 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message)
     {
         Optional<CompletableFuture<CasualNWMessage<T>>> value = issueRequest(message, false);
-        return value.get();
+        return value.orElseThrow(() -> new CasualConnectionException("missing future in reply - this should never happen!"));
     }
 
     @Override
-    public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> void requestNoReply(CasualNWMessage<X> message)
+    public <X extends CasualNetworkTransmittable> void requestNoReply(CasualNWMessage<X> message)
     {
-        Optional<CompletableFuture<CasualNWMessage<T>>> value = issueRequest(message, true);
-        value.ifPresent(casualNWMessageCompletableFuture -> casualNWMessageCompletableFuture.whenComplete((v, e) -> {
+        issueRequest(message, true).ifPresent(casualNWMessageCompletableFuture -> casualNWMessageCompletableFuture.whenComplete((v, e) -> {
             if (null != e) {
                 LOG.warning("requestNoReply: " + message + " error: " + e);
                 return;

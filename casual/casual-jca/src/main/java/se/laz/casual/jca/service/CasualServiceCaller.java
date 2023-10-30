@@ -77,17 +77,17 @@ public class CasualServiceCaller implements CasualServiceApi
         UUID corrId = UUID.randomUUID();
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
         Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, noReply);
-        maybeServiceReturnValue.ifPresent(casualNWMessageCompletableFuture -> {
+        maybeServiceReturnValue.ifPresent(casualNWMessageCompletableFuture ->
             casualNWMessageCompletableFuture.whenComplete((v, e) -> {
-                if (null != e) {
+                if (null != e)
+                {
                     LOG.finest(() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
                     f.completeExceptionally(e);
                     return;
                 }
                 LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
                 f.complete(Optional.of(toServiceReturn(v)));
-            });
-        });
+            }));
         if(noReply)
         {
             f.complete(Optional.empty());
