@@ -94,9 +94,7 @@ public final class CasualServiceCallWork implements Work
     {
         try
         {
-            ServiceHandler h = getHandler(message.getServiceName());
-            InboundRequest request = InboundRequest.of( message.getServiceName(), message.getServiceBuffer() );
-            h.invokeService( request );
+            callService();
         }
         catch( ServiceHandlerNotFoundException e)
         {
@@ -112,10 +110,7 @@ public final class CasualServiceCallWork implements Work
         CasualBuffer serviceResult = ServiceBuffer.empty();
         try
         {
-            ServiceHandler h = getHandler(message.getServiceName());
-
-            InboundRequest request = InboundRequest.of( message.getServiceName(), message.getServiceBuffer() );
-            InboundResponse reply = h.invokeService( request );
+            InboundResponse reply = callService();
             serviceResult = reply.getBuffer();
 
             replyBuilder
@@ -138,6 +133,13 @@ public final class CasualServiceCallWork implements Work
 
             response = replyMessage;
         }
+    }
+
+    private InboundResponse callService()
+    {
+        ServiceHandler h = getHandler(message.getServiceName());
+        InboundRequest request = InboundRequest.of( message.getServiceName(), message.getServiceBuffer() );
+        return h.invokeService( request );
     }
 
     ServiceHandler getHandler(String serviceName )

@@ -133,7 +133,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         {
             long startup = !isTpNoReply && isServiceCallTransactional( xid ) ?
                     workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
-                    workManager.startWork( work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener( channel, isTpNoReply ));
+                    workManager.startWork( work, WorkManager.INDEFINITE, null, (isTpNoReply ? null : new ServiceCallWorkListener( channel )));
             log.finest( ()->"Service call startup: "+ startup + "ms.");
         }
         catch (WorkException e)

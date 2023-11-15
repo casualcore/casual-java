@@ -261,7 +261,7 @@ class CasualMessageListenerImplTest extends Specification
        actualStartTimeout != null
        actualStartTimeout == WorkManager.INDEFINITE
        actualExecutionContext == null
-       actualWorkListener != null
+       actualWorkListener == null
     }
 
     def "ServiceCallRequest TPNOREPLY, transactional - out of protocol, call will be issued but non transactional"()
@@ -303,7 +303,7 @@ class CasualMessageListenerImplTest extends Specification
        actualStartTimeout != null
        actualStartTimeout == WorkManager.INDEFINITE
        actualExecutionContext == null
-       actualWorkListener != null
+       actualWorkListener == null
     }
 
     def "ServiceCallRequest startWork throws exception, wrapped and thrown."()
