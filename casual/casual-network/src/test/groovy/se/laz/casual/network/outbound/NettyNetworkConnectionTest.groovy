@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,10 +11,15 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import io.netty.channel.embedded.EmbeddedChannel
 import jakarta.enterprise.concurrent.ContextService
+import jakarta.enterprise.concurrent.ManagedExecutorService
+import se.laz.casual.api.buffer.type.CStringBuffer
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.conversation.Duplex
+import se.laz.casual.api.flags.AtmiFlags
+import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
+import se.laz.casual.api.xa.XID
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
@@ -24,12 +29,12 @@ import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.conversation.Request
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
+
+import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
 
-import jakarta.enterprise.concurrent.ManagedExecutorService
-
+import javax.transaction.xa.Xid
 import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
@@ -39,10 +44,12 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.function.Supplier
 
-
 class NettyNetworkConnectionTest extends Specification implements NetworkListener
 {
     @Shared UUID corrid = UUID.randomUUID()
+    @Shared byte[] gtrid = 'asdf' as byte[]
+    @Shared byte[] bqual = 'qwerty' as byte[]
+    @Shared Xid xid = XID.of(gtrid, bqual, 128)
     @Shared NettyNetworkConnection instance
     @Shared NettyConnectionInformation ci
     @Shared Correlator correlator
@@ -84,15 +91,30 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'ping ponging a domain discovery request message'()
     {
         setup:
-        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> m = createRequestMessage()
+        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> requestMessage = createDomainDiscoveryRequestMessage()
+        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> replyMessage = createDomainDiscoveryReplyMessage()
         when:
-        CompletableFuture<CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage>> f = instance.request(m)
-        channel.writeOneInbound(m)
-        CasualNWMessageImpl<CasualServiceCallReplyMessage> reply = f.get()
+        CompletableFuture<CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage>> f = instance.request(requestMessage)
+        channel.writeOneInbound(replyMessage)
+        CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> reply = f.get()
         then:
         noExceptionThrown()
         channel.outboundMessages().size() == 1
-        reply == m
+        reply == replyMessage
+    }
+
+    def 'tpacall TPNOREPLY'()
+    {
+       setup:
+       CasualNWMessageImpl<CasualServiceCallRequestMessage> requestMessage = createServiceCallRequestMessage(true, false)
+       when:
+       instance.requestNoReply(requestMessage)
+       then:
+       0 * correlator.complete(_)
+       0 * correlator.completeExceptionally(_)
+       0 * correlator.completeAllExceptionally(_)
+       noExceptionThrown()
+       channel.outboundMessages().size() == 1
     }
 
     def 'send conversation request message, no message is stored'()
@@ -210,14 +232,14 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
             networkError = true
         }
         def localInstance = new NettyNetworkConnection(ci, correlator, channel, Mock(ConversationMessageStorage), {Mock(ManagedExecutorService)}, Mock(ErrorInformer))
-        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> requestMessage = createRequestMessage()
+        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> requestMessage = createDomainDiscoveryRequestMessage()
         when:
         localInstance.request(requestMessage)
         then:
         networkError == true
     }
 
-    def createRequestMessage()
+    def createDomainDiscoveryRequestMessage()
     {
         CasualDomainDiscoveryRequestMessage message = CasualDomainDiscoveryRequestMessage.createBuilder()
                 .setExecution(UUID.randomUUID())
@@ -227,6 +249,34 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
                 .build()
         return CasualNWMessageImpl.of(corrid, message)
     }
+
+    def createDomainDiscoveryReplyMessage()
+    {
+       CasualDomainDiscoveryReplyMessage message = CasualDomainDiscoveryReplyMessage.of(UUID.randomUUID(), UUID.randomUUID(), 'test-domain')
+       return CasualNWMessageImpl.of(corrid, message)
+   }
+
+    def createServiceCallRequestMessage(boolean tpnoreply, boolean transactional)
+    {
+       ServiceBuffer buffer = ServiceBuffer.of(CStringBuffer.of('asdf'))
+       CasualServiceCallRequestMessage.Builder builder = CasualServiceCallRequestMessage.createBuilder()
+                .setExecution(UUID.randomUUID())
+                .setServiceName('test-service')
+                .setServiceBuffer(buffer)
+       if(tpnoreply)
+       {
+          builder.setXatmiFlags(Flag.of(AtmiFlags.TPNOREPLY))
+       }
+       if(transactional)
+       {
+          builder.setXid(xid)
+       }
+       else
+       {
+          builder.setXid(XID.NULL_XID)
+       }
+       return CasualNWMessageImpl.of(corrid, builder.build())
+   }
 
     def createReplyMessage()
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -13,6 +13,7 @@ import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.service.ServiceDetails;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -37,16 +38,21 @@ public interface CasualServiceApi
 
     /**
      * Async call
-     * Wraps up a call to tpcall in a worker thread
+     * Wraps up a call to tpacall in a worker thread
      *
      * Be aware to handle any exception when using get/join
+     *
+     * Note 1, if invoking tpacall with TPNOREPLY | TPNOTRAN - the result will be Optional.empty
+     * as a reply is not expected nor in any way handled.
+     *
+     * Note 2, TPNOREPLY is only allowed in conjunction with TPNOTRAN
      *
      * @param serviceName the name of the service to call.
      * @param data the data to send to the given service.
      * @param flags the atmi flags to send to the given service.
      * @return The future from which the result can be obtained
      */
-    CompletableFuture<ServiceReturn<CasualBuffer>> tpacall( String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
+    CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags);
 
     /**
      * Lookup if service exists

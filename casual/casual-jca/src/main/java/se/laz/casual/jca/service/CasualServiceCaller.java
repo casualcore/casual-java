@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -15,6 +15,7 @@ import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.ServiceReturnState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.config.ConfigurationService;
@@ -33,6 +34,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
@@ -58,7 +60,8 @@ public class CasualServiceCaller implements CasualServiceApi
     {
         try
         {
-            return tpacall(serviceName, data, flags).join();
+            throwIfTpCallFlagsInvalid(serviceName, flags);
+            return tpacall(serviceName, data, flags).join().orElseThrow(() -> new CasualConnectionException("result is missing, it should always be returned"));
         }
         catch (Exception e)
         {
@@ -67,23 +70,45 @@ public class CasualServiceCaller implements CasualServiceApi
     }
 
     @Override
-    public CompletableFuture<ServiceReturn<CasualBuffer>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        CompletableFuture<ServiceReturn<CasualBuffer>> f = new CompletableFuture<>();
+        throwIfTpacallFlagsInvalid(serviceName, flags);
+        CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> f = new CompletableFuture<>();
         UUID corrId = UUID.randomUUID();
-        CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> ff = makeServiceCall(corrId, serviceName, data, flags);
-        ff.whenComplete((v, e) ->
+        boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
+        Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, noReply);
+        maybeServiceReturnValue.ifPresent(casualNWMessageCompletableFuture ->
+            casualNWMessageCompletableFuture.whenComplete((v, e) -> {
+                if (null != e)
+                {
+                    LOG.finest(() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
+                    f.completeExceptionally(e);
+                    return;
+                }
+                LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
+                f.complete(Optional.of(toServiceReturn(v)));
+            }));
+        if(noReply)
         {
-            if (null != e)
-            {
-                LOG.finest(() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
-                f.completeExceptionally(e);
-                return;
-            }
-            LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
-            f.complete(toServiceReturn(v));
-        });
+            f.complete(Optional.empty());
+        }
         return f;
+    }
+
+    private void throwIfTpCallFlagsInvalid(String serviceName, Flag<AtmiFlags> flags)
+    {
+        if(flags.isSet(AtmiFlags.TPNOREPLY))
+        {
+            throw new CasualProtocolException("tpCall to: + " + serviceName + " with TPNOREPLY - not allowed, should use tpacall");
+        }
+    }
+
+    private void throwIfTpacallFlagsInvalid(String serviceName, Flag<AtmiFlags> flags)
+    {
+        if(flags.isSet(AtmiFlags.TPNOREPLY) && !flags.isSet(AtmiFlags.TPNOTRAN))
+        {
+            throw new CasualProtocolException("tpacall to: " + serviceName + " with TPNOREPLY but missing TPNOTRAN - not allowed");
+        }
     }
 
     @Override
@@ -119,7 +144,7 @@ public class CasualServiceCaller implements CasualServiceApi
         return serviceDetailsList;
     }
 
-    private CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, boolean noReply)
     {
         Duration timeout = Duration.of(connection.getTransactionTimeout(), ChronoUnit.SECONDS);
         CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
@@ -131,7 +156,12 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setXatmiFlags(flags).build();
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
         LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
-        return connection.getNetworkConnection().request(serviceRequestNetworkMessage);
+        if(noReply)
+        {
+            connection.getNetworkConnection().requestNoReply(serviceRequestNetworkMessage);
+            return Optional.empty();
+        }
+        return Optional.of(connection.getNetworkConnection().request(serviceRequestNetworkMessage));
     }
 
     private CasualNWMessage<CasualDomainDiscoveryReplyMessage> serviceDiscovery(UUID corrid, String serviceName)
