@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -56,7 +56,6 @@ class CasualServiceCallerTest extends Specification
     @Shared mcf
     @Shared ra
     @Shared workManager
-    @Shared json = '{"hello":"world"}'
 
     def setup()
     {
@@ -208,15 +207,25 @@ class CasualServiceCallerTest extends Specification
         expect actualServiceRequest, matching( expectedServiceRequest )
     }
 
+    def "Tpcall with TPNOREPLY - exceptional"()
+    {
+       when:
+       instance.tpcall( serviceName, message, Flag.of( AtmiFlags.TPNOREPLY))
+       then:
+       def e = thrown(CasualConnectionException)
+       e.cause.class == CasualProtocolException.class
+    }
+
     def "Tpacall service is available performs service call and returns result of service call."()
     {
         when:
-        ServiceReturn<CasualBuffer> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG)).get()
+        Optional<ServiceReturn<CasualBuffer>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG)).get()
 
         then:
         noExceptionThrown()
         result != null
-        result.getServiceReturnState() == ServiceReturnState.TPSUCCESS
+        result.isPresent()
+        result.get().getServiceReturnState() == ServiceReturnState.TPSUCCESS
 
         1 * networkConnection.request( _ ) >> {
             CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
@@ -227,10 +236,30 @@ class CasualServiceCallerTest extends Specification
         expect actualServiceRequest, matching( expectedServiceRequest )
     }
 
+   def "Tpacall service is available, flags are TPNOREPLY but missing TPNOTRAN"()
+   {
+      when:
+      instance.tpacall( serviceName, message, Flag.of( AtmiFlags.TPNOREPLY)).get()
+
+      then:
+      thrown(CasualProtocolException)
+   }
+
+   def "Tpacall service is available, flags are TPNOREPLY and TPNOTRAN"()
+   {
+      when:
+      Optional<ServiceReturn<CasualBuffer>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.TPNOREPLY).setFlag (AtmiFlags.TPNOTRAN)).get()
+
+      then:
+      noExceptionThrown()
+      result != null
+      result.isPresent() == false
+   }
+
     def 'tpacall fails'()
     {
         when:
-        CompletableFuture<ServiceReturn<CasualBuffer>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
+        CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG))
         then:
         noExceptionThrown()
         result.isCompletedExceptionally()

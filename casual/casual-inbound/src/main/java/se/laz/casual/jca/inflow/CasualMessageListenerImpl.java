@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,9 +7,12 @@
 package se.laz.casual.jca.inflow;
 
 import io.netty.channel.Channel;
+import se.laz.casual.api.flags.AtmiFlags;
+import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.XAFlags;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.service.ServiceInfo;
+import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.api.xa.XAReturnCode;
 import se.laz.casual.api.xa.XID;
 import se.laz.casual.config.ConfigurationService;
@@ -114,21 +117,35 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     {
         log.finest( "serviceCallRequest()." );
 
-        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() );
-
         Xid xid = message.getMessage().getXid();
+        if(tpNoReplyOutOfProtocol( message, isServiceCallTransactional( xid )))
+        {
+            log.warning(() ->{
+                String casualMessageInfo = String.format("xid: %s, correlation: %s, execution: %s",PrettyPrinter.casualStringify(message.getMessage().getXid()),
+                        PrettyPrinter.casualStringify(message.getCorrelationId()), PrettyPrinter.casualStringify(message.getMessage().getExecution()));
+                return "For message: " + message + " TPNOREPLY is set but the call is transactional. It is out of protocol so call will be issued but non transactional\n" + casualMessageInfo;
+            });
+        }
+        boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
+        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply);
 
         try
         {
-            long startup = isServiceCallTransactional( xid ) ?
+            long startup = !isTpNoReply && isServiceCallTransactional( xid ) ?
                     workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
-                    workManager.startWork( work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener( channel ));
+                    workManager.startWork( work, WorkManager.INDEFINITE, null, (isTpNoReply ? null : new ServiceCallWorkListener( channel )));
             log.finest( ()->"Service call startup: "+ startup + "ms.");
         }
         catch (WorkException e)
         {
             throw new CasualResourceAdapterException( "Error starting work.", e );
         }
+    }
+
+    private boolean tpNoReplyOutOfProtocol(CasualNWMessage<CasualServiceCallRequestMessage> message, boolean serviceCallTransactional)
+    {
+        Flag<AtmiFlags> flags = message.getMessage().getXatmiFlags();
+        return flags.isSet(AtmiFlags.TPNOREPLY) && serviceCallTransactional;
     }
 
     private boolean isServiceCallTransactional( Xid xid )

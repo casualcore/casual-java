@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -31,6 +31,7 @@ import java.nio.charset.StandardCharsets
 class CasualServiceCallWorkTest extends Specification
 {
     @Shared CasualServiceCallWork instance
+    @Shared CasualServiceCallWork instanceTPNOREPLY
     @Shared UUID correlationId
     @Shared CasualServiceCallRequestMessage message
 
@@ -73,6 +74,9 @@ class CasualServiceCallWorkTest extends Specification
 
         instance = new CasualServiceCallWork( correlationId, message )
         instance.setHandler( handler )
+
+        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true )
+        instanceTPNOREPLY.setHandler( handler )
     }
 
     def "Get header."()
@@ -178,6 +182,26 @@ class CasualServiceCallWorkTest extends Specification
 
         actualRequest.getServiceName() == jndiServiceName
         actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
+    }
+
+    def "Call Service, TPNOREPLY, with buffer - there should be no reply"()
+    {
+       given:
+       InboundRequest actualRequest = null
+       InboundResponse response = InboundResponse.createBuilder().buffer( buffer).build()
+       1 * handler.invokeService( _ as InboundRequest ) >> { InboundRequest request ->
+          actualRequest = request
+          return response
+       }
+
+       when:
+       instanceTPNOREPLY.run()
+       CasualNWMessage<CasualServiceCallReplyMessage> reply = instanceTPNOREPLY.getResponse()
+
+       then:
+       reply == null
+       actualRequest.getServiceName() == jndiServiceName
+       actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
     }
 
     def "Release does nothing."()

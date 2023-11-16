@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 public interface NetworkConnection
 {
     <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message);
+    <X extends CasualNetworkTransmittable> void requestNoReply(CasualNWMessage<X> message);
 
     <X extends CasualNetworkTransmittable> void send(CasualNWMessage<X> message);
     CompletableFuture<CasualNWMessage<Request>> receive(UUID corrid);

@@ -32,10 +32,9 @@ import se.laz.casual.network.protocol.messages.conversation.Request;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage;
-
-import javax.enterprise.concurrent.ManagedExecutorService;
 import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpdateMessage;
 
+import javax.enterprise.concurrent.ManagedExecutorService;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -170,35 +169,20 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> CompletableFuture<CasualNWMessage<T>> request(CasualNWMessage<X> message)
     {
-        if(hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(message))
-        {
-            // new service calls are not ok when domain has been disconnected
-            throw new DomainDisconnectedException("Domain: " + domainId + " has disconnected, no service or queue calls allowed");
-        }
-        LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
-        CompletableFuture<CasualNWMessage<T>> f = new CompletableFuture<>();
-        if(!channel.isActive())
-        {
-            LOG.finest("channel not active, connection gone");
-            f.completeExceptionally(new CasualConnectionException("can not write msg: " + message + " connection is gone"));
-            return f;
-        }
-        correlator.put(message.getCorrelationId(), f);
-        ChannelFuture cf = channel.writeAndFlush(message);
-        //this handles any exceptional behaviour when writing
-        cf.addListener(v -> {
-            if(!v.isSuccess()){
-                List<UUID> l = new ArrayList<>();
-                l.add(message.getCorrelationId());
-                LOG.finest(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
-                // This since all outstanding requests may already have been completed exceptionally
-                if(!f.isCompletedExceptionally())
-                {
-                    correlator.completeExceptionally(l, new CasualConnectionException(cf.cause()));
-                }
-            }// successful correlation is done in CasualMessageHandler
-        });
-        return f;
+        Optional<CompletableFuture<CasualNWMessage<T>>> value = issueRequest(message, false);
+        return value.orElseThrow(() -> new CasualConnectionException("missing future in reply - this should never happen!"));
+    }
+
+    @Override
+    public <X extends CasualNetworkTransmittable> void requestNoReply(CasualNWMessage<X> message)
+    {
+        issueRequest(message, true).ifPresent(casualNWMessageCompletableFuture -> casualNWMessageCompletableFuture.whenComplete((v, e) -> {
+            if (null != e) {
+                LOG.warning("requestNoReply: " + message + " error: " + e);
+                return;
+            }
+            LOG.warning("requestNoReply: " + message + " got reply: " + v);
+        }));
     }
 
     @Override
@@ -239,6 +223,47 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         connected.set(false);
         LOG.finest(() -> this + " network connection close called by appserver, closing");
         channel.close();
+    }
+
+    private <X extends CasualNetworkTransmittable> void preRequest(CasualNWMessage<X> message)
+    {
+        if(hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(message))
+        {
+            // new service calls are not ok when domain has been disconnected
+            throw new DomainDisconnectedException("Domain: " + domainId + " has disconnected, no service or queue calls allowed");
+        }
+        LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
+    }
+
+    private <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> Optional<CompletableFuture<CasualNWMessage<T>>> issueRequest(CasualNWMessage<X> message, boolean noReply)
+    {
+        preRequest(message);
+        CompletableFuture<CasualNWMessage<T>> f = new CompletableFuture<>();
+        if(!channel.isActive())
+        {
+            LOG.finest("channel not active, connection gone");
+            f.completeExceptionally(new CasualConnectionException("can not write msg: " + message + " connection is gone"));
+            return noReply ? Optional.empty() : Optional.of(f);
+        }
+        if(!noReply)
+        {
+            correlator.put(message.getCorrelationId(), f);
+        }
+        ChannelFuture cf = channel.writeAndFlush(message);
+        //this handles any exceptional behaviour when writing
+        cf.addListener(v -> {
+            if(!v.isSuccess()){
+                List<UUID> l = new ArrayList<>();
+                l.add(message.getCorrelationId());
+                LOG.finest(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
+                // This since all outstanding requests may already have been completed exceptionally
+                // when no reply - nobody is listening Dave
+                if(!f.isCompletedExceptionally() && !noReply) {
+                    correlator.completeExceptionally(l, new CasualConnectionException(cf.cause()));
+                }
+            }// successful correlation is done in CasualMessageHandler
+        });
+        return noReply ? Optional.empty() : Optional.of(f);
     }
 
     private <T extends CasualNetworkTransmittable> boolean hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(CasualNWMessage<T> message)
