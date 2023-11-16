@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -34,6 +34,7 @@ public final class CasualServiceCallWork implements Work
     private final CasualServiceCallRequestMessage message;
 
     private final UUID correlationId;
+    private final boolean isTpNoReply;
 
     private CasualNWMessage<CasualServiceCallReplyMessage> response;
 
@@ -41,8 +42,14 @@ public final class CasualServiceCallWork implements Work
 
     public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message )
     {
+        this(correlationId, message, false);
+    }
+
+    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply)
+    {
         this.correlationId = correlationId;
         this.message = message;
+        this.isTpNoReply = isTpNoReply;
     }
 
     public CasualServiceCallRequestMessage getMessage()
@@ -73,17 +80,37 @@ public final class CasualServiceCallWork implements Work
     @Override
     public void run()
     {
-        CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
-                .setXid( message.getXid() )
-                .setExecution( message.getExecution() );
+        if(isTpNoReply)
+        {
+            issueCallNoReply();
+        }
+        else
+        {
+            issueCall();
+        }
+    }
 
+    private void issueCallNoReply()
+    {
+        try
+        {
+            callService();
+        }
+        catch( ServiceHandlerNotFoundException e)
+        {
+            log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
+        }
+    }
+
+    private void issueCall()
+    {
+        CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
+                                                                                          .setXid( message.getXid() )
+                                                                                          .setExecution( message.getExecution() );
         CasualBuffer serviceResult = ServiceBuffer.empty();
         try
         {
-            ServiceHandler h = getHandler(message.getServiceName());
-
-            InboundRequest request = InboundRequest.of( message.getServiceName(), message.getServiceBuffer() );
-            InboundResponse reply = h.invokeService( request );
+            InboundResponse reply = callService();
             serviceResult = reply.getBuffer();
 
             replyBuilder
@@ -94,7 +121,7 @@ public final class CasualServiceCallWork implements Work
         catch( ServiceHandlerNotFoundException e )
         {
             replyBuilder.setError( ErrorState.TPENOENT )
-                    .setTransactionState( TransactionState.ROLLBACK_ONLY );
+                        .setTransactionState( TransactionState.ROLLBACK_ONLY );
             log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
         }
         finally
@@ -106,6 +133,13 @@ public final class CasualServiceCallWork implements Work
 
             response = replyMessage;
         }
+    }
+
+    private InboundResponse callService()
+    {
+        ServiceHandler h = getHandler(message.getServiceName());
+        InboundRequest request = InboundRequest.of( message.getServiceName(), message.getServiceBuffer() );
+        return h.invokeService( request );
     }
 
     ServiceHandler getHandler(String serviceName )
