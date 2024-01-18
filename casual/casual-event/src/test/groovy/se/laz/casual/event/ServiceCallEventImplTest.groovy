@@ -15,7 +15,7 @@ class ServiceCallEventImplTest extends Specification
    def 'identity'()
    {
       when:
-      ServiceCallEventImpl firstEntry = createEntry([service:'service one', parent:'Elvira', pid: 13245, execution: UUID.randomUUID(), transactionId: Mock(Xid), start: 1, end: 42, pending: 0, code: 0, order: Order.SEQUENTIAL])
+      ServiceCallEventImpl firstEntry = createEntry([service:'service one', parent:'Elvira', pid: 13245, execution: UUID.randomUUID(), transactionId: Mock(Xid), start: 1, end: 42, pending: 0, code: ErrorState.OK.value, order: Order.SEQUENTIAL])
       ServiceCallEventImpl secondEntry = createEntry([service:'service two', parent:'Elvis', pid: 132456, execution: UUID.randomUUID(), transactionId: Mock(Xid), start: 43, end: 142, pending: 14, code: ErrorState.TPENOENT.value, order: Order.CONCURRENT])
       then:
       firstEntry == firstEntry
