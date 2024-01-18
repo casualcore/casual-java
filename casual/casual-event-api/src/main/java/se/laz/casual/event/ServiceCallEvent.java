@@ -22,37 +22,33 @@ public interface ServiceCallEvent
     /**
      * @return The process id of the invoked instance
      */
-    int getPID();
+    int getProcessId();
     /**
      * @return The unique execution id, like breadcrumbs
      */
     UUID getExecution();
-    /*
-     * The transaction id
+    /**
+     * @return The transaction id
      */
-    Xid getTrid();
-    /*
-     * When service was invoked,
-     * milliseconds since epoch
+    Xid getTransactionId();
+    /**
+     * @return When the service was invoked, in milliseconds since epoch
      */
     long getStart();
-    /*
-     * When service was done,
-     * milliseconds since epoch
+    /**
+     * @return When the service was started, in milliseconds since epoch
      */
     long getEnd();
-    /*
-     * How long caller had to wait - in milliseconds
+    /**
+     * @return How long caller had to wait - in milliseconds
      */
     long getPending();
-    /*
-     * Outcome of the service call if ok,
-     * if not - the error reported from the service
+    /**
+     * @return Outcome of the service call if ok, if not - the error reported from the service
      */
     int getCode();
-    /*
-     * Order of the service - sequential or concurrent denoted by s or c.
-     * s reserves a process, c does not.
+    /**
+     * @return Order of the service - sequential or concurrent denoted by s or c, s reserves a process, c does not.
      */
     Order getOrder();
 }

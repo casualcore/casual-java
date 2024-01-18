@@ -14,20 +14,20 @@ public class ServiceCallEventImpl implements ServiceCallEvent
 {
     private final String service;
     private final String parent;
-    private int pid;
+    private final int processId;
     private final UUID execution;
     private final Xid transactionId;
-    private long start;
-    private long end;
-    private long pending;
-    private int code;
-    private Order order;
+    private final long start;
+    private final long end;
+    private final long pending;
+    private final int code;
+    private final Order order;
 
     private ServiceCallEventImpl(Builder builder)
     {
         service = builder.service;
         parent = builder.parent;
-        pid = builder.pid;
+        processId = builder.processId;
         execution = builder.execution;
         transactionId = builder.transactionId;
         start = builder.start;
@@ -50,9 +50,9 @@ public class ServiceCallEventImpl implements ServiceCallEvent
     }
 
     @Override
-    public int getPID()
+    public int getProcessId()
     {
-        return pid;
+        return processId;
     }
 
     @Override
@@ -62,7 +62,7 @@ public class ServiceCallEventImpl implements ServiceCallEvent
     }
 
     @Override
-    public Xid getTrid()
+    public Xid getTransactionId()
     {
         return transactionId;
     }
@@ -106,7 +106,7 @@ public class ServiceCallEventImpl implements ServiceCallEvent
     {
         private String service;
         private String parent;
-        private int pid;
+        private int processId;
         private UUID execution;
         private Xid transactionId;
         private long start;
@@ -127,9 +127,9 @@ public class ServiceCallEventImpl implements ServiceCallEvent
             return this;
         }
 
-        public Builder withPid(int pid)
+        public Builder withPid(int processId)
         {
-            this.pid = pid;
+            this.processId = processId;
             return this;
         }
 
@@ -193,12 +193,12 @@ public class ServiceCallEventImpl implements ServiceCallEvent
             return false;
         }
         ServiceCallEventImpl that = (ServiceCallEventImpl) o;
-        return getPID() == that.getPID() && getStart() == that.getStart() && getEnd() == that.getEnd() && getPending() == that.getPending() && getCode() == that.getCode() && Objects.equals(getService(), that.getService()) && Objects.equals(getParent(), that.getParent()) && Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getTrid(), that.getTrid()) && getOrder() == that.getOrder();
+        return getProcessId() == that.getProcessId() && getStart() == that.getStart() && getEnd() == that.getEnd() && getPending() == that.getPending() && getCode() == that.getCode() && Objects.equals(getService(), that.getService()) && Objects.equals(getParent(), that.getParent()) && Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getTransactionId(), that.getTransactionId()) && getOrder() == that.getOrder();
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getService(), getParent(), getPID(), getExecution(), getTrid(), getStart(), getEnd(), getPending(), getCode(), getOrder());
+        return Objects.hash(getService(), getParent(), getProcessId(), getExecution(), getTransactionId(), getStart(), getEnd(), getPending(), getCode(), getOrder());
     }
 }
