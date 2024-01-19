@@ -13,13 +13,13 @@ plugins {
 defaultTasks 'build'
 
 dependencies {
-    api project(':casual:casual-api')
     api project(':casual:casual-event-api')
     compileOnly libs.javaee_api
 
     testImplementation libs.javaee_api
 
     // for spock
+    testImplementation project(':casual:casual-api')
     testImplementation platform(libs.groovy_bom)
     testImplementation libs.groovy
     testImplementation platform(libs.spock_bom)

@@ -13,7 +13,6 @@ plugins {
 defaultTasks 'build'
 
 dependencies {
-    api project(':casual:casual-api')
     compileOnly libs.javaee_api
 
     testImplementation libs.javaee_api

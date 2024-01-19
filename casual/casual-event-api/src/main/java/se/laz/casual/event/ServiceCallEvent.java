@@ -9,6 +9,9 @@ import javax.transaction.xa.Xid;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Metrics for one service call
+ */
 public interface ServiceCallEvent
 {
     /**
@@ -32,15 +35,15 @@ public interface ServiceCallEvent
      */
     Xid getTransactionId();
     /**
-     * @return When the service was invoked, in milliseconds since epoch
+     * @return When the service was invoked, in microseconds since epoch
      */
     long getStart();
     /**
-     * @return When the service was started, in milliseconds since epoch
+     * @return When the service was started, in microseconds since epoch
      */
     long getEnd();
     /**
-     * @return How long caller had to wait - in milliseconds
+     * @return How long caller had to wait - in microseconds
      */
     long getPending();
     /**
