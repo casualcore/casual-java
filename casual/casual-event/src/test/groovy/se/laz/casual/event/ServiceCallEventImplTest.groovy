@@ -3,9 +3,9 @@
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
+
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.event.Order
-import se.laz.casual.event.ServiceCallEvent
 import se.laz.casual.event.ServiceCallEventImpl
 import spock.lang.Specification
 
@@ -45,6 +45,9 @@ class ServiceCallEventImplTest extends Specification
       firstEntry == firstEntry
       firstEntry != secondEntry
 
+      firstEntry.hashCode() == firstEntry.hashCode()
+      firstEntry.hashCode() != secondEntry.hashCode()
+
       firstEntry.getService() == firstService
       firstEntry.getParent().get() == firstParent
       firstEntry.getProcessId() == firstPid
@@ -66,22 +69,6 @@ class ServiceCallEventImplTest extends Specification
       secondEntry.getPending() == secondPending
       secondEntry.getCode() == secondCode
       secondEntry.getOrder() == secondOrder
-   }
-
-   def 'hashcode'()
-    {
-      given:
-      ServiceCallEventImpl firstEntry = createEntry([service: firstService, parent: firstParent, pid: firstPid, execution: firstExecution, transactionId: firstTransactionId, start: firstStart, end: firstEnd, pending: firstPending, code: firstCode, order: firstOrder])
-      ServiceCallEventImpl secondEntry = createEntry([service: secondService, parent: secondParent, pid: secondPid, execution: secondExecution, transactionId: secondTransactionId, start: secondStart, end: secondEnd, pending: secondPending, code: secondCode, order: secondOrder])
-      when:
-      Map<ServiceCallEvent, Boolean> map = new HashMap<>()
-      map.put(firstEntry, true)
-      map.put(secondEntry, false)
-      then:
-      firstEntry == firstEntry
-      firstEntry != secondEntry
-      map.get(firstEntry) == true
-      map.get(secondEntry) == false
    }
 
    def createEntry(data)
