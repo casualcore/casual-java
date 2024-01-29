@@ -20,6 +20,8 @@ import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
+import se.laz.casual.event.EventInformation;
+import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
@@ -61,7 +63,7 @@ public class CasualServiceCaller implements CasualServiceApi
         try
         {
             throwIfTpCallFlagsInvalid(serviceName, flags);
-            return tpacall(serviceName, data, flags).join().orElseThrow(() -> new CasualConnectionException("result is missing, it should always be returned"));
+            return issueAsyncCall(serviceName, data, flags, ServiceCallType.TPCALL).join().orElseThrow(() -> new CasualConnectionException("result is missing, it should always be returned"));
         }
         catch (Exception e)
         {
@@ -73,21 +75,27 @@ public class CasualServiceCaller implements CasualServiceApi
     public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         throwIfTpacallFlagsInvalid(serviceName, flags);
+        return issueAsyncCall(serviceName, data, flags, ServiceCallType.TPACALL);
+    }
+
+    private CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> issueAsyncCall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ServiceCallType callType)
+    {
         CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> f = new CompletableFuture<>();
         UUID corrId = UUID.randomUUID();
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
+
         Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, noReply);
         maybeServiceReturnValue.ifPresent(casualNWMessageCompletableFuture ->
-            casualNWMessageCompletableFuture.whenComplete((v, e) -> {
-                if (null != e)
-                {
-                    LOG.finest(() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
-                    f.completeExceptionally(e);
-                    return;
-                }
-                LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
-                f.complete(Optional.of(toServiceReturn(v)));
-            }));
+                casualNWMessageCompletableFuture.whenComplete((v, e) -> {
+                    if (null != e)
+                    {
+                        LOG.finest(() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
+                        f.completeExceptionally(e);
+                        return;
+                    }
+                    LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
+                    f.complete(Optional.of(toServiceReturn(v)));
+                }));
         if(noReply)
         {
             f.complete(Optional.empty());
@@ -156,6 +164,7 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setXatmiFlags(flags).build();
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
         LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
+
         if(noReply)
         {
             connection.getNetworkConnection().requestNoReply(serviceRequestNetworkMessage);
