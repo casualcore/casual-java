@@ -28,12 +28,12 @@ public final class PrettyPrinter
         return String.format("%x%x", uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
     }
 
-    public static String print(UUID correlationId, UUID execution)
+    public static String format(UUID correlationId, UUID execution)
     {
         return String.format("correlation: %s, execution: %s\n", PrettyPrinter.casualStringify(correlationId), PrettyPrinter.casualStringify(execution));
     }
 
-    public static String print(UUID correlationId, UUID execution, Xid xid)
+    public static String format(UUID correlationId, UUID execution, Xid xid)
     {
         return String.format("correlation: %s, execution: %s, xid: %s\n", PrettyPrinter.casualStringify(correlationId), PrettyPrinter.casualStringify(execution), PrettyPrinter.casualStringify(xid));
     }
