@@ -86,7 +86,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel)
     {
-        log.finest(() -> "domainDiscoveryRequest()." + PrettyPrinter.print(message.getCorrelationId(), message.getMessage().getExecution()) + message);
+        log.finest(() -> "domainDiscoveryRequest(). " + PrettyPrinter.print(message.getCorrelationId(), message.getMessage().getExecution()) + message);
 
         Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
         CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), domain.getId(), domain.getName() );
@@ -116,7 +116,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager )
     {
-        log.finest(() -> "serviceCallRequest()." + PrettyPrinter.print(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
+        log.finest(() -> "serviceCallRequest(). " + PrettyPrinter.print(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
 
         Xid xid = message.getMessage().getXid();
         if(tpNoReplyOutOfProtocol( message, isServiceCallTransactional( xid )))
@@ -176,7 +176,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
-        log.finest(() ->  "prepareRequest()." + PrettyPrinter.print(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
+        log.finest(() ->  "prepareRequest(). " + PrettyPrinter.print(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
 
         Xid xid = message.getMessage().getXid();
         int status = -1;
@@ -208,7 +208,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
-        log.finest(() -> "commitRequest()." + PrettyPrinter.print(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
+        log.finest(() -> "commitRequest(). " + PrettyPrinter.print(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
 
         Xid xid = message.getMessage().getXid();
         boolean onePhase = message.getMessage().getFlags().isSet( XAFlags.TMONEPHASE );
@@ -221,7 +221,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         } catch (XAException e)
         {
             status = e.errorCode;
-            log.log( Level.WARNING, e, ()-> "XAExcception commit()" + e.getMessage() );
+            log.log( Level.WARNING, e, ()-> "XAException commit()" + e.getMessage() );
         }
         finally
         {
@@ -240,7 +240,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
-        log.finest(() -> "requestRollback()." + PrettyPrinter.print(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
+        log.finest(() -> "requestRollback(). " + PrettyPrinter.print(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
 
         Xid xid = message.getMessage().getXid();
 
