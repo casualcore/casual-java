@@ -7,9 +7,9 @@
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '2.2.25'
+version = '2.2.26'
 
-def netty_version = '4.1.100.Final'
+def netty_version = '4.1.106.Final'
 def gson_version = '2.10.1'
 
 ext.libs = [
