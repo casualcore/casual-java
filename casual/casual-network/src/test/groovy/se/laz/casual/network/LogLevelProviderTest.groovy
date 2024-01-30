@@ -27,10 +27,11 @@ class LogLevelProviderTest extends Specification
       // note: only need to test the entire set - once
       envVarName                                     || envVarValue                        || expectedLevel
       'CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL'   || null                               || LogLevel.INFO
+      'CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL'   || ""                                 || LogLevel.INFO
       'CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL'   || ExternalLogLevel.INFO.level        || LogLevel.INFO
       'CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL'   || ExternalLogLevel.WARN.level        || LogLevel.WARN
-      'CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL'   || ExternalLogLevel.TRACE.level        || LogLevel.TRACE
-      'CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL'   || ExternalLogLevel.DEBUG.level        || LogLevel.DEBUG
-      'CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL'   || ExternalLogLevel.ERROR.level        || LogLevel.ERROR
+      'CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL'   || ExternalLogLevel.TRACE.level       || LogLevel.TRACE
+      'CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL'   || ExternalLogLevel.DEBUG.level       || LogLevel.DEBUG
+      'CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL'   || ExternalLogLevel.ERROR.level       || LogLevel.ERROR
    }
 }

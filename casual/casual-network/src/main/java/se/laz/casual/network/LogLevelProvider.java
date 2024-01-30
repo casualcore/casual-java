@@ -21,7 +21,17 @@ public final class LogLevelProvider
 
     public static LogLevel getOrDefault(String envName)
     {
-        ExternalLogLevel externalLogLevel = ExternalLogLevel.unmarshall(Optional.ofNullable(System.getenv(envName)).orElse(DEFAULT_LOGGING_LEVEL));
+        ExternalLogLevel externalLogLevel = ExternalLogLevel.unmarshall(Optional.ofNullable(getEnv(envName)).orElse(DEFAULT_LOGGING_LEVEL));
         return LogLevelMapper.map(externalLogLevel);
+    }
+
+    private static String getEnv(String envName)
+    {
+        String value = System.getenv(envName);
+        if(null != value && value.isEmpty())
+        {
+            value = null;
+        }
+        return value;
     }
 }
