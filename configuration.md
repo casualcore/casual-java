@@ -6,8 +6,11 @@ Casual supports the following configuration options which can be set using envir
 * `CASUAL_FIELD_TABLE` - Set path for fielded buffer definition. Mandatory.
 * `CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER` - Enable logging for outbound network. Default `false`.
 * `CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER` - Enable logging for inbound network. Default `false`.
+* `CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER` - Enable logging for reverse inbound network. Default `false`.
+* `CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL` - The logging level for the outbound logging handler. Default `INFO` - see below for more information regarding available levels.
+* `CASUAL_INBOUND_NETTY_LOGGING_LEVEL` - The logging level for the inbound logging handler. Default `INFO` - see below for more information regarding available levels.
+* `CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL` - The logging level for the reverse inbound logging handler. Default `INFO` - see below for more information regarding available levels.
 * `CASUAL_DOMAIN_NAME` - Set name for the domain/app server. Default empty (`""`).
-
 * `CASUAL_CONFIG_FILE` - Set path for casual configuration file. If not provided, default are used.
 * `CASUAL_INBOUND_STARTUP_MODE` - Set mode for inbound startup. Default `immediate`. Alternatives `trigger`, `discover`.
     See [Inbound Startup Configuration](inbound.md#startup-configuration) for more details.
@@ -20,6 +23,17 @@ However, if some configuration is missing from the configuration file but has a 
 
 If `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS` is configured then it will always delay the startup by that amount of seconds regardless of startup mode.
 That is - discovery is not running concurrently and the delay is always executed after any potential discovery.
+
+Netty logging level defaults to `INFO`.
+The available levels are:
+* `INFO`
+* `DEBUG`
+* `WARN`
+* `TRACE`
+* `ERROR`
+
+
+
 
 ## Casual Config File
 
