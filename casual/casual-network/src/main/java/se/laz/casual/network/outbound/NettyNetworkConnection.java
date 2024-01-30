@@ -134,7 +134,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                     if(enableLogHandler)
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.OUTBOUND_LOGGING_LEVEL));
-                        LOG.info(() -> "outbound network log handler enabled");
+                        LOG.info(() -> "outbound network log handler enabled, using netty logging level: " + LogLevelProvider.OUTBOUND_LOGGING_LEVEL);
                     }
                 }
             });

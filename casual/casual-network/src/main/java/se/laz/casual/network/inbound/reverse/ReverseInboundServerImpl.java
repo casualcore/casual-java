@@ -81,7 +81,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
                         if(enableLogHandler)
                         {
                             ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.REVERSE_LOGGING_LEVEL));
-                            LOG.info(() -> "reverse inbound log handler enabled");
+                            LOG.info(() -> "reverse inbound log handler enabled, using netty logging level: " + LogLevelProvider.REVERSE_LOGGING_LEVEL);
                         }
                     }
                 });

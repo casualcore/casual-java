@@ -24,15 +24,19 @@ However, if some configuration is missing from the configuration file but has a 
 If `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS` is configured then it will always delay the startup by that amount of seconds regardless of startup mode.
 That is - discovery is not running concurrently and the delay is always executed after any potential discovery.
 
-Netty logging level defaults to `INFO`.
-The available levels are:
+Netty network log handler logging level defaults to `INFO` if not set or set to the empty string.
+
+The available log levels are:
+* `ERROR`
+* `WARN`
 * `INFO`
 * `DEBUG`
-* `WARN`
 * `TRACE`
-* `ERROR`
 
 
+Note, the level you set needs to be equal to or less than the level set to the package `io.netty`.
+For instance, with logging level for the package `io.netty` set to `DEBUG` and `CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL` also set to `DEBUG`, that will work.
+Using level `INFO` will also work where as `TRACE` would not in this case.
 
 
 ## Casual Config File

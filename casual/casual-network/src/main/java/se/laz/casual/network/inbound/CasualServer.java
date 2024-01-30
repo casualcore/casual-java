@@ -63,7 +63,7 @@ public final class CasualServer
                     if(enableLogHandler)
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.INBOUND_LOGGING_LEVEL));
-                        log.info(() -> "inbound network log handler enabled");
+                        log.info(() -> "inbound network log handler enabled, using netty logging level: " + LogLevelProvider.INBOUND_LOGGING_LEVEL);
                     }
                 }
             }).childOption(ChannelOption.SO_KEEPALIVE, true);
