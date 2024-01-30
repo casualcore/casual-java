@@ -7,6 +7,13 @@
 package se.laz.casual.jca.inflow;
 
 import io.netty.channel.Channel;
+import jakarta.ejb.ActivationConfigProperty;
+import jakarta.ejb.MessageDriven;
+import jakarta.resource.NotSupportedException;
+import jakarta.resource.spi.XATerminator;
+import jakarta.resource.spi.work.TransactionContext;
+import jakarta.resource.spi.work.WorkException;
+import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.flags.XAFlags;
@@ -36,13 +43,6 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackReplyMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
-import jakarta.ejb.ActivationConfigProperty;
-import jakarta.ejb.MessageDriven;
-import jakarta.resource.NotSupportedException;
-import jakarta.resource.spi.XATerminator;
-import jakarta.resource.spi.work.TransactionContext;
-import jakarta.resource.spi.work.WorkException;
-import jakarta.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.Xid;
 import java.time.Duration;
@@ -69,7 +69,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel)
     {
-        log.finest( "domainConnectRequest()." );
+        log.finest(() -> "domainConnectRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
 
         Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
         CasualDomainConnectReplyMessage reply = CasualDomainConnectReplyMessage.createBuilder()
@@ -82,10 +82,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         channel.writeAndFlush(replyMessage);
     }
 
+
     @Override
     public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel)
     {
-        log.finest( "domainDiscoveryRequest()." );
+        log.finest(() -> "domainDiscoveryRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message);
 
         Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
         CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), domain.getId(), domain.getName() );
@@ -115,7 +116,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager )
     {
-        log.finest( "serviceCallRequest()." );
+        log.finest(() -> "serviceCallRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
 
         Xid xid = message.getMessage().getXid();
         if(tpNoReplyOutOfProtocol( message, isServiceCallTransactional( xid )))
@@ -175,7 +176,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
-        log.finest( "prepareRequest()." );
+        log.finest(() ->  "prepareRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
 
         Xid xid = message.getMessage().getXid();
         int status = -1;
@@ -207,7 +208,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
-        log.finest( "commitRequest()." );
+        log.finest(() -> "commitRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
 
         Xid xid = message.getMessage().getXid();
         boolean onePhase = message.getMessage().getFlags().isSet( XAFlags.TMONEPHASE );
@@ -220,7 +221,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         } catch (XAException e)
         {
             status = e.errorCode;
-            log.log( Level.WARNING, e, ()-> "XAExcception commit()" + e.getMessage() );
+            log.log( Level.WARNING, e, ()-> "XAException commit()" + e.getMessage() );
         }
         finally
         {
@@ -239,7 +240,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
-        log.finest( "requestRollback()." );
+        log.finest(() -> "requestRollback(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
 
         Xid xid = message.getMessage().getXid();
 

@@ -16,6 +16,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
+import se.laz.casual.network.LogLevelProvider;
 import se.laz.casual.network.inbound.CasualMessageHandler;
 import se.laz.casual.network.inbound.ExceptionHandler;
 import se.laz.casual.network.outbound.EventLoopFactory;
@@ -79,8 +80,8 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
                         ch.pipeline().addLast(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), messageHandler, exceptionHandler);
                         if(enableLogHandler)
                         {
-                            ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevel.INFO));
-                            LOG.info(() -> "reverse inbound log handler enabled");
+                            ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.REVERSE_LOGGING_LEVEL));
+                            LOG.info(() -> "reverse inbound log handler enabled, using netty logging level: " + LogLevelProvider.REVERSE_LOGGING_LEVEL);
                         }
                     }
                 });
