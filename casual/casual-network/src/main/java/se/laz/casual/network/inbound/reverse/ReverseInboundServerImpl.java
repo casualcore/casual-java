@@ -11,6 +11,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -51,9 +53,8 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     public static ReverseInboundServer of(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener, Supplier<WorkManager> workManagerSupplier)
     {
         Objects.requireNonNull(reverseInboundConnectionInformation, "connectionInformation can not be null");
-        EventLoopGroup workerGroup = EventLoopFactory.getInstance();
         CasualMessageHandler messageHandler = CasualMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager());
-        Channel ch = init(reverseInboundConnectionInformation.getAddress(), workerGroup, messageHandler, ExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
+        Channel ch = init(reverseInboundConnectionInformation.getAddress(), reverseInboundConnectionInformation.isUseEpoll(), messageHandler, ExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
         ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress(), workManagerSupplier);
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
         LOG.info(() -> "reverse inbound connected to: " + reverseInboundConnectionInformation.getAddress());
@@ -66,8 +67,9 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         AutoReconnect.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
     }
 
-    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass)
+    private static Channel init(final InetSocketAddress address, boolean useEpoll , final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass)
     {
+        EventLoopGroup workerGroup = useEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
         Bootstrap b = new Bootstrap()
                 .group(workerGroup)
                 .channel(channelClass)
