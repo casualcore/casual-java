@@ -9,14 +9,13 @@ package se.laz.casual.network.inbound.reverse;
 import io.netty.channel.Channel;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import se.laz.casual.config.ConfigurationService;
+import jakarta.resource.spi.XATerminator;
+import jakarta.resource.spi.endpoint.MessageEndpointFactory;
+import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.outbound.Correlator;
 import se.laz.casual.network.outbound.CorrelatorImpl;
 
-import jakarta.resource.spi.XATerminator;
-import jakarta.resource.spi.endpoint.MessageEndpointFactory;
-import jakarta.resource.spi.work.WorkManager;
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.UUID;
@@ -34,6 +33,7 @@ public class ReverseInboundConnectionInformation
     private final UUID domainId;
     private final String domainName;
     private final Class<? extends Channel> channelClass;
+    private boolean useEpoll;
 
     private ReverseInboundConnectionInformation(Builder builder)
     {
@@ -47,6 +47,7 @@ public class ReverseInboundConnectionInformation
         this.domainId = builder.domainId;
         this.domainName = builder.domainName;
         this.channelClass = builder.channelClass;
+        this.useEpoll = builder.useEpoll;
     }
 
     public InetSocketAddress getAddress()
@@ -104,6 +105,11 @@ public class ReverseInboundConnectionInformation
         return channelClass;
     }
 
+    public boolean isUseEpoll()
+    {
+        return useEpoll;
+    }
+
     public static final class Builder
     {
         private InetSocketAddress address;
@@ -116,6 +122,7 @@ public class ReverseInboundConnectionInformation
         private String domainName;
         private Class<? extends Channel> channelClass;
         private boolean logHandlerEnabled;
+        private boolean useEpoll;
 
         public Builder withAddress(InetSocketAddress address)
         {
@@ -165,9 +172,9 @@ public class ReverseInboundConnectionInformation
             return this;
         }
 
-        public Builder withChannelClass(Class<? extends Channel> channelClass)
+        public Builder withUseEpoll(boolean useEpoll)
         {
-            this.channelClass = channelClass;
+            this.useEpoll = useEpoll;
             return this;
         }
 
@@ -181,14 +188,9 @@ public class ReverseInboundConnectionInformation
             Objects.requireNonNull(domainId, "domainId can not be null");
             Objects.requireNonNull(domainName, "domainName can not be null");
             correlator = null == correlator ? CorrelatorImpl.of() : correlator;
-            channelClass = null == channelClass ? getChannelClass() : channelClass;
+            channelClass = useEpoll ? EpollSocketChannel.class : NioSocketChannel.class;
             logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME));
             return new ReverseInboundConnectionInformation(this);
-        }
-
-        private Class<? extends Channel> getChannelClass()
-        {
-            return ConfigurationService.getInstance().getConfiguration().getOutbound().getUseEpoll() ? EpollSocketChannel.class : NioSocketChannel.class;
         }
 
     }
