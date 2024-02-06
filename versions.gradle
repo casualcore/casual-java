@@ -7,7 +7,7 @@
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '2.2.26'
+version = '2.2.27'
 
 def netty_version = '4.1.106.Final'
 def gson_version = '2.10.1'
