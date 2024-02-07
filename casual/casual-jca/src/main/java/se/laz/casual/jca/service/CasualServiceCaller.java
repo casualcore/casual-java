@@ -20,8 +20,6 @@ import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
-import se.laz.casual.event.EventInformation;
-import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
