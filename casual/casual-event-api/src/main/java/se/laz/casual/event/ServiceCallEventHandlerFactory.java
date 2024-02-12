@@ -10,8 +10,6 @@ import java.util.ServiceLoader;
 
 public class ServiceCallEventHandlerFactory
 {
-    private static final List<ServiceCallEventHandler> serviceHandlerCache = getHandlers();
-
     private ServiceCallEventHandlerFactory()
     {}
 
@@ -24,9 +22,9 @@ public class ServiceCallEventHandlerFactory
      */
     public static ServiceCallEventHandler getHandler()
     {
-        return serviceHandlerCache.stream()
-                                  .findFirst()
-                                  .orElseThrow(() -> new CasualRuntimeException("No ServiceCallEventHandler found"));
+        return getHandlers().stream()
+                            .findFirst()
+                            .orElseThrow(() -> new CasualRuntimeException("No ServiceCallEventHandler found"));
     }
 
     private static List<ServiceCallEventHandler> getHandlers()
