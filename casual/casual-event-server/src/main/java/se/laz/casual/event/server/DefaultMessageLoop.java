@@ -13,7 +13,7 @@ public class DefaultMessageLoop implements MessageLoop
     private static final Logger log = Logger.getLogger(DefaultMessageLoop.class.getName());
     private final ChannelGroup connectedClients;
     private final Supplier<ServiceCallEvent> serviceCallEventProvider;
-    private Supplier<Boolean> continueLoop;
+    private Supplier<Boolean> continueLoop = () -> false;
 
     private DefaultMessageLoop(ChannelGroup connectedClients, Supplier<ServiceCallEvent> serviceCallEventProvider)
     {
@@ -33,10 +33,10 @@ public class DefaultMessageLoop implements MessageLoop
         while (continueLoop.get())
         {
             ServiceCallEvent event = serviceCallEventProvider.get();
-            log.info(() -> "# of clients: " + connectedClients.size());
+            log.finest(() -> "# of clients: " + connectedClients.size());
             for (Channel client : connectedClients)
             {
-                log.info(() -> "writing to client");
+                log.finest(() -> "writing to client: " + client);
                 client.writeAndFlush(event);
             }
         }

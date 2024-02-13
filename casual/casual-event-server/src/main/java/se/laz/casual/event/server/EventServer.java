@@ -32,7 +32,7 @@ public class EventServer
     {
         Objects.requireNonNull(connectionInformation, "connectionInformation can not be null");
         ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-        Channel ch =  serverInitialization.init(connectionInformation, connectedClients);
+        Channel ch =  connectionInformation.getServerInitialization().init(connectionInformation, connectedClients);
         final ServiceCallEventHandler serviceCallEventHandler = ServiceCallEventHandlerFactory.getHandler();
         MessageLoop messageLoop = DefaultMessageLoop.of(connectedClients, serviceCallEventHandler::take);
         EventServer eventServer = new EventServer(ch);

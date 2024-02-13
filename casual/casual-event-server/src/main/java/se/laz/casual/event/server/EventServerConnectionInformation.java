@@ -13,12 +13,14 @@ public class EventServerConnectionInformation
     private final int port;
     private final boolean logHandlerEnabled;
     private final boolean useEpoll;
+    private final ServerInitialization serverInitialization;
 
     private EventServerConnectionInformation(Builder builder)
     {
         port = builder.port;
         logHandlerEnabled = builder.logHandlerEnabled;
         useEpoll = builder.useEpoll;
+        serverInitialization = builder.serverInitialization;
     }
 
     public int getPort()
@@ -51,11 +53,17 @@ public class EventServerConnectionInformation
         return new Builder();
     }
 
+    public ServerInitialization getServerInitialization()
+    {
+        return serverInitialization;
+    }
+
     public static final class Builder
     {
         private int port;
         private boolean logHandlerEnabled;
         private boolean useEpoll;
+        private ServerInitialization serverInitialization;
 
         private Builder()
         {}
@@ -77,9 +85,16 @@ public class EventServerConnectionInformation
             return this;
         }
 
+        public Builder withServerInitialization(ServerInitialization serverInitialization)
+        {
+            this.serverInitialization = serverInitialization;
+            return this;
+        }
+
         public EventServerConnectionInformation build()
         {
             logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME));
+            serverInitialization = null == serverInitialization ? DefaultServerInitialization.of() : serverInitialization;
             return new EventServerConnectionInformation(this);
         }
     }

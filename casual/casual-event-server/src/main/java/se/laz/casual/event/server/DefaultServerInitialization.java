@@ -15,6 +15,7 @@ import se.laz.casual.event.server.handlers.ExceptionHandler;
 import se.laz.casual.event.server.handlers.FromJSONLogonDecoder;
 
 import java.net.InetSocketAddress;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 public class DefaultServerInitialization implements ServerInitialization
@@ -34,6 +35,8 @@ public class DefaultServerInitialization implements ServerInitialization
     @Override
     public Channel init(EventServerConnectionInformation connectionInformation, ChannelGroup connectedClients)
     {
+        Objects.requireNonNull(connectionInformation, "connectionInformation can not be null");
+        Objects.requireNonNull(connectedClients, "connectedClients can not be null");
         EventLoopGroup bossGroup = connectionInformation.createEventLoopGroup();
         EventLoopGroup workerGroup = connectionInformation.createEventLoopGroup();
         Class<? extends ServerChannel> channelClass = connectionInformation.getChannelClass();
