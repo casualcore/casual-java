@@ -118,12 +118,11 @@ public class EventServer
         }
     }
 
-    /**
+    /*
      * Test server that keeps posting test data to any potential clients, discards events if no clients
      * Usage:
      * telnet localhost port# ( default 7689)
      * {"message":"HELLO"}
-     * @param args
      */
     public static void main(String[] args)
     {
