@@ -1,30 +1,14 @@
 package se.laz.casual.event.server;
 
-import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.json.JsonObjectDecoder;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEventHandler;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
 import se.laz.casual.event.ServiceCallEventImpl;
-import se.laz.casual.event.server.handlers.EventMessageEncoder;
-import se.laz.casual.event.server.handlers.ExceptionHandler;
-import se.laz.casual.event.server.handlers.FromJSONLogonDecoder;
 
-import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -35,9 +19,7 @@ import java.util.logging.Logger;
 
 public class EventServer
 {
-    private static final String LOG_HANDLER_NAME = "logHandler";
     private static final Logger log = Logger.getLogger(EventServer.class.getName());
-    private static final int MAX_LOGON_PAYLOAD_SIZE = 128;
     private final Channel channel;
 
     public EventServer(Channel channel)
@@ -46,11 +28,11 @@ public class EventServer
         this.channel = channel;
     }
 
-    public static EventServer of(EventServerConnectionInformation connectionInformation)
+    public static EventServer of(EventServerConnectionInformation connectionInformation, ServerInitialization serverInitialization)
     {
         Objects.requireNonNull(connectionInformation, "connectionInformation can not be null");
         ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-        Channel ch = init(connectionInformation, connectedClients);
+        Channel ch =  serverInitialization.init(connectionInformation, connectedClients);
         final ServiceCallEventHandler serviceCallEventHandler = ServiceCallEventHandlerFactory.getHandler();
         MessageLoop messageLoop = DefaultMessageLoop.of(connectedClients, serviceCallEventHandler::take);
         EventServer eventServer = new EventServer(ch);
@@ -83,30 +65,6 @@ public class EventServer
         log.info(() -> "event server closed");
     }
 
-    private static Channel init(EventServerConnectionInformation connectionInformation, ChannelGroup connectedClients)
-    {
-        EventLoopGroup bossGroup = connectionInformation.isUseEpoll() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
-        EventLoopGroup workerGroup = connectionInformation.isUseEpoll() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
-        Class<? extends ServerChannel> channelClass = connectionInformation.isUseEpoll() ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
-        ServerBootstrap b = new ServerBootstrap()
-                .group(bossGroup, workerGroup)
-                .channel(channelClass)
-                .childHandler(new ChannelInitializer<SocketChannel>()
-                {
-                    @Override
-                    protected void initChannel(SocketChannel ch)
-                    {
-                        ch.pipeline().addLast(new JsonObjectDecoder(MAX_LOGON_PAYLOAD_SIZE), FromJSONLogonDecoder.of(connectedClients), EventMessageEncoder.of(), ExceptionHandler.of(connectedClients));
-                        if (connectionInformation.isLogHandlerEnabled())
-                        {
-                            ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler());
-                            log.info(() -> "EventServer network log handler enabled");
-                        }
-                    }
-                }).childOption(ChannelOption.SO_KEEPALIVE, true);
-        return b.bind(new InetSocketAddress(connectionInformation.getPort())).syncUninterruptibly().channel();
-    }
-
     /*
      * Test server that keeps posting test data to any potential clients, discards events if no clients
      * Usage:
@@ -125,7 +83,7 @@ public class EventServer
                                                                                                  .withPort(port)
                                                                                                  .withUseEpoll(true)
                                                                                                  .build();
-        EventServer.of(connectionInformation);
+        EventServer.of(connectionInformation, DefaultServerInitialization.of());
         Executors.newSingleThreadExecutor().execute(() -> postTestData());
     }
 

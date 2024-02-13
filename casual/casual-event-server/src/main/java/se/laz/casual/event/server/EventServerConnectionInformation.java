@@ -1,5 +1,12 @@
 package se.laz.casual.event.server;
 
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+
 public class EventServerConnectionInformation
 {
     public static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_EVENT_SERVER_ENABLE_LOGHANDLER";
@@ -27,6 +34,16 @@ public class EventServerConnectionInformation
     public boolean isUseEpoll()
     {
         return useEpoll;
+    }
+
+    public EventLoopGroup createEventLoopGroup()
+    {
+        return isUseEpoll() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+    }
+
+    public Class<? extends ServerChannel> getChannelClass()
+    {
+        return isUseEpoll() ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
     }
 
     public static Builder createBuilder()
