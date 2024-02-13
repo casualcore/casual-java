@@ -1,4 +1,4 @@
-package se.laz.casual.event.server;
+package se.laz.casual.event.server.messages;
 
 import java.util.Objects;
 

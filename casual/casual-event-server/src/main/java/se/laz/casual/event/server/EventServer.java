@@ -21,6 +21,9 @@ import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventHandler;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
 import se.laz.casual.event.ServiceCallEventImpl;
+import se.laz.casual.event.server.handlers.EventMessageEncoder;
+import se.laz.casual.event.server.handlers.ExceptionHandler;
+import se.laz.casual.event.server.handlers.FromJSONLogonDecoder;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -90,7 +93,6 @@ public class EventServer
                     @Override
                     protected void initChannel(SocketChannel ch)
                     {
-                        //ch.pipeline().addLast(LogonEventMessageDecoder.of(connectedClients), EventMessageEncoder.of(), ExceptionHandler.of(connectedClients));
                         ch.pipeline().addLast(new JsonObjectDecoder(MAX_LOGON_PAYLOAD_SIZE), FromJSONLogonDecoder.of(connectedClients), EventMessageEncoder.of(), ExceptionHandler.of(connectedClients));
                         if (connectionInformation.isLogHandlerEnabled())
                         {
