@@ -17,8 +17,6 @@ import io.netty.handler.codec.json.JsonObjectDecoder;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import se.laz.casual.event.Order;
-import se.laz.casual.event.ServiceCallEvent;
-import se.laz.casual.event.ServiceCallEventHandler;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
 import se.laz.casual.event.ServiceCallEventImpl;
 import se.laz.casual.event.server.handlers.EventMessageEncoder;
@@ -39,20 +37,15 @@ public class EventServer
     private static final String LOG_HANDLER_NAME = "logHandler";
     private static final Logger log = Logger.getLogger(EventServer.class.getName());
     private static final int MAX_LOGON_PAYLOAD_SIZE = 128;
-    private final ChannelGroup  connectedClients;
+    private final ChannelGroup connectedClients;
     private final Channel channel;
-    private final ExecutorService executorService;
-    private final ServiceCallEventHandler serviceCallEventHandler;
 
-    public EventServer(Channel channel, ExecutorService executorService, ChannelGroup connectedClients)
+    public EventServer(Channel channel, ChannelGroup connectedClients)
     {
         Objects.requireNonNull(channel, "channel can not be null");
-        Objects.requireNonNull(executorService, "executorService can not be null");
+        Objects.requireNonNull(connectedClients, "connectedClients can not be null");
         this.channel = channel;
-        this.executorService = executorService;
         this.connectedClients = connectedClients;
-        serviceCallEventHandler = ServiceCallEventHandlerFactory.getHandler();
-        executorService.execute(this::handleMessages);
     }
 
     public static EventServer of(EventServerConnectionInformation connectionInformation)
@@ -60,7 +53,18 @@ public class EventServer
         Objects.requireNonNull(connectionInformation);
         ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
         Channel ch = init(connectionInformation, connectedClients);
-        return new EventServer(ch, Executors.newSingleThreadExecutor(), connectedClients);
+        MessageLoop messageLoop = DefaultMessageLoop.of(connectedClients, ServiceCallEventHandlerFactory.getHandler());
+        EventServer eventServer = new EventServer(ch, connectedClients);
+        eventServer.setLoopConditionAndDispatch(Executors.newSingleThreadExecutor(), messageLoop);
+        return eventServer;
+    }
+
+    public void setLoopConditionAndDispatch(ExecutorService executorService, MessageLoop messageLoop)
+    {
+        Objects.requireNonNull(executorService, "executorService can not be null");
+        Objects.requireNonNull(messageLoop, "messageLoop can not be null");
+        messageLoop.accept(() -> isActive());
+        executorService.execute(messageLoop::handleMessages);
     }
 
     public boolean isActive()
@@ -102,20 +106,6 @@ public class EventServer
                     }
                 }).childOption(ChannelOption.SO_KEEPALIVE, true);
         return b.bind(new InetSocketAddress(connectionInformation.getPort())).syncUninterruptibly().channel();
-    }
-
-    private void handleMessages()
-    {
-        while (isActive())
-        {
-            ServiceCallEvent event = serviceCallEventHandler.take();
-            log.info(() -> "# of clients: " + connectedClients.size());
-            for (Channel client : connectedClients)
-            {
-                log.info(() -> "writing to client");
-                client.writeAndFlush(event);
-            }
-        }
     }
 
     /*
