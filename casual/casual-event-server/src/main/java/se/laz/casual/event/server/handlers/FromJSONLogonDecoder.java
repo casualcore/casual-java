@@ -7,7 +7,7 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.util.CharsetUtil;
 import se.laz.casual.api.external.json.JsonProviderFactory;
 import se.laz.casual.event.server.messages.LogonRequestMessage;
-import se.laz.casual.event.server.messages.LogonRequestTypeAdapter;
+import se.laz.casual.event.server.messages.LogonRequestMessageTypeAdapter;
 
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -34,7 +34,7 @@ public class FromJSONLogonDecoder extends SimpleChannelInboundHandler<Object>
         ByteBuf content = (ByteBuf)msg;
         String json = content.toString(CharsetUtil.UTF_8);
         log.info(() -> "msg json: " + json);
-        LogonRequestMessage requestMessage = JsonProviderFactory.getJsonProvider().fromJson(json, LogonRequestMessage.class, LogonRequestTypeAdapter.of());
+        LogonRequestMessage requestMessage = JsonProviderFactory.getJsonProvider().fromJson(json, LogonRequestMessage.class, LogonRequestMessageTypeAdapter.of());
         connectedClients.add(ctx.channel());
         ctx.fireChannelRead(requestMessage);
         log.info(() -> "client logged on: " + requestMessage);

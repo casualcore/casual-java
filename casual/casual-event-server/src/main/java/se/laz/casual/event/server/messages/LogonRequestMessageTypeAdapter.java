@@ -8,12 +8,12 @@ import com.google.gson.JsonParseException;
 import java.lang.reflect.Type;
 import java.util.logging.Logger;
 
-public class LogonRequestTypeAdapter implements JsonDeserializer<LogonRequestMessage>
+public class LogonRequestMessageTypeAdapter implements JsonDeserializer<LogonRequestMessage>
 {
-    private static final Logger log = Logger.getLogger(LogonRequestTypeAdapter.class.getName());
-    public static LogonRequestTypeAdapter of()
+    private static final Logger log = Logger.getLogger(LogonRequestMessageTypeAdapter.class.getName());
+    public static LogonRequestMessageTypeAdapter of()
     {
-        return new LogonRequestTypeAdapter();
+        return new LogonRequestMessageTypeAdapter();
     }
     @Override
     public LogonRequestMessage deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
