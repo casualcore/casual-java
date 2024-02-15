@@ -28,7 +28,7 @@ public class EventServer
         this.channel = channel;
     }
 
-    public static EventServer of(EventServerConnectionInformation connectionInformation, ServerInitialization serverInitialization)
+    public static EventServer of(EventServerConnectionInformation connectionInformation)
     {
         Objects.requireNonNull(connectionInformation, "connectionInformation can not be null");
         ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -83,7 +83,7 @@ public class EventServer
                                                                                                  .withPort(port)
                                                                                                  .withUseEpoll(true)
                                                                                                  .build();
-        EventServer.of(connectionInformation, DefaultServerInitialization.of());
+        EventServer.of(connectionInformation);
         Executors.newSingleThreadExecutor().execute(() -> postTestData());
     }
 

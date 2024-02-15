@@ -6,6 +6,10 @@ import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
+/**
+ * Default event handler, you can override it by writing your own event handler with the correct priority
+ * and making sure that it is available on the class path
+ */
 public class CasualServiceCallEventHandler implements ServiceCallEventHandler
 {
     private static final BlockingDeque<ServiceCallEvent> EVENTS = new LinkedBlockingDeque<>();

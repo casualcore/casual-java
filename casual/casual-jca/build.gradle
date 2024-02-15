@@ -41,6 +41,7 @@ dependencies {
     implementation project(':casual:casual-network-protocol')
     implementation project(':casual:casual-event-api')
     implementation project(':casual:casual-event')
+    implementation project(':casual:casual-event-server')
     implementation libs.netty
     compileOnly libs.javaee_api
     compileOnly libs.gson
@@ -48,8 +49,8 @@ dependencies {
     resourceAdapter( project(':casual:casual-network') )
     resourceAdapter project(':casual:casual-network-protocol')
     resourceAdapter project(':casual:casual-inbound-api')
-    resourceAdapter project(':casual:casual-event-api')
-    resourceAdapter project(':casual:casual-event')
+    resourceAdapter (project(':casual:casual-event-server')){ transitive = false }
+    resourceAdapterLib (project(':casual:casual-event')){ transitive = false }
     resourceAdapterLib libs.netty
     resourceAdapterLib libs.netty_epoll
 

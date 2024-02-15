@@ -7,6 +7,8 @@ package se.laz.casual.jca;
 
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.ReverseInbound;
+import se.laz.casual.event.server.EventServer;
+import se.laz.casual.event.server.EventServerConnectionInformation;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
 import se.laz.casual.jca.jmx.JMXStartup;
 import se.laz.casual.jca.work.StartInboundServerListener;
@@ -62,6 +64,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
     private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
     private List<ReverseInboundServer> reverseInbounds = new ArrayList<>();
+    private final EventServer eventServer;
 
     private WorkManager workManager;
     private XATerminator xaTerminator;
@@ -79,6 +82,10 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         //It is also not possible to inject with CDI on wildfly only ConfigProperty annotations.
         configurationService = ConfigurationService.getInstance();
         log.info(() -> "casual jca configuration: " + configurationService.getConfiguration());
+        eventServer = EventServer.of(EventServerConnectionInformation.createBuilder()
+                                                                     .withUseEpoll(true)
+                                                                     .withPort(7698)
+                                                                     .build());
     }
 
     @Override

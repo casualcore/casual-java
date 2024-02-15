@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.service;
 
+import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.api.CasualServiceApi;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
@@ -20,6 +21,9 @@ import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
+import se.laz.casual.event.Order;
+import se.laz.casual.event.ServiceCallEventHandlerFactory;
+import se.laz.casual.event.ServiceCallEventImpl;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
@@ -29,6 +33,7 @@ import se.laz.casual.network.protocol.messages.domain.Service;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
+import javax.transaction.xa.Xid;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -43,6 +48,7 @@ public class CasualServiceCaller implements CasualServiceApi
 {
     private static final Logger LOG = Logger.getLogger(CasualServiceCaller.class.getName());
     private static final String SERVICE_NAME_LITERAL = " serviceName: ";
+    private static final long NANOS_TO_MICROSECONDS = 1000;
     private CasualManagedConnection connection;
 
     private CasualServiceCaller(CasualManagedConnection connection)
@@ -81,18 +87,44 @@ public class CasualServiceCaller implements CasualServiceApi
         CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> f = new CompletableFuture<>();
         UUID corrId = UUID.randomUUID();
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
-
-        Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, noReply);
+        final UUID execution = UUID.randomUUID();
+        final long start = System.nanoTime() / NANOS_TO_MICROSECONDS;
+        final Xid xid = connection.getCurrentXid();
+        Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, xid, execution, noReply);
         maybeServiceReturnValue.ifPresent(casualNWMessageCompletableFuture ->
                 casualNWMessageCompletableFuture.whenComplete((v, e) -> {
-                    if (null != e)
+                            if (null != e)
+                            {
+                                LOG.finest(() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
+                                f.completeExceptionally(e);
+                                return;
+                            }
+                            LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
+                            long end = System.nanoTime() / NANOS_TO_MICROSECONDS;
+                            try
+                            {
+                                ServiceCallEventHandlerFactory.getHandler().put(ServiceCallEventImpl.createBuilder()
+                                                                                                    .withTransactionId(xid)
+                                                                                                    .withExecution(execution)
+                                                                                                    .withService(serviceName)
+                                                                                                    .withCode((int) v.getMessage().getUserDefinedCode())
+                                                                                                    // TODO: Seems to be a real PITA to get the current process ID
+                                                                                                    // has to work  for java 8+
+                                                                                                    .withPid(42)
+                                                                                                    .withStart(start)
+                                                                                                    .withEnd(end)
+                                                                                                    .withOrder(Order.SEQUENTIAL)
+                                                                                                    .build());
+                            }
+                            catch(CasualRuntimeException ee)
+                            {
+                                LOG.warning(() -> "Failed to get service handler: " + ee);
+                                f.completeExceptionally(ee);
+                            }
+                    if(!f.isDone())
                     {
-                        LOG.finest(() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
-                        f.completeExceptionally(e);
-                        return;
+                        f.complete(Optional.of(toServiceReturn(v)));
                     }
-                    LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
-                    f.complete(Optional.of(toServiceReturn(v)));
                 }));
         if(noReply)
         {
@@ -150,14 +182,14 @@ public class CasualServiceCaller implements CasualServiceApi
         return serviceDetailsList;
     }
 
-    private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, boolean noReply)
+    private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, Xid transactionId, UUID execution, boolean noReply)
     {
         Duration timeout = Duration.of(connection.getTransactionTimeout(), ChronoUnit.SECONDS);
         CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
-                .setExecution(UUID.randomUUID())
+                .setExecution(execution)
                 .setServiceBuffer(ServiceBuffer.of(data))
                 .setServiceName(serviceName)
-                .setXid(connection.getCurrentXid())
+                .setXid(transactionId)
                 .setTimeout(timeout.toNanos())
                 .setXatmiFlags(flags).build();
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);

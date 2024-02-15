@@ -33,10 +33,10 @@ public class DefaultMessageLoop implements MessageLoop
         while (continueLoop.get())
         {
             ServiceCallEvent event = serviceCallEventProvider.get();
-            log.finest(() -> "# of clients: " + connectedClients.size());
+            log.info(() -> "# of clients: " + connectedClients.size());
             for (Channel client : connectedClients)
             {
-                log.finest(() -> "writing to client: " + client);
+                log.info(() -> "writing: " + event + " to client: " + client);
                 client.writeAndFlush(event);
             }
         }

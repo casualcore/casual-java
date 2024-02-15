@@ -201,4 +201,21 @@ public class ServiceCallEventImpl implements ServiceCallEvent
     {
         return Objects.hash(getService(), getParent(), getProcessId(), getExecution(), getTransactionId(), getStart(), getEnd(), getPending(), getCode(), getOrder());
     }
+
+    @Override
+    public String toString()
+    {
+        return "ServiceCallEventImpl{" +
+                "service='" + service + '\'' +
+                ", parent='" + parent + '\'' +
+                ", processId=" + processId +
+                ", execution=" + execution +
+                ", transactionId=" + transactionId +
+                ", start=" + start +
+                ", end=" + end +
+                ", pending=" + pending +
+                ", code=" + code +
+                ", order=" + order +
+                '}';
+    }
 }
