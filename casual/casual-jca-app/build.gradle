@@ -12,7 +12,7 @@ plugins {
 def casualJCAVersion = version
 
 dependencies {
-  deploy project( path: ':casual:casual-jca', configuration:'resourceAdapter' )
+  deploy (project( path: ':casual:casual-jca', configuration:'resourceAdapter' )) { transitive = false}
   deploy project(':casual:casual-inbound' )
   deploy project(':casual:casual-inbound-handler-casual-service')
   deploy project(':casual:casual-inbound-handler-javaee-service')

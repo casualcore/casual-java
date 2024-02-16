@@ -29,6 +29,7 @@ import java.util.logging.Logger;
  */
 public final class CasualServiceCallWork implements Work
 {
+    private static final long NANO_TO_MICROSECONDS = 1000;
     private static Logger log = Logger.getLogger(CasualServiceCallWork.class.getName());
 
     private final CasualServiceCallRequestMessage message;
@@ -110,7 +111,9 @@ public final class CasualServiceCallWork implements Work
         CasualBuffer serviceResult = ServiceBuffer.empty();
         try
         {
+            long start = System.nanoTime() / NANO_TO_MICROSECONDS;
             InboundResponse reply = callService();
+            long end = System.nanoTime() / NANO_TO_MICROSECONDS;
             serviceResult = reply.getBuffer();
 
             replyBuilder

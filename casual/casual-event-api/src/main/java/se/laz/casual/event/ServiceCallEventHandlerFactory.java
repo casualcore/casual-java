@@ -24,7 +24,7 @@ public class ServiceCallEventHandlerFactory
     {
         return getHandlers().stream()
                             .findFirst()
-                            .orElseThrow(() -> new CasualRuntimeException("No ServiceCallEventHandler found"));
+                            .orElseThrow(() -> new NoServiceCallEventHandlerFoundException("No ServiceCallEventHandler found"));
     }
 
     private static List<ServiceCallEventHandler> getHandlers()

@@ -48,8 +48,9 @@ dependencies {
 
     resourceAdapter( project(':casual:casual-network') )
     resourceAdapter project(':casual:casual-network-protocol')
-    resourceAdapter project(':casual:casual-inbound-api')
     resourceAdapter (project(':casual:casual-event-server')){ transitive = false }
+    //resourceAdapterLib (project(':casual:casual-inbound-api')) { transitive = false }
+    //resourceAdapterLib (project(':casual:casual-event-api')){ transitive = false }
     resourceAdapterLib (project(':casual:casual-event')){ transitive = false }
     resourceAdapterLib libs.netty
     resourceAdapterLib libs.netty_epoll

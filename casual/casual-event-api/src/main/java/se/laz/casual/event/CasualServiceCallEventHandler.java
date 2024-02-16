@@ -1,7 +1,5 @@
 package se.laz.casual.event;
 
-import se.laz.casual.api.CasualRuntimeException;
-
 import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -31,7 +29,7 @@ public class CasualServiceCallEventHandler implements ServiceCallEventHandler
         catch (InterruptedException e)
         {
             Thread.currentThread().interrupt();
-            throw new CasualRuntimeException("CasualServiceCallEventHandler::takeFirst interrupted");
+            throw new CasualServiceCallEventHandlerInterruptedException("CasualServiceCallEventHandler::takeFirst interrupted");
         }
     }
 }

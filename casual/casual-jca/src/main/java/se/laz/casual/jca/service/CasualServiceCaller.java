@@ -21,6 +21,7 @@ import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
+import se.laz.casual.event.NoServiceCallEventHandlerFoundException;
 import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
 import se.laz.casual.event.ServiceCallEventImpl;
@@ -116,7 +117,7 @@ public class CasualServiceCaller implements CasualServiceApi
                                                                                                     .withOrder(Order.SEQUENTIAL)
                                                                                                     .build());
                             }
-                            catch(CasualRuntimeException ee)
+                            catch(NoServiceCallEventHandlerFoundException ee)
                             {
                                 LOG.warning(() -> "Failed to get service handler: " + ee);
                                 f.completeExceptionally(ee);

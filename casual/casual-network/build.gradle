@@ -15,7 +15,7 @@ defaultTasks 'build'
 
 dependencies {
   implementation project(':casual:casual-api')
-  implementation project(':casual:casual-inbound-api')
+  api (project(':casual:casual-inbound-api')) { transitive = false }
   api project(':casual:casual-internal')
   implementation project(':casual:casual-network-protocol')
   implementation libs.netty

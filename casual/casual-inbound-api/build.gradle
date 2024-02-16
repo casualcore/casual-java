@@ -14,7 +14,9 @@ dependencies {
   api project(':casual:casual-api')
   implementation project(':casual:casual-inbound-handler-api')
   api project(":casual:casual-network-protocol")
-
+  api (project(":casual:casual-event-api")) { transitive = false}
+  api (project(":casual:casual-event")) { transitive = false}
+  
   compileOnly libs.javaee_api
   api libs.netty
 
