@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022-2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -14,14 +14,10 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.LogLevelProvider;
-import se.laz.casual.network.inbound.CasualMessageHandler;
-import se.laz.casual.network.inbound.ExceptionHandler;
-import se.laz.casual.network.outbound.EventLoopFactory;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
@@ -32,7 +28,8 @@ import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
- * Inbound server that connects and then acts exactly like {@link  se.laz.casual.network.inbound.CasualServer}
+ * Inbound "server" that connects and then acts exactly like {@link  se.laz.casual.network.inbound.CasualServer}
+ * In fact it is in actuality a client but after connect it behaves as if the connection was initiated from the other side.
  * Note that we connect and then casual issues the domain connect request after which we act as if we were inbound all along.
  */
 public class ReverseInboundServerImpl implements ReverseInboundServer
@@ -53,8 +50,8 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     public static ReverseInboundServer of(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener, Supplier<WorkManager> workManagerSupplier)
     {
         Objects.requireNonNull(reverseInboundConnectionInformation, "connectionInformation can not be null");
-        CasualMessageHandler messageHandler = CasualMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager());
-        Channel ch = init(reverseInboundConnectionInformation.getAddress(), reverseInboundConnectionInformation.isUseEpoll(), messageHandler, ExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
+        ReverseInboundMessageHandler messageHandler = ReverseInboundMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager());
+        Channel ch = init(reverseInboundConnectionInformation.getAddress(), reverseInboundConnectionInformation.isUseEpoll(), messageHandler, ReverseInboundExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
         ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress(), workManagerSupplier);
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
         LOG.info(() -> "reverse inbound connected to: " + reverseInboundConnectionInformation.getAddress());
@@ -67,7 +64,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         AutoReconnect.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
     }
 
-    private static Channel init(final InetSocketAddress address, boolean useEpoll , final CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass)
+    private static Channel init(final InetSocketAddress address, boolean useEpoll , final ReverseInboundMessageHandler messageHandler, ReverseInboundExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass)
     {
         EventLoopGroup workerGroup = useEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
         Bootstrap b = new Bootstrap()
