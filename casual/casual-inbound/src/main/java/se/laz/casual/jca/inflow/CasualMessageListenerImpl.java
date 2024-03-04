@@ -49,6 +49,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -128,13 +129,15 @@ public class CasualMessageListenerImpl implements CasualMessageListener
             });
         }
         boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
-        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply);
+        CompletableFuture<Long> startupTimeFuture = new CompletableFuture<>();
+        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply, startupTimeFuture);
 
         try
         {
             long startup = !isTpNoReply && isServiceCallTransactional( xid ) ?
                     workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
                     workManager.startWork( work, WorkManager.INDEFINITE, null, (isTpNoReply ? null : new ServiceCallWorkListener( channel )));
+            startupTimeFuture.complete(startup);
             log.finest( ()->"Service call startup: "+ startup + "ms.");
         }
         catch (WorkException e)

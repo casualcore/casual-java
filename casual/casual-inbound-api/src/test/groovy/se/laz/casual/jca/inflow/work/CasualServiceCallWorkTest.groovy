@@ -27,6 +27,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.CompletableFuture
 
 class CasualServiceCallWorkTest extends Specification
 {
@@ -72,11 +73,13 @@ class CasualServiceCallWorkTest extends Specification
 
         correlationId = UUID.randomUUID()
 
-        instance = new CasualServiceCallWork( correlationId, message )
+        CompletableFuture<Long> timeFuture = new CompletableFuture<>()
+        instance = new CasualServiceCallWork(correlationId, message, timeFuture)
         instance.setHandler( handler )
 
-        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true )
+        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true, timeFuture )
         instanceTPNOREPLY.setHandler( handler )
+        timeFuture.complete(42L)
     }
 
     def "Get header."()
@@ -239,10 +242,11 @@ class CasualServiceCallWorkTest extends Specification
     def "Call Service which does not exist or is not available, returns result with TPNOENT status."()
     {
         given:
-        instance = new CasualServiceCallWork( correlationId, message )
-
+        CompletableFuture<Long> timeFuture = new CompletableFuture<>()
+        instance = new CasualServiceCallWork(correlationId, message, timeFuture)
         when:
         instance.run()
+        timeFuture.complete(42L)
         CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
 
         then:

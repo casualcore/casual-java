@@ -11,7 +11,8 @@ plugins {
 }
 
 dependencies {
-  api (project(':casual:casual-inbound-api')) { transitive = false }
+  api (project(':casual:casual-inbound-api')){ transitive = false }
+  api project(":casual:casual-event-api")
   implementation project(':casual:casual-inbound-handler-api')
   implementation project(':casual:casual-network')
   compileOnly libs.javaee_api

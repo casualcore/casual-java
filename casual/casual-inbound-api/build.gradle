@@ -20,6 +20,7 @@ dependencies {
   api libs.netty
 
   testImplementation libs.javaee_api
+  testImplementation project(":casual:casual-event-api")  
   testRuntimeOnly libs.gson
 
   // for spock

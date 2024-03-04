@@ -28,6 +28,7 @@ import spock.lang.Specification
 import jakarta.resource.spi.work.WorkEvent
 import javax.transaction.xa.Xid
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ThreadLocalRandom
 
 class ServiceCallWorkListenerTest extends Specification
@@ -68,10 +69,11 @@ class ServiceCallWorkListenerTest extends Specification
 
         inboundHandler = TestInboundHandler.of()
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), inboundHandler)
-        work = new CasualServiceCallWork( correlationId, null )
+        CompletableFuture<Long> mockFuture = Mock(CompletableFuture)
+        work = new CasualServiceCallWork(correlationId, null, mockFuture)
         work.response = response
 
-        instance = new ServiceCallWorkListener( channel )
+        instance = new ServiceCallWorkListener(channel)
     }
 
     def "WorkCompleted receives WorkEvent and writes work response to channel."()
