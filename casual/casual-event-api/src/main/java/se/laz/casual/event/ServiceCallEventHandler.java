@@ -12,7 +12,7 @@ public interface ServiceCallEventHandler extends Prioritisable
 
     /**
      * Blocking operation
-     * @return
+     * @return A service call event
      */
     ServiceCallEvent take();
 }

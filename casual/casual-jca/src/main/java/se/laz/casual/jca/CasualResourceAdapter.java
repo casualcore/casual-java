@@ -80,12 +80,17 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     {
         //JCA requires ResourceAdapter has a no arg constructor.
         //It is also not possible to inject with CDI on wildfly only ConfigProperty annotations.
+        this(EventServer.of(EventServerConnectionInformation.createBuilder()
+                                                            .withUseEpoll(true)
+                                                            .withPort(7698)
+                                                            .build()));
+    }
+
+    public CasualResourceAdapter(EventServer eventServer)
+    {
+        this.eventServer = eventServer;
         configurationService = ConfigurationService.getInstance();
         log.info(() -> "casual jca configuration: " + configurationService.getConfiguration());
-        eventServer = EventServer.of(EventServerConnectionInformation.createBuilder()
-                                                                     .withUseEpoll(true)
-                                                                     .withPort(7698)
-                                                                     .build());
     }
 
     @Override

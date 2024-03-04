@@ -23,6 +23,4 @@ include 'casual:casual-service-discovery-extension'
 include 'casual:casual-inbound-startup-trigger'
 include 'casual:casual-inbound-startup-trigger-app'
 include 'casual:casual-event-api'
-include 'casual:casual-event'
 include 'casual:casual-event-server'
-

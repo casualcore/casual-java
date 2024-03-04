@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.service
 
+import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ServiceReturn
 import se.laz.casual.api.buffer.type.JsonBuffer
@@ -14,6 +15,7 @@ import se.laz.casual.api.flags.*
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.api.xa.XID
 import se.laz.casual.config.Domain
+import se.laz.casual.event.server.EventServer
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
@@ -30,7 +32,6 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestM
 import spock.lang.Shared
 import spock.lang.Specification
 
-import jakarta.resource.spi.work.WorkManager
 import java.util.concurrent.CompletableFuture
 
 import static se.laz.casual.test.matchers.CasualNWMessageMatchers.matching
@@ -59,8 +60,8 @@ class CasualServiceCallerTest extends Specification
 
     def setup()
     {
+        ra = new CasualResourceAdapter(Mock(EventServer))
         workManager = Mock(WorkManager)
-        ra = new CasualResourceAdapter()
         ra.workManager = workManager
         mcf = Mock(CasualManagedConnectionFactory)
         networkConnection = Mock(NetworkConnection)

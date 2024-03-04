@@ -14,8 +14,6 @@ defaultTasks 'build'
 
 dependencies {
     api project(':casual:casual-event-api')
-    api project(':casual:casual-event')
-    //api project(':casual:casual-api')
     api libs.gson
     implementation libs.netty
     compileOnly libs.javaee_api
@@ -25,7 +23,6 @@ dependencies {
 
     testImplementation project(':casual:casual-api')
     testImplementation project(':casual:casual-event-api')
-    testImplementation project(':casual:casual-event')
     // for spock
     testImplementation platform(libs.groovy_bom)
     testImplementation libs.groovy

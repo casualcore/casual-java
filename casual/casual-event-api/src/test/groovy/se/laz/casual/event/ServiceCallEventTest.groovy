@@ -6,12 +6,12 @@
 
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.event.Order
-import se.laz.casual.event.ServiceCallEventImpl
+import se.laz.casual.event.ServiceCallEvent
 import spock.lang.Specification
 
 import javax.transaction.xa.Xid
 
-class ServiceCallEventImplTest extends Specification
+class ServiceCallEventTest extends Specification
 {
    def firstService = 'Service One'
    def secondService = 'Service Two'
@@ -19,8 +19,8 @@ class ServiceCallEventImplTest extends Specification
    def secondParent = 'Elvis'
    def firstExecution = UUID.randomUUID()
    def secondExecution = UUID.randomUUID()
-   def firstPid = 12345
-   def secondPid = 123456
+   def firstDomainName = 'first-domain'
+   def secondDomain = 'second-domain'
    def firstTransactionId = Mock(Xid)
    def secondTransactionId = Mock(Xid)
    def firstStart = 1
@@ -39,8 +39,8 @@ class ServiceCallEventImplTest extends Specification
       given:
 
       when:
-      ServiceCallEventImpl firstEntry = createEntry([service: firstService, parent: firstParent, pid: firstPid, execution: firstExecution, transactionId: firstTransactionId, start: firstStart, end: firstEnd, pending: firstPending, code: firstCode, order: firstOrder])
-      ServiceCallEventImpl secondEntry = createEntry([service: secondService, parent: secondParent, pid: secondPid, execution: secondExecution, transactionId: secondTransactionId, start: secondStart, end: secondEnd, pending: secondPending, code: secondCode, order: secondOrder])
+      ServiceCallEvent firstEntry = createEntry([service: firstService, parent: firstParent, pid: firstDomainName, execution: firstExecution, transactionId: firstTransactionId, start: firstStart, end: firstEnd, pending: firstPending, code: firstCode, order: firstOrder])
+      ServiceCallEvent secondEntry = createEntry([service: secondService, parent: secondParent, pid: secondDomain, execution: secondExecution, transactionId: secondTransactionId, start: secondStart, end: secondEnd, pending: secondPending, code: secondCode, order: secondOrder])
       then:
       firstEntry == firstEntry
       firstEntry != secondEntry
@@ -50,7 +50,7 @@ class ServiceCallEventImplTest extends Specification
 
       firstEntry.getService() == firstService
       firstEntry.getParent().get() == firstParent
-      firstEntry.getProcessId() == firstPid
+      firstEntry.getDomainId() == firstDomainName
       firstEntry.getExecution() == firstExecution
       firstEntry.getTransactionId() == firstTransactionId
       firstEntry.getStart() == firstStart
@@ -61,7 +61,7 @@ class ServiceCallEventImplTest extends Specification
 
       secondEntry.getService() == secondService
       secondEntry.getParent().get() == secondParent
-      secondEntry.getProcessId() == secondPid
+      secondEntry.getDomainId() == secondDomain
       secondEntry.getExecution() == secondExecution
       secondEntry.getTransactionId() == secondTransactionId
       secondEntry.getStart() == secondStart
@@ -73,10 +73,10 @@ class ServiceCallEventImplTest extends Specification
 
    def createEntry(data)
    {
-      return ServiceCallEventImpl.createBuilder()
+      return ServiceCallEvent.createBuilder()
               .withService(data.service)
               .withParent(data.parent)
-              .withPid(data.pid)
+              .withDomainName(data.pid)
               .withExecution(data.execution)
               .withTransactionId(data.transactionId)
               .withStart(data.start)

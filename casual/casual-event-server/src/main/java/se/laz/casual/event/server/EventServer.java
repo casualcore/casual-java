@@ -7,7 +7,7 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEventHandler;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
-import se.laz.casual.event.ServiceCallEventImpl;
+import se.laz.casual.event.ServiceCallEvent;
 
 import java.util.Arrays;
 import java.util.List;
@@ -91,13 +91,13 @@ public class EventServer
     {
         while(true)
         {
-            ServiceCallEventHandlerFactory.getHandler().put(ServiceCallEventImpl.createBuilder()
-                                                                                .withExecution(UUID.randomUUID())
-                                                                                .withCode(42)
-                                                                                .withOrder(Order.SEQUENTIAL)
-                                                                                .withParent("Gigi")
-                                                                                .withExecution(UUID.randomUUID())
-                                                                                .build());
+            ServiceCallEventHandlerFactory.getHandler().put(ServiceCallEvent.createBuilder()
+                                                                            .withExecution(UUID.randomUUID())
+                                                                            .withCode(42)
+                                                                            .withOrder(Order.SEQUENTIAL)
+                                                                            .withParent("Gigi")
+                                                                            .withExecution(UUID.randomUUID())
+                                                                            .build());
             try
             {
                 Thread.sleep(10 * 1000);

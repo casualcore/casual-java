@@ -6,7 +6,6 @@
 
 package se.laz.casual.jca.service;
 
-import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.api.CasualServiceApi;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
@@ -24,7 +23,7 @@ import se.laz.casual.config.Domain;
 import se.laz.casual.event.NoServiceCallEventHandlerFoundException;
 import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
-import se.laz.casual.event.ServiceCallEventImpl;
+import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
@@ -104,23 +103,21 @@ public class CasualServiceCaller implements CasualServiceApi
                             long end = System.nanoTime() / NANOS_TO_MICROSECONDS;
                             try
                             {
-                                ServiceCallEventHandlerFactory.getHandler().put(ServiceCallEventImpl.createBuilder()
-                                                                                                    .withTransactionId(xid)
-                                                                                                    .withExecution(execution)
-                                                                                                    .withService(serviceName)
-                                                                                                    .withCode((int) v.getMessage().getUserDefinedCode())
-                                                                                                    // TODO: Seems to be a real PITA to get the current process ID
-                                                                                                    // has to work  for java 8+
-                                                                                                    .withPid(42)
-                                                                                                    .withStart(start)
-                                                                                                    .withEnd(end)
-                                                                                                    .withOrder(Order.SEQUENTIAL)
-                                                                                                    .build());
+                                String domainName = ConfigurationService.getInstance().getConfiguration().getDomain().getName();
+                                ServiceCallEventHandlerFactory.getHandler().put(ServiceCallEvent.createBuilder()
+                                                                                                .withTransactionId(xid)
+                                                                                                .withExecution(execution)
+                                                                                                .withService(serviceName)
+                                                                                                .withCode((int) v.getMessage().getUserDefinedCode())
+                                                                                                .withDomainName(domainName)
+                                                                                                .withStart(start)
+                                                                                                .withEnd(end)
+                                                                                                .withOrder(Order.SEQUENTIAL)
+                                                                                                .build());
                             }
                             catch(NoServiceCallEventHandlerFoundException ee)
                             {
-                                LOG.warning(() -> "Failed to get service handler: " + ee);
-                                f.completeExceptionally(ee);
+                                LOG.warning(() -> "Failed to get service call event handler: " + ee + ", metrics will not be available for this call");
                             }
                     if(!f.isDone())
                     {

@@ -9,6 +9,7 @@ package se.laz.casual.jca
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.EventLoop
+import se.laz.casual.event.server.EventServer
 import se.laz.casual.jca.inflow.CasualActivationSpec
 import se.laz.casual.network.inbound.CasualServer
 import spock.lang.Shared
@@ -27,7 +28,7 @@ class CasualResourceAdapterTest extends Specification
 
     def setup()
     {
-        instance = new CasualResourceAdapter( )
+        instance = new CasualResourceAdapter( Mock(EventServer) )
     }
 
     def "GetXAResources"()
