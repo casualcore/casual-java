@@ -5,6 +5,9 @@
  */
 package se.laz.casual.event;
 
+import se.laz.casual.api.flags.ErrorState;
+import se.laz.casual.api.util.PrettyPrinter;
+
 import javax.transaction.xa.Xid;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,27 +17,27 @@ public class ServiceCallEvent
 {
     private final String service;
     private final String parent;
-    private final String domainId;
-    private final UUID execution;
-    private final Xid transactionId;
+    private final String domainName;
+    private final String execution;
+    private final String transactionId;
     private final long start;
     private final long end;
     private final long pending;
-    private final int code;
-    private final Order order;
+    private final String code;
+    private final String order;
 
     private ServiceCallEvent(Builder builder)
     {
         service = builder.service;
         parent = builder.parent;
-        domainId = builder.domainId;
-        execution = builder.execution;
-        transactionId = builder.transactionId;
+        domainName = builder.domainId;
+        execution = PrettyPrinter.casualStringify(builder.execution);
+        transactionId = PrettyPrinter.casualStringify(builder.transactionId);
         start = builder.start;
         end = builder.end;
         pending = builder.pending;
-        code = builder.code;
-        order = builder.order;
+        code = builder.code.name();
+        order = builder.order.name();
     }
 
 
@@ -48,17 +51,17 @@ public class ServiceCallEvent
         return Optional.of(parent);
     }
 
-    public String getDomainId()
+    public String getDomainName()
     {
-        return domainId;
+        return domainName;
     }
 
-    public UUID getExecution()
+    public String getExecution()
     {
         return execution;
     }
 
-    public Xid getTransactionId()
+    public String getTransactionId()
     {
         return transactionId;
     }
@@ -78,12 +81,12 @@ public class ServiceCallEvent
         return pending;
     }
 
-    public int getCode()
+    public String getCode()
     {
         return code;
     }
 
-    public Order getOrder()
+    public String getOrder()
     {
         return order;
     }
@@ -103,7 +106,7 @@ public class ServiceCallEvent
         private long start;
         private long end;
         private long pending;
-        private int code;
+        private ErrorState code;
         private Order order;
 
         public Builder withService(String service)
@@ -154,7 +157,7 @@ public class ServiceCallEvent
             return this;
         }
 
-        public Builder withCode(int code)
+        public Builder withCode(ErrorState code)
         {
             this.code = code;
             return this;
@@ -184,13 +187,13 @@ public class ServiceCallEvent
             return false;
         }
         ServiceCallEvent that = (ServiceCallEvent) o;
-        return getDomainId() == that.getDomainId() && getStart() == that.getStart() && getEnd() == that.getEnd() && getPending() == that.getPending() && getCode() == that.getCode() && Objects.equals(getService(), that.getService()) && Objects.equals(getParent(), that.getParent()) && Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getTransactionId(), that.getTransactionId()) && getOrder() == that.getOrder();
+        return getDomainName() == that.getDomainName() && getStart() == that.getStart() && getEnd() == that.getEnd() && getPending() == that.getPending() && getCode() == that.getCode() && Objects.equals(getService(), that.getService()) && Objects.equals(getParent(), that.getParent()) && Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getTransactionId(), that.getTransactionId()) && getOrder() == that.getOrder();
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getService(), getParent(), getDomainId(), getExecution(), getTransactionId(), getStart(), getEnd(), getPending(), getCode(), getOrder());
+        return Objects.hash(getService(), getParent(), getDomainName(), getExecution(), getTransactionId(), getStart(), getEnd(), getPending(), getCode(), getOrder());
     }
 
     @Override
@@ -199,7 +202,7 @@ public class ServiceCallEvent
         return "ServiceCallEventImpl{" +
                 "service='" + service + '\'' +
                 ", parent='" + parent + '\'' +
-                ", domainId=" + domainId +
+                ", domainId=" + domainName +
                 ", execution=" + execution +
                 ", transactionId=" + transactionId +
                 ", start=" + start +

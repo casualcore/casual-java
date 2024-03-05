@@ -45,7 +45,7 @@ public class DefaultMessageLoop implements MessageLoop
     @Override
     public void accept(Supplier<Boolean> continueLoop)
     {
-        Objects.requireNonNull(continueLoop, "server can not be null");
+        Objects.requireNonNull(continueLoop, "loop can not be null");
         this.continueLoop = continueLoop;
     }
 }

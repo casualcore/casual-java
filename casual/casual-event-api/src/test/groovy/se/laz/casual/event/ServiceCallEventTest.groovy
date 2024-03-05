@@ -5,6 +5,7 @@
  */
 
 import se.laz.casual.api.flags.ErrorState
+import se.laz.casual.api.util.PrettyPrinter
 import se.laz.casual.event.Order
 import se.laz.casual.event.ServiceCallEvent
 import spock.lang.Specification
@@ -29,8 +30,8 @@ class ServiceCallEventTest extends Specification
    def secondEnd = 128
    def firstPending = 0
    def secondPending = 14
-   def firstCode = ErrorState.OK.value
-   def secondCode = ErrorState.TPENOENT.value
+   def firstCode = ErrorState.OK
+   def secondCode = ErrorState.TPENOENT
    def firstOrder = Order.SEQUENTIAL
    def secondOrder = Order.CONCURRENT
     
@@ -50,25 +51,25 @@ class ServiceCallEventTest extends Specification
 
       firstEntry.getService() == firstService
       firstEntry.getParent().get() == firstParent
-      firstEntry.getDomainId() == firstDomainName
-      firstEntry.getExecution() == firstExecution
-      firstEntry.getTransactionId() == firstTransactionId
+      firstEntry.getDomainName() == firstDomainName
+      firstEntry.getExecution() == PrettyPrinter.casualStringify(firstExecution)
+      firstEntry.getTransactionId() == PrettyPrinter.casualStringify(firstTransactionId)
       firstEntry.getStart() == firstStart
       firstEntry.getEnd() == firstEnd
       firstEntry.getPending() == firstPending
-      firstEntry.getCode() == firstCode
-      firstEntry.getOrder() == firstOrder
+      firstEntry.getCode() == firstCode.name()
+      firstEntry.getOrder() == firstOrder.name()
 
       secondEntry.getService() == secondService
       secondEntry.getParent().get() == secondParent
-      secondEntry.getDomainId() == secondDomain
-      secondEntry.getExecution() == secondExecution
-      secondEntry.getTransactionId() == secondTransactionId
+      secondEntry.getDomainName() == secondDomain
+      secondEntry.getExecution() == PrettyPrinter.casualStringify(secondExecution)
+      secondEntry.getTransactionId() == PrettyPrinter.casualStringify(secondTransactionId)
       secondEntry.getStart() == secondStart
       secondEntry.getEnd() == secondEnd
       secondEntry.getPending() == secondPending
-      secondEntry.getCode() == secondCode
-      secondEntry.getOrder() == secondOrder
+      secondEntry.getCode() == secondCode.name()
+      secondEntry.getOrder() == secondOrder.name()
    }
 
    def createEntry(data)

@@ -108,7 +108,7 @@ public class CasualServiceCaller implements CasualServiceApi
                                                                                                 .withTransactionId(xid)
                                                                                                 .withExecution(execution)
                                                                                                 .withService(serviceName)
-                                                                                                .withCode((int) v.getMessage().getUserDefinedCode())
+                                                                                                .withCode(v.getMessage().getError())
                                                                                                 .withDomainName(domainName)
                                                                                                 .withStart(start)
                                                                                                 .withEnd(end)

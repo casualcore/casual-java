@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEventHandler;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
@@ -93,7 +94,7 @@ public class EventServer
         {
             ServiceCallEventHandlerFactory.getHandler().put(ServiceCallEvent.createBuilder()
                                                                             .withExecution(UUID.randomUUID())
-                                                                            .withCode(42)
+                                                                            .withCode(ErrorState.OK)
                                                                             .withOrder(Order.SEQUENTIAL)
                                                                             .withParent("Gigi")
                                                                             .withExecution(UUID.randomUUID())
