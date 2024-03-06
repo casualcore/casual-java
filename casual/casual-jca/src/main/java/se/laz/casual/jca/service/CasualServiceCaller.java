@@ -22,8 +22,8 @@ import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
 import se.laz.casual.event.NoServiceCallEventHandlerFoundException;
 import se.laz.casual.event.Order;
-import se.laz.casual.event.ServiceCallEventHandlerFactory;
 import se.laz.casual.event.ServiceCallEvent;
+import se.laz.casual.event.ServiceCallEventHandlerFactory;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
@@ -103,13 +103,11 @@ public class CasualServiceCaller implements CasualServiceApi
                             long end = System.nanoTime() / NANOS_TO_MICROSECONDS;
                             try
                             {
-                                String domainName = ConfigurationService.getInstance().getConfiguration().getDomain().getName();
                                 ServiceCallEventHandlerFactory.getHandler().put(ServiceCallEvent.createBuilder()
                                                                                                 .withTransactionId(xid)
                                                                                                 .withExecution(execution)
                                                                                                 .withService(serviceName)
                                                                                                 .withCode(v.getMessage().getError())
-                                                                                                .withDomainName(domainName)
                                                                                                 .withStart(start)
                                                                                                 .withEnd(end)
                                                                                                 .withOrder(Order.SEQUENTIAL)

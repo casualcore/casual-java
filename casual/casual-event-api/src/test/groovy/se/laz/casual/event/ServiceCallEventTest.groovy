@@ -20,8 +20,8 @@ class ServiceCallEventTest extends Specification
    def secondParent = 'Elvis'
    def firstExecution = UUID.randomUUID()
    def secondExecution = UUID.randomUUID()
-   def firstDomainName = 'first-domain'
-   def secondDomain = 'second-domain'
+   def firstPID = 128
+   def secondPID = 256
    def firstTransactionId = Mock(Xid)
    def secondTransactionId = Mock(Xid)
    def firstStart = 1
@@ -40,8 +40,8 @@ class ServiceCallEventTest extends Specification
       given:
 
       when:
-      ServiceCallEvent firstEntry = createEntry([service: firstService, parent: firstParent, pid: firstDomainName, execution: firstExecution, transactionId: firstTransactionId, start: firstStart, end: firstEnd, pending: firstPending, code: firstCode, order: firstOrder])
-      ServiceCallEvent secondEntry = createEntry([service: secondService, parent: secondParent, pid: secondDomain, execution: secondExecution, transactionId: secondTransactionId, start: secondStart, end: secondEnd, pending: secondPending, code: secondCode, order: secondOrder])
+      ServiceCallEvent firstEntry = createEntry([service: firstService, parent: firstParent, pid: firstPID, execution: firstExecution, transactionId: firstTransactionId, start: firstStart, end: firstEnd, pending: firstPending, code: firstCode, order: firstOrder])
+      ServiceCallEvent secondEntry = createEntry([service: secondService, parent: secondParent, pid: secondPID, execution: secondExecution, transactionId: secondTransactionId, start: secondStart, end: secondEnd, pending: secondPending, code: secondCode, order: secondOrder])
       then:
       firstEntry == firstEntry
       firstEntry != secondEntry
@@ -51,7 +51,7 @@ class ServiceCallEventTest extends Specification
 
       firstEntry.getService() == firstService
       firstEntry.getParent().get() == firstParent
-      firstEntry.getDomainName() == firstDomainName
+      firstEntry.getPid() == firstPID
       firstEntry.getExecution() == PrettyPrinter.casualStringify(firstExecution)
       firstEntry.getTransactionId() == PrettyPrinter.casualStringify(firstTransactionId)
       firstEntry.getStart() == firstStart
@@ -62,7 +62,7 @@ class ServiceCallEventTest extends Specification
 
       secondEntry.getService() == secondService
       secondEntry.getParent().get() == secondParent
-      secondEntry.getDomainName() == secondDomain
+      secondEntry.getPid() == secondPID
       secondEntry.getExecution() == PrettyPrinter.casualStringify(secondExecution)
       secondEntry.getTransactionId() == PrettyPrinter.casualStringify(secondTransactionId)
       secondEntry.getStart() == secondStart
@@ -77,7 +77,7 @@ class ServiceCallEventTest extends Specification
       return ServiceCallEvent.createBuilder()
               .withService(data.service)
               .withParent(data.parent)
-              .withDomainName(data.pid)
+              .withPID(data.pid)
               .withExecution(data.execution)
               .withTransactionId(data.transactionId)
               .withStart(data.start)

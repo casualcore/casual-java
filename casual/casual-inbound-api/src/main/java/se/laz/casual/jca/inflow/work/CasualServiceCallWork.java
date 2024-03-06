@@ -12,7 +12,6 @@ import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.event.NoServiceCallEventHandlerFoundException;
 import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEvent;
@@ -155,13 +154,11 @@ public final class CasualServiceCallWork implements Work
     {
         try
         {
-            String domainName = ConfigurationService.getInstance().getConfiguration().getDomain().getName();
             ServiceCallEventHandlerFactory.getHandler().put(ServiceCallEvent.createBuilder()
                                                                             .withTransactionId(xid)
                                                                             .withExecution(execution)
                                                                             .withService(serviceName)
                                                                             .withCode(code)
-                                                                            .withDomainName(domainName)
                                                                             .withStart(start)
                                                                             .withEnd(end)
                                                                             .withOrder(Order.SEQUENTIAL)
