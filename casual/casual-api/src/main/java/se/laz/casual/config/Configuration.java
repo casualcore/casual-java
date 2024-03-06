@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class Configuration
 {
@@ -17,12 +18,14 @@ public class Configuration
     private final Domain domain;
     private final Outbound outbound;
     private final List<ReverseInbound> reverseInbound;
-    public Configuration(Domain domain, Inbound inbound, Outbound outbound, List<ReverseInbound> reverseInbound)
+    private final EventServer eventServer;
+    public Configuration(Domain domain, Inbound inbound, Outbound outbound, List<ReverseInbound> reverseInbound, EventServer eventServer)
     {
         this.domain = domain;
         this.inbound = inbound;
         this.outbound = outbound;
         this.reverseInbound = reverseInbound;
+        this.eventServer = eventServer;
     }
 
     public Domain getDomain()
@@ -43,6 +46,11 @@ public class Configuration
     public List<ReverseInbound> getReverseInbound()
     {
         return null == reverseInbound ? Collections.emptyList() : Collections.unmodifiableList(reverseInbound);
+    }
+
+    public Optional<EventServer> getEventServer()
+    {
+        return Optional.ofNullable(eventServer);
     }
 
     @Override
@@ -91,6 +99,7 @@ public class Configuration
         private Domain domain;
         private Outbound outbound;
         private List<ReverseInbound> reverseInbound = new ArrayList<>();
+        private EventServer eventServer;
 
         private Builder()
         {
@@ -120,9 +129,15 @@ public class Configuration
             return this;
         }
 
+        public Builder withEventServer( EventServer eventServer )
+        {
+            this.eventServer = eventServer;
+            return this;
+        }
+
         public Configuration build()
         {
-            return new Configuration(domain, inbound, outbound, reverseInbound );
+            return new Configuration(domain, inbound, outbound, reverseInbound, eventServer );
         }
     }
 }

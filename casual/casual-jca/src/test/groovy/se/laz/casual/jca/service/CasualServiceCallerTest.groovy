@@ -15,7 +15,6 @@ import se.laz.casual.api.flags.*
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.api.xa.XID
 import se.laz.casual.config.Domain
-import se.laz.casual.event.server.EventServer
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
@@ -60,7 +59,7 @@ class CasualServiceCallerTest extends Specification
 
     def setup()
     {
-        ra = new CasualResourceAdapter(Mock(EventServer))
+        ra = new CasualResourceAdapter()
         workManager = Mock(WorkManager)
         ra.workManager = workManager
         mcf = Mock(CasualManagedConnectionFactory)

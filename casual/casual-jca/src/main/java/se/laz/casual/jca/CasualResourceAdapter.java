@@ -64,7 +64,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
     private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
     private List<ReverseInboundServer> reverseInbounds = new ArrayList<>();
-    private final EventServer eventServer;
+    private EventServer eventServer;
 
     private WorkManager workManager;
     private XATerminator xaTerminator;
@@ -80,18 +80,19 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     {
         //JCA requires ResourceAdapter has a no arg constructor.
         //It is also not possible to inject with CDI on wildfly only ConfigProperty annotations.
-        this(EventServer.of(EventServerConnectionInformation.createBuilder()
-                                                            .withUseEpoll(true)
-                                                            .withPort(7698)
-                                                            .build()));
-    }
-
-    public CasualResourceAdapter(EventServer eventServer)
-    {
-        this.eventServer = eventServer;
         configurationService = ConfigurationService.getInstance();
         log.info(() -> "casual jca configuration: " + configurationService.getConfiguration());
+        configurationService.getConfiguration().getEventServer().ifPresent(config -> {
+            log.info("starting event server with config: " + config);
+            eventServer = EventServer.of(EventServerConnectionInformation.createBuilder()
+                                                           .withUseEpoll(config.isUseEpoll())
+                                                           .withPort(config.getPortNumber())
+                                                           .build());
+            log.info("event server started at port: " + config.getPortNumber());
+        });
     }
+
+
 
     @Override
     public void endpointActivation(MessageEndpointFactory endpointFactory,

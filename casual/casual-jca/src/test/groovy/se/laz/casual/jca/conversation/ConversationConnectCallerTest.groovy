@@ -15,7 +15,6 @@ import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.xa.XID
-import se.laz.casual.event.server.EventServer
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
@@ -52,7 +51,7 @@ class ConversationConnectCallerTest extends Specification
    def setup()
    {
       workManager = Mock(WorkManager)
-      ra = new CasualResourceAdapter(Mock(EventServer))
+      ra = new CasualResourceAdapter()
       ra.workManager = workManager
       mcf = Mock(CasualManagedConnectionFactory)
       networkConnection = Mock(NetworkConnection)

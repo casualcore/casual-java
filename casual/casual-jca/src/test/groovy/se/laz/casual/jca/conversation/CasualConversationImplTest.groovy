@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.conversation
 
+import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.api.Conversation
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ConversationReturn
@@ -15,7 +16,6 @@ import se.laz.casual.api.conversation.Duplex
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
-import se.laz.casual.event.server.EventServer
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
@@ -26,7 +26,6 @@ import se.laz.casual.network.protocol.messages.conversation.Request
 import spock.lang.Shared
 import spock.lang.Specification
 
-import jakarta.resource.spi.work.WorkManager
 import java.util.concurrent.CompletableFuture
 
 class CasualConversationImplTest extends Specification
@@ -53,7 +52,7 @@ class CasualConversationImplTest extends Specification
       initialiseParameters()
 
       workManager = Mock(WorkManager)
-      ra = new CasualResourceAdapter(Mock(EventServer))
+      ra = new CasualResourceAdapter()
       ra.workManager = workManager
       mcf = Mock(CasualManagedConnectionFactory)
       networkConnection = Mock(NetworkConnection)
