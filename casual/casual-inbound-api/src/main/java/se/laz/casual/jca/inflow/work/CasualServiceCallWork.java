@@ -26,6 +26,9 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMes
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
 import javax.transaction.xa.Xid;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
@@ -123,16 +126,17 @@ public final class CasualServiceCallWork implements Work
         ;
         try
         {
-            long start = System.nanoTime() / NANO_TO_MICROSECONDS;
+            Instant start = Instant.now();
             InboundResponse reply = callService();
-            long end = System.nanoTime() / NANO_TO_MICROSECONDS;
+            Instant end = Instant.now();
             serviceResult = reply.getBuffer();
 
             replyBuilder
                     .setError(reply.getErrorState())
                     .setTransactionState(reply.getTransactionState())
                     .setUserSuppliedError( reply.getUserSuppliedErrorCode() );
-            postServiceCallEvent(message.getParentName(), message.getXid(), message.getExecution(), message.getServiceName(), reply.getErrorState(), start, end);
+            postServiceCallEvent(message.getParentName(), message.getXid(), message.getExecution(), message.getServiceName(),
+                    reply.getErrorState(), ChronoUnit.MICROS.between(Instant.EPOCH, start), ChronoUnit.MICROS.between(Instant.EPOCH, end));
         }
         catch( ServiceHandlerNotFoundException e )
         {
@@ -161,7 +165,7 @@ public final class CasualServiceCallWork implements Work
                                                                             .withCode(code)
                                                                             .withStart(start)
                                                                             .withEnd(end)
-                                                                            .withOrder(Order.SEQUENTIAL)
+                                                                            .withOrder(Order.CONCURRENT)
                                                                             .withPending(startupTimeFuture.join())
                                                                             .withParent(parentName)
                                                                             .build());

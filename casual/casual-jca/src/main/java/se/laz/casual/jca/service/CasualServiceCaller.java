@@ -35,6 +35,7 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestM
 
 import javax.transaction.xa.Xid;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,7 +89,7 @@ public class CasualServiceCaller implements CasualServiceApi
         UUID corrId = UUID.randomUUID();
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
         final UUID execution = UUID.randomUUID();
-        final long start = System.nanoTime() / NANOS_TO_MICROSECONDS;
+        final Instant start = Instant.now();
         final Xid xid = connection.getCurrentXid();
         Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, xid, execution, noReply);
         maybeServiceReturnValue.ifPresent(casualNWMessageCompletableFuture ->
@@ -100,7 +101,7 @@ public class CasualServiceCaller implements CasualServiceApi
                                 return;
                             }
                             LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
-                            long end = System.nanoTime() / NANOS_TO_MICROSECONDS;
+                            final Instant end = Instant.now();
                             try
                             {
                                 ServiceCallEventHandlerFactory.getHandler().put(ServiceCallEvent.createBuilder()
@@ -108,8 +109,8 @@ public class CasualServiceCaller implements CasualServiceApi
                                                                                                 .withExecution(execution)
                                                                                                 .withService(serviceName)
                                                                                                 .withCode(v.getMessage().getError())
-                                                                                                .withStart(start)
-                                                                                                .withEnd(end)
+                                                                                                .withStart(ChronoUnit.MICROS.between(Instant.EPOCH, start))
+                                                                                                .withEnd(ChronoUnit.MICROS.between(Instant.EPOCH, end))
                                                                                                 .withOrder(Order.SEQUENTIAL)
                                                                                                 .build());
                             }

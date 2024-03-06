@@ -64,6 +64,7 @@ import java.util.logging.Logger;
                 })
 public class CasualMessageListenerImpl implements CasualMessageListener
 {
+    private static final long MICROSECOND_FACTOR = 1000;
     private static Logger log = Logger.getLogger(CasualMessageListenerImpl.class.getName());
     private static final Long CASUAL_PROTOCOL_VERSION = 1000L;
 
@@ -134,11 +135,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
 
         try
         {
-            long startup = !isTpNoReply && isServiceCallTransactional( xid ) ?
+            long startupInMilliseconds = !isTpNoReply && isServiceCallTransactional( xid ) ?
                     workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
                     workManager.startWork( work, WorkManager.INDEFINITE, null, (isTpNoReply ? null : new ServiceCallWorkListener( channel )));
-            startupTimeFuture.complete(startup);
-            log.finest( ()->"Service call startup: "+ startup + "ms.");
+            startupTimeFuture.complete(startupInMilliseconds * MICROSECOND_FACTOR);
+            log.finest( ()->"Service call startup: "+ startupInMilliseconds + "ms.");
         }
         catch (WorkException e)
         {
