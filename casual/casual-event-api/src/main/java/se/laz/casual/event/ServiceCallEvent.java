@@ -24,7 +24,7 @@ public class ServiceCallEvent
     private final long end;
     private final long pending;
     private final String code;
-    private final String order;
+    private final char order;
 
     private ServiceCallEvent(Builder builder)
     {
@@ -37,7 +37,7 @@ public class ServiceCallEvent
         end = builder.end;
         pending = builder.pending;
         code = builder.code.name();
-        order = builder.order.name();
+        order = builder.order.getValue();
     }
 
 
@@ -86,7 +86,7 @@ public class ServiceCallEvent
         return code;
     }
 
-    public String getOrder()
+    public char getOrder()
     {
         return order;
     }

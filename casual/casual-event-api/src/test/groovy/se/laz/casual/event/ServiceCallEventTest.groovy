@@ -58,7 +58,7 @@ class ServiceCallEventTest extends Specification
       firstEntry.getEnd() == firstEnd
       firstEntry.getPending() == firstPending
       firstEntry.getCode() == firstCode.name()
-      firstEntry.getOrder() == firstOrder.name()
+      firstEntry.getOrder() == firstOrder.getValue()
 
       secondEntry.getService() == secondService
       secondEntry.getParent().get() == secondParent
@@ -69,7 +69,7 @@ class ServiceCallEventTest extends Specification
       secondEntry.getEnd() == secondEnd
       secondEntry.getPending() == secondPending
       secondEntry.getCode() == secondCode.name()
-      secondEntry.getOrder() == secondOrder.name()
+      secondEntry.getOrder() == secondOrder.getValue()
    }
 
    def createEntry(data)

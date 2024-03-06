@@ -9,8 +9,8 @@ import java.util.Arrays;
 
 public enum Order
 {
-    SEQUENTIAL('s'),
-    CONCURRENT('c');
+    SEQUENTIAL('S'),
+    CONCURRENT('C');
     private char value;
     Order(char value)
     {
