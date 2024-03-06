@@ -99,7 +99,7 @@ public class ServiceCallEvent
     public static final class Builder
     {
         private String service;
-        private String parent;
+        private String parent = "";
         private String domainId;
         private UUID execution;
         private Xid transactionId;

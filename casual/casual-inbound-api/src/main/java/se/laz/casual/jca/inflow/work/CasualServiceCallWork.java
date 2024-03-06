@@ -107,7 +107,7 @@ public final class CasualServiceCallWork implements Work
             long start = System.nanoTime() / NANO_TO_MICROSECONDS;
             callService();
             long end = System.nanoTime() / NANO_TO_MICROSECONDS;
-            postServiceCallEvent(message.getXid(), message.getExecution(), message.getServiceName(), ErrorState.OK, start, end);
+            postServiceCallEvent(message.getParentName(), message.getXid(), message.getExecution(), message.getServiceName(), ErrorState.OK, start, end);
         }
         catch( ServiceHandlerNotFoundException e)
         {
@@ -133,7 +133,7 @@ public final class CasualServiceCallWork implements Work
                     .setError(reply.getErrorState())
                     .setTransactionState(reply.getTransactionState())
                     .setUserSuppliedError( reply.getUserSuppliedErrorCode() );
-            postServiceCallEvent(message.getXid(), message.getExecution(), message.getServiceName(), reply.getErrorState(), start, end);
+            postServiceCallEvent(message.getParentName(), message.getXid(), message.getExecution(), message.getServiceName(), reply.getErrorState(), start, end);
         }
         catch( ServiceHandlerNotFoundException e )
         {
@@ -151,7 +151,7 @@ public final class CasualServiceCallWork implements Work
         }
     }
 
-    private void postServiceCallEvent(Xid xid, UUID execution, String serviceName, ErrorState code, long start, long end)
+    private void postServiceCallEvent(String parentName, Xid xid, UUID execution, String serviceName, ErrorState code, long start, long end)
     {
         try
         {
@@ -166,7 +166,7 @@ public final class CasualServiceCallWork implements Work
                                                                             .withEnd(end)
                                                                             .withOrder(Order.SEQUENTIAL)
                                                                             .withPending(startupTimeFuture.join())
-                                                                            .withParent("")
+                                                                            .withParent(parentName)
                                                                             .build());
         }
         catch(NoServiceCallEventHandlerFoundException e)
