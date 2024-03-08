@@ -7,6 +7,7 @@
 package se.laz.casual.event.server.handlers;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import se.laz.casual.api.external.json.JsonProviderFactory;
@@ -14,6 +15,7 @@ import se.laz.casual.event.ServiceCallEvent;
 
 import java.nio.charset.StandardCharsets;
 
+@ChannelHandler.Sharable
 public class EventMessageEncoder extends MessageToByteEncoder<ServiceCallEvent>
 {
     private EventMessageEncoder()

@@ -1,12 +1,12 @@
 package se.laz.casual.event.server.messages;
 
-import se.laz.casual.api.CasualRuntimeException;
+import se.laz.casual.api.CasualTypeException;
 
 import java.util.Arrays;
 
 public enum LogonRequest
 {
-    REQUEST("HELLO");
+    LOGON_REQUEST("HELLO");
     private final String value;
     LogonRequest(String value)
     {
@@ -17,6 +17,6 @@ public enum LogonRequest
         return Arrays.stream(values())
                      .filter(v -> v.value.equals(in))
                      .findFirst()
-                     .orElseThrow(() -> new CasualRuntimeException("Mismatch for value: " + in));
+                     .orElseThrow(() -> new CasualTypeException("Unknown type: " + in));
     }
 }

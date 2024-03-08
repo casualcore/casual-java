@@ -1,6 +1,7 @@
 package se.laz.casual.event.server.handlers;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
@@ -12,6 +13,7 @@ import se.laz.casual.event.server.messages.LogonRequestMessageTypeAdapter;
 import java.util.Objects;
 import java.util.logging.Logger;
 
+@ChannelHandler.Sharable
 public class FromJSONLogonDecoder extends SimpleChannelInboundHandler<Object>
 {
     private static final Logger log = Logger.getLogger(FromJSONLogonDecoder.class.getName());
@@ -33,10 +35,9 @@ public class FromJSONLogonDecoder extends SimpleChannelInboundHandler<Object>
     {
         ByteBuf content = (ByteBuf)msg;
         String json = content.toString(CharsetUtil.UTF_8);
-        log.info(() -> "msg json: " + json);
         LogonRequestMessage requestMessage = JsonProviderFactory.getJsonProvider().fromJson(json, LogonRequestMessage.class, LogonRequestMessageTypeAdapter.of());
         connectedClients.add(ctx.channel());
         ctx.fireChannelRead(requestMessage);
-        log.info(() -> "client logged on: " + requestMessage);
+        log.info(() -> "EventServer, client logged on: " + requestMessage + " channel: " + ctx.channel());
     }
 }
