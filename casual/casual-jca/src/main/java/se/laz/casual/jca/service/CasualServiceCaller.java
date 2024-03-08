@@ -20,10 +20,9 @@ import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
-import se.laz.casual.event.NoServiceCallEventHandlerFoundException;
 import se.laz.casual.event.Order;
-import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
+import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
@@ -49,8 +48,8 @@ public class CasualServiceCaller implements CasualServiceApi
 {
     private static final Logger LOG = Logger.getLogger(CasualServiceCaller.class.getName());
     private static final String SERVICE_NAME_LITERAL = " serviceName: ";
-    private static final long NANOS_TO_MICROSECONDS = 1000;
-    private CasualManagedConnection connection;
+    private ServiceCallEventPublisher  eventPublisher;
+    private final CasualManagedConnection connection;
 
     private CasualServiceCaller(CasualManagedConnection connection)
     {
@@ -102,22 +101,7 @@ public class CasualServiceCaller implements CasualServiceApi
                             }
                             LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
                             final Instant end = Instant.now();
-                            try
-                            {
-                                ServiceCallEventHandlerFactory.getHandler().put(ServiceCallEvent.createBuilder()
-                                                                                                .withTransactionId(xid)
-                                                                                                .withExecution(execution)
-                                                                                                .withService(serviceName)
-                                                                                                .withCode(v.getMessage().getError())
-                                                                                                .withStart(ChronoUnit.MICROS.between(Instant.EPOCH, start))
-                                                                                                .withEnd(ChronoUnit.MICROS.between(Instant.EPOCH, end))
-                                                                                                .withOrder(Order.SEQUENTIAL)
-                                                                                                .build());
-                            }
-                            catch(NoServiceCallEventHandlerFoundException ee)
-                            {
-                                LOG.warning(() -> "Failed to get service call event handler: " + ee + ", metrics will not be available for this call");
-                            }
+                            getEventPublisher().createAndPostEvent( xid, execution, "", serviceName, v.getMessage().getError(), 0, start, end, Order.SEQUENTIAL);
                     if(!f.isDone())
                     {
                         f.complete(Optional.of(toServiceReturn(v)));
@@ -125,6 +109,8 @@ public class CasualServiceCaller implements CasualServiceApi
                 }));
         if(noReply)
         {
+            final Instant end = Instant.now();
+            getEventPublisher().createAndPostEvent( xid, execution, "", serviceName, ErrorState.OK, 0, start, end, Order.SEQUENTIAL);
             f.complete(Optional.empty());
         }
         return f;
@@ -177,6 +163,14 @@ public class CasualServiceCaller implements CasualServiceApi
                                 .withHops(service.getHops()).build()));
 
         return serviceDetailsList;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "CasualServiceCaller{" +
+                "connection=" + connection +
+                '}';
     }
 
     private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, Xid transactionId, UUID execution, boolean noReply)
@@ -232,11 +226,17 @@ public class CasualServiceCaller implements CasualServiceApi
         return new ServiceReturn<>(serviceReplyMessage.getServiceBuffer(), (serviceReplyMessage.getError() == ErrorState.OK) ? ServiceReturnState.TPSUCCESS : ServiceReturnState.TPFAIL, serviceReplyMessage.getError(), serviceReplyMessage.getUserDefinedCode());
     }
 
-    @Override
-    public String toString()
+    ServiceCallEventPublisher getEventPublisher()
     {
-        return "CasualServiceCaller{" +
-                "connection=" + connection +
-                '}';
+        if(eventPublisher == null)
+        {
+            eventPublisher = ServiceCallEventPublisher.of(ServiceCallEventHandlerFactory.getHandler());
+        }
+        return eventPublisher;
+    }
+
+    void setEventPublisher(ServiceCallEventPublisher eventPublisher)
+    {
+        this.eventPublisher = eventPublisher;
     }
 }

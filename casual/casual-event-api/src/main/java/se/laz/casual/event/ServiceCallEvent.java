@@ -188,7 +188,7 @@ public class ServiceCallEvent
             return false;
         }
         ServiceCallEvent that = (ServiceCallEvent) o;
-        return getPid() == that.getPid() && getStart() == that.getStart() && getEnd() == that.getEnd() && getPending() == that.getPending() && getCode() == that.getCode() && Objects.equals(getService(), that.getService()) && Objects.equals(getParent(), that.getParent()) && Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getTransactionId(), that.getTransactionId()) && getOrder() == that.getOrder();
+        return getPid() == that.getPid() && getStart() == that.getStart() && getEnd() == that.getEnd() && getPending() == that.getPending() && getOrder() == that.getOrder() && Objects.equals(getService(), that.getService()) && Objects.equals(getParent(), that.getParent()) && Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getTransactionId(), that.getTransactionId()) && Objects.equals(getCode(), that.getCode());
     }
 
     @Override
@@ -200,16 +200,16 @@ public class ServiceCallEvent
     @Override
     public String toString()
     {
-        return "ServiceCallEventImpl{" +
+        return "ServiceCallEvent{" +
                 "service='" + service + '\'' +
                 ", parent='" + parent + '\'' +
-                ", domainId=" + pid +
-                ", execution=" + execution +
-                ", transactionId=" + transactionId +
+                ", pid=" + pid +
+                ", execution='" + execution + '\'' +
+                ", transactionId='" + transactionId + '\'' +
                 ", start=" + start +
                 ", end=" + end +
                 ", pending=" + pending +
-                ", code=" + code +
+                ", code='" + code + '\'' +
                 ", order=" + order +
                 '}';
     }

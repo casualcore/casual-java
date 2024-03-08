@@ -12,10 +12,9 @@ import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.event.NoServiceCallEventHandlerFoundException;
 import se.laz.casual.event.Order;
-import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
+import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
@@ -25,10 +24,7 @@ import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
-import javax.transaction.xa.Xid;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
@@ -38,17 +34,14 @@ import java.util.logging.Logger;
  */
 public final class CasualServiceCallWork implements Work
 {
-    private static final long NANO_TO_MICROSECONDS = 1000;
-    private static Logger log = Logger.getLogger(CasualServiceCallWork.class.getName());
+    private static final Logger log = Logger.getLogger(CasualServiceCallWork.class.getName());
 
     private final CasualServiceCallRequestMessage message;
-
     private final UUID correlationId;
     private final boolean isTpNoReply;
     private final CompletableFuture<Long> startupTimeFuture;
-
+    private ServiceCallEventPublisher  eventPublisher;
     private CasualNWMessage<CasualServiceCallReplyMessage> response;
-
     private ServiceHandler handler = null;
 
     public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, CompletableFuture<Long> startupTimeFuture)
@@ -106,10 +99,10 @@ public final class CasualServiceCallWork implements Work
     {
         try
         {
-            long start = System.nanoTime() / NANO_TO_MICROSECONDS;
+            Instant start = Instant.now();
             callService();
-            long end = System.nanoTime() / NANO_TO_MICROSECONDS;
-            postServiceCallEvent(message.getParentName(), message.getXid(), message.getExecution(), message.getServiceName(), ErrorState.OK, start, end);
+            Instant end = Instant.now();
+            getEventPublisher().createAndPostEvent( message.getXid(), message.getExecution(), message.getParentName(), message.getServiceName(), ErrorState.OK, startupTimeFuture.join(), start, end, Order.CONCURRENT);
         }
         catch( ServiceHandlerNotFoundException e)
         {
@@ -123,10 +116,10 @@ public final class CasualServiceCallWork implements Work
                                                                                           .setXid( message.getXid() )
                                                                                           .setExecution( message.getExecution() );
         CasualBuffer serviceResult = ServiceBuffer.empty();
-        ;
+        Instant start = Instant.now();
         try
         {
-            Instant start = Instant.now();
+
             InboundResponse reply = callService();
             Instant end = Instant.now();
             serviceResult = reply.getBuffer();
@@ -135,11 +128,12 @@ public final class CasualServiceCallWork implements Work
                     .setError(reply.getErrorState())
                     .setTransactionState(reply.getTransactionState())
                     .setUserSuppliedError( reply.getUserSuppliedErrorCode() );
-            postServiceCallEvent(message.getParentName(), message.getXid(), message.getExecution(), message.getServiceName(),
-                    reply.getErrorState(), ChronoUnit.MICROS.between(Instant.EPOCH, start), ChronoUnit.MICROS.between(Instant.EPOCH, end));
+            getEventPublisher().createAndPostEvent( message.getXid(), message.getExecution(), message.getParentName(), message.getServiceName(), reply.getErrorState(), startupTimeFuture.join(), start, end, Order.CONCURRENT);
         }
         catch( ServiceHandlerNotFoundException e )
         {
+            Instant end = Instant.now();
+            getEventPublisher().createAndPostEvent( message.getXid(), message.getExecution(), message.getParentName(), message.getServiceName(), ErrorState.TPENOENT, startupTimeFuture.join(), start, end, Order.CONCURRENT);
             replyBuilder.setError( ErrorState.TPENOENT )
                         .setTransactionState( TransactionState.ROLLBACK_ONLY );
             log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
@@ -151,28 +145,6 @@ public final class CasualServiceCallWork implements Work
                     .build();
             CasualNWMessage<CasualServiceCallReplyMessage> replyMessage = CasualNWMessageImpl.of( correlationId,reply );
             this.response = replyMessage;
-        }
-    }
-
-    private void postServiceCallEvent(String parentName, Xid xid, UUID execution, String serviceName, ErrorState code, long start, long end)
-    {
-        try
-        {
-            ServiceCallEventHandlerFactory.getHandler().put(ServiceCallEvent.createBuilder()
-                                                                            .withTransactionId(xid)
-                                                                            .withExecution(execution)
-                                                                            .withService(serviceName)
-                                                                            .withCode(code)
-                                                                            .withStart(start)
-                                                                            .withEnd(end)
-                                                                            .withOrder(Order.CONCURRENT)
-                                                                            .withPending(startupTimeFuture.join())
-                                                                            .withParent(parentName)
-                                                                            .build());
-        }
-        catch(NoServiceCallEventHandlerFoundException e)
-        {
-            log.warning(() -> "Failed to get service call event handler: " + e + ", metrics will not be available for this call");
         }
     }
 
@@ -195,5 +167,19 @@ public final class CasualServiceCallWork implements Work
     void setHandler( ServiceHandler handler )
     {
         this.handler = handler;
+    }
+
+    ServiceCallEventPublisher getEventPublisher()
+    {
+        if(eventPublisher == null)
+        {
+            eventPublisher = ServiceCallEventPublisher.of(ServiceCallEventHandlerFactory.getHandler());
+        }
+        return eventPublisher;
+    }
+
+    void setEventPublisher(ServiceCallEventPublisher eventPublisher)
+    {
+        this.eventPublisher = eventPublisher;
     }
 }

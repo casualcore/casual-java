@@ -89,6 +89,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                                                            .withPort(config.getPortNumber())
                                                            .build());
             log.info("event server started at port: " + config.getPortNumber());
+            RuntimeInformation.setEventServerStarted(true);
         });
     }
 

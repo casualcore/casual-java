@@ -44,6 +44,7 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
 import javax.transaction.xa.XAException;
+import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -180,7 +181,8 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
-        log.finest(() ->  "prepareRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
+        log.finest(() ->  "prepareRequest(). " + PrettyPrinter.format(message.getCorrelationId(),
+                message.getMessage().getExecution(), message.getMessage().getXid()) + "flags:" + message.getMessage().getFlags() + " " + message);
 
         Xid xid = message.getMessage().getXid();
         int status = -1;
@@ -192,7 +194,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         {
 
             status = e.errorCode;
-            log.log( Level.WARNING, e, ()-> "XAExcception prepare()" + e.getMessage() );
+            log.log( Level.WARNING, e, ()-> "XAException prepare()" + e.getMessage() );
         }
         finally
         {
