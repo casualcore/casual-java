@@ -20,14 +20,6 @@ apply from: 'testsourcesets.gradle'
 
 defaultTasks 'build'
 
-sonar {
-    properties {
-        properties["sonar.host.url"] = 'http://localhost:9000'
-        properties["sonar.verbose"] = "true"
-        properties['sonar.java.source'] = 17
-    }
-}
-
 allprojects{
   tasks.withType(JavaCompile) { 
     sourceCompatibility = JavaVersion.VERSION_17
@@ -36,19 +28,34 @@ allprojects{
   }
   repositories {
     mavenCentral()
-    }
+  } 
 }
 
-subprojects{
+subprojects{  
+  sonar {
+    properties {
+        properties["sonar.host.url"] = 'http://localhost:9000'
+        properties["sonar.verbose"] = "true"
+        properties['sonar.java.source'] = 17
+    }
+  }  
+  apply plugin: 'jacoco'
   apply from: "$rootProject.projectDir/versions.gradle"
   apply plugin: 'java-library'
   apply from: "$rootProject.projectDir/publish.gradle"
   test {
+    finalizedBy jacocoTestReport
     useJUnitPlatform()
       testLogging {
         events "passed", "skipped", "failed"
       }
     }
+  jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+      xml.enabled true
+    }    
+  }
 }
 
 task dist(type: Sync) {
