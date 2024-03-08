@@ -173,7 +173,7 @@ class CasualServiceCallerTest extends Specification
                 return CompletableFuture.completedFuture(serviceReply)
         }
         expect actualServiceRequest, matching( expectedServiceRequest )
-        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", serviceName, ErrorState.OK, _ as Long, _ as Instant, _ as Instant, _ as Order)
+        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", serviceName, ErrorState.OK, _ as Long, _ as Instant, _ as Instant, Order.SEQUENTIAL)
     }
 
     def "Tpcall service not available returns TPNOENT"()
@@ -192,7 +192,7 @@ class CasualServiceCallerTest extends Specification
         }
 
         expect actualServiceRequest, matching( expectedServiceRequest )
-        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", serviceName, ErrorState.TPENOENT, _ as Long, _ as Instant, _ as Instant, _ as Order)
+        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", serviceName, ErrorState.TPENOENT, _ as Long, _ as Instant, _ as Instant, Order.SEQUENTIAL)
     }
 
     def "Tpcall service is available performs service call which fails, returns failure result."()
@@ -214,7 +214,7 @@ class CasualServiceCallerTest extends Specification
         }
 
         expect actualServiceRequest, matching( expectedServiceRequest )
-        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", serviceName, ErrorState.TPESVCFAIL, _ as Long, _ as Instant, _ as Instant, _ as Order)
+        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", serviceName, ErrorState.TPESVCFAIL, _ as Long, _ as Instant, _ as Instant, Order.SEQUENTIAL)
     }
 
     def "Tpcall with TPNOREPLY - exceptional"()
@@ -245,7 +245,7 @@ class CasualServiceCallerTest extends Specification
         }
 
         expect actualServiceRequest, matching( expectedServiceRequest )
-        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", serviceName, ErrorState.OK, _ as Long, _ as Instant, _ as Instant, _ as Order)
+        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", serviceName, ErrorState.OK, _ as Long, _ as Instant, _ as Instant, Order.SEQUENTIAL)
     }
 
    def "Tpacall service is available, flags are TPNOREPLY but missing TPNOTRAN"()
@@ -267,7 +267,7 @@ class CasualServiceCallerTest extends Specification
       noExceptionThrown()
       result != null
       result.isPresent() == false
-      1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", serviceName, ErrorState.OK, _ as Long, _ as Instant, _ as Instant, _ as Order)
+      1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", serviceName, ErrorState.OK, _ as Long, _ as Instant, _ as Instant, Order.SEQUENTIAL)
    }
 
     def 'tpacall fails'()
