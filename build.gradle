@@ -12,6 +12,7 @@ buildscript {
     }
 }
 
+
 plugins {
   id("org.sonarqube") version "4.4.1.3373"
 }
@@ -38,7 +39,7 @@ subprojects{
         properties["sonar.verbose"] = "true"
         properties['sonar.java.source'] = 17
     }
-  }  
+  }
   apply plugin: 'jacoco'
   apply from: "$rootProject.projectDir/versions.gradle"
   apply plugin: 'java-library'
@@ -51,12 +52,15 @@ subprojects{
       }
     }
   jacocoTestReport {
-    dependsOn test // tests are required to run before generating the report
+    dependsOn test 
     reports {
       xml.enabled true
     }    
   }
 }
+
+// always run tests when running sonar
+rootProject.tasks['sonar'].dependsOn.add(subprojects.tasks['test'])
 
 task dist(type: Sync) {
     allprojects { p ->
