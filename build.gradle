@@ -38,7 +38,7 @@ subprojects{
         properties["sonar.host.url"] = 'http://localhost:9000'
         properties["sonar.verbose"] = "true"
         properties['sonar.java.source'] = 17
-    }
+     }
   }
   apply plugin: 'jacoco'
   apply from: "$rootProject.projectDir/versions.gradle"
@@ -51,11 +51,16 @@ subprojects{
         events "passed", "skipped", "failed"
       }
     }
+
   jacocoTestReport {
-    dependsOn test 
     reports {
-      xml.enabled true
-    }    
+      xml.required = true
+      csv.required = false
+    }
+  }
+
+  test{
+    jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
   }
 }
 

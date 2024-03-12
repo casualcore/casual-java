@@ -10,6 +10,7 @@ import io.netty.channel.group.ChannelGroup;
 import se.laz.casual.event.ServiceCallEvent;
 
 import java.util.Objects;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -18,7 +19,7 @@ public class DefaultMessageLoop implements MessageLoop
     private static final Logger log = Logger.getLogger(DefaultMessageLoop.class.getName());
     private final ChannelGroup connectedClients;
     private final Supplier<ServiceCallEvent> serviceCallEventProvider;
-    private Supplier<Boolean> continueLoop = () -> false;
+    private BooleanSupplier continueLoop = () -> false;
 
     private DefaultMessageLoop(ChannelGroup connectedClients, Supplier<ServiceCallEvent> serviceCallEventProvider)
     {
@@ -35,7 +36,7 @@ public class DefaultMessageLoop implements MessageLoop
 
     public void handleMessages()
     {
-        while (continueLoop.get())
+        while (continueLoop.getAsBoolean())
         {
             ServiceCallEvent event = serviceCallEventProvider.get();
             log.info(() -> "# of clients: " + connectedClients.size());
@@ -48,7 +49,7 @@ public class DefaultMessageLoop implements MessageLoop
     }
 
     @Override
-    public void accept(Supplier<Boolean> continueLoop)
+    public void accept(BooleanSupplier continueLoop)
     {
         Objects.requireNonNull(continueLoop, "loop can not be null");
         this.continueLoop = continueLoop;

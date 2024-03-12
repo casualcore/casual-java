@@ -67,7 +67,7 @@ public class CasualServiceCaller implements CasualServiceApi
         try
         {
             throwIfTpCallFlagsInvalid(serviceName, flags);
-            return issueAsyncCall(serviceName, data, flags, ServiceCallType.TPCALL).join().orElseThrow(() -> new CasualConnectionException("result is missing, it should always be returned"));
+            return issueAsyncCall(serviceName, data, flags).join().orElseThrow(() -> new CasualConnectionException("result is missing, it should always be returned"));
         }
         catch (Exception e)
         {
@@ -79,10 +79,10 @@ public class CasualServiceCaller implements CasualServiceApi
     public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         throwIfTpacallFlagsInvalid(serviceName, flags);
-        return issueAsyncCall(serviceName, data, flags, ServiceCallType.TPACALL);
+        return issueAsyncCall(serviceName, data, flags);
     }
 
-    private CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> issueAsyncCall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, ServiceCallType callType)
+    private CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> issueAsyncCall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> f = new CompletableFuture<>();
         UUID corrId = UUID.randomUUID();

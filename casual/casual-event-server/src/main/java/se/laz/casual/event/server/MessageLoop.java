@@ -5,10 +5,10 @@
  */
 package se.laz.casual.event.server;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-public interface MessageLoop extends Consumer<Supplier<Boolean>>
+public interface MessageLoop extends Consumer<BooleanSupplier>
 {
     void handleMessages();
 }

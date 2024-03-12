@@ -13,8 +13,8 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import jakarta.enterprise.concurrent.ManagedExecutorService;
 import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
@@ -33,8 +33,6 @@ import se.laz.casual.network.protocol.messages.conversation.Request;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage;
-
-import jakarta.enterprise.concurrent.ManagedExecutorService;
 import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpdateMessage;
 
 import java.net.InetSocketAddress;

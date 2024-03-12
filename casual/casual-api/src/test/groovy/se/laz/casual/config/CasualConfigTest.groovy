@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -48,7 +48,7 @@ class CasualConfigTest extends Specification
     }
 
    @Unroll
-   def "inbound statup config also set in env, configuration from file should be used"()
+   def "inbound startup config also set in env, configuration from file should be used"()
    {
       given:
       String config = new File( "src/test/resources/" + file ).getText( StandardCharsets.UTF_8.name(  ) )
@@ -101,6 +101,7 @@ class CasualConfigTest extends Specification
       withEnvironmentVariable(Inbound.CASUAL_INBOUND_STARTUP_MODE, modeFromEnv).execute({
          actual == expected
       })
+      !actual.getEventServer().isPresent()
       where:
       file                           || mode           || modeFromEnv           | services
       "casual-config-empty.json"     || Mode.TRIGGER   || Mode.TRIGGER.name     | []
@@ -178,6 +179,27 @@ class CasualConfigTest extends Specification
       where:
       file                                          || domainName          || envDomainName
       "casual-config-domain-info.json"              || "casual-java-test"  || 'env-domain-name'
+   }
+
+   @Unroll
+   def "Event server configuration"()
+   {
+      given:
+      String config = new File( "src/test/resources/" + file ).getText( StandardCharsets.UTF_8.name(  ) )
+      Configuration expected = Configuration.newBuilder()
+              .withEventServer(EventServer.createBuilder().withPortNumber(portNumber).withUseEpoll(useEpoll).build())
+              .build()
+
+      when:
+      Configuration actual = JsonProviderFactory.getJsonProvider(  ).fromJson( new StringReader( config ), Configuration.class )
+
+      then:
+      actual == expected
+
+      where:
+      file                                        || portNumber | useEpoll
+      'casual-config-event-server-use-epoll.json' || 6699       | true
+      'casual-config-event-server-no-epoll.json'  || 9966       | false
    }
 
 }
