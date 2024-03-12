@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2024, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
 package se.laz.casual.event;
 
 import se.laz.casual.api.flags.ErrorState;
@@ -16,22 +21,21 @@ import java.util.logging.Logger;
 public class ServiceCallEventPublisher
 {
     private static final Logger log = Logger.getLogger(ServiceCallEventPublisher.class.getName());
-    private final ServiceCallEventHandler handlerSupplier;
+    private final ServiceCallEventHandler handler;
 
-    private ServiceCallEventPublisher(ServiceCallEventHandler handlerSupplier)
+    private ServiceCallEventPublisher(ServiceCallEventHandler handler)
     {
-        this.handlerSupplier = handlerSupplier;
+        this.handler = handler;
     }
 
-    public static ServiceCallEventPublisher of(ServiceCallEventHandler handlerSupplier)
+    public static ServiceCallEventPublisher of(ServiceCallEventHandler handler)
     {
-        Objects.requireNonNull(handlerSupplier, "handlerSupplier can not be null");
-        return new ServiceCallEventPublisher(handlerSupplier);
+        Objects.requireNonNull(handler, "handler can not be null");
+        return new ServiceCallEventPublisher(handler);
     }
 
     /**
-     *
-     *  Only posts event in the case that the event server is up and running
+     *  Only creates and posts an event in the case that the event server is up and running
      *  If not, it does nothing
      *
      * @param xid The transaction id
@@ -78,9 +82,9 @@ public class ServiceCallEventPublisher
                                                .withParent(parentName)
                                                .build());
         }
-        catch(Exception anythingElse)
+        catch(Exception e)
         {
-            log.log(Level.WARNING, anythingElse, () -> creationErrorMessage(parentName, xid, execution, serviceName, code, start, end, order));
+            log.log(Level.WARNING, e, () -> creationErrorMessage(parentName, xid, execution, serviceName, code, start, end, order));
         }
         return Optional.empty();
     }
@@ -95,7 +99,7 @@ public class ServiceCallEventPublisher
     {
         try
         {
-            handlerSupplier.put(event);
+            handler.put(event);
         }
         catch(NoServiceCallEventHandlerFoundException e)
         {

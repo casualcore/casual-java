@@ -44,3 +44,5 @@ See [casual caller documentation](https://github.com/casualcore/casual-caller) f
 [Reverse Inbound Server](reverse-inbound.md)
 
 [Outbound](outbound.md)
+
+[Event server](event-server.md)
