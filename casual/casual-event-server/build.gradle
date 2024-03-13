@@ -15,7 +15,7 @@ defaultTasks 'build'
 dependencies {
     api project(':casual:casual-event-api')
     api libs.gson
-    implementation libs.netty
+    api libs.netty
     compileOnly libs.javaee_api
 
     testImplementation libs.javaee_api
