@@ -7,9 +7,10 @@
 package se.laz.casual.jca.inflow;
 
 import io.netty.channel.Channel;
+import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
+
 import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
-import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
 
 /**
  * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
@@ -19,7 +20,7 @@ public class ServiceCallWorkListener implements WorkListener
 {
     private final Channel channel;
 
-    public ServiceCallWorkListener(Channel channel)
+    public ServiceCallWorkListener(Channel channel )
     {
         this.channel = channel;
     }
