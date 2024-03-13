@@ -17,7 +17,7 @@ The settings for the Casual RA include:
 | Setting   | Comment   | Example   |
 | ---   | ---   | --- |
 | id | Identifier of the casual resrouce adapter must be `casual-jca` | `casual-jca` |
-| archive | Location of the rar within the ear | `casual-jca-app-1.0.17-beta.ear#casual-jca.rar` |
+| archive | Location of the rar within the ear | `casual-jca-app-3.2.31.ear#casual-jca.rar` |
 | class-name | FQCN of the Casaul Managed Connection Factory | `se.laz.casual.jca.CasualManagedConnectionFactory` |
 | HostName | Casual Server Host | `192.168.99.100` |
 | PortNumber | Casual Server Port | `7771`
@@ -30,13 +30,14 @@ There are a number of deployment alternatives, however the simplest is to regist
 * casual-service-discovery-extension.jar - inbound service discovery and dispatch mechanism
 * casual-api.jar - api entry point for clients
 * casual-fielded-annotations.jar - fielded POJO marshalling helper
+* casual-event-api - API for service call events
 
 ## Third party dependencies
 Casual JCA makes use of the following third party libraries:
 
-* [Netty v4.1.21.Final](https://github.com/netty/netty)
-* [gson v2.8.1](https://github.com/google/gson)
-* [objenis v2.6](https://github.com/easymock/objenesis)
+* [Netty v4.1.107.Final](https://github.com/netty/netty)
+* [gson v2.10.1](https://github.com/google/gson)
+* [objenis v3.3](https://github.com/easymock/objenesis)
 
 Netty is packaged within the Casual JCA ear.
 
