@@ -24,7 +24,7 @@ public class LogonRequestMessageTypeAdapter implements JsonDeserializer<LogonReq
     public LogonRequestMessage deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
     {
         String message = json.getAsJsonObject().get("message").getAsString();
-        log.info(() -> "message: " + message);
+        log.finest(() -> "message: " + message);
         LogonRequest logonRequest = LogonRequest.unmarshall(message);
         return LogonRequestMessage.of(logonRequest);
     }

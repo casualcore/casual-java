@@ -43,6 +43,6 @@ public class FromJSONLogonDecoder extends SimpleChannelInboundHandler<Object>
         LogonRequestMessage requestMessage = JsonProviderFactory.getJsonProvider().fromJson(json, LogonRequestMessage.class, LogonRequestMessageTypeAdapter.of());
         connectedClients.add(ctx.channel());
         ctx.fireChannelRead(requestMessage);
-        log.info(() -> "EventServer, client logged on: " + requestMessage + " channel: " + ctx.channel());
+        log.finest(() -> "EventServer, client logged on: " + requestMessage + " channel: " + ctx.channel());
     }
 }
