@@ -65,7 +65,7 @@ import java.util.logging.Logger;
                 })
 public class CasualMessageListenerImpl implements CasualMessageListener
 {
-    private static final long MICROSECOND_FACTOR = 1000;
+    private static final long MICROSECOND_FACTOR = 1000L;
     private static Logger log = Logger.getLogger(CasualMessageListenerImpl.class.getName());
     private static final Long CASUAL_PROTOCOL_VERSION = 1000L;
 
