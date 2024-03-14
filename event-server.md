@@ -1,6 +1,6 @@
 # Event server
 
-The purpose of the event server is to be able to access information regarding service calls as they happen - both inobund and outbound.
+The purpose of the event server is to be able to access information regarding service calls as they happen - both inbound and outbound.
 
 Example of server output:
 ```json
