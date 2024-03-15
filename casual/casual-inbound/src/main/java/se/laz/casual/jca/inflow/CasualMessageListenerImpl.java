@@ -49,7 +49,6 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -130,16 +129,18 @@ public class CasualMessageListenerImpl implements CasualMessageListener
             });
         }
         boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
-        CompletableFuture<Long> startupTimeFuture = new CompletableFuture<>();
-        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply, startupTimeFuture);
+        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply);
 
         try
         {
-            long maybeStartupInMilliseconds = !isTpNoReply && isServiceCallTransactional( xid ) ?
-                    workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
-                    workManager.startWork( work, WorkManager.INDEFINITE, null, (isTpNoReply ? null : new ServiceCallWorkListener( channel )));
-            startupTimeFuture.complete(maybeStartupInMilliseconds * MICROSECOND_FACTOR);
-            log.finest( ()->"Service call startup: "+ maybeStartupInMilliseconds + "ms.");
+            if(!isTpNoReply && isServiceCallTransactional( xid ) )
+            {
+                workManager.scheduleWork(work, WorkManager.INDEFINITE, createTransactionContext(xid, message.getMessage().getTimeout()), new ServiceCallWorkListener(channel, message.getMessage()));
+            }
+            else
+            {
+                workManager.scheduleWork(work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener(channel, message.getMessage(), isTpNoReply));
+            }
         }
         catch (WorkException e)
         {

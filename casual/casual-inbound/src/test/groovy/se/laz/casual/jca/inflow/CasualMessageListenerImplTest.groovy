@@ -7,7 +7,13 @@
 package se.laz.casual.jca.inflow
 
 import io.netty.channel.embedded.EmbeddedChannel
+import jakarta.resource.spi.XATerminator
+import jakarta.resource.spi.work.ExecutionContext
+import jakarta.resource.spi.work.WorkException
+import jakarta.resource.spi.work.WorkListener
+import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.api.buffer.type.JsonBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.XAFlags
@@ -17,8 +23,8 @@ import se.laz.casual.api.service.CasualService
 import se.laz.casual.api.xa.XAReturnCode
 import se.laz.casual.api.xa.XID
 import se.laz.casual.config.ConfigurationService
-import se.laz.casual.jca.CasualResourceAdapterException
 import se.laz.casual.config.Domain
+import se.laz.casual.jca.CasualResourceAdapterException
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
@@ -28,16 +34,10 @@ import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.*
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.network.protocol.messages.transaction.*
 import spock.lang.Shared
 import spock.lang.Specification
 
-import jakarta.resource.spi.XATerminator
-import jakarta.resource.spi.work.ExecutionContext
-import jakarta.resource.spi.work.WorkException
-import jakarta.resource.spi.work.WorkListener
-import jakarta.resource.spi.work.WorkManager
 import javax.transaction.xa.XAException
 import javax.transaction.xa.Xid
 import java.lang.annotation.Annotation
@@ -261,7 +261,7 @@ class CasualMessageListenerImplTest extends Specification
        actualStartTimeout != null
        actualStartTimeout == WorkManager.INDEFINITE
        actualExecutionContext == null
-       actualWorkListener == null
+       actualWorkListener != null
     }
 
     def "ServiceCallRequest TPNOREPLY, transactional - out of protocol, call will be issued but non transactional"()
@@ -303,7 +303,7 @@ class CasualMessageListenerImplTest extends Specification
        actualStartTimeout != null
        actualStartTimeout == WorkManager.INDEFINITE
        actualExecutionContext == null
-       actualWorkListener == null
+       actualWorkListener != null
     }
 
     def "ServiceCallRequest startWork throws exception, wrapped and thrown."()

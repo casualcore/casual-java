@@ -17,8 +17,6 @@ import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
-import se.laz.casual.event.Order
-import se.laz.casual.event.ServiceCallEvent
 import se.laz.casual.event.ServiceCallEventPublisher
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
@@ -30,7 +28,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.CompletableFuture
 
 class CasualServiceCallWorkTest extends Specification
 {
@@ -76,18 +73,11 @@ class CasualServiceCallWorkTest extends Specification
                         .build()
 
         correlationId = UUID.randomUUID()
-
-        CompletableFuture<Long> timeFuture = new CompletableFuture<>()
-        instance = new CasualServiceCallWork(correlationId, message, timeFuture)
+        instance = new CasualServiceCallWork(correlationId, message)
         instance.setHandler( handler )
 
-        serviceCallEventPublisher = Mock(ServiceCallEventPublisher)
-        instance.setEventPublisher(serviceCallEventPublisher)
-
-        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true, timeFuture )
+        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true)
         instanceTPNOREPLY.setHandler( handler )
-        instanceTPNOREPLY.setEventPublisher(serviceCallEventPublisher)
-        timeFuture.complete(42L)
     }
 
     def "Get header."()
@@ -131,12 +121,6 @@ class CasualServiceCallWorkTest extends Specification
 
         actualRequest.getServiceName() == jndiServiceName
         actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
-
-        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
-           event.getService() == jndiServiceName
-           event.getCode() == ErrorState.OK.name()
-           event.getOrder() == Order.SEQUENTIAL.value
-        }
     }
 
     def "Call Service with buffer and return InboundResponse tx, error and user defined error codes in result."()
@@ -171,12 +155,6 @@ class CasualServiceCallWorkTest extends Specification
         actualRequest.getServiceName() == jndiServiceName
         actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
 
-        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
-           event.getService() == jndiServiceName
-           event.getCode() == ErrorState.TPESVCERR.name()
-           event.getOrder() == Order.SEQUENTIAL.value
-        }
-
     }
 
     def "Call Service with buffer service throws exception return ErrorState.TPSVCERR."()
@@ -207,11 +185,6 @@ class CasualServiceCallWorkTest extends Specification
         actualRequest.getServiceName() == jndiServiceName
         actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
 
-        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
-           event.getService() == jndiServiceName
-           event.getCode() == ErrorState.TPESVCERR.name()
-           event.getOrder() == Order.SEQUENTIAL.value
-        }
     }
 
     def "Call Service, TPNOREPLY, with buffer - there should be no reply"()
@@ -233,11 +206,6 @@ class CasualServiceCallWorkTest extends Specification
        actualRequest.getServiceName() == jndiServiceName
        actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
 
-       1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
-          event.getService() == jndiServiceName
-          event.getCode() == ErrorState.OK.name()
-          event.getOrder() == Order.SEQUENTIAL.value
-       }
     }
 
     def "Release does nothing."()
@@ -275,20 +243,11 @@ class CasualServiceCallWorkTest extends Specification
     def "Call Service which does not exist or is not available, returns result with TPNOENT status."()
     {
         given:
-        CompletableFuture<Long> timeFuture = new CompletableFuture<>()
-        instance = new CasualServiceCallWork(correlationId, message, timeFuture)
-        instance.setEventPublisher(serviceCallEventPublisher)
+        instance = new CasualServiceCallWork(correlationId, message)
         when:
-        timeFuture.complete(42L)
         instance.run()
         CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
-
         then:
         reply.getMessage().getError() == ErrorState.TPENOENT
-        serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
-           event.getService() == jndiServiceName
-           event.getCode() == ErrorState.TPENOENT.name()
-           event.getOrder() == Order.SEQUENTIAL.value
-        }
     }
 }
