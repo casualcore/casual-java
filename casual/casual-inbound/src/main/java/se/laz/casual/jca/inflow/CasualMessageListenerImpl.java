@@ -135,11 +135,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
 
         try
         {
-            long startupInMilliseconds = !isTpNoReply && isServiceCallTransactional( xid ) ?
+            long maybeStartupInMilliseconds = !isTpNoReply && isServiceCallTransactional( xid ) ?
                     workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
                     workManager.startWork( work, WorkManager.INDEFINITE, null, (isTpNoReply ? null : new ServiceCallWorkListener( channel )));
-            startupTimeFuture.complete(startupInMilliseconds * MICROSECOND_FACTOR);
-            log.finest( ()->"Service call startup: "+ startupInMilliseconds + "ms.");
+            startupTimeFuture.complete(maybeStartupInMilliseconds * MICROSECOND_FACTOR);
+            log.finest( ()->"Service call startup: "+ maybeStartupInMilliseconds + "ms.");
         }
         catch (WorkException e)
         {
