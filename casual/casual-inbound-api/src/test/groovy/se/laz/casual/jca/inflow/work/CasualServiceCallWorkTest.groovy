@@ -18,6 +18,7 @@ import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
 import se.laz.casual.event.Order
+import se.laz.casual.event.ServiceCallEvent
 import se.laz.casual.event.ServiceCallEventPublisher
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
@@ -28,9 +29,7 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestM
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.transaction.xa.Xid
 import java.nio.charset.StandardCharsets
-import java.time.Instant
 import java.util.concurrent.CompletableFuture
 
 class CasualServiceCallWorkTest extends Specification
@@ -133,7 +132,11 @@ class CasualServiceCallWorkTest extends Specification
         actualRequest.getServiceName() == jndiServiceName
         actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
 
-        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", jndiServiceName, ErrorState.OK, _ as Long, _ as Instant, _ as Instant, Order.CONCURRENT)
+        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
+           event.getService() == jndiServiceName
+           event.getCode() == ErrorState.OK.name()
+           event.getOrder() == Order.SEQUENTIAL.value
+        }
     }
 
     def "Call Service with buffer and return InboundResponse tx, error and user defined error codes in result."()
@@ -168,7 +171,12 @@ class CasualServiceCallWorkTest extends Specification
         actualRequest.getServiceName() == jndiServiceName
         actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
 
-        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", jndiServiceName, ErrorState.TPESVCERR, _ as Long, _ as Instant, _ as Instant, Order.CONCURRENT)
+        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
+           event.getService() == jndiServiceName
+           event.getCode() == ErrorState.TPESVCERR.name()
+           event.getOrder() == Order.SEQUENTIAL.value
+        }
+
     }
 
     def "Call Service with buffer service throws exception return ErrorState.TPSVCERR."()
@@ -199,7 +207,11 @@ class CasualServiceCallWorkTest extends Specification
         actualRequest.getServiceName() == jndiServiceName
         actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
 
-        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", jndiServiceName, ErrorState.TPESVCERR, _ as Long, _ as Instant, _ as Instant, Order.CONCURRENT)
+        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
+           event.getService() == jndiServiceName
+           event.getCode() == ErrorState.TPESVCERR.name()
+           event.getOrder() == Order.SEQUENTIAL.value
+        }
     }
 
     def "Call Service, TPNOREPLY, with buffer - there should be no reply"()
@@ -221,7 +233,11 @@ class CasualServiceCallWorkTest extends Specification
        actualRequest.getServiceName() == jndiServiceName
        actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
 
-       1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", jndiServiceName, ErrorState.OK, _ as Long, _ as Instant, _ as Instant, Order.CONCURRENT)
+       1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
+          event.getService() == jndiServiceName
+          event.getCode() == ErrorState.OK.name()
+          event.getOrder() == Order.SEQUENTIAL.value
+       }
     }
 
     def "Release does nothing."()
@@ -269,6 +285,10 @@ class CasualServiceCallWorkTest extends Specification
 
         then:
         reply.getMessage().getError() == ErrorState.TPENOENT
-        1 * serviceCallEventPublisher.createAndPostEvent(_ as Xid, _ as UUID, "", jndiServiceName, ErrorState.TPENOENT, _ as Long, _ as Instant, _ as Instant, Order.CONCURRENT)
+        serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
+           event.getService() == jndiServiceName
+           event.getCode() == ErrorState.TPENOENT.name()
+           event.getOrder() == Order.SEQUENTIAL.value
+        }
     }
 }

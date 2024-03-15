@@ -8,10 +8,10 @@ package se.laz.casual.event
 import spock.lang.Shared
 import spock.lang.Specification
 
-class CasualServiceCallEventHandlerTest extends Specification
+class CasualServiceCallEventStoreTest extends Specification
 {
    @Shared
-   CasualServiceCallEventHandler instance = new CasualServiceCallEventHandler()
+   CasualServiceCallEventStore instance = new CasualServiceCallEventStore()
 
    def 'can not post null event'()
    {

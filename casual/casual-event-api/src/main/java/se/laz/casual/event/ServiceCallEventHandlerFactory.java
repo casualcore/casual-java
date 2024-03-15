@@ -19,23 +19,23 @@ public class ServiceCallEventHandlerFactory
     {}
 
     /**
-     * Retrieve the most appropriate {@link ServiceCallEventHandler} based on it's {@link Priority}.
+     * Retrieve the most appropriate {@link ServiceCallEventStore} based on it's {@link Priority}.
      *
      * If there is no registered handler a {@link CasualRuntimeException} is thrown.
      *
      * @return the appropriate handler.
      */
-    public static ServiceCallEventHandler getHandler()
+    public static ServiceCallEventStore getHandler()
     {
         return getHandlers().stream()
                             .findFirst()
                             .orElseThrow(() -> new NoServiceCallEventHandlerFoundException("No ServiceCallEventHandler found"));
     }
 
-    private static List<ServiceCallEventHandler> getHandlers()
+    private static List<ServiceCallEventStore> getHandlers()
     {
-        List<ServiceCallEventHandler> handlers = new ArrayList<>();
-        for( ServiceCallEventHandler h: ServiceLoader.load( ServiceCallEventHandler.class ) )
+        List<ServiceCallEventStore> handlers = new ArrayList<>();
+        for( ServiceCallEventStore h: ServiceLoader.load( ServiceCallEventStore.class ) )
         {
             handlers.add( h );
         }

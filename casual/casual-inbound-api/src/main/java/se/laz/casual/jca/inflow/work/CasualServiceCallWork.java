@@ -13,6 +13,7 @@ import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.event.Order;
+import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
 import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
@@ -102,7 +103,18 @@ public final class CasualServiceCallWork implements Work
             Instant start = Instant.now();
             callService();
             Instant end = Instant.now();
-            getEventPublisher().createAndPostEvent( message.getXid(), message.getExecution(), message.getParentName(), message.getServiceName(), ErrorState.OK, startupTimeFuture.join(), start, end, Order.CONCURRENT);
+            ServiceCallEvent event = ServiceCallEvent.createBuilder()
+                                                     .withTransactionId(message.getXid())
+                                                     .withExecution(message.getExecution())
+                                                     .withParent(message.getParentName())
+                                                     .withService(message.getServiceName())
+                                                     .withCode(ErrorState.OK)
+                                                     .withPending(startupTimeFuture.join())
+                                                     .withStart(start)
+                                                     .withEnd(end)
+                                                     .withOrder(Order.SEQUENTIAL)
+                                                     .build();
+            getEventPublisher().post(event);
         }
         catch( ServiceHandlerNotFoundException e)
         {
@@ -128,12 +140,34 @@ public final class CasualServiceCallWork implements Work
                     .setError(reply.getErrorState())
                     .setTransactionState(reply.getTransactionState())
                     .setUserSuppliedError( reply.getUserSuppliedErrorCode() );
-            getEventPublisher().createAndPostEvent( message.getXid(), message.getExecution(), message.getParentName(), message.getServiceName(), reply.getErrorState(), startupTimeFuture.join(), start, end, Order.CONCURRENT);
+            ServiceCallEvent event = ServiceCallEvent.createBuilder()
+                                                     .withTransactionId(message.getXid())
+                                                     .withExecution(message.getExecution())
+                                                     .withParent(message.getParentName())
+                                                     .withService(message.getServiceName())
+                                                     .withCode(reply.getErrorState())
+                                                     .withPending(startupTimeFuture.join())
+                                                     .withStart(start)
+                                                     .withEnd(end)
+                                                     .withOrder(Order.SEQUENTIAL)
+                                                     .build();
+            getEventPublisher().post(event);
         }
         catch( ServiceHandlerNotFoundException e )
         {
             Instant end = Instant.now();
-            getEventPublisher().createAndPostEvent( message.getXid(), message.getExecution(), message.getParentName(), message.getServiceName(), ErrorState.TPENOENT, startupTimeFuture.join(), start, end, Order.CONCURRENT);
+            ServiceCallEvent event = ServiceCallEvent.createBuilder()
+                                                     .withTransactionId(message.getXid())
+                                                     .withExecution(message.getExecution())
+                                                     .withParent(message.getParentName())
+                                                     .withService(message.getServiceName())
+                                                     .withCode(ErrorState.TPENOENT)
+                                                     .withPending(startupTimeFuture.join())
+                                                     .withStart(start)
+                                                     .withEnd(end)
+                                                     .withOrder(Order.SEQUENTIAL)
+                                                     .build();
+            getEventPublisher().post(event);
             replyBuilder.setError( ErrorState.TPENOENT )
                         .setTransactionState( TransactionState.ROLLBACK_ONLY );
             log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );

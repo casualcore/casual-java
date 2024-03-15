@@ -21,6 +21,7 @@ import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
 import se.laz.casual.event.Order;
+import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
 import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.jca.CasualManagedConnection;
@@ -101,7 +102,18 @@ public class CasualServiceCaller implements CasualServiceApi
                             }
                             LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
                             final Instant end = Instant.now();
-                            getEventPublisher().createAndPostEvent( xid, execution, "", serviceName, v.getMessage().getError(), 0, start, end, Order.SEQUENTIAL);
+                            ServiceCallEvent event = ServiceCallEvent.createBuilder()
+                                                                     .withTransactionId(xid)
+                                                                     .withExecution(execution)
+                                                                     .withParent("")
+                                                                     .withService(serviceName)
+                                                                     .withCode(v.getMessage().getError())
+                                                                     .withPending(0)
+                                                                     .withStart(start)
+                                                                     .withEnd(end)
+                                                                     .withOrder(Order.CONCURRENT)
+                                                                     .build();
+                            getEventPublisher().post(event);
                     if(!f.isDone())
                     {
                         f.complete(Optional.of(toServiceReturn(v)));
@@ -110,7 +122,18 @@ public class CasualServiceCaller implements CasualServiceApi
         if(noReply)
         {
             final Instant end = Instant.now();
-            getEventPublisher().createAndPostEvent( xid, execution, "", serviceName, ErrorState.OK, 0, start, end, Order.SEQUENTIAL);
+            ServiceCallEvent event = ServiceCallEvent.createBuilder()
+                                                     .withTransactionId(xid)
+                                                     .withExecution(execution)
+                                                     .withParent("")
+                                                     .withService(serviceName)
+                                                     .withCode(ErrorState.OK)
+                                                     .withPending(0)
+                                                     .withStart(start)
+                                                     .withEnd(end)
+                                                     .withOrder(Order.CONCURRENT)
+                                                     .build();
+            getEventPublisher().post(event);
             f.complete(Optional.empty());
         }
         return f;

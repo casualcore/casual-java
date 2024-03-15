@@ -7,13 +7,13 @@ package se.laz.casual.event
 
 import spock.lang.Specification
 
-class ServiceCallEventHandlerFactoryTest extends Specification
+class ServiceCallEventStoreFactoryTest extends Specification
 {
    def 'gets the default handler'()
    {
       when:
-      ServiceCallEventHandler handler = ServiceCallEventHandlerFactory.getHandler()
+      ServiceCallEventStore handler = ServiceCallEventHandlerFactory.getHandler()
       then:
-      handler.getClass() == CasualServiceCallEventHandler.class
+      handler.getClass() == CasualServiceCallEventStore.class
    }
 }

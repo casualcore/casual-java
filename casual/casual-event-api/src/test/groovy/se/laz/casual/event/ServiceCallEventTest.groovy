@@ -11,6 +11,8 @@ import se.laz.casual.event.ServiceCallEvent
 import spock.lang.Specification
 
 import javax.transaction.xa.Xid
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 class ServiceCallEventTest extends Specification
 {
@@ -24,10 +26,10 @@ class ServiceCallEventTest extends Specification
    def secondPID = 256
    def firstTransactionId = Mock(Xid)
    def secondTransactionId = Mock(Xid)
-   def firstStart = 1
-   def secondStart = 43
-   def firstEnd = 42
-   def secondEnd = 128
+   def firstStart = Instant.now()
+   def secondStart = Instant.now()
+   def firstEnd = Instant.now()
+   def secondEnd = Instant.now()
    def firstPending = 0
    def secondPending = 14
    def firstCode = ErrorState.OK
@@ -54,8 +56,8 @@ class ServiceCallEventTest extends Specification
       firstEntry.getPid() == firstPID
       firstEntry.getExecution() == PrettyPrinter.casualStringify(firstExecution)
       firstEntry.getTransactionId() == PrettyPrinter.casualStringify(firstTransactionId)
-      firstEntry.getStart() == firstStart
-      firstEntry.getEnd() == firstEnd
+      firstEntry.getStart() == ChronoUnit.MICROS.between(Instant.EPOCH, firstStart)
+      firstEntry.getEnd() == ChronoUnit.MICROS.between(Instant.EPOCH, firstEnd)
       firstEntry.getPending() == firstPending
       firstEntry.getCode() == firstCode.name()
       firstEntry.getOrder() == firstOrder.getValue()
@@ -65,8 +67,8 @@ class ServiceCallEventTest extends Specification
       secondEntry.getPid() == secondPID
       secondEntry.getExecution() == PrettyPrinter.casualStringify(secondExecution)
       secondEntry.getTransactionId() == PrettyPrinter.casualStringify(secondTransactionId)
-      secondEntry.getStart() == secondStart
-      secondEntry.getEnd() == secondEnd
+      secondEntry.getStart() == ChronoUnit.MICROS.between(Instant.EPOCH, secondStart)
+      secondEntry.getEnd() == ChronoUnit.MICROS.between(Instant.EPOCH, secondEnd)
       secondEntry.getPending() == secondPending
       secondEntry.getCode() == secondCode.name()
       secondEntry.getOrder() == secondOrder.getValue()

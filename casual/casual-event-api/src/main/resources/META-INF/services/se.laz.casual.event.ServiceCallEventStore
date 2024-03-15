@@ -5,4 +5,4 @@
 #
 
 # Default event handler implementation
-se.laz.casual.event.CasualServiceCallEventHandler
+se.laz.casual.event.CasualServiceCallEventStore
