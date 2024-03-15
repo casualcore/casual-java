@@ -8,37 +8,37 @@ package se.laz.casual.event.server;
 import io.netty.channel.Channel;
 import io.netty.channel.group.ChannelGroup;
 import se.laz.casual.event.ServiceCallEvent;
+import se.laz.casual.event.ServiceCallEventStore;
 
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public class DefaultMessageLoop implements MessageLoop
 {
     private static final Logger log = Logger.getLogger(DefaultMessageLoop.class.getName());
     private final ChannelGroup connectedClients;
-    private final Supplier<ServiceCallEvent> serviceCallEventProvider;
+    private final ServiceCallEventStore serviceCallEventStore;
     private BooleanSupplier continueLoop = () -> false;
 
-    private DefaultMessageLoop(ChannelGroup connectedClients, Supplier<ServiceCallEvent> serviceCallEventProvider)
+    private DefaultMessageLoop(ChannelGroup connectedClients, ServiceCallEventStore serviceCallEventStore)
     {
         this.connectedClients = connectedClients;
-        this.serviceCallEventProvider = serviceCallEventProvider;
+        this.serviceCallEventStore = serviceCallEventStore;
     }
 
-    public static MessageLoop of(ChannelGroup connectedClients, Supplier<ServiceCallEvent> serviceCallEventProvider)
+    public static MessageLoop of(ChannelGroup connectedClients, ServiceCallEventStore serviceCallEventStore)
     {
         Objects.requireNonNull(connectedClients, "connectedClients can not be null");
-        Objects.requireNonNull(serviceCallEventProvider, "serviceCallEventProvider can not be null");
-        return new DefaultMessageLoop(connectedClients, serviceCallEventProvider);
+        Objects.requireNonNull(serviceCallEventStore, "serviceCallEventStore can not be null");
+        return new DefaultMessageLoop(connectedClients, serviceCallEventStore);
     }
 
     public void handleMessages()
     {
         while (continueLoop.getAsBoolean())
         {
-            ServiceCallEvent event = serviceCallEventProvider.get();
+            ServiceCallEvent event = serviceCallEventStore.take();
             log.finest(() -> "# of clients: " + connectedClients.size());
             for (Channel client : connectedClients)
             {

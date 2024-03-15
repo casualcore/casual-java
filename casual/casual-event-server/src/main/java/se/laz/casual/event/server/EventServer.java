@@ -9,8 +9,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
-import se.laz.casual.event.ServiceCallEventStore;
 import se.laz.casual.event.ServiceCallEventHandlerFactory;
+import se.laz.casual.event.ServiceCallEventStore;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -34,7 +34,7 @@ public class EventServer
         ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
         Channel ch =  connectionInformation.getServerInitialization().init(connectionInformation, connectedClients);
         final ServiceCallEventStore serviceCallEventStore = ServiceCallEventHandlerFactory.getHandler();
-        MessageLoop messageLoop = DefaultMessageLoop.of(connectedClients, serviceCallEventStore::take);
+        MessageLoop messageLoop = DefaultMessageLoop.of(connectedClients, serviceCallEventStore);
         EventServer eventServer = new EventServer(ch);
         eventServer.setLoopConditionAndDispatch(Executors.newSingleThreadExecutor(), messageLoop);
         return eventServer;

@@ -8,10 +8,10 @@ package se.laz.casual.event.server
 import io.netty.channel.Channel
 import io.netty.channel.group.ChannelGroup
 import se.laz.casual.event.ServiceCallEvent
+import se.laz.casual.event.ServiceCallEventStore
 import spock.lang.Specification
 
 import java.util.function.BooleanSupplier
-import java.util.function.Supplier
 
 class DefaultMessageLoopTest extends Specification
 {
@@ -19,13 +19,13 @@ class DefaultMessageLoopTest extends Specification
    {
       given:
       ChannelGroup connectedClients = Mock(ChannelGroup)
-      ServiceCallEvent event = Mock(ServiceCallEvent)
-      Supplier<ServiceCallEvent> eventSupplier = {event}
+      ServiceCallEventStore store = Mock(ServiceCallEventStore) {
+         0 * take()
+      }
       when:
-      DefaultMessageLoop loop = DefaultMessageLoop.of(connectedClients, eventSupplier)
+      DefaultMessageLoop loop = DefaultMessageLoop.of(connectedClients, store)
       loop.handleMessages()
       then:
-      0 * eventSupplier.get()
       0 * connectedClients.iterator()
    }
 
@@ -41,14 +41,14 @@ class DefaultMessageLoopTest extends Specification
       ChannelGroup connectedClients = Mock(ChannelGroup) {
          1 * iterator() >> channels.iterator()
       }
-      Supplier<ServiceCallEvent> eventSupplier = Mock(Supplier){
-         1 * get() >> event
+      ServiceCallEventStore store = Mock(ServiceCallEventStore) {
+         1 * take() >> event
       }
       BooleanSupplier continueLoop = Mock(BooleanSupplier){
          2 * getAsBoolean() >>> [true, false]
       }
       when:
-      DefaultMessageLoop loop = DefaultMessageLoop.of(connectedClients, eventSupplier)
+      DefaultMessageLoop loop = DefaultMessageLoop.of(connectedClients, store)
       loop.accept(continueLoop)
       loop.handleMessages()
       then:
