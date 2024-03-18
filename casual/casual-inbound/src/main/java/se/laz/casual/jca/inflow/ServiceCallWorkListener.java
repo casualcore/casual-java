@@ -29,11 +29,12 @@ import java.time.temporal.ChronoUnit;
 public class ServiceCallWorkListener implements WorkListener
 {
     private final Channel channel;
-    private final Instant creationTime = Instant.now();
     private final boolean isTpNoReply;
     private final CasualServiceCallRequestMessage message;
     private Instant sometimeBeforeServiceCall;
     private ServiceCallEventPublisher eventPublisher;
+
+    private final ServiceCallEvent.Builder eventBuilder;
 
     public ServiceCallWorkListener(Channel channel, CasualServiceCallRequestMessage message)
     {
@@ -45,6 +46,7 @@ public class ServiceCallWorkListener implements WorkListener
         this.channel = channel;
         this.message = message;
         this.isTpNoReply = isTpNoReply;
+        this.eventBuilder = ServiceCallEvent.createBuilder();
     }
 
     @Override
@@ -62,14 +64,14 @@ public class ServiceCallWorkListener implements WorkListener
     @Override
     public void workStarted(WorkEvent e)
     {
-        sometimeBeforeServiceCall = Instant.now();
+        eventBuilder.start();
     }
 
     @Override
     public void workCompleted(WorkEvent e)
     {
-        Instant sometimeAfterServiceCall = Instant.now();
-        ServiceCallEvent event = createEvent(e.getWork(), sometimeAfterServiceCall);
+        eventBuilder.end();
+        ServiceCallEvent event = createEvent( e.getWork() );
         getEventPublisher().post(event);
         if(!isTpNoReply)
         {
@@ -78,28 +80,23 @@ public class ServiceCallWorkListener implements WorkListener
         }
     }
 
-    private ServiceCallEvent createEvent(Work work, Instant sometimeAfterServiceCall)
+    private ServiceCallEvent createEvent(Work work )
     {
-        long pending = ChronoUnit.MICROS.between(creationTime, sometimeBeforeServiceCall);
-        ServiceCallEvent.Builder builder = ServiceCallEvent.createBuilder()
-                                                           .withTransactionId(message.getXid())
-                                                           .withExecution(message.getExecution())
-                                                           .withParent(message.getParentName())
-                                                           .withPending(pending)
-                                                           .withService(message.getServiceName())
-                                                           .withStart(sometimeBeforeServiceCall)
-                                                           .withEnd(sometimeAfterServiceCall)
-                                                           .withOrder(Order.SEQUENTIAL);
+        eventBuilder.withTransactionId(message.getXid())
+                   .withExecution(message.getExecution())
+                   .withParent(message.getParentName())
+                   .withService(message.getServiceName())
+                   .withOrder(Order.SEQUENTIAL);
         if(!isTpNoReply && work instanceof CasualServiceCallWork casualWork)
         {
             CasualServiceCallReplyMessage reply = casualWork.getResponse().getMessage();
-            builder.withCode(reply.getError());
+            eventBuilder.withCode(reply.getError());
         }
         else
         {
-            builder.withCode(ErrorState.OK);
+            eventBuilder.withCode(ErrorState.OK);
         }
-        return builder.build();
+        return eventBuilder.build();
     }
 
     ServiceCallEventPublisher getEventPublisher()

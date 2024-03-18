@@ -89,4 +89,28 @@ class ServiceCallEventTest extends Specification
               .withOrder(data.order)
               .build()
    }
+
+   def "Create event without caller explicitly using Instant."()
+   {
+      given:
+      ServiceCallEvent.Builder builder = ServiceCallEvent.createBuilder(  )
+              .withService(firstService)
+              .withParent(firstParent)
+              .withPID(firstPID)
+              .withExecution(firstExecution)
+              .withTransactionId(firstTransactionId)
+              .withOrder(firstOrder)
+
+      when:
+      Thread.sleep( 1 )
+      builder.start(  )
+      builder.withCode( firstCode )
+      Thread.sleep( 1 )
+      builder.end( )
+      ServiceCallEvent instance = builder.build(  )
+
+      then:
+      instance.getPending(  ) >= 1000
+      instance.getStart(  ) < instance.getEnd(  )
+   }
 }

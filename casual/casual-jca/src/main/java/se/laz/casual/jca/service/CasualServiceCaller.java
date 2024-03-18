@@ -89,8 +89,17 @@ public class CasualServiceCaller implements CasualServiceApi
         UUID corrId = UUID.randomUUID();
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
         final UUID execution = UUID.randomUUID();
-        final Instant start = Instant.now();
         final Xid xid = connection.getCurrentXid();
+
+        ServiceCallEvent.Builder eventBuilder = ServiceCallEvent.createBuilder()
+                .withTransactionId(xid)
+                .withExecution(execution)
+                .withParent("")
+                .withService(serviceName)
+                .withPending(0)
+                .withOrder(Order.CONCURRENT)
+                .start();
+
         Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, xid, execution, noReply);
         maybeServiceReturnValue.ifPresent(casualNWMessageCompletableFuture ->
                 casualNWMessageCompletableFuture.whenComplete((v, e) -> {
@@ -101,19 +110,10 @@ public class CasualServiceCaller implements CasualServiceApi
                                 return;
                             }
                             LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
-                            final Instant end = Instant.now();
-                            ServiceCallEvent event = ServiceCallEvent.createBuilder()
-                                                                     .withTransactionId(xid)
-                                                                     .withExecution(execution)
-                                                                     .withParent("")
-                                                                     .withService(serviceName)
-                                                                     .withCode(v.getMessage().getError())
-                                                                     .withPending(0)
-                                                                     .withStart(start)
-                                                                     .withEnd(end)
-                                                                     .withOrder(Order.CONCURRENT)
-                                                                     .build();
-                            getEventPublisher().post(event);
+                    eventBuilder.withCode(v.getMessage().getError())
+                            .end()
+                            .build();
+                            getEventPublisher().post(eventBuilder.build());
                     if(!f.isDone())
                     {
                         f.complete(Optional.of(toServiceReturn(v)));
@@ -121,19 +121,10 @@ public class CasualServiceCaller implements CasualServiceApi
                 }));
         if(noReply)
         {
-            final Instant end = Instant.now();
-            ServiceCallEvent event = ServiceCallEvent.createBuilder()
-                                                     .withTransactionId(xid)
-                                                     .withExecution(execution)
-                                                     .withParent("")
-                                                     .withService(serviceName)
-                                                     .withCode(ErrorState.OK)
-                                                     .withPending(0)
-                                                     .withStart(start)
-                                                     .withEnd(end)
-                                                     .withOrder(Order.CONCURRENT)
-                                                     .build();
-            getEventPublisher().post(event);
+            eventBuilder.withCode(ErrorState.OK)
+                     .end()
+                     .build();
+            getEventPublisher().post(eventBuilder.build());
             f.complete(Optional.empty());
         }
         return f;
