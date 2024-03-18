@@ -137,6 +137,7 @@ public class ServiceCallEvent
 
         public Builder withStart(Instant start)
         {
+            Objects.requireNonNull(start, "start can not be null");
             // from ChronoUnit.between:
             // Implementations should perform any queries or calculations using the units available in ChronoUnit
             // or the fields available in ChronoField.
@@ -152,6 +153,7 @@ public class ServiceCallEvent
 
         public Builder withEnd(Instant end)
         {
+            Objects.requireNonNull(end, "end can not be null");
             this.end = ChronoUnit.MICROS.between(Instant.EPOCH, end);
             return this;
         }
@@ -182,6 +184,12 @@ public class ServiceCallEvent
 
         public ServiceCallEvent build()
         {
+            Objects.requireNonNull(service, "service can not be null");
+            Objects.requireNonNull(parent, "parent can not be null");
+            Objects.requireNonNull(execution, "execution can not be null");
+            Objects.requireNonNull(transactionId, "transactionId can not be null");
+            Objects.requireNonNull(code, "code can not be null");
+            Objects.requireNonNull(order, "order can not be null");
             return new ServiceCallEvent(this);
         }
 
