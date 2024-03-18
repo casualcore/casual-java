@@ -13,19 +13,19 @@ import com.google.gson.JsonParseException;
 import java.lang.reflect.Type;
 import java.util.logging.Logger;
 
-public class LogonRequestMessageTypeAdapter implements JsonDeserializer<LogonRequestMessage>
+public class ConnectRequestMessageTypeAdapter implements JsonDeserializer<ConnectRequestMessage>
 {
-    private static final Logger log = Logger.getLogger(LogonRequestMessageTypeAdapter.class.getName());
-    public static LogonRequestMessageTypeAdapter of()
+    private static final Logger log = Logger.getLogger(ConnectRequestMessageTypeAdapter.class.getName());
+    public static ConnectRequestMessageTypeAdapter of()
     {
-        return new LogonRequestMessageTypeAdapter();
+        return new ConnectRequestMessageTypeAdapter();
     }
     @Override
-    public LogonRequestMessage deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
+    public ConnectRequestMessage deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
     {
         String message = json.getAsJsonObject().get("message").getAsString();
         log.finest(() -> "message: " + message);
-        LogonRequest logonRequest = LogonRequest.unmarshall(message);
-        return LogonRequestMessage.of(logonRequest);
+        ConnectRequest connectRequest = ConnectRequest.unmarshall(message);
+        return ConnectRequestMessage.of(connectRequest);
     }
 }

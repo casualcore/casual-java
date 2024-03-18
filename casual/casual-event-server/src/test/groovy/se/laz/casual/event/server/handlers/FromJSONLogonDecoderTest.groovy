@@ -11,7 +11,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.group.ChannelGroup
 import io.netty.util.CharsetUtil
 import se.laz.casual.api.CasualTypeException
-import se.laz.casual.event.server.messages.LogonRequestMessage
+import se.laz.casual.event.server.messages.ConnectRequestMessage
 import spock.lang.Specification
 
 class FromJSONLogonDecoderTest extends Specification
@@ -25,7 +25,7 @@ class FromJSONLogonDecoderTest extends Specification
       }
       def ctx = Mock(ChannelHandlerContext){
          channel() >> actualChannel
-         0 * fireChannelRead(_ as LogonRequestMessage)
+         0 * fireChannelRead(_ as ConnectRequestMessage)
       }
       def logonMessage = '{"message" : "this will fail"}'
       def buffer = Mock(ByteBuf){
@@ -47,7 +47,7 @@ class FromJSONLogonDecoderTest extends Specification
       }
       def ctx = Mock(ChannelHandlerContext){
          channel() >> actualChannel
-         1 * fireChannelRead(_ as LogonRequestMessage)
+         1 * fireChannelRead(_ as ConnectRequestMessage)
       }
       def logonMessage = '{"message" : "HELLO"}'
       def buffer = Mock(ByteBuf){
