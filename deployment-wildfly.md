@@ -77,8 +77,8 @@ $connectionDefinitionNode:add(\
     min-pool-size=100, initial-pool-size=100, max-pool-size=100,\
     enabled=true)
 
-$connectionDefinitionNode/config-properties=HostName:add(value=some-host-that-speaks-casual)
-$connectionDefinitionNode/config-properties=PortNumber:add(value=port-number-for-inbound-casual-for-that-host)
+$connectionDefinitionNode/config-properties=HostName:add(value=0.0.0.0)
+$connectionDefinitionNode/config-properties=PortNumber:add(value=7771)
 // This makes sure that the pool is backed by only one physical network connection
 $connectionDefinitionNode/config-properties=NetworkConnectionPoolName:add(value=your-unique-pool-name)
 $connectionDefinitionNode/config-properties=NetworkConnectionPoolSize:add(value=1)

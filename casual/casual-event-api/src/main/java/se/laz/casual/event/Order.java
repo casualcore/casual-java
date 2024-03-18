@@ -9,7 +9,11 @@ import java.util.Arrays;
 
 public enum Order
 {
+    // note: really means inbound
+    // It is the same way as it is in casual
     SEQUENTIAL('S'),
+    // note: really means outbound
+    // It is the same way as it is in casual
     CONCURRENT('C');
     private char value;
     Order(char value)

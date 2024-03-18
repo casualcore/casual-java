@@ -170,7 +170,7 @@ class CasualMessageListenerImplTest extends Specification
         instance.serviceCallRequest( message, channel, workManager )
 
         then:
-        1 * workManager.startWork( _,_,_,_ ) >> {
+        1 * workManager.scheduleWork( _,_,_,_ ) >> {
             CasualServiceCallWork work, long startTimeout, ExecutionContext executionContext, WorkListener workListener ->
                 actualWork = work
                 actualStartTimeout = startTimeout
@@ -210,7 +210,7 @@ class CasualMessageListenerImplTest extends Specification
         instance.serviceCallRequest( message, channel, workManager )
 
         then:
-        1 * workManager.startWork(_, _, _, _) >> {
+        1 * workManager.scheduleWork(_, _, _, _) >> {
             CasualServiceCallWork work, long startTimeout, ExecutionContext executionContext, WorkListener workListener ->
                 assert null == executionContext
                 assert null != workListener
@@ -247,7 +247,7 @@ class CasualMessageListenerImplTest extends Specification
        instance.serviceCallRequest( message, channel, workManager )
 
        then:
-       1 * workManager.startWork( _,_,_,_ ) >> {
+       1 * workManager.scheduleWork( _,_,_,_ ) >> {
           CasualServiceCallWork work, long startTimeout, ExecutionContext executionContext, WorkListener workListener ->
              actualWork = work
              actualStartTimeout = startTimeout
@@ -289,7 +289,7 @@ class CasualMessageListenerImplTest extends Specification
        instance.serviceCallRequest( message, channel, workManager )
 
        then:
-       1 * workManager.startWork( _,_,_,_ ) >> {
+       1 * workManager.scheduleWork( _,_,_,_ ) >> {
           CasualServiceCallWork work, long startTimeout, ExecutionContext executionContext, WorkListener workListener ->
              actualWork = work
              actualStartTimeout = startTimeout
@@ -324,7 +324,7 @@ class CasualMessageListenerImplTest extends Specification
         instance.serviceCallRequest( message, channel, workManager )
 
         then:
-        1 * workManager.startWork( _,_,_,_ ) >> {
+        1 * workManager.scheduleWork( _,_,_,_ ) >> {
             throw new WorkException( "Simulated error." )
         }
 

@@ -5,6 +5,8 @@
  */
 package se.laz.casual.config;
 
+import java.util.Objects;
+
 public final class EventServer
 {
     private final int portNumber;
@@ -24,6 +26,27 @@ public final class EventServer
     public boolean isUseEpoll()
     {
         return useEpoll;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        EventServer that = (EventServer) o;
+        return getPortNumber() == that.getPortNumber() && isUseEpoll() == that.isUseEpoll();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(getPortNumber(), isUseEpoll());
     }
 
     @Override
