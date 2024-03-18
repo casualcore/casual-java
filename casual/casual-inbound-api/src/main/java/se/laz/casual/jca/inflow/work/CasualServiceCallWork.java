@@ -12,10 +12,6 @@ import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.event.Order;
-import se.laz.casual.event.ServiceCallEvent;
-import se.laz.casual.event.ServiceCallEventHandlerFactory;
-import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
@@ -25,9 +21,7 @@ import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
-import java.time.Instant;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 /**
@@ -40,22 +34,19 @@ public final class CasualServiceCallWork implements Work
     private final CasualServiceCallRequestMessage message;
     private final UUID correlationId;
     private final boolean isTpNoReply;
-    private final CompletableFuture<Long> startupTimeFuture;
-    private ServiceCallEventPublisher  eventPublisher;
     private CasualNWMessage<CasualServiceCallReplyMessage> response;
     private ServiceHandler handler = null;
 
-    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, CompletableFuture<Long> startupTimeFuture)
+    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message)
     {
-        this(correlationId, message, false, startupTimeFuture);
+        this(correlationId, message, false);
     }
 
-    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply, CompletableFuture<Long> startupTimeFuture)
+    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply)
     {
         this.correlationId = correlationId;
         this.message = message;
         this.isTpNoReply = isTpNoReply;
-        this.startupTimeFuture = startupTimeFuture;
     }
 
     public CasualServiceCallRequestMessage getMessage()
@@ -100,21 +91,7 @@ public final class CasualServiceCallWork implements Work
     {
         try
         {
-            Instant start = Instant.now();
             callService();
-            Instant end = Instant.now();
-            ServiceCallEvent event = ServiceCallEvent.createBuilder()
-                                                     .withTransactionId(message.getXid())
-                                                     .withExecution(message.getExecution())
-                                                     .withParent(message.getParentName())
-                                                     .withService(message.getServiceName())
-                                                     .withCode(ErrorState.OK)
-                                                     .withPending(startupTimeFuture.join())
-                                                     .withStart(start)
-                                                     .withEnd(end)
-                                                     .withOrder(Order.SEQUENTIAL)
-                                                     .build();
-            getEventPublisher().post(event);
         }
         catch( ServiceHandlerNotFoundException e)
         {
@@ -128,46 +105,18 @@ public final class CasualServiceCallWork implements Work
                                                                                           .setXid( message.getXid() )
                                                                                           .setExecution( message.getExecution() );
         CasualBuffer serviceResult = ServiceBuffer.empty();
-        Instant start = Instant.now();
         try
         {
-
             InboundResponse reply = callService();
-            Instant end = Instant.now();
             serviceResult = reply.getBuffer();
 
             replyBuilder
                     .setError(reply.getErrorState())
                     .setTransactionState(reply.getTransactionState())
                     .setUserSuppliedError( reply.getUserSuppliedErrorCode() );
-            ServiceCallEvent event = ServiceCallEvent.createBuilder()
-                                                     .withTransactionId(message.getXid())
-                                                     .withExecution(message.getExecution())
-                                                     .withParent(message.getParentName())
-                                                     .withService(message.getServiceName())
-                                                     .withCode(reply.getErrorState())
-                                                     .withPending(startupTimeFuture.join())
-                                                     .withStart(start)
-                                                     .withEnd(end)
-                                                     .withOrder(Order.SEQUENTIAL)
-                                                     .build();
-            getEventPublisher().post(event);
         }
         catch( ServiceHandlerNotFoundException e )
         {
-            Instant end = Instant.now();
-            ServiceCallEvent event = ServiceCallEvent.createBuilder()
-                                                     .withTransactionId(message.getXid())
-                                                     .withExecution(message.getExecution())
-                                                     .withParent(message.getParentName())
-                                                     .withService(message.getServiceName())
-                                                     .withCode(ErrorState.TPENOENT)
-                                                     .withPending(startupTimeFuture.join())
-                                                     .withStart(start)
-                                                     .withEnd(end)
-                                                     .withOrder(Order.SEQUENTIAL)
-                                                     .build();
-            getEventPublisher().post(event);
             replyBuilder.setError( ErrorState.TPENOENT )
                         .setTransactionState( TransactionState.ROLLBACK_ONLY );
             log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
@@ -203,17 +152,4 @@ public final class CasualServiceCallWork implements Work
         this.handler = handler;
     }
 
-    ServiceCallEventPublisher getEventPublisher()
-    {
-        if(eventPublisher == null)
-        {
-            eventPublisher = ServiceCallEventPublisher.of(ServiceCallEventHandlerFactory.getHandler());
-        }
-        return eventPublisher;
-    }
-
-    void setEventPublisher(ServiceCallEventPublisher eventPublisher)
-    {
-        this.eventPublisher = eventPublisher;
-    }
 }

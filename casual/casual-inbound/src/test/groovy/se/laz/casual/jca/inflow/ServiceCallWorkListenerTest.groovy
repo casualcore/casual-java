@@ -7,28 +7,31 @@
 package se.laz.casual.jca.inflow
 
 import io.netty.channel.embedded.EmbeddedChannel
+import jakarta.resource.spi.work.WorkEvent
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.JsonBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.external.json.JsonProvider
 import se.laz.casual.api.external.json.JsonProviderFactory
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
+import se.laz.casual.event.Order
+import se.laz.casual.event.ServiceCallEvent
+import se.laz.casual.event.ServiceCallEventPublisher
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
-import se.laz.casual.api.buffer.type.ServiceBuffer
+import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
 
-import jakarta.resource.spi.work.WorkEvent
 import javax.transaction.xa.Xid
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ThreadLocalRandom
 
 class ServiceCallWorkListenerTest extends Specification
@@ -46,6 +49,11 @@ class ServiceCallWorkListenerTest extends Specification
     @Shared CasualBuffer buffer
     @Shared CasualNWMessage<CasualServiceCallReplyMessage> response
     @Shared TestInboundHandler inboundHandler
+    @Shared ServiceCallEventPublisher serviceCallEventPublisher
+    @Shared String serviceName = 'lovebites'
+    @Shared UUID execution = UUID.randomUUID()
+    @Shared Xid transactionId = createXid()
+    @Shared CasualServiceCallRequestMessage request
 
     def setup()
     {
@@ -69,11 +77,18 @@ class ServiceCallWorkListenerTest extends Specification
 
         inboundHandler = TestInboundHandler.of()
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), inboundHandler)
-        CompletableFuture<Long> mockFuture = Mock(CompletableFuture)
-        work = new CasualServiceCallWork(correlationId, null, mockFuture)
+        work = new CasualServiceCallWork(correlationId, null)
         work.response = response
 
-        instance = new ServiceCallWorkListener(channel)
+        request = CasualServiceCallRequestMessage.createBuilder()
+               .setExecution(execution)
+               .setParentName("")
+               .setServiceName(serviceName)
+               .setXid(transactionId)
+               .build()
+        instance = new ServiceCallWorkListener(channel, request)
+        serviceCallEventPublisher = Mock(ServiceCallEventPublisher)
+        instance.setEventPublisher(serviceCallEventPublisher)
     }
 
     def "WorkCompleted receives WorkEvent and writes work response to channel."()
@@ -82,13 +97,42 @@ class ServiceCallWorkListenerTest extends Specification
         WorkEvent event = new WorkEvent( this, WorkEvent.WORK_COMPLETED, work, null )
 
         when:
+        instance.workStarted(Mock(WorkEvent))
         instance.workCompleted( event )
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualServiceCallReplyMessage> actual = inboundHandler.getMsg()
 
         then:
         actual == response
+        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent serviceCallEvent ->
+           serviceCallEvent.getTransactionId() == transactionId
+           serviceCallEvent.getExecution() == execution
+           serviceCallEvent.getService() == serviceName
+           serviceCallEvent.getCode() == ErrorState.OK.name()
+           serviceCallEvent.getOrder() == Order.SEQUENTIAL.value
+        }
     }
+
+   def "TPNOREPLY, WorkCompleted receives WorkEvent and does not write work response to channel."()
+   {
+      setup:
+      WorkEvent event = new WorkEvent( this, WorkEvent.WORK_COMPLETED, null, null )
+      instance = new ServiceCallWorkListener(channel, request, true)
+      instance.setEventPublisher(serviceCallEventPublisher)
+
+      when:
+      instance.workStarted(Mock(WorkEvent))
+      instance.workCompleted( event )
+      then:
+      1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent serviceCallEvent ->
+         serviceCallEvent.getTransactionId() == transactionId
+         serviceCallEvent.getExecution() == execution
+         serviceCallEvent.getService() == serviceName
+         serviceCallEvent.getCode() == ErrorState.OK.name()
+         serviceCallEvent.getOrder() == Order.SEQUENTIAL.value
+      }
+      0 * channel.writeAndFlush(_ as CasualServiceCallReplyMessage)
+   }
 
     Xid createXid()
     {
