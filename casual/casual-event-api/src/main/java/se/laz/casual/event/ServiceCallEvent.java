@@ -109,8 +109,8 @@ public class ServiceCallEvent
         private Long end;
 
         private Instant created = Instant.now();
-        private Instant started = Instant.now();
-        private Instant ended = Instant.now();
+        private Instant started;
+        private Instant ended;
         private Long pending;
         private ErrorState code;
         private Order order;
@@ -184,8 +184,8 @@ public class ServiceCallEvent
             Objects.requireNonNull(code, "code can not be null");
             Objects.requireNonNull(order, "order can not be null");
 
-            Objects.requireNonNull( started, "start cannot be null" );
-            Objects.requireNonNull(ended, "end cannot be null" );
+            Objects.requireNonNull( started, "start cannot be null, you must call start()." );
+            Objects.requireNonNull(ended, "end cannot be null, you must call end()." );
 
             if( pending == null )
             {
