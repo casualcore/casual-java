@@ -20,7 +20,6 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMes
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 /**
  * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
