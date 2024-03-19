@@ -7,10 +7,17 @@
 package se.laz.casual.jca.inflow;
 
 import io.netty.channel.Channel;
-import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
-
+import jakarta.resource.spi.work.Work;
 import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
+import se.laz.casual.api.flags.ErrorState;
+import se.laz.casual.event.Order;
+import se.laz.casual.event.ServiceCallEvent;
+import se.laz.casual.event.ServiceCallEventHandlerFactory;
+import se.laz.casual.event.ServiceCallEventPublisher;
+import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
+import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
+import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
 /**
  * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
@@ -19,15 +26,23 @@ import jakarta.resource.spi.work.WorkListener;
 public class ServiceCallWorkListener implements WorkListener
 {
     private final Channel channel;
+    private final boolean isTpNoReply;
+    private final CasualServiceCallRequestMessage message;
+    private ServiceCallEventPublisher eventPublisher;
 
-    public ServiceCallWorkListener(Channel channel )
+    private final ServiceCallEvent.Builder eventBuilder;
+
+    public ServiceCallWorkListener(Channel channel, CasualServiceCallRequestMessage message)
     {
-        this.channel = channel;
+        this(channel, message, false);
     }
 
-    public Channel getSocketChannel()
+    public ServiceCallWorkListener(Channel channel, CasualServiceCallRequestMessage message, boolean isTpNoReply)
     {
-        return this.channel;
+        this.channel = channel;
+        this.message = message;
+        this.isTpNoReply = isTpNoReply;
+        this.eventBuilder = ServiceCallEvent.createBuilder();
     }
 
     @Override
@@ -45,13 +60,53 @@ public class ServiceCallWorkListener implements WorkListener
     @Override
     public void workStarted(WorkEvent e)
     {
-        //No Op
+        eventBuilder.start();
     }
 
     @Override
     public void workCompleted(WorkEvent e)
     {
-        CasualServiceCallWork work = (CasualServiceCallWork)e.getWork();
-        channel.writeAndFlush(work.getResponse());
+        eventBuilder.end();
+        ServiceCallEvent event = createEvent( e.getWork() );
+        getEventPublisher().post(event);
+        if(!isTpNoReply)
+        {
+            CasualServiceCallWork work = (CasualServiceCallWork) e.getWork();
+            channel.writeAndFlush(work.getResponse());
+        }
     }
+
+    private ServiceCallEvent createEvent(Work work )
+    {
+        eventBuilder.withTransactionId(message.getXid())
+                   .withExecution(message.getExecution())
+                   .withParent(message.getParentName())
+                   .withService(message.getServiceName())
+                   .withOrder(Order.SEQUENTIAL);
+        if(!isTpNoReply && work instanceof CasualServiceCallWork casualWork)
+        {
+            CasualServiceCallReplyMessage reply = casualWork.getResponse().getMessage();
+            eventBuilder.withCode(reply.getError());
+        }
+        else
+        {
+            eventBuilder.withCode(ErrorState.OK);
+        }
+        return eventBuilder.build();
+    }
+
+    ServiceCallEventPublisher getEventPublisher()
+    {
+        if(eventPublisher == null)
+        {
+            eventPublisher = ServiceCallEventPublisher.of(ServiceCallEventHandlerFactory.getHandler());
+        }
+        return eventPublisher;
+    }
+
+    void setEventPublisher(ServiceCallEventPublisher eventPublisher)
+    {
+        this.eventPublisher = eventPublisher;
+    }
+
 }

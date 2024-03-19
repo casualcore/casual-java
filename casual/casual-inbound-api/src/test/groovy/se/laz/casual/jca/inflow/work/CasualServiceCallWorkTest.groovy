@@ -9,6 +9,7 @@ package se.laz.casual.jca.inflow.work
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.JavaServiceCallDefinition
 import se.laz.casual.api.buffer.type.JsonBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.external.json.JsonProvider
 import se.laz.casual.api.external.json.JsonProviderFactory
 import se.laz.casual.api.flags.ErrorState
@@ -16,13 +17,13 @@ import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
+import se.laz.casual.event.ServiceCallEventPublisher
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler
 import se.laz.casual.jca.inflow.handler.test.TestHandler
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -46,6 +47,7 @@ class CasualServiceCallWorkTest extends Specification
     @Shared List<byte[]> payload
     @Shared CasualBuffer buffer
 
+   @Shared ServiceCallEventPublisher serviceCallEventPublisher
 
     def setup()
     {
@@ -71,11 +73,10 @@ class CasualServiceCallWorkTest extends Specification
                         .build()
 
         correlationId = UUID.randomUUID()
-
-        instance = new CasualServiceCallWork( correlationId, message )
+        instance = new CasualServiceCallWork(correlationId, message)
         instance.setHandler( handler )
 
-        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true )
+        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true)
         instanceTPNOREPLY.setHandler( handler )
     }
 
@@ -153,6 +154,7 @@ class CasualServiceCallWorkTest extends Specification
 
         actualRequest.getServiceName() == jndiServiceName
         actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
+
     }
 
     def "Call Service with buffer service throws exception return ErrorState.TPSVCERR."()
@@ -182,6 +184,7 @@ class CasualServiceCallWorkTest extends Specification
 
         actualRequest.getServiceName() == jndiServiceName
         actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
+
     }
 
     def "Call Service, TPNOREPLY, with buffer - there should be no reply"()
@@ -202,6 +205,7 @@ class CasualServiceCallWorkTest extends Specification
        reply == null
        actualRequest.getServiceName() == jndiServiceName
        actualRequest.getBuffer().getBytes() == JsonBuffer.of( json ).getBytes()
+
     }
 
     def "Release does nothing."()
@@ -239,12 +243,10 @@ class CasualServiceCallWorkTest extends Specification
     def "Call Service which does not exist or is not available, returns result with TPNOENT status."()
     {
         given:
-        instance = new CasualServiceCallWork( correlationId, message )
-
+        instance = new CasualServiceCallWork(correlationId, message)
         when:
         instance.run()
         CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
-
         then:
         reply.getMessage().getError() == ErrorState.TPENOENT
     }

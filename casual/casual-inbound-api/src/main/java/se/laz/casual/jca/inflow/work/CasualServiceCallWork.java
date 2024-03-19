@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.inflow.work;
 
+import jakarta.resource.spi.work.Work;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
@@ -20,7 +21,6 @@ import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
-import jakarta.resource.spi.work.Work;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -29,18 +29,15 @@ import java.util.logging.Logger;
  */
 public final class CasualServiceCallWork implements Work
 {
-    private static Logger log = Logger.getLogger(CasualServiceCallWork.class.getName());
+    private static final Logger log = Logger.getLogger(CasualServiceCallWork.class.getName());
 
     private final CasualServiceCallRequestMessage message;
-
     private final UUID correlationId;
     private final boolean isTpNoReply;
-
     private CasualNWMessage<CasualServiceCallReplyMessage> response;
-
     private ServiceHandler handler = null;
 
-    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message )
+    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message)
     {
         this(correlationId, message, false);
     }
@@ -130,8 +127,7 @@ public final class CasualServiceCallWork implements Work
                     .setServiceBuffer( ServiceBuffer.of( serviceResult ) )
                     .build();
             CasualNWMessage<CasualServiceCallReplyMessage> replyMessage = CasualNWMessageImpl.of( correlationId,reply );
-
-            response = replyMessage;
+            this.response = replyMessage;
         }
     }
 
@@ -155,4 +151,5 @@ public final class CasualServiceCallWork implements Work
     {
         this.handler = handler;
     }
+
 }

@@ -7,6 +7,8 @@ package se.laz.casual.jca;
 
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.ReverseInbound;
+import se.laz.casual.event.server.EventServer;
+import se.laz.casual.event.server.EventServerConnectionInformation;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
 import se.laz.casual.jca.jmx.JMXStartup;
 import se.laz.casual.jca.work.StartInboundServerListener;
@@ -62,6 +64,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
     private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
     private List<ReverseInboundServer> reverseInbounds = new ArrayList<>();
+    private EventServer eventServer;
 
     private WorkManager workManager;
     private XATerminator xaTerminator;
@@ -79,7 +82,18 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         //It is also not possible to inject with CDI on wildfly only ConfigProperty annotations.
         configurationService = ConfigurationService.getInstance();
         log.info(() -> "casual jca configuration: " + configurationService.getConfiguration());
+        configurationService.getConfiguration().getEventServer().ifPresent(config -> {
+            log.info("starting event server with config: " + config);
+            eventServer = EventServer.of(EventServerConnectionInformation.createBuilder()
+                                                           .withUseEpoll(config.isUseEpoll())
+                                                           .withPort(config.getPortNumber())
+                                                           .build());
+            log.info("event server started at port: " + config.getPortNumber());
+            RuntimeInformation.setEventServerStarted(true);
+        });
     }
+
+
 
     @Override
     public void endpointActivation(MessageEndpointFactory endpointFactory,

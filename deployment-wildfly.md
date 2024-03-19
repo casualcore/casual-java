@@ -1,15 +1,15 @@
 # Wildfly Deployment
 
 ## Wildfly version
-Note that these examples are tested with wildfly `13.0.0.Final`.
+Note that these examples are tested with wildfly `CASUAL_VERSION` `31.0.1.Final`.
 
 ## Casual Dependencies
 
 Create a new module, with an appropriate name e.g. `se.laz.casual`, via the jboss-cli:
 ```python
 module add --name=se.laz.casual \
-                --resources=casual-inbound-handler-api.jar:casual-fielded-annotations.jar:casual-service-discovery-extension.jar:wildfly/casual/casual-api.jar:gson-2.8.1.jar:objenesis-2.6.jar \
-                --dependencies=javaee.api,sun.jdk
+	--resources=/opt/jboss/wildfly/casual/casual-inbound-handler-api-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-fielded-annotations-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-service-discovery-extension-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-api-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-event-api-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/gson-${GSON_VERSION}.jar:/opt/jboss/wildfly/casual/objenesis-2.6.jar \
+                --dependencies=javaee.api,sun.jdk"
 ```
 
 To make this module available globally you can either update the standalone.xml:
@@ -68,18 +68,20 @@ Run the following command via jboss-cli:
 batch
 
 set baseNode=/subsystem=resource-adapters/resource-adapter=casual-jca
-$baseNode:add(archive=casual-jca-app-1.0.17-beta.ear#casual-jca.rar,transaction-support=XATransaction)
+$baseNode:add(archive=casual-jca-app-$CASUAL_VERSION.ear#casual-jca.rar,transaction-support=XATransaction)
 
 set connectionDefinitionNode=$baseNode/connection-definitions=casual-pool
 $connectionDefinitionNode:add(\
     class-name=se.laz.casual.jca.CasualManagedConnectionFactory,\
-    jndi-name=eis/casualConnectionFactoryTjohej,\
-    min-pool-size=5, initial-pool-size=5, max-pool-size=5,\
-    #interleaving=true,\
+    jndi-name=eis/casualConnectionFactory,\
+    min-pool-size=100, initial-pool-size=100, max-pool-size=100,\
     enabled=true)
 
-$connectionDefinitionNode/config-properties=HostName:add(value=192.168.99.100)
+$connectionDefinitionNode/config-properties=HostName:add(value=0.0.0.0)
 $connectionDefinitionNode/config-properties=PortNumber:add(value=7771)
+// This makes sure that the pool is backed by only one physical network connection
+$connectionDefinitionNode/config-properties=NetworkConnectionPoolName:add(value=your-unique-pool-name)
+$connectionDefinitionNode/config-properties=NetworkConnectionPoolSize:add(value=1)
 
 run-batch
 ```

@@ -9,16 +9,15 @@ package se.laz.casual.jca
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.EventLoop
-import se.laz.casual.jca.inflow.CasualActivationSpec
-import se.laz.casual.network.inbound.CasualServer
-import spock.lang.Shared
-import spock.lang.Specification
-
 import jakarta.resource.spi.BootstrapContext
 import jakarta.resource.spi.XATerminator
 import jakarta.resource.spi.endpoint.MessageEndpointFactory
 import jakarta.resource.spi.work.WorkException
 import jakarta.resource.spi.work.WorkManager
+import se.laz.casual.jca.inflow.CasualActivationSpec
+import se.laz.casual.network.inbound.CasualServer
+import spock.lang.Shared
+import spock.lang.Specification
 
 class CasualResourceAdapterTest extends Specification
 {
@@ -27,7 +26,7 @@ class CasualResourceAdapterTest extends Specification
 
     def setup()
     {
-        instance = new CasualResourceAdapter( )
+        instance = new CasualResourceAdapter()
     }
 
     def "GetXAResources"()

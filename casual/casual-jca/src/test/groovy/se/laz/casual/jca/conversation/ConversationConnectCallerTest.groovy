@@ -6,10 +6,10 @@
 
 package se.laz.casual.jca.conversation
 
+import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.api.Conversation
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
-
 import se.laz.casual.api.conversation.Duplex
 import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.ErrorState
@@ -27,7 +27,6 @@ import se.laz.casual.network.protocol.messages.conversation.ConnectRequest
 import spock.lang.Shared
 import spock.lang.Specification
 
-import jakarta.resource.spi.work.WorkManager
 import java.util.concurrent.CompletableFuture
 
 class ConversationConnectCallerTest extends Specification

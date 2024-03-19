@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.service
 
+import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ServiceReturn
 import se.laz.casual.api.buffer.type.JsonBuffer
@@ -14,6 +15,9 @@ import se.laz.casual.api.flags.*
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.api.xa.XID
 import se.laz.casual.config.Domain
+import se.laz.casual.event.Order
+import se.laz.casual.event.ServiceCallEvent
+import se.laz.casual.event.ServiceCallEventPublisher
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
@@ -30,7 +34,6 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestM
 import spock.lang.Shared
 import spock.lang.Specification
 
-import jakarta.resource.spi.work.WorkManager
 import java.util.concurrent.CompletableFuture
 
 import static se.laz.casual.test.matchers.CasualNWMessageMatchers.matching
@@ -56,11 +59,12 @@ class CasualServiceCallerTest extends Specification
     @Shared mcf
     @Shared ra
     @Shared workManager
+    @Shared ServiceCallEventPublisher serviceCallEventPublisher
 
     def setup()
     {
-        workManager = Mock(WorkManager)
         ra = new CasualResourceAdapter()
+        workManager = Mock(WorkManager)
         ra.workManager = workManager
         mcf = Mock(CasualManagedConnectionFactory)
         networkConnection = Mock(NetworkConnection)
@@ -72,6 +76,8 @@ class CasualServiceCallerTest extends Specification
         CasualResourceManager.getInstance().remove(XID.NULL_XID)
 
         instance = CasualServiceCaller.of( connection )
+        serviceCallEventPublisher = Mock(ServiceCallEventPublisher)
+        instance.setEventPublisher(serviceCallEventPublisher)
 
         initialiseParameters()
         initialiseExpectedRequests()
@@ -166,6 +172,11 @@ class CasualServiceCallerTest extends Specification
                 return CompletableFuture.completedFuture(serviceReply)
         }
         expect actualServiceRequest, matching( expectedServiceRequest )
+        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
+           event.getService() == serviceName
+           event.getCode() == ErrorState.OK.name()
+           event.getOrder() == Order.CONCURRENT.value
+        }
     }
 
     def "Tpcall service not available returns TPNOENT"()
@@ -184,6 +195,11 @@ class CasualServiceCallerTest extends Specification
         }
 
         expect actualServiceRequest, matching( expectedServiceRequest )
+        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
+           event.getService() == serviceName
+           event.getCode() == ErrorState.TPENOENT.name()
+           event.getOrder() == Order.CONCURRENT.value
+        }
     }
 
     def "Tpcall service is available performs service call which fails, returns failure result."()
@@ -205,6 +221,11 @@ class CasualServiceCallerTest extends Specification
         }
 
         expect actualServiceRequest, matching( expectedServiceRequest )
+        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
+           event.getService() == serviceName
+           event.getCode() == ErrorState.TPESVCFAIL.name()
+           event.getOrder() == Order.CONCURRENT.value
+        }
     }
 
     def "Tpcall with TPNOREPLY - exceptional"()
@@ -214,6 +235,7 @@ class CasualServiceCallerTest extends Specification
        then:
        def e = thrown(CasualConnectionException)
        e.cause.class == CasualProtocolException.class
+       0 * serviceCallEventPublisher.post(_ as ServiceCallEvent)
     }
 
     def "Tpacall service is available performs service call and returns result of service call."()
@@ -234,6 +256,11 @@ class CasualServiceCallerTest extends Specification
         }
 
         expect actualServiceRequest, matching( expectedServiceRequest )
+        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
+           event.getService() == serviceName
+           event.getCode() == ErrorState.TPESVCFAIL.name()
+           event.getOrder() == Order.CONCURRENT.value
+        }
     }
 
    def "Tpacall service is available, flags are TPNOREPLY but missing TPNOTRAN"()
@@ -243,6 +270,7 @@ class CasualServiceCallerTest extends Specification
 
       then:
       thrown(CasualProtocolException)
+      0 * serviceCallEventPublisher.post(_ as ServiceCallEvent)
    }
 
    def "Tpacall service is available, flags are TPNOREPLY and TPNOTRAN"()
@@ -254,6 +282,11 @@ class CasualServiceCallerTest extends Specification
       noExceptionThrown()
       result != null
       result.isPresent() == false
+      1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
+         event.getService() == serviceName
+         event.getCode() == ErrorState.TPESVCFAIL.name()
+         event.getOrder() == Order.CONCURRENT.value
+      }
    }
 
     def 'tpacall fails'()
@@ -271,6 +304,7 @@ class CasualServiceCallerTest extends Specification
                 f.completeExceptionally(new CasualProtocolException('oopsie'))
                 return f
         }
+        0 * serviceCallEventPublisher.post(_ as ServiceCallEvent)
     }
 
     def 'serviceExists'()
@@ -286,6 +320,7 @@ class CasualServiceCallerTest extends Specification
                 return CompletableFuture.completedFuture(domainDiscoveryReplyFound)
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
+        0 * serviceCallEventPublisher.post(_ as ServiceCallEvent)
     }
 
     def 'serviceExists - not found'()
@@ -301,6 +336,7 @@ class CasualServiceCallerTest extends Specification
                 return CompletableFuture.completedFuture(domainDiscoveryReplyNotFound)
         }
         expect actualDomainDiscoveryRequest, matching(expectedDomainDiscoveryRequest)
+        0 * serviceCallEventPublisher.post(_ as ServiceCallEvent)
     }
 
     def 'tpcall fails, exception is wrapped in CasualConnectionException'()
@@ -314,6 +350,7 @@ class CasualServiceCallerTest extends Specification
             f.completeExceptionally(new CasualProtocolException('oopsie'))
             return f
         }
+        0 * serviceCallEventPublisher.post(_ as ServiceCallEvent)
     }
 
     def 'service exists fails - exception is wrapped in CasualConnectionException'()
@@ -327,6 +364,7 @@ class CasualServiceCallerTest extends Specification
             f.completeExceptionally(new CasualProtocolException('oopsie'))
             return f
         }
+        0 * serviceCallEventPublisher.post(_ as ServiceCallEvent)
     }
 
 

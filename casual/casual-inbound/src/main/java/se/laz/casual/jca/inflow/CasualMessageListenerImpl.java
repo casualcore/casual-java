@@ -63,6 +63,7 @@ import java.util.logging.Logger;
                 })
 public class CasualMessageListenerImpl implements CasualMessageListener
 {
+    private static final long MICROSECOND_FACTOR = 1000L;
     private static Logger log = Logger.getLogger(CasualMessageListenerImpl.class.getName());
     private static final Long CASUAL_PROTOCOL_VERSION = 1000L;
 
@@ -132,10 +133,14 @@ public class CasualMessageListenerImpl implements CasualMessageListener
 
         try
         {
-            long startup = !isTpNoReply && isServiceCallTransactional( xid ) ?
-                    workManager.startWork( work, WorkManager.INDEFINITE, createTransactionContext( xid, message.getMessage().getTimeout() ), new ServiceCallWorkListener( channel ) ) :
-                    workManager.startWork( work, WorkManager.INDEFINITE, null, (isTpNoReply ? null : new ServiceCallWorkListener( channel )));
-            log.finest( ()->"Service call startup: "+ startup + "ms.");
+            if(!isTpNoReply && isServiceCallTransactional( xid ) )
+            {
+                workManager.scheduleWork(work, WorkManager.INDEFINITE, createTransactionContext(xid, message.getMessage().getTimeout()), new ServiceCallWorkListener(channel, message.getMessage()));
+            }
+            else
+            {
+                workManager.scheduleWork(work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener(channel, message.getMessage(), isTpNoReply));
+            }
         }
         catch (WorkException e)
         {
@@ -176,7 +181,8 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator)
     {
-        log.finest(() ->  "prepareRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
+        log.finest(() ->  "prepareRequest(). " + PrettyPrinter.format(message.getCorrelationId(),
+                message.getMessage().getExecution(), message.getMessage().getXid()) + "flags:" + message.getMessage().getFlags() + " " + message);
 
         Xid xid = message.getMessage().getXid();
         int status = -1;
@@ -188,7 +194,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         {
 
             status = e.errorCode;
-            log.log( Level.WARNING, e, ()-> "XAExcception prepare()" + e.getMessage() );
+            log.log( Level.WARNING, e, ()-> "XAException prepare()" + e.getMessage() );
         }
         finally
         {

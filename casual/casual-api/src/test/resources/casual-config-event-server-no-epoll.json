@@ -1,0 +1,6 @@
+{
+  "eventServer":{
+    "portNumber": 9966,
+    "useEpoll": false
+  }
+}

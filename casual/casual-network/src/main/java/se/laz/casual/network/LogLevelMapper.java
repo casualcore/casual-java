@@ -10,6 +10,8 @@ import se.laz.casual.api.CasualTypeException;
 
 public final class LogLevelMapper
 {
+    private LogLevelMapper()
+    {}
     public static LogLevel map(ExternalLogLevel level)
     {
         switch(level)
