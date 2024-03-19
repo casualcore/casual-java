@@ -105,9 +105,13 @@ public class ServiceCallEvent
         private long pid = Process.pid();
         private UUID execution;
         private Xid transactionId;
-        private long start;
-        private long end;
-        private long pending;
+        private Long start;
+        private Long end;
+
+        private Instant created = Instant.now();
+        private Instant started;
+        private Instant ended;
+        private Long pending;
         private ErrorState code;
         private Order order;
 
@@ -135,26 +139,15 @@ public class ServiceCallEvent
             return this;
         }
 
-        public Builder withStart(Instant start)
+        public Builder start( )
         {
-            Objects.requireNonNull(start, "start can not be null");
-            // from ChronoUnit.between:
-            // Implementations should perform any queries or calculations using the units available in ChronoUnit
-            // or the fields available in ChronoField.
-            // If the unit is not supported an UnsupportedTemporalTypeException must be thrown.
-            // Implementations must not alter the specified temporal objects.
-            //
-            // On the platform what we currently support, this is not a problem
-            // We also do not know of any platform where this does not work
-            // The same goes for end below
-            this.start = ChronoUnit.MICROS.between(Instant.EPOCH, start);
+            this.started = Instant.now();
             return this;
         }
 
-        public Builder withEnd(Instant end)
+        public Builder end( )
         {
-            Objects.requireNonNull(end, "end can not be null");
-            this.end = ChronoUnit.MICROS.between(Instant.EPOCH, end);
+            this.ended = Instant.now();
             return this;
         }
 
@@ -190,9 +183,38 @@ public class ServiceCallEvent
             Objects.requireNonNull(transactionId, "transactionId can not be null");
             Objects.requireNonNull(code, "code can not be null");
             Objects.requireNonNull(order, "order can not be null");
+
+            Objects.requireNonNull( started, "start cannot be null, you must call start()." );
+            Objects.requireNonNull(ended, "end cannot be null, you must call end()." );
+
+            if( pending == null )
+            {
+                pending = toDurationMicro( created, started );
+            }
+            start = toEpochMicro( started );
+            end = toEpochMicro( ended );
+
             return new ServiceCallEvent(this);
         }
 
+        private long toEpochMicro( Instant instant )
+        {
+            return toDurationMicro(Instant.EPOCH, instant);
+        }
+
+        private long toDurationMicro( Instant start, Instant end )
+        {
+            // from ChronoUnit.between:
+            // Implementations should perform any queries or calculations using the units available in ChronoUnit
+            // or the fields available in ChronoField.
+            // If the unit is not supported an UnsupportedTemporalTypeException must be thrown.
+            // Implementations must not alter the specified temporal objects.
+            //
+            // On the platform what we currently support, this is not a problem
+            // We also do not know of any platform where this does not work
+            // The same goes for end below
+            return ChronoUnit.MICROS.between(start, end);
+        }
     }
 
     @Override

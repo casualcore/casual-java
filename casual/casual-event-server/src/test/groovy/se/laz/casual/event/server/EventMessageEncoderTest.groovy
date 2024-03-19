@@ -33,6 +33,8 @@ class EventMessageEncoderTest extends Specification
               .withPID(42)
               .withService('nice service')
               .withTransactionId(transactionId)
+              .start()
+              .end()
               .build()
       def asJsonBytes =  JsonProviderFactory.getJsonProvider().toJson(msg).getBytes(StandardCharsets.UTF_8)
       ByteBuf out = Mock(ByteBuf){
