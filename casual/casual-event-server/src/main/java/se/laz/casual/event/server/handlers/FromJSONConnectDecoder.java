@@ -19,20 +19,20 @@ import java.util.Objects;
 import java.util.logging.Logger;
 
 @ChannelHandler.Sharable
-public class FromJSONLogonDecoder extends SimpleChannelInboundHandler<Object>
+public class FromJSONConnectDecoder extends SimpleChannelInboundHandler<Object>
 {
-    private static final Logger log = Logger.getLogger(FromJSONLogonDecoder.class.getName());
+    private static final Logger log = Logger.getLogger(FromJSONConnectDecoder.class.getName());
     private final ChannelGroup connectedClients;
 
-    private FromJSONLogonDecoder(ChannelGroup connectedClients)
+    private FromJSONConnectDecoder(ChannelGroup connectedClients)
     {
         this.connectedClients = connectedClients;
     }
 
-    public static FromJSONLogonDecoder of(ChannelGroup connectedClients)
+    public static FromJSONConnectDecoder of(ChannelGroup connectedClients)
     {
         Objects.requireNonNull(connectedClients, "connectedClients can not be null");
-        return new FromJSONLogonDecoder(connectedClients);
+        return new FromJSONConnectDecoder(connectedClients);
     }
 
     @Override

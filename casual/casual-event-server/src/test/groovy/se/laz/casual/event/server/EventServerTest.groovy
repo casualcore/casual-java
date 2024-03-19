@@ -6,12 +6,13 @@
 package se.laz.casual.event.server
 
 import spock.lang.Specification
+
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 
 class EventServerTest extends Specification
 {
-   def 'logon'()
+   def 'connect'()
    {
       given:
       ServerInitialization serverInitialization = DefaultServerInitialization.of()
@@ -22,7 +23,7 @@ class EventServerTest extends Specification
       EventServer server = EventServer.of(connectionInformation)
       InetSocketAddress address = (InetSocketAddress) server.channel.localAddress()
       when:
-      logon(address)
+      connect(address)
       then:
       server.isActive()
       when:
@@ -31,7 +32,7 @@ class EventServerTest extends Specification
       !server.isActive()
    }
 
-   def logon(InetSocketAddress address)
+   def connect(InetSocketAddress address)
    {
       SocketChannel socketChannel = SocketChannel.open(address)
       byte[] payload = '{"message":"HELLO"}' as byte[]

@@ -14,7 +14,7 @@ import se.laz.casual.api.CasualTypeException
 import se.laz.casual.event.server.messages.ConnectRequestMessage
 import spock.lang.Specification
 
-class FromJSONLogonDecoderTest extends Specification
+class FromJSONConnectDecoderTest extends Specification
 {
    def 'failed logon'()
    {
@@ -31,7 +31,7 @@ class FromJSONLogonDecoderTest extends Specification
       def buffer = Mock(ByteBuf){
          toString(CharsetUtil.UTF_8) >> logonMessage
       }
-      def decoder = FromJSONLogonDecoder.of(clients)
+      def decoder = FromJSONConnectDecoder.of(clients)
       when:
       decoder.channelRead0(ctx, buffer)
       then:
@@ -53,7 +53,7 @@ class FromJSONLogonDecoderTest extends Specification
       def buffer = Mock(ByteBuf){
          toString(CharsetUtil.UTF_8) >> logonMessage
       }
-      def decoder = FromJSONLogonDecoder.of(clients)
+      def decoder = FromJSONConnectDecoder.of(clients)
       when:
       decoder.channelRead0(ctx, buffer)
       then:
