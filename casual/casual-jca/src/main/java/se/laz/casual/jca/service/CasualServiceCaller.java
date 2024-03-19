@@ -111,8 +111,7 @@ public class CasualServiceCaller implements CasualServiceApi
                             }
                             LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
                     eventBuilder.withCode(v.getMessage().getError())
-                            .end()
-                            .build();
+                            .end();
                             getEventPublisher().post(eventBuilder.build());
                     if(!f.isDone())
                     {
@@ -122,8 +121,7 @@ public class CasualServiceCaller implements CasualServiceApi
         if(noReply)
         {
             eventBuilder.withCode(ErrorState.OK)
-                     .end()
-                     .build();
+                     .end();
             getEventPublisher().post(eventBuilder.build());
             f.complete(Optional.empty());
         }
