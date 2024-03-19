@@ -7,17 +7,17 @@ package se.laz.casual.event.server.messages;
 
 import java.util.Objects;
 
-public class LogonRequestMessage
+public class ConnectRequestMessage
 {
-    private final LogonRequest message;
-    private LogonRequestMessage(LogonRequest message)
+    private final ConnectRequest message;
+    private ConnectRequestMessage(ConnectRequest message)
     {
         this.message = message;
     }
-    public static LogonRequestMessage of(LogonRequest message)
+    public static ConnectRequestMessage of(ConnectRequest message)
     {
         Objects.requireNonNull(message, "message can not be null");
-        return new LogonRequestMessage(message);
+        return new ConnectRequestMessage(message);
     }
 
     @Override
@@ -39,7 +39,7 @@ public class LogonRequestMessage
         {
             return false;
         }
-        LogonRequestMessage that = (LogonRequestMessage) o;
+        ConnectRequestMessage that = (ConnectRequestMessage) o;
         return message == that.message;
     }
 
