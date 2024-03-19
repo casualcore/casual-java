@@ -10,7 +10,6 @@ import se.laz.casual.api.util.PrettyPrinter;
 
 import javax.transaction.xa.Xid;
 import java.time.Instant;
-import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
@@ -140,22 +139,9 @@ public class ServiceCallEvent
             return this;
         }
 
-        public Builder withStart(Instant start)
-        {
-            this.started = start;
-            return this;
-        }
-
         public Builder start( )
         {
             this.started = Instant.now();
-            return this;
-        }
-
-        public Builder withEnd(Instant end)
-        {
-            Objects.requireNonNull(end, "end can not be null");
-            this.ended = end;
             return this;
         }
 
