@@ -19,8 +19,6 @@ import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
-import java.time.Instant;
-
 /**
  * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
  * {@link jakarta.resource.spi.work.WorkManager} to flush the response to the netty {@link Channel}.
@@ -30,7 +28,6 @@ public class ServiceCallWorkListener implements WorkListener
     private final Channel channel;
     private final boolean isTpNoReply;
     private final CasualServiceCallRequestMessage message;
-    private Instant sometimeBeforeServiceCall;
     private ServiceCallEventPublisher eventPublisher;
 
     private final ServiceCallEvent.Builder eventBuilder;
