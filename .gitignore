@@ -1,5 +1,7 @@
 [Bb]uild/
 .idea/
+javadoc/
+docs/source/casual-docs/
 *.iml
 *.class
 *.jar

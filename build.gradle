@@ -18,6 +18,7 @@ plugins {
 }
 
 apply from: 'testsourcesets.gradle'
+apply from: 'documentation.gradle'
 
 defaultTasks 'build'
 
@@ -66,6 +67,42 @@ subprojects{
 
 // always run tests when running sonar
 rootProject.tasks['sonar'].dependsOn.add(subprojects.tasks['test'])
+
+task sphinxClean(type: Delete){
+    delete 'docs/source/casual-docs'
+    delete 'build/javadoc'
+}
+
+// aggregate all javadoc for usage with sphinx as external docs
+task sphinxJavadoc(type: Javadoc) {
+    source subprojects.collect { project ->
+        project.sourceSets.main.allJava
+    }
+    destinationDir = new File("$rootProject.projectDir/build", 'javadoc')
+    classpath = files(subprojects.collect { project ->
+        project.sourceSets.main.compileClasspath
+    })   
+}
+
+task sphinxMarkdown(type: Copy){
+    from "$rootProject.projectDir"
+    exclude '**/*query*'
+    exclude "build/**"
+    exclude "**/.*/**"
+    exclude "docs/source/casual-docs/**"
+    include '**/*.md'
+    into "$rootProject.projectDir/docs/source/casual-docs"
+}
+
+task sphinx(type: Exec){
+    workingDir 'docs'
+    commandLine 'make', 'clean'
+    commandLine 'make', 'html'
+}
+
+sphinx.dependsOn sphinxMarkdown
+sphinxMarkdown.dependsOn sphinxJavadoc
+sphinxJavadoc.dependsOn sphinxClean
 
 task dist(type: Sync) {
     allprojects { p ->
