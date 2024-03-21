@@ -11,7 +11,7 @@ import sphinx_rtd_theme
 project = 'casual-java'
 copyright = '2024, casualproject'
 author = 'casualproject'
-release = '3.2.32'
+release = '3.2.33'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
