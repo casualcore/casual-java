@@ -18,7 +18,6 @@ plugins {
 }
 
 apply from: 'testsourcesets.gradle'
-apply from: 'documentation.gradle'
 
 defaultTasks 'build'
 

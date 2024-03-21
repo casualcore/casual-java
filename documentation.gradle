@@ -1,4 +1,0 @@
-//-*- coding: utf-8-unix -*-
-task buildDoc(type: Exec){
-    commandLine 'sphinx-build','-M', 'html', 'sphinx', 'document-out'
-}
