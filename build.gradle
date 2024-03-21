@@ -94,6 +94,7 @@ task sphinxMarkdown(type: Copy){
     into "$rootProject.projectDir/docs/source/casual-docs"
 }
 
+// run this task to create sphinx docs
 task sphinx(type: Exec){
     workingDir 'docs'
     commandLine 'make', 'clean'
