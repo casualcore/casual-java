@@ -84,6 +84,7 @@ task sphinxJavadoc(type: Javadoc) {
 }
 
 task sphinxMarkdown(type: Copy){
+    includeEmptyDirs = false
     from "$rootProject.projectDir"
     exclude '**/*query*'
     exclude "build/**"
