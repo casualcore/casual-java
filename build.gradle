@@ -67,6 +67,53 @@ subprojects{
 // always run tests when running sonar
 rootProject.tasks['sonar'].dependsOn.add(subprojects.tasks['test'])
 
+task sphinxClean(type: Delete){
+    delete 'docs/source/casual-docs'
+    delete 'build/javadoc'
+}
+
+// aggregate all javadoc for usage with sphinx as external docs
+task sphinxJavadoc(type: Javadoc) {
+    source subprojects.collect { project ->
+        project.sourceSets.main.allJava
+    }
+    destinationDir = new File("$rootProject.projectDir/build", 'javadoc')
+    classpath = files(subprojects.collect { project ->
+        project.sourceSets.main.compileClasspath
+    })   
+}
+
+task sphinxMarkdown(type: Copy){
+    includeEmptyDirs = false
+    from "$rootProject.projectDir"
+    exclude '**/*query*'
+    exclude "build/**"
+    exclude "**/.*/**"
+    exclude "docs/source/casual-docs/**"
+    include '**/*.md'
+    into "$rootProject.projectDir/docs/source/casual-docs"
+}
+
+task sphinxVersion(){
+  apply from: "$rootProject.projectDir/versions.gradle"
+  def outputFileName = 'docs/source/version'
+    new File(outputFileName).withWriter { writer ->        
+        writer.writeLine "$version"
+  }
+}
+
+// run this task to create sphinx docs
+task sphinx(type: Exec){
+    workingDir 'docs'
+    commandLine 'make', 'clean'
+    commandLine 'make', 'html'
+}
+
+sphinx.dependsOn sphinxVersion
+sphinxVersion.dependsOn sphinxMarkdown
+sphinxMarkdown.dependsOn sphinxJavadoc
+sphinxJavadoc.dependsOn sphinxClean
+
 task dist(type: Sync) {
     allprojects { p ->
         from p.tasks.withType(Jar)
