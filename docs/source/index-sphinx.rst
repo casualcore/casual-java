@@ -10,4 +10,4 @@ casual-java documentation
    :titlesonly:
    
    Casual Java Integration <casual-docs/README>
-   javadoc <index>
+   Javadoc <index>
