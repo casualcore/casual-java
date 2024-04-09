@@ -7,6 +7,7 @@
 package se.laz.casual.network.inbound.reverse;
 
 import se.laz.casual.api.util.work.RepeatUntilSuccessTaskWork;
+import se.laz.casual.network.outbound.JEEConcurrencyFactory;
 import se.laz.casual.network.reverse.inbound.ReverseInboundConnectListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
@@ -39,7 +40,12 @@ public class AutoConnect
          connectListener.connected(server);
          eventListener.connected(server);
       };
-      RepeatUntilSuccessTaskWork<ReverseInboundServer> task = RepeatUntilSuccessTaskWork.of(supplier, consumer, workManagerSupplier);
+      RepeatUntilSuccessTaskWork<ReverseInboundServer> task = RepeatUntilSuccessTaskWork.of(
+              supplier,
+              consumer,
+              workManagerSupplier,
+              reverseInboundConnectionInformation.getMaxBackoffMillis(),
+              JEEConcurrencyFactory.getManagedScheduledExecutorService());
       return new AutoConnect(task);
    }
 

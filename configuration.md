@@ -19,6 +19,7 @@ Casual supports the following configuration options which can be set using envir
 * `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS` - Delay the startup of the inbound server. Default is no delay.
 * `CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS` - Quiet period during event server shutdown to wait whilst closing the channel. Default `2000`
 * `CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS` - Timeout for the event server event loop to shutdown. Default `15000`
+* `CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE` - The pool size of casual's scheduled executor service instance. Defaults to 10.
 
 NB - if a `CASUAL_CONFIG_FILE` is provided, it take precedence over the `CASUAL_INBOUND_STARTUP_MODE` setting.
 However, if some configuration is missing from the configuration file but has a setting via an environment variable then this will be used before any hardcoded default setting.
