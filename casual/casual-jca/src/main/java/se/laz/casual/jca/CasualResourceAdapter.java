@@ -116,6 +116,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                                                                    .withWorkManager(workManager)
                                                                    .withXaTerminator(xaTerminator)
                                                                    .withProtocolVersion(ProtocolVersion.VERSION_1_0)
+                                                                   .withMaxBackoffMillils(instance.getMaxConnectionBackoffMillis())
                                                                    .build(), instance.getSize());
         }
     }

@@ -17,6 +17,7 @@ Casual supports the following configuration options which can be set using envir
 * `CASUAL_OUTBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO.
 * `CASUAL_INBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO.
 * `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS` - Delay the startup of the inbound server. Default is no delay.
+* `CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE` - The pool size of casual's scheduled executor service instance. Defaults to 10.
 
 NB - if a `CASUAL_CONFIG_FILE` is provided, it take precedence over the `CASUAL_INBOUND_STARTUP_MODE` setting.
 However, if some configuration is missing from the configuration file but has a setting via an environment variable then this will be used before any hardcoded default setting.

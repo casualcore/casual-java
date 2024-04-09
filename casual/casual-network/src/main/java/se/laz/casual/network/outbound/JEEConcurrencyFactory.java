@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -12,6 +12,8 @@ import se.laz.casual.jca.CasualResourceAdapterException;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
 
 public class JEEConcurrencyFactory
@@ -26,6 +28,18 @@ public class JEEConcurrencyFactory
     // * we have not found what the direct names are so if you run on wls it will throw unless direct a direct JNDI-name is configured
     // * this goes for conversation, it needs an ExecutorService, and Outbound - if not set to run unmanaged
     private static final String DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT = "java:jboss/ee/concurrency/executor/default";
+
+    public static final String DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT = "java:jboss/ee/concurrency/scheduler/default";
+    public static final String DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_INDIRECT = "java:comp/DefaultManagedScheduledExecutorService";
+
+    // For configuring the concurrency of the normal java.util.concurrency-based ScheduledExecutorService which is
+    // only used whenever the direct jboss-variant or the jee-spec indirect jndi name lookups fail for a scheduled
+    // executor service.
+    public static final String CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE_ENV_NAME = "CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE";
+    public static final int DEFAULT_CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE = 10;
+
+    /** Fallback ScheduledExecutorService that is used when nothing is found through jndi */
+    private static ScheduledExecutorService sharedScheduledExecutor;
 
     private JEEConcurrencyFactory()
     {}
@@ -62,4 +76,70 @@ public class JEEConcurrencyFactory
         }
     }
 
+    /**
+     * Gets the default ManagedScheduledExecutorService on jboss. On some non-standard implementation
+     * it will fetch the default through java:comp/DefaultManagedScheduledExecutorService
+     * which normally shouldn't be accessible in this context.
+     * <p>
+     * If both of those fail a ScheduledExecutorService instance will be created
+     * through the standard java.util.concurrent.Executor which will share the
+     * same ScheduledExecutorService among all users.
+     *
+     * @return A ScheduledExecutorService instance.
+     */
+    public static ScheduledExecutorService getManagedScheduledExecutorService()
+    {
+        try
+        {
+            // First try jboss variant
+            return InitialContext.doLookup(DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT);
+        }
+        catch (NamingException e)
+        {
+            LOG.info("Failed lookup for " + DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT + ", will retry indirect jndi name (may exist in this context on some non-standard application servers)");
+            try
+            {
+                // Second try non-standard use of indirect jndi name defined in JSR-236
+                return InitialContext.doLookup(DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_INDIRECT);
+            }
+            catch (NamingException ex)
+            {
+                LOG.info("Failed lookup for " + DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_INDIRECT + ", will use scheduled executor from java.util.concurrent.Executors");
+                // If all else fails, use java.util.concurrent variant as scheduler
+                return getSharedJavaUtilScheduledExecutor();
+            }
+        }
+    }
+
+    static synchronized ScheduledExecutorService getSharedJavaUtilScheduledExecutor()
+    {
+        if (null == sharedScheduledExecutor)
+        {
+            int schedulerPoolSize = DEFAULT_CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE;
+
+            final String poolSizeEnvValue = System.getenv(CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE_ENV_NAME);
+            try
+            {
+                schedulerPoolSize = Integer.parseInt(poolSizeEnvValue);
+            }
+            catch (NumberFormatException e)
+            {
+                LOG.info("Failed to read env '" + CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE_ENV_NAME
+                        + "' as int, value was '" + poolSizeEnvValue
+                        + "'. Will use default pool size=" + schedulerPoolSize);
+            }
+
+            sharedScheduledExecutor = Executors.newScheduledThreadPool(schedulerPoolSize);
+        }
+
+        return sharedScheduledExecutor;
+    }
+
+    /**
+     * For testing purposes only
+     */
+    static void resetScheduler()
+    {
+        sharedScheduledExecutor = null;
+    }
 }
