@@ -13,9 +13,12 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.client.handlers.ConnectionMessageEncoder;
+import se.laz.casual.event.client.handlers.ExceptionHandler;
 import se.laz.casual.event.client.handlers.FromJSONEventMessageDecoder;
 import se.laz.casual.event.client.messages.ConnectionMessage;
 
+import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -30,13 +33,22 @@ public class EventClient
     {
         this.channel = channel;
     }
-    public static EventClient of(ConnectionInformation connectionInformation, EventObserver observer, boolean enableLogging)
+    public static EventClient of(ConnectionInformation connectionInformation, EventObserver eventObserver, ConnectionObserver connectionObserver, boolean enableLogging)
     {
         Objects.requireNonNull(connectionInformation, "connectionInformation can not be null");
-        Objects.requireNonNull(observer, "observer can not be null");
-        Channel channel = init(connectionInformation.getAddress(), observer, enableLogging);
-        return new EventClient(channel);
+        Objects.requireNonNull(eventObserver, "eventObserver can not be null");
+        Objects.requireNonNull(connectionObserver, "connectionObserver can not be null");
+        Channel channel = init(connectionInformation.getAddress(), eventObserver, enableLogging);
+        EventClient client =  new EventClient(channel);
+        channel.closeFuture().addListener(f -> handleClose(connectionObserver));
+        return client;
     }
+
+    private static void handleClose(ConnectionObserver connectionObserver)
+    {
+        connectionObserver.connectionClosed();
+    }
+
     public void connect()
     {
         channel.writeAndFlush(ConnectionMessage.of());
@@ -45,7 +57,7 @@ public class EventClient
     {
         channel.close();
     }
-    private static Channel init(final InetSocketAddress address, EventObserver observer, boolean enableLogHandler)
+    private static Channel init(final InetSocketAddress address, EventObserver eventObserver, boolean enableLogHandler)
     {
         EventLoopGroup workerGroup = new EpollEventLoopGroup();
         Class<? extends Channel> channelClass = EpollSocketChannel.class;
@@ -58,7 +70,7 @@ public class EventClient
                     @Override
                     protected void initChannel(SocketChannel ch)
                     {
-                        ch.pipeline().addLast(ConnectionMessageEncoder.of(), new JsonObjectDecoder(MAX_MESSAGE_BYTE_SIZE), FromJSONEventMessageDecoder.of(observer));
+                        ch.pipeline().addLast(ConnectionMessageEncoder.of(), new JsonObjectDecoder(MAX_MESSAGE_BYTE_SIZE), FromJSONEventMessageDecoder.of(eventObserver), ExceptionHandler.of());
                         if(enableLogHandler)
                         {
                             ch.pipeline().addFirst(new LoggingHandler(LogLevel.INFO));
@@ -72,22 +84,41 @@ public class EventClient
     public static void main(String[] args)
     {
         ConnectionInformation connectionInformation = new ConnectionInformation("10.97.100.236", 7698);
-        WrapperClient client = WrapperClient.of();
-        client.connect(connectionInformation);
+        WrapperClient client = WrapperClient.of(connectionInformation);
+        client.connect();
         for(;;);
     }
 
-    private static class WrapperClient implements EventObserver
+    private static class WrapperClient implements EventObserver, ConnectionObserver
     {
+        private static final Logger LOG = Logger.getLogger(WrapperClient.class.getName());
+        private final ConnectionInformation connectionInformation;
         private EventClient client;
-        public static WrapperClient of()
+
+        private WrapperClient(ConnectionInformation connectionInformation)
         {
-            return new WrapperClient();
+            this.connectionInformation = connectionInformation;
         }
 
-        public void connect(ConnectionInformation connectionInformation)
+        public static WrapperClient of(ConnectionInformation connectionInformation)
         {
-            client = EventClient.of(connectionInformation, this, true);
+            return new WrapperClient(connectionInformation);
+        }
+
+        public void connect()
+        {
+            client = EventClient.of(connectionInformation, this, this, true);
+            doConnect();
+        }
+
+        public void close()
+        {
+            client.close();
+        }
+
+        private void doConnect()
+        {
+            System.out.println("Connecting:");
             client.connect();
         }
 
@@ -96,6 +127,37 @@ public class EventClient
         {
             System.out.println(event);
         }
+
+        @Override
+        public void connectionClosed()
+        {
+            boolean done = false;
+            while(!done)
+            {
+                try
+                {
+                    reconnect();
+                    done = true;
+                }
+                catch(ConnectException e)
+                {}
+
+                try
+                {
+                    Thread.sleep(1000);
+                }
+                catch (InterruptedException e)
+                {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        private void reconnect() throws ConnectException
+        {
+            connect();
+        }
+
     }
 
 }

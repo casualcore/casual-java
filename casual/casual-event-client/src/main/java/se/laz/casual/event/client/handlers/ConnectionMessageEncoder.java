@@ -6,11 +6,9 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import se.laz.casual.event.client.messages.ConnectionMessage;
 
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Logger;
 
 public class ConnectionMessageEncoder extends MessageToByteEncoder<ConnectionMessage>
 {
-    private static final Logger LOG = Logger.getLogger(ConnectionMessageEncoder.class.getName());
     private ConnectionMessageEncoder()
     {}
 
@@ -22,9 +20,7 @@ public class ConnectionMessageEncoder extends MessageToByteEncoder<ConnectionMes
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, ConnectionMessage connectionMessage, ByteBuf byteBuf)
     {
-        LOG.finest(() -> "about to write: " + connectionMessage);
         byteBuf.writeBytes(connectionMessage.getConnectionMessage().getBytes(StandardCharsets.UTF_8));
-        LOG.finest(() -> "wrote: " + connectionMessage);
     }
     @Override
     public boolean acceptOutboundMessage(Object msg)
