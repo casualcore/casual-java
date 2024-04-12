@@ -25,7 +25,7 @@ public class EventServer
     private final long shutdownQuietPeriod;
     private final long shutdownTimeout;
 
-    public EventServer(Channel channel, long quietPeriod, long timeout )
+    private EventServer(Channel channel, long quietPeriod, long timeout )
     {
         Objects.requireNonNull(channel, "channel can not be null");
         this.channel = channel;
