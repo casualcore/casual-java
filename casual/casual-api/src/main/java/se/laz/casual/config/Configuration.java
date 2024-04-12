@@ -78,10 +78,11 @@ public class Configuration
     public String toString()
     {
         return "Configuration{" +
-                "inbound=" + getInbound() +
-                ", domain=" + getDomain() +
-                ", outbound=" + getOutbound() +
-                ", reverseInbound=" + getReverseInbound() +
+                "inbound=" + inbound +
+                ", domain=" + domain +
+                ", outbound=" + outbound +
+                ", reverseInbound=" + reverseInbound +
+                ", eventServer=" + eventServer +
                 '}';
     }
 

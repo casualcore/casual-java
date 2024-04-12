@@ -15,17 +15,22 @@ import se.laz.casual.event.ServiceCallEventStore;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class EventServer
 {
     private static final Logger log = Logger.getLogger(EventServer.class.getName());
     private final Channel channel;
+    private final long shutdownQuietPeriod;
+    private final long shutdownTimeout;
 
-    public EventServer(Channel channel)
+    public EventServer(Channel channel, long quietPeriod, long timeout )
     {
         Objects.requireNonNull(channel, "channel can not be null");
         this.channel = channel;
+        this.shutdownQuietPeriod = quietPeriod;
+        this.shutdownTimeout = timeout;
     }
 
     public static EventServer of(EventServerConnectionInformation connectionInformation)
@@ -35,7 +40,7 @@ public class EventServer
         Channel ch =  connectionInformation.getServerInitialization().init(connectionInformation, connectedClients);
         final ServiceCallEventStore serviceCallEventStore = ServiceCallEventHandlerFactory.getHandler();
         MessageLoop messageLoop = DefaultMessageLoop.of(connectedClients, serviceCallEventStore);
-        EventServer eventServer = new EventServer(ch);
+        EventServer eventServer = new EventServer(ch, connectionInformation.getShutdownQuietPeriod(), connectionInformation.getShutdownTimeout() );
         eventServer.setLoopConditionAndDispatch(Executors.newSingleThreadExecutor(), messageLoop);
         return eventServer;
     }
@@ -61,7 +66,7 @@ public class EventServer
     {
         log.info(() -> "closing event server");
         channel.close().syncUninterruptibly();
-        channel.eventLoop().shutdownGracefully().syncUninterruptibly();
+        channel.eventLoop().shutdownGracefully( shutdownQuietPeriod, shutdownTimeout, TimeUnit.MILLISECONDS ).syncUninterruptibly();
         log.info(() -> "event server closed");
     }
 

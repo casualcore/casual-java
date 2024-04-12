@@ -13,6 +13,8 @@ import spock.lang.Unroll
 import java.nio.charset.StandardCharsets
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
+import static se.laz.casual.config.Shutdown.DEFAULT_QUIET_PERIOD_MILLIS
+import static se.laz.casual.config.Shutdown.DEFAULT_TIMEOUT_MILLIS
 
 class CasualConfigTest extends Specification
 {
@@ -187,7 +189,14 @@ class CasualConfigTest extends Specification
       given:
       String config = new File( "src/test/resources/" + file ).getText( StandardCharsets.UTF_8.name(  ) )
       Configuration expected = Configuration.newBuilder()
-              .withEventServer(EventServer.createBuilder().withPortNumber(portNumber).withUseEpoll(useEpoll).build())
+              .withEventServer(EventServer.createBuilder()
+                      .withPortNumber(port)
+                      .withUseEpoll(epoll)
+                      .withShutdown( Shutdown.newBuilder()
+                              .withQuietPeriod(quietPeriod)
+                              .withTimeout(timeout)
+                              .build())
+                      .build())
               .build()
 
       when:
@@ -197,9 +206,11 @@ class CasualConfigTest extends Specification
       actual == expected
 
       where:
-      file                                        || portNumber | useEpoll
-      'casual-config-event-server-use-epoll.json' || 6699       | true
-      'casual-config-event-server-no-epoll.json'  || 9966       | false
+      file                                        || port | epoll | quietPeriod                 | timeout
+      'casual-config-event-server-use-epoll.json' || 6699 | true  | DEFAULT_QUIET_PERIOD_MILLIS | DEFAULT_TIMEOUT_MILLIS
+      'casual-config-event-server-no-epoll.json'  || 9966 | false | DEFAULT_QUIET_PERIOD_MILLIS | DEFAULT_TIMEOUT_MILLIS
+      'casual-config-event-server-shutdown.json'  || 5987 | true  | 100                         | 200
+
    }
 
 }

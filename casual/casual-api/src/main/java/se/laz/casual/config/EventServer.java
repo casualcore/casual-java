@@ -11,11 +11,13 @@ public final class EventServer
 {
     private final int portNumber;
     private final boolean useEpoll;
+    private final Shutdown shutdown;
 
     private EventServer(Builder builder)
     {
-        portNumber = builder.portNumber;
-        useEpoll = builder.useEpoll;
+        this.portNumber = builder.portNumber;
+        this.useEpoll = builder.useEpoll;
+        this.shutdown = builder.shutdown;
     }
 
     public int getPortNumber()
@@ -28,25 +30,30 @@ public final class EventServer
         return useEpoll;
     }
 
-    @Override
-    public boolean equals(Object o)
+    public Shutdown getShutdown()
     {
-        if (this == o)
+        return shutdown == null ? Shutdown.newBuilder().build() : shutdown;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if( this == o )
         {
             return true;
         }
-        if (o == null || getClass() != o.getClass())
+        if( o == null || getClass() != o.getClass() )
         {
             return false;
         }
         EventServer that = (EventServer) o;
-        return getPortNumber() == that.getPortNumber() && isUseEpoll() == that.isUseEpoll();
+        return getPortNumber() == that.getPortNumber() && isUseEpoll() == that.isUseEpoll() && Objects.equals( getShutdown(), that.getShutdown() );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getPortNumber(), isUseEpoll());
+        return Objects.hash( getPortNumber(), isUseEpoll(), getShutdown() );
     }
 
     @Override
@@ -55,6 +62,7 @@ public final class EventServer
         return "EventServer{" +
                 "portNumber=" + portNumber +
                 ", useEpoll=" + useEpoll +
+                ", shutdown=" + shutdown +
                 '}';
     }
 
@@ -67,6 +75,7 @@ public final class EventServer
     {
         private int portNumber = 7698;
         private boolean useEpoll;
+        private Shutdown shutdown;
 
         private Builder()
         {}
@@ -85,6 +94,12 @@ public final class EventServer
         public Builder withUseEpoll(boolean useEpoll)
         {
             this.useEpoll = useEpoll;
+            return this;
+        }
+
+        public Builder withShutdown( Shutdown shutdown )
+        {
+            this.shutdown = shutdown;
             return this;
         }
 
