@@ -29,10 +29,8 @@ class ConnectionMessageEncoderTest extends Specification
     {
         given:
         ConnectionMessageEncoder encoder = ConnectionMessageEncoder.of()
-        when:
-        boolean actual = encoder.acceptOutboundMessage(data)
-        then:
-        actual == expected
+        expect:
+        encoder.acceptOutboundMessage(data) == expected
         where:
         data                       ||    expected
         ConnectionMessage.of()     ||    true
