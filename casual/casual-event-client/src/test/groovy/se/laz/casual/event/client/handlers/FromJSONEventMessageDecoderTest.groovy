@@ -19,7 +19,7 @@ class FromJSONEventMessageDecoderTest extends Specification
 {
     @Shared
     Xid transactionId = XID.NULL_XID
-    def 'normal flow'()
+    def 'decode'()
     {
         given:
         ServiceCallEvent event = createEvent()

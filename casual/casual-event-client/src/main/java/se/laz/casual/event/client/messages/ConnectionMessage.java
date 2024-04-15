@@ -3,9 +3,10 @@ package se.laz.casual.event.client.messages;
 public class ConnectionMessage
 {
     private static final String CONNECTION_MESSAGE = "{\"message\":\"HELLO\"}";
+    private static final ConnectionMessage INSTANCE = new ConnectionMessage();
     public static Object of()
     {
-        return new ConnectionMessage();
+        return INSTANCE;
     }
     public String getConnectionMessage()
     {

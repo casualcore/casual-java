@@ -17,7 +17,6 @@ import se.laz.casual.event.client.handlers.ExceptionHandler;
 import se.laz.casual.event.client.handlers.FromJSONEventMessageDecoder;
 import se.laz.casual.event.client.messages.ConnectionMessage;
 
-import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
