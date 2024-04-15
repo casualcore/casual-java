@@ -15,6 +15,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static se.laz.casual.api.util.time.InstantUtil.toDurationMicro;
+import static se.laz.casual.api.util.time.InstantUtil.toEpochMicro;
+
 public class ServiceCallEvent
 {
     private final String service;
@@ -151,6 +154,18 @@ public class ServiceCallEvent
             return this;
         }
 
+        public Builder withStart( Instant start )
+        {
+            this.started = start;
+            return this;
+        }
+
+        public Builder withEnd( Instant end )
+        {
+            this.ended = end;
+            return this;
+        }
+
         public Builder withPending(long pending)
         {
             this.pending = pending;
@@ -195,25 +210,6 @@ public class ServiceCallEvent
             end = toEpochMicro( ended );
 
             return new ServiceCallEvent(this);
-        }
-
-        private long toEpochMicro( Instant instant )
-        {
-            return toDurationMicro(Instant.EPOCH, instant);
-        }
-
-        private long toDurationMicro( Instant start, Instant end )
-        {
-            // from ChronoUnit.between:
-            // Implementations should perform any queries or calculations using the units available in ChronoUnit
-            // or the fields available in ChronoField.
-            // If the unit is not supported an UnsupportedTemporalTypeException must be thrown.
-            // Implementations must not alter the specified temporal objects.
-            //
-            // On the platform what we currently support, this is not a problem
-            // We also do not know of any platform where this does not work
-            // The same goes for end below
-            return ChronoUnit.MICROS.between(start, end);
         }
     }
 

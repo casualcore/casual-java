@@ -82,6 +82,7 @@ public class Configuration
                 ", domain=" + getDomain() +
                 ", outbound=" + getOutbound() +
                 ", reverseInbound=" + getReverseInbound() +
+                ", eventServer=" + getEventServer() +
                 '}';
     }
 

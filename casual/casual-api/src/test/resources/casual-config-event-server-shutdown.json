@@ -1,0 +1,10 @@
+{
+  "eventServer":{
+    "portNumber": 5987,
+    "useEpoll": true,
+    "shutdown": {
+      "quietPeriod": 100,
+      "timeout": 200
+    }
+  }
+}

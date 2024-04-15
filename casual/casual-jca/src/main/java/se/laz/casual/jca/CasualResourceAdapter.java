@@ -85,9 +85,11 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         configurationService.getConfiguration().getEventServer().ifPresent(config -> {
             log.info("starting event server with config: " + config);
             eventServer = EventServer.of(EventServerConnectionInformation.createBuilder()
-                                                           .withUseEpoll(config.isUseEpoll())
-                                                           .withPort(config.getPortNumber())
-                                                           .build());
+                    .withUseEpoll( config.isUseEpoll() )
+                    .withPort( config.getPortNumber() )
+                    .withShutdownTimeout( config.getShutdown().getTimeout() )
+                    .withShutdownQuietPeriod( config.getShutdown().getQuietPeriod() )
+                    .build() );
             log.info("event server started at port: " + config.getPortNumber());
             RuntimeInformation.setEventServerStarted(true);
         });

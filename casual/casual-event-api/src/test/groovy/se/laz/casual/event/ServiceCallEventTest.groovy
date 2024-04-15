@@ -6,6 +6,7 @@
 
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.util.PrettyPrinter
+import se.laz.casual.api.util.time.InstantUtil
 import se.laz.casual.event.Order
 import se.laz.casual.event.ServiceCallEvent
 import spock.lang.Shared
@@ -14,7 +15,9 @@ import spock.lang.Unroll
 
 import javax.transaction.xa.Xid
 import java.time.Instant
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalField
 
 class ServiceCallEventTest extends Specification
 {
@@ -169,5 +172,31 @@ class ServiceCallEventTest extends Specification
       then:
       instance.getPending(  ) >= 1000
       instance.getStart(  ) < instance.getEnd(  )
+   }
+
+   def "Create event with manually provided start and end times"()
+   {
+      given:
+      ServiceCallEvent.Builder builder = ServiceCallEvent.createBuilder(  )
+              .withService(service1)
+              .withParent(parent1)
+              .withPID(pid1)
+              .withExecution(execution1)
+              .withTransactionId(transactionId1)
+              .withOrder(order1)
+              .withCode( code1 )
+
+      ZonedDateTime now = ZonedDateTime.now()
+      Instant start = now.minusMinutes( 1 ).toInstant()
+      Instant end = now.toInstant()
+
+      when:
+      builder.withStart( start )
+              .withEnd( end )
+      ServiceCallEvent instance = builder.build()
+
+      then:
+      instance.getStart() == InstantUtil.toEpochMicro( start )
+      instance.getEnd() == InstantUtil.toEpochMicro( end )
    }
 }
