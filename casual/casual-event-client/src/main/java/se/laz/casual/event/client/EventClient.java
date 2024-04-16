@@ -38,15 +38,10 @@ public class EventClient
     }
     public static EventClient of(ConnectionInformation connectionInformation, EventObserver eventObserver, ConnectionObserver connectionObserver, boolean enableLogging)
     {
-        return of(connectionInformation, eventObserver, connectionObserver, EventClient::init, enableLogging);
-    }
-    public static EventClient of(ConnectionInformation connectionInformation, EventObserver eventObserver, ConnectionObserver connectionObserver, InitFunction initFunction, boolean enableLogging)
-    {
         Objects.requireNonNull(connectionInformation, "connectionInformation can not be null");
         Objects.requireNonNull(eventObserver, "eventObserver can not be null");
         Objects.requireNonNull(connectionObserver, "connectionObserver can not be null");
-        Objects.requireNonNull(initFunction, "initFunction can not be null");
-        Channel channel = initFunction.init(connectionInformation.getAddress(), eventObserver, enableLogging);
+        Channel channel = init(connectionInformation.getAddress(), eventObserver, enableLogging);
         EventClient client =  new EventClient(channel);
         channel.closeFuture().addListener(f -> handleClose(connectionObserver));
         return client;

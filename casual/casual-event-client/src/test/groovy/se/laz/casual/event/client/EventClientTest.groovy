@@ -32,8 +32,6 @@ class EventClientTest extends Specification
     @Shared
     ConnectionObserver nopConnectionObserver = {}
     @Shared
-    InitFunction nopInitFunction = {}
-    @Shared
     EmbeddedChannel channel
     @Shared
     EventClient instance
@@ -55,15 +53,14 @@ class EventClientTest extends Specification
     def 'failed construction'()
     {
         when:
-        EventClient.of(connectionInformation, eventObserver, connectionObserver, initFunction, enableLogging)
+        EventClient.of(connectionInformation, eventObserver, connectionObserver, enableLogging)
         then:
         thrown(NullPointerException)
         where:
-        connectionInformation     || eventObserver       || connectionObserver       || initFunction    || enableLogging
-        null                      || nopEventObserver    || nopConnectionObserver    || nopInitFunction || true
-        ci                        || null                || nopConnectionObserver    || nopInitFunction || true
-        ci                        || nopEventObserver    || null                     || nopInitFunction || true
-        ci                        || nopEventObserver    || nopConnectionObserver    || null            || true
+        connectionInformation     || eventObserver       || connectionObserver       ||  enableLogging
+        null                      || nopEventObserver    || nopConnectionObserver    ||  true
+        ci                        || null                || nopConnectionObserver    ||  true
+        ci                        || nopEventObserver    || null                     ||  true
     }
 
     def 'event round trip'()
