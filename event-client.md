@@ -5,15 +5,16 @@ The purpose of the event client is to provide an easy and efficient way to consu
 Example usage:
 
 ```java
-EventClientInformation clientInformation = EventClientInformation.createBuilder()
-                                                                 .withChannelClass(EpollSocketChannel.class)
-                                                                 .withEventLoopGroup(new EpollEventLoopGroup())
-                                                                 .withConnectionInformation(new ConnectionInformation("localhost", 7289))
-                                                                 .build();
-EventClient client = EventClient.of(clientInformation, eventObserver, connectionObserver,  enableLogging);
-client.connect();
+EventClient client = EventClient.createBuilder()
+                                .withHost("localhost")
+                                .withPort(7698)
+                                .withEventObserver (eventObserver)
+                                .withConnectionObserver(connectionObserver)
+                                .build();
 
 ```
+
+This will create a client that uses NIO channel class and event loop group, if you want to select something more appropriate for your platform - please feel free to do so.
 
 As soon as the client is connected, any events published by the event server will be available via the eventObserver.
 If the connection goes way, the connectionObserver is notified.
