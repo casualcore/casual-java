@@ -16,13 +16,11 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.json.JsonObjectDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.client.handlers.ConnectionMessageEncoder;
 import se.laz.casual.event.client.handlers.ExceptionHandler;
 import se.laz.casual.event.client.handlers.FromJSONEventMessageDecoder;
 import se.laz.casual.event.client.messages.ConnectionMessage;
 
-import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -83,84 +81,4 @@ public class EventClient
         LOG.finest(() -> "about to connect to: " + address);
         return b.connect(address).syncUninterruptibly().channel();
     }
-
-    public static void main(String[] args)
-    {
-        ConnectionInformation connectionInformation = new ConnectionInformation("10.97.100.236", 7698);
-        WrapperClient client = WrapperClient.of(connectionInformation);
-        client.connect();
-        for(;;);
-    }
-
-    private static class WrapperClient implements EventObserver, ConnectionObserver
-    {
-        private static final Logger LOG = Logger.getLogger(WrapperClient.class.getName());
-        private final ConnectionInformation connectionInformation;
-        private EventClient client;
-
-        private WrapperClient(ConnectionInformation connectionInformation)
-        {
-            this.connectionInformation = connectionInformation;
-        }
-
-        public static WrapperClient of(ConnectionInformation connectionInformation)
-        {
-            return new WrapperClient(connectionInformation);
-        }
-
-        public void connect()
-        {
-            client = EventClient.of(connectionInformation, this, this, true);
-            doConnect();
-        }
-
-        public void close()
-        {
-            client.close();
-        }
-
-        private void doConnect()
-        {
-            System.out.println("Connecting:");
-            client.connect();
-        }
-
-        @Override
-        public void notify(ServiceCallEvent event)
-        {
-            System.out.println(event);
-        }
-
-        @Override
-        public void connectionClosed()
-        {
-            boolean done = false;
-            while(!done)
-            {
-                try
-                {
-                    reconnect();
-                    done = true;
-                }
-                catch(ConnectException e)
-                {}
-
-                try
-                {
-                    Thread.sleep(1000);
-                }
-                catch (InterruptedException e)
-                {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-
-        private void reconnect() throws ConnectException
-        {
-            connect();
-        }
-
-    }
-
 }

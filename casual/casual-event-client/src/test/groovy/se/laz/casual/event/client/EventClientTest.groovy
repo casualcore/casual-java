@@ -6,6 +6,7 @@
 package se.laz.casual.event.client
 
 import io.netty.buffer.Unpooled
+import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.handler.codec.json.JsonObjectDecoder
 import io.netty.util.CharsetUtil
@@ -73,7 +74,24 @@ class EventClientTest extends Specification
         def eventJson = JsonProviderFactory.getJsonProvider().toJson(event)
         byte[] jsonData = eventJson.getBytes(CharsetUtil.UTF_8)
         when:
+        instance.connect()
+        then:
+        channel.outboundMessages().size() == 1
+        when:
         channel.writeOneInbound(Unpooled.wrappedBuffer(jsonData))
+        then:
+        noExceptionThrown()
+    }
+
+    def 'closing'()
+    {
+        given:
+        def channel = Mock(Channel){
+            1 * close()
+        }
+        def instance = new EventClient(channel)
+        when:
+        instance.close()
         then:
         noExceptionThrown()
     }
