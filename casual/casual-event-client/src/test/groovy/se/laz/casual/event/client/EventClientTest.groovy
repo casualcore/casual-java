@@ -8,6 +8,8 @@ package se.laz.casual.event.client
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
+import io.netty.channel.epoll.EpollEventLoopGroup
+import io.netty.channel.epoll.EpollSocketChannel
 import io.netty.handler.codec.json.JsonObjectDecoder
 import io.netty.util.CharsetUtil
 import se.laz.casual.api.external.json.JsonProviderFactory
@@ -27,7 +29,11 @@ import java.time.Instant
 class EventClientTest extends Specification
 {
     @Shared
-    ConnectionInformation ci = new ConnectionInformation("localhost", 12345)
+    EventClientInformation eventClientInformation = EventClientInformation.createBuilder()
+            .withConnectionInformation(new ConnectionInformation("localhost", 12345))
+            .withEventLoopGroup(new EpollEventLoopGroup())
+            .withChannelClass(EpollSocketChannel.class)
+            .build()
     @Shared
     EventObserver nopEventObserver = {}
     @Shared
@@ -60,8 +66,8 @@ class EventClientTest extends Specification
         where:
         connectionInformation     || eventObserver       || connectionObserver       ||  enableLogging
         null                      || nopEventObserver    || nopConnectionObserver    ||  true
-        ci                        || null                || nopConnectionObserver    ||  true
-        ci                        || nopEventObserver    || null                     ||  true
+        eventClientInformation    || null                || nopConnectionObserver    ||  true
+        eventClientInformation    || nopEventObserver    || null                     ||  true
     }
 
     def 'event round trip'()

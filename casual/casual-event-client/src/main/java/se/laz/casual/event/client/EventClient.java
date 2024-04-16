@@ -10,8 +10,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.json.JsonObjectDecoder;
 import io.netty.handler.logging.LogLevel;
@@ -21,7 +19,6 @@ import se.laz.casual.event.client.handlers.ExceptionHandler;
 import se.laz.casual.event.client.handlers.FromJSONEventMessageDecoder;
 import se.laz.casual.event.client.messages.ConnectionMessage;
 
-import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -30,7 +27,7 @@ import java.util.logging.Logger;
  *
  * Usage:
  * <pre>
- * EventClient client = EventClient.of(connectionInformation, eventObserver, connectionObserver, enableLogging);
+ * EventClient client = EventClient.of(clientInformation, eventObserver, connectionObserver, enableLogging);
  * client.connect();
  * </pre>
  * The eventObserver will be notified regarding any ServiceCallEvents,
@@ -45,12 +42,12 @@ public class EventClient
     {
         this.channel = channel;
     }
-    public static EventClient of(ConnectionInformation connectionInformation, EventObserver eventObserver, ConnectionObserver connectionObserver, boolean enableLogging)
+    public static EventClient of(EventClientInformation clientInformation, EventObserver eventObserver, ConnectionObserver connectionObserver, boolean enableLogging)
     {
-        Objects.requireNonNull(connectionInformation, "connectionInformation can not be null");
+        Objects.requireNonNull(clientInformation, "clientInformation can not be null");
         Objects.requireNonNull(eventObserver, "eventObserver can not be null");
         Objects.requireNonNull(connectionObserver, "connectionObserver can not be null");
-        Channel channel = init(connectionInformation.getAddress(), eventObserver, enableLogging);
+        Channel channel = init(clientInformation, eventObserver, enableLogging);
         EventClient client =  new EventClient(channel);
         channel.closeFuture().addListener(f -> handleClose(connectionObserver));
         return client;
@@ -69,10 +66,10 @@ public class EventClient
     {
         channel.close();
     }
-    private static Channel init(final InetSocketAddress address, EventObserver eventObserver, boolean enableLogHandler)
+    private static Channel init(final EventClientInformation clientInformation, EventObserver eventObserver, boolean enableLogHandler)
     {
-        EventLoopGroup workerGroup = new EpollEventLoopGroup();
-        Class<? extends Channel> channelClass = EpollSocketChannel.class;
+        EventLoopGroup workerGroup = clientInformation.getEventLoopGroup();
+        Class<? extends Channel> channelClass = clientInformation.getChannelClass();
         Bootstrap b = new Bootstrap()
                 .group(workerGroup)
                 .channel(channelClass)
@@ -89,7 +86,7 @@ public class EventClient
                         }
                     }
                 });
-        LOG.finest(() -> "about to connect to: " + address);
-        return b.connect(address).syncUninterruptibly().channel();
+        LOG.finest(() -> "about to connect to: " + clientInformation.getConnectionInformation().getAddress());
+        return b.connect(clientInformation.getConnectionInformation().getAddress()).syncUninterruptibly().channel();
     }
 }
