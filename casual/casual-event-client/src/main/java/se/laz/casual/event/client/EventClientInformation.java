@@ -91,6 +91,7 @@ public class EventClientInformation
 
         public EventClientInformation build()
         {
+            Objects.requireNonNull(connectionInformation, "connectionInformation can not be null");
             Objects.requireNonNull(channelClass, "channelClass can not be null");
             Objects.requireNonNull(eventLoopGroup, "eventLoopGroup can not be null");
             return new EventClientInformation(this);
