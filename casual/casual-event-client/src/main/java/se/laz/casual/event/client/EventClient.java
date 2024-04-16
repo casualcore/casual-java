@@ -25,6 +25,17 @@ import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.logging.Logger;
 
+/**
+ * Can be used to consume events from casuals EventServer
+ *
+ * Usage:
+ * <pre>
+ * EventClient client = EventClient.of(connectionInformation, eventObserver, connectionObserver, enableLogging);
+ * client.connect();
+ * </pre>
+ * The eventObserver will be notified regarding any ServiceCallEvents,
+ * the connectionObserver will be notified if the connection is closed.
+ */
 public class EventClient
 {
     private static final Logger LOG = Logger.getLogger(EventClient.class.getName());
