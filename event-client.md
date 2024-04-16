@@ -8,7 +8,7 @@ Example usage:
 EventClient client = EventClient.createBuilder()
                                 .withHost("localhost")
                                 .withPort(7698)
-                                .withEventObserver (eventObserver)
+                                .withEventObserver(eventObserver)
                                 .withConnectionObserver(connectionObserver)
                                 .build();
 
