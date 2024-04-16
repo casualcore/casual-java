@@ -53,6 +53,16 @@ public class EventClient
         return client;
     }
 
+    /**
+     * Convenience method to create a client
+     * Note: if you do not select the channel class and event loop group - NIO will be chosen for you
+     * @return
+     */
+    public static EventClientBuilder.Builder createBuilder()
+    {
+        return EventClientBuilder.createBuilder();
+    }
+
     private static void handleClose(ConnectionObserver connectionObserver)
     {
         connectionObserver.connectionClosed();
