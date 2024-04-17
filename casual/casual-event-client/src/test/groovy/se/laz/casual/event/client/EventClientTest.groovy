@@ -25,6 +25,7 @@ import spock.lang.Specification
 
 import javax.transaction.xa.Xid
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
 class EventClientTest extends Specification
 {
@@ -44,17 +45,20 @@ class EventClientTest extends Specification
     EventClient instance
     @Shared
     Xid transactionId = XID.NULL_XID
+    @Shared
+    CompletableFuture<Boolean> connectFuture
     EventObserver eventObserverUnderTest
 
     def setup()
     {
+        connectFuture = new CompletableFuture<>()
         EventObserver eventObserver = Mock(EventObserver){
             notify(_) >> { ServiceCallEvent event ->
                 getEventObserverUnderTest().notify(event)
             }
         }
-        channel = new EmbeddedChannel(ConnectionMessageEncoder.of(), new JsonObjectDecoder(EventClient.MAX_MESSAGE_BYTE_SIZE), FromJSONEventMessageDecoder.of(eventObserver), ExceptionHandler.of())
-        instance = new EventClient(channel)
+        channel = new EmbeddedChannel(ConnectionMessageEncoder.of(), new JsonObjectDecoder(EventClient.MAX_MESSAGE_BYTE_SIZE), FromJSONEventMessageDecoder.of(eventObserver, connectFuture), ExceptionHandler.of())
+        instance = new EventClient(channel, connectFuture)
     }
 
     def 'failed construction'()
@@ -78,15 +82,18 @@ class EventClientTest extends Specification
             1 * notify(event)
         }
         def eventJson = JsonProviderFactory.getJsonProvider().toJson(event)
+        byte[] connectReplyData = '{}'.getBytes(CharsetUtil.UTF_8)
         byte[] jsonData = eventJson.getBytes(CharsetUtil.UTF_8)
         when:
-        instance.connect()
+        CompletableFuture<Boolean> future = instance.connect()
         then:
         channel.outboundMessages().size() == 1
         when:
+        // connect reply, some json object
+        channel.writeOneInbound(Unpooled.wrappedBuffer(connectReplyData))
         channel.writeOneInbound(Unpooled.wrappedBuffer(jsonData))
         then:
-        noExceptionThrown()
+        future.isDone()
     }
 
     def 'closing'()
@@ -95,11 +102,11 @@ class EventClientTest extends Specification
         def channel = Mock(Channel){
             1 * close()
         }
-        def instance = new EventClient(channel)
+        def instance = new EventClient(channel, connectFuture)
         when:
         instance.close()
         then:
-        noExceptionThrown()
+        !connectFuture.isDone()
     }
 
     EventObserver getEventObserverUnderTest() {

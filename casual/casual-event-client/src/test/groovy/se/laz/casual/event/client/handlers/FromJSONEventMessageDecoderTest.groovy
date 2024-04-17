@@ -19,6 +19,7 @@ import spock.lang.Specification
 
 import javax.transaction.xa.Xid
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
 class FromJSONEventMessageDecoderTest extends Specification
 {
@@ -27,21 +28,28 @@ class FromJSONEventMessageDecoderTest extends Specification
     def 'decode'()
     {
         given:
+        CompletableFuture<Boolean> connectFuture = new CompletableFuture<>()
         ServiceCallEvent event = createEvent()
         EventObserver observer = Mock(EventObserver){
             1 * notify(event)
         }
         ChannelHandlerContext context = Mock(ChannelHandlerContext)
-        ByteBuf buffer = Mock(ByteBuf){
+        ByteBuf connectReplyBuffer = Mock(ByteBuf){
+            1 * toString(CharsetUtil.UTF_8) >> {
+                '{}'
+            }
+        }
+        ByteBuf eventBuffer = Mock(ByteBuf){
             1 * toString(CharsetUtil.UTF_8) >> {
                 JsonProviderFactory.getJsonProvider().toJson(event)
             }
         }
-        FromJSONEventMessageDecoder decoder = FromJSONEventMessageDecoder.of(observer)
+        FromJSONEventMessageDecoder decoder = FromJSONEventMessageDecoder.of(observer, connectFuture)
         when:
-        decoder.channelRead0(context, buffer)
+        decoder.channelRead0(context, connectReplyBuffer)
+        decoder.channelRead0(context, eventBuffer)
         then:
-        noExceptionThrown()
+        connectFuture.isDone()
     }
 
     ServiceCallEvent createEvent()
