@@ -11,6 +11,7 @@ import se.laz.casual.event.server.messages.ConnectReply;
 import se.laz.casual.event.server.messages.ConnectReplyMessage;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -24,9 +25,9 @@ public class ConnectionReplier
     {
         return new ConnectionReplier();
     }
-    public void clientConnected(Channel channel)
+    public CompletableFuture<Void> clientConnected(Channel channel)
     {
         Objects.requireNonNull(channel, "channel can not be null");
-        EXECUTOR_SERVICE.submit(() -> channel.writeAndFlush(REPLY_MSG));
+        return CompletableFuture.runAsync(() -> channel.writeAndFlush(REPLY_MSG), EXECUTOR_SERVICE);
     }
 }

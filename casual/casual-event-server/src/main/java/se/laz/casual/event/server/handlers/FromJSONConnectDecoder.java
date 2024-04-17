@@ -43,9 +43,11 @@ public class FromJSONConnectDecoder extends SimpleChannelInboundHandler<Object>
         ByteBuf content = (ByteBuf)msg;
         String json = content.toString(CharsetUtil.UTF_8);
         ConnectRequestMessage requestMessage = JsonProviderFactory.getJsonProvider().fromJson(json, ConnectRequestMessage.class, ConnectRequestMessageTypeAdapter.of());
+        // we need to be sure that the reply handshake was sent before adding the client
+        // to ensure the correct order of messages for the new client
+        CONNECTION_REPLIER.clientConnected(ctx.channel()).join();
         connectedClients.add(ctx.channel());
         ctx.fireChannelRead(requestMessage);
         log.finest(() -> "EventServer, client logged on: " + requestMessage + " channel: " + ctx.channel());
-        CONNECTION_REPLIER.clientConnected(ctx.channel());
     }
 }
