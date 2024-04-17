@@ -9,6 +9,9 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.group.ChannelGroup
 import se.laz.casual.api.CasualRuntimeException
+import se.laz.casual.api.external.json.JsonProviderFactory
+import se.laz.casual.event.server.messages.ConnectReply
+import se.laz.casual.event.server.messages.ConnectReplyMessage
 import spock.lang.Specification
 
 class ExceptionHandlerTest extends Specification
@@ -27,6 +30,7 @@ class ExceptionHandlerTest extends Specification
       ExceptionHandler exceptionHandler = ExceptionHandler.of(clients)
       when:
       exceptionHandler.exceptionCaught(ctx, new CasualRuntimeException("Ooopsie"))
+      println("${JsonProviderFactory.getJsonProvider().toJson(ConnectReplyMessage.of(ConnectReply.CONNECT_REPLY))}")
       then:
       noExceptionThrown()
    }

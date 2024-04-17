@@ -15,6 +15,7 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.json.JsonObjectDecoder;
 import io.netty.handler.logging.LoggingHandler;
+import se.laz.casual.event.server.handlers.ConnectReplyMessageEncoder;
 import se.laz.casual.event.server.handlers.EventMessageEncoder;
 import se.laz.casual.event.server.handlers.ExceptionHandler;
 import se.laz.casual.event.server.handlers.FromJSONConnectDecoder;
@@ -53,7 +54,7 @@ public class DefaultServerInitialization implements ServerInitialization
                     @Override
                     protected void initChannel(SocketChannel ch)
                     {
-                        ch.pipeline().addLast(new JsonObjectDecoder(MAX_LOGON_PAYLOAD_SIZE), FromJSONConnectDecoder.of(connectedClients), EventMessageEncoder.of(), ExceptionHandler.of(connectedClients));
+                        ch.pipeline().addLast(new JsonObjectDecoder(MAX_LOGON_PAYLOAD_SIZE), FromJSONConnectDecoder.of(connectedClients), ConnectReplyMessageEncoder.of() , EventMessageEncoder.of(), ExceptionHandler.of(connectedClients));
                         if (connectionInformation.isLogHandlerEnabled())
                         {
                             ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler());
