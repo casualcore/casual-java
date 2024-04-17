@@ -19,6 +19,7 @@ import spock.lang.Specification
 
 import javax.transaction.xa.Xid
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
 class FromJSONEventMessageDecoderTest extends Specification
 {
@@ -37,11 +38,12 @@ class FromJSONEventMessageDecoderTest extends Specification
                 JsonProviderFactory.getJsonProvider().toJson(event)
             }
         }
-        FromJSONEventMessageDecoder decoder = FromJSONEventMessageDecoder.of(observer)
+        CompletableFuture<Boolean> eventFuture = new CompletableFuture<>()
+        FromJSONEventMessageDecoder decoder = FromJSONEventMessageDecoder.of(observer, eventFuture)
         when:
         decoder.channelRead0(context, buffer)
         then:
-        noExceptionThrown()
+        eventFuture.isDone()
     }
 
     ServiceCallEvent createEvent()

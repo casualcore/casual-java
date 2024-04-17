@@ -25,6 +25,7 @@ import spock.lang.Specification
 
 import javax.transaction.xa.Xid
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
 class EventClientTest extends Specification
 {
@@ -44,17 +45,20 @@ class EventClientTest extends Specification
     EventClient instance
     @Shared
     Xid transactionId = XID.NULL_XID
+    @Shared
+    CompletableFuture<Boolean> eventFuture
     EventObserver eventObserverUnderTest
 
     def setup()
     {
+        eventFuture = new CompletableFuture<>()
         EventObserver eventObserver = Mock(EventObserver){
             notify(_) >> { ServiceCallEvent event ->
                 getEventObserverUnderTest().notify(event)
             }
         }
-        channel = new EmbeddedChannel(ConnectionMessageEncoder.of(), new JsonObjectDecoder(EventClient.MAX_MESSAGE_BYTE_SIZE), FromJSONEventMessageDecoder.of(eventObserver), ExceptionHandler.of())
-        instance = new EventClient(channel)
+        channel = new EmbeddedChannel(ConnectionMessageEncoder.of(), new JsonObjectDecoder(EventClient.MAX_MESSAGE_BYTE_SIZE), FromJSONEventMessageDecoder.of(eventObserver, eventFuture), ExceptionHandler.of())
+        instance = new EventClient(channel, eventFuture)
     }
 
     def 'failed construction'()
@@ -86,7 +90,7 @@ class EventClientTest extends Specification
         when:
         channel.writeOneInbound(Unpooled.wrappedBuffer(jsonData))
         then:
-        noExceptionThrown()
+        eventFuture.isDone()
     }
 
     def 'closing'()
@@ -95,11 +99,11 @@ class EventClientTest extends Specification
         def channel = Mock(Channel){
             1 * close()
         }
-        def instance = new EventClient(channel)
+        def instance = new EventClient(channel, eventFuture)
         when:
         instance.close()
         then:
-        noExceptionThrown()
+        !eventFuture.isDone()
     }
 
     EventObserver getEventObserverUnderTest() {

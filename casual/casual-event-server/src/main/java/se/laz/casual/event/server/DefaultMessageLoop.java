@@ -5,7 +5,6 @@
  */
 package se.laz.casual.event.server;
 
-import io.netty.channel.Channel;
 import io.netty.channel.group.ChannelGroup;
 import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventStore;
@@ -39,12 +38,9 @@ public class DefaultMessageLoop implements MessageLoop
         while (continueLoop.getAsBoolean())
         {
             ServiceCallEvent event = serviceCallEventStore.take();
-            log.finest(() -> "# of clients: " + connectedClients.size());
-            for (Channel client : connectedClients)
-            {
-                log.finest(() -> "writing: " + event + " to client: " + client);
-                client.writeAndFlush(event);
-            }
+            log.finest(() -> "# of connected clients: " + connectedClients.size());
+            log.finest(() -> "writing: " + event + " to all connected clients");
+            connectedClients.writeAndFlush(event);
         }
     }
 

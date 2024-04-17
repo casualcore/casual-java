@@ -13,20 +13,23 @@ import se.laz.casual.api.external.json.JsonProviderFactory;
 import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.client.EventObserver;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 public class FromJSONEventMessageDecoder extends SimpleChannelInboundHandler<Object>
 {
     private static final Logger LOG = Logger.getLogger(FromJSONEventMessageDecoder.class.getName());
     private final EventObserver observer;
+    private final CompletableFuture<Boolean> eventFuture;
 
-    private FromJSONEventMessageDecoder(EventObserver observer)
+    private FromJSONEventMessageDecoder(EventObserver observer, CompletableFuture<Boolean> eventFuture)
     {
         this.observer = observer;
+        this.eventFuture = eventFuture;
     }
-    public static FromJSONEventMessageDecoder of(EventObserver observer)
+    public static FromJSONEventMessageDecoder of(EventObserver observer, CompletableFuture<Boolean> connectedFuture)
     {
-        return new FromJSONEventMessageDecoder(observer);
+        return new FromJSONEventMessageDecoder(observer, connectedFuture);
     }
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg)
@@ -34,6 +37,8 @@ public class FromJSONEventMessageDecoder extends SimpleChannelInboundHandler<Obj
         ByteBuf content = (ByteBuf)msg;
         String json = content.toString(CharsetUtil.UTF_8);
         ServiceCallEvent event =  JsonProviderFactory.getJsonProvider().fromJson(json, ServiceCallEvent.class);
+        // omnipotent
+        eventFuture.complete(true);
         observer.notify(event);
         LOG.finest(() -> "read msg: " + event + " on channel: " + channelHandlerContext.channel());
     }
