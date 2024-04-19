@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  */
 // We suppress this since the builder code is much cleaner using the private setters of the class
 @SuppressWarnings("squid:S3398")
-public final class CasualDomainDiscoveryRequestMessage implements CasualNetworkTransmittable
+public class CasualDomainDiscoveryRequestMessage implements CasualNetworkTransmittable
 {
     private UUID execution;
     private UUID domainId;
