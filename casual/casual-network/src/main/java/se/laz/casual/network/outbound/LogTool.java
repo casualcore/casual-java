@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -16,6 +16,9 @@ import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMe
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage;
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage;
+import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpdateMessage;
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueReplyMessage;
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueRequestMessage;
 import se.laz.casual.network.protocol.messages.queue.CasualEnqueueReplyMessage;
@@ -100,6 +103,15 @@ public final class LogTool
                 break;
             case CONVERSATION_DISCONNECT:
                 execution = ((Disconnect)message.getMessage()).getExecution();
+                break;
+            case DOMAIN_DISCOVERY_TOPOLOGY_UPDATE:
+                execution = ((DomainDiscoveryTopologyUpdateMessage)message.getMessage()).getExecution();
+                break;
+            case DOMAIN_DISCONNECT_REPLY:
+                execution = ((DomainDisconnectReplyMessage)message.getMessage()).getExecution();
+                break;
+            case DOMAIN_DISCONNECT_REQUEST:
+                execution = ((DomainDisconnectRequestMessage)message.getMessage()).getExecution();
                 break;
             default:
                 return String.format("Unknown message type: %s", message.getType().name());

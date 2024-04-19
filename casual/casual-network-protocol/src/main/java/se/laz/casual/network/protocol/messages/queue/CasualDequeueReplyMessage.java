@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -18,7 +18,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public final class CasualDequeueReplyMessage implements CasualNetworkTransmittable
+public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
 {
     private final UUID execution;
     private final List<DequeueMessage> messages;
