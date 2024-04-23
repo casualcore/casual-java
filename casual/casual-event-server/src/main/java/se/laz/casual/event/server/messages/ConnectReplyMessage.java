@@ -7,23 +7,23 @@ package se.laz.casual.event.server.messages;
 
 import java.util.Objects;
 
-public class ConnectRequestMessage
+public class ConnectReplyMessage
 {
-    private final ConnectRequest message;
-    private ConnectRequestMessage(ConnectRequest message)
+    private final String message;
+    private ConnectReplyMessage(ConnectReply message)
     {
-        this.message = message;
+        this.message = message.getValue();
     }
-    public static ConnectRequestMessage of(ConnectRequest message)
+    public static ConnectReplyMessage of(ConnectReply message)
     {
         Objects.requireNonNull(message, "message can not be null");
-        return new ConnectRequestMessage(message);
+        return new ConnectReplyMessage(message);
     }
 
     @Override
     public String toString()
     {
-        return "ConnectRequestMessage{" +
+        return "ConnectReplyMessage{" +
                 "message=" + message +
                 '}';
     }
@@ -39,7 +39,7 @@ public class ConnectRequestMessage
         {
             return false;
         }
-        ConnectRequestMessage that = (ConnectRequestMessage) o;
+        ConnectReplyMessage that = (ConnectReplyMessage) o;
         return message == that.message;
     }
 
