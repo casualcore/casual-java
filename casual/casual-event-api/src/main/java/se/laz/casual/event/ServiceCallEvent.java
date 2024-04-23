@@ -10,7 +10,6 @@ import se.laz.casual.api.util.PrettyPrinter;
 
 import javax.transaction.xa.Xid;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;

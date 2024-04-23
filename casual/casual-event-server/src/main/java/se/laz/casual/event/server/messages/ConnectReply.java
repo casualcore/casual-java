@@ -3,21 +3,26 @@
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
+
 package se.laz.casual.event.server.messages;
 
 import se.laz.casual.api.CasualTypeException;
 
 import java.util.Arrays;
 
-public enum ConnectRequest
+public enum ConnectReply
 {
-    CONNECT_REQUEST("HELLO");
+    CONNECT_REPLY("WELCOME");
     private final String value;
-    ConnectRequest(String value)
+    ConnectReply(String value)
     {
         this.value = value;
     }
-    static ConnectRequest unmarshall(String in)
+    String getValue()
+    {
+        return value;
+    }
+    static ConnectReply unmarshall(String in)
     {
         return Arrays.stream(values())
                      .filter(v -> v.value.equals(in))
@@ -25,3 +30,4 @@ public enum ConnectRequest
                      .orElseThrow(() -> new CasualTypeException("Unknown type: " + in));
     }
 }
+
