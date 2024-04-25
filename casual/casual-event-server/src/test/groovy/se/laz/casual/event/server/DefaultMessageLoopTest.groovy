@@ -5,7 +5,7 @@
  */
 package se.laz.casual.event.server
 
-import io.netty.channel.Channel
+
 import io.netty.channel.group.ChannelGroup
 import se.laz.casual.event.ServiceCallEvent
 import se.laz.casual.event.ServiceCallEventStore
@@ -33,13 +33,8 @@ class DefaultMessageLoopTest extends Specification
    {
       given:
       ServiceCallEvent event = Mock(ServiceCallEvent)
-      Channel channel = Mock(Channel){
-         1 * writeAndFlush(event)
-      }
-      Set<Channel> channels = new HashSet<>()
-      channels.add(channel)
       ChannelGroup connectedClients = Mock(ChannelGroup) {
-         1 * iterator() >> channels.iterator()
+         1 * writeAndFlush(event)
       }
       ServiceCallEventStore store = Mock(ServiceCallEventStore) {
          1 * take() >> event

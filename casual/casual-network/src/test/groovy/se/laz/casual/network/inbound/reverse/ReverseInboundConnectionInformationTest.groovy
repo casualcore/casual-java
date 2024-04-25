@@ -24,6 +24,7 @@ class ReverseInboundConnectionInformationTest extends Specification {
       String domainName = "testDomain"
       Class<? extends Channel> channelClass = EpollSocketChannel
       boolean useEpoll = true
+      long maxBackoffMillis = 12345
       boolean isLogHandlerEnabled = true
 
       ReverseInboundConnectionInformation connectionInfo
@@ -38,6 +39,7 @@ class ReverseInboundConnectionInformationTest extends Specification {
                  .withDomainId(domainId)
                  .withDomainName(domainName)
                  .withUseEpoll(useEpoll)
+                 .withMaxBackoffMillils(maxBackoffMillis)
                  .build()
       } )
 
@@ -51,6 +53,7 @@ class ReverseInboundConnectionInformationTest extends Specification {
       connectionInfo.getDomainId() == domainId
       connectionInfo.getDomainName() == domainName
       connectionInfo.isUseEpoll() == useEpoll
+      connectionInfo.getMaxBackoffMillis() == maxBackoffMillis
       connectionInfo.getChannelClass() == channelClass
       connectionInfo.isLogHandlerEnabled() == isLogHandlerEnabled
    }
@@ -67,6 +70,7 @@ class ReverseInboundConnectionInformationTest extends Specification {
       String domainName = "testDomain"
       Class<? extends Channel> channelClass = NioSocketChannel
       boolean useEpoll = false
+      long maxBackoffMillis = 12345
       boolean isLogHandlerEnabled = false
 
       ReverseInboundConnectionInformation connectionInfo
@@ -81,6 +85,7 @@ class ReverseInboundConnectionInformationTest extends Specification {
                  .withDomainId(domainId)
                  .withDomainName(domainName)
                  .withUseEpoll(useEpoll)
+                 .withMaxBackoffMillils(maxBackoffMillis)
                  .build()
       } )
 
@@ -94,6 +99,7 @@ class ReverseInboundConnectionInformationTest extends Specification {
       connectionInfo.getDomainId() == domainId
       connectionInfo.getDomainName() == domainName
       connectionInfo.isUseEpoll() == useEpoll
+      connectionInfo.getMaxBackoffMillis() == maxBackoffMillis
       connectionInfo.getChannelClass() == channelClass
       connectionInfo.isLogHandlerEnabled() == isLogHandlerEnabled
    }

@@ -23,7 +23,7 @@ public class ConnectRequestMessage
     @Override
     public String toString()
     {
-        return "LogonRequestMessage{" +
+        return "ConnectRequestMessage{" +
                 "message=" + message +
                 '}';
     }

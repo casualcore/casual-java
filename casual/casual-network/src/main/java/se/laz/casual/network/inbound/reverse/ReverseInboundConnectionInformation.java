@@ -34,6 +34,7 @@ public class ReverseInboundConnectionInformation
     private final String domainName;
     private final Class<? extends Channel> channelClass;
     private boolean useEpoll;
+    private final long maxBackoffMillis;
 
     private ReverseInboundConnectionInformation(Builder builder)
     {
@@ -48,6 +49,7 @@ public class ReverseInboundConnectionInformation
         this.domainName = builder.domainName;
         this.channelClass = builder.channelClass;
         this.useEpoll = builder.useEpoll;
+        this.maxBackoffMillis = builder.maxBackoffMillis;
     }
 
     public InetSocketAddress getAddress()
@@ -110,6 +112,11 @@ public class ReverseInboundConnectionInformation
         return useEpoll;
     }
 
+    public long getMaxBackoffMillis()
+    {
+        return maxBackoffMillis;
+    }
+
     public static final class Builder
     {
         private InetSocketAddress address;
@@ -123,6 +130,7 @@ public class ReverseInboundConnectionInformation
         private Class<? extends Channel> channelClass;
         private boolean logHandlerEnabled;
         private boolean useEpoll;
+        private long maxBackoffMillis;
 
         public Builder withAddress(InetSocketAddress address)
         {
@@ -178,6 +186,12 @@ public class ReverseInboundConnectionInformation
             return this;
         }
 
+        public Builder withMaxBackoffMillils(long maxBackoffMillis)
+        {
+            this.maxBackoffMillis = maxBackoffMillis;
+            return this;
+        }
+
         public ReverseInboundConnectionInformation build()
         {
             Objects.requireNonNull(address, "address can not be null");
@@ -192,6 +206,5 @@ public class ReverseInboundConnectionInformation
             logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME));
             return new ReverseInboundConnectionInformation(this);
         }
-
     }
 }
