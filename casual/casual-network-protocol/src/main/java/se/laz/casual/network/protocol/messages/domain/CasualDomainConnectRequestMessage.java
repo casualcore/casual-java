@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,8 +8,8 @@ package se.laz.casual.network.protocol.messages.domain;
 
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
-import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
+import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.ConnectRequestSizes;
 
 import java.nio.ByteBuffer;
@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public final class CasualDomainConnectRequestMessage implements CasualNetworkTransmittable
+public class CasualDomainConnectRequestMessage implements CasualNetworkTransmittable
 {
     private UUID execution;
     private UUID domainId;

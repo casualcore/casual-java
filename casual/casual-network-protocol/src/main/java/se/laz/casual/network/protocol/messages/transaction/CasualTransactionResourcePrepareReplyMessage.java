@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -15,7 +15,7 @@ import java.util.UUID;
 /**
  * Created by aleph on 2017-04-03.
  */
-public final class CasualTransactionResourcePrepareReplyMessage extends AbstractCasualTransactionReplyMessage
+public class CasualTransactionResourcePrepareReplyMessage extends AbstractCasualTransactionReplyMessage
 {
     private CasualTransactionResourcePrepareReplyMessage(final UUID execution, final Xid xid, int resourceId, final XAReturnCode transactionReturnCode)
     {
