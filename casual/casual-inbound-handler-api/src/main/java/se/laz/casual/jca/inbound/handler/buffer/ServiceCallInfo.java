@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -19,27 +19,39 @@ public class ServiceCallInfo
 {
 
     private Method method;
+    private Method realMethod;
     private Object[] params;
 
-    private ServiceCallInfo(Method method, Object[] params )
+    private ServiceCallInfo(Method method, Method realMethod, Object[] params )
     {
         this.method = method;
         this.params = params;
+        this.realMethod = realMethod;
     }
 
     public static ServiceCallInfo of(Object[] params )
     {
-        return of( null, params );
+        return of( null, null, params );
     }
 
     public static ServiceCallInfo of(Method method, Object[] params)
     {
-        return new ServiceCallInfo( method, params );
+        return of( method, null, params );
+    }
+
+    public static ServiceCallInfo of(Method method, Method realMethod, Object[] params)
+    {
+        return new ServiceCallInfo( method, realMethod, params );
     }
 
     public Optional<Method> getMethod()
     {
         return Optional.ofNullable( method );
+    }
+
+    public Optional<Method> getRealMethod()
+    {
+        return Optional.ofNullable( realMethod );
     }
 
     public Object[] getParams()
@@ -60,13 +72,14 @@ public class ServiceCallInfo
         }
         ServiceCallInfo that = (ServiceCallInfo) o;
         return Objects.equals(method, that.method) &&
+                Objects.equals(realMethod, that.realMethod) &&
                 Arrays.equals(params, that.params);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(method, params);
+        return Objects.hash(method, realMethod, params);
     }
 
     @Override
@@ -74,6 +87,7 @@ public class ServiceCallInfo
     {
         return "ServiceCallInfo{" +
                 "method=" + method +
+                "realMethod=" + realMethod +
                 ", params=" + Arrays.toString(params) +
                 '}';
     }
