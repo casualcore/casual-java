@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,13 +11,16 @@ import jakarta.resource.spi.work.Work;
 import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
 import se.laz.casual.api.flags.ErrorState;
+import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEvent;
-import se.laz.casual.event.ServiceCallEventHandlerFactory;
 import se.laz.casual.event.ServiceCallEventPublisher;
+import se.laz.casual.event.ServiceCallEventStoreFactory;
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
+
+import java.util.UUID;
 
 /**
  * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
@@ -99,7 +102,8 @@ public class ServiceCallWorkListener implements WorkListener
     {
         if(eventPublisher == null)
         {
-            eventPublisher = ServiceCallEventPublisher.of(ServiceCallEventHandlerFactory.getHandler());
+            UUID domainId = ConfigurationService.getInstance().getConfiguration().getDomain().getId();
+            eventPublisher = ServiceCallEventPublisher.of(ServiceCallEventStoreFactory.getStore(domainId));
         }
         return eventPublisher;
     }

@@ -126,7 +126,7 @@ public class EventServerConnectionInformation
     public static final class Builder
     {
         private int port;
-        private boolean logHandlerEnabled;
+        private Boolean logHandlerEnabled;
         private boolean useEpoll;
         private long quietPeriod;
         private long timeout;
@@ -170,9 +170,18 @@ public class EventServerConnectionInformation
             return this;
         }
 
+        public Builder withLogHandlerEnabled( Boolean enabled )
+        {
+            this.logHandlerEnabled = enabled;
+            return this;
+        }
+
         public EventServerConnectionInformation build()
         {
-            logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME));
+            if( logHandlerEnabled == null )
+            {
+                logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME));
+            }
             serverInitialization = null == serverInitialization ? DefaultServerInitialization.of() : serverInitialization;
             return new EventServerConnectionInformation(this);
         }

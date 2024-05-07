@@ -8,8 +8,8 @@ package se.laz.casual.event.client
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
-import io.netty.channel.epoll.EpollEventLoopGroup
-import io.netty.channel.epoll.EpollSocketChannel
+import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.json.JsonObjectDecoder
 import io.netty.util.CharsetUtil
 import se.laz.casual.api.external.json.JsonProviderFactory
@@ -32,8 +32,8 @@ class EventClientTest extends Specification
     @Shared
     EventClientInformation eventClientInformation = EventClientInformation.createBuilder()
             .withConnectionInformation(new ConnectionInformation("localhost", 12345))
-            .withEventLoopGroup(new EpollEventLoopGroup())
-            .withChannelClass(EpollSocketChannel.class)
+            .withEventLoopGroup(new NioEventLoopGroup())
+            .withChannelClass(NioSocketChannel.class)
             .build()
     @Shared
     EventObserver nopEventObserver = {}

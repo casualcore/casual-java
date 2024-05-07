@@ -7,22 +7,15 @@
 package se.laz.casual.test
 
 
-import spock.lang.Shared
 import spock.lang.Specification
-
-import java.nio.ByteBuffer
-import java.nio.channels.SocketChannel
 
 class CasualEmbeddedServerTest extends Specification
 {
-    @Shared
-    int eventServerPort = 7772
-
     CasualEmbeddedServer instance
 
     def setup()
     {
-        instance = CasualEmbeddedServer.newBuilder().eventServerPort( eventServerPort ).build()
+        instance = CasualEmbeddedServer.newBuilder().build()
     }
 
     def cleanup()
@@ -36,7 +29,10 @@ class CasualEmbeddedServerTest extends Specification
     def "Create then get"()
     {
         expect:
-        instance.getEventServerPort() == eventServerPort
+        !instance.isRunning()
+        !instance.isEventServerEnabled()
+        !instance.isEventServerRunning()
+        instance.getEventServerPort().isEmpty()
     }
 
     def "Start and then shutdown."()
@@ -90,19 +86,19 @@ class CasualEmbeddedServerTest extends Specification
         instance.isRunning()
     }
 
-    def "Start and connect to event server, disconnect, shutdown"()
+    def "Start with event server enabled."()
     {
         given:
-        instance.start()
-        InetSocketAddress address = new InetSocketAddress( eventServerPort )
+        CasualEmbeddedServer instance2 = CasualEmbeddedServer.newBuilder( instance )
+                .eventServerEnabled( true )
+                .build()
 
         when:
-        SocketChannel socketChannel = SocketChannel.open( address )
-        byte[] payload = '{"message":"HELLO"}' as byte[]
-        ByteBuffer buffer = ByteBuffer.wrap( payload )
-        socketChannel.write( buffer )
+        instance2.start()
 
         then:
-        noExceptionThrown()
+        instance2.isRunning()
+        instance2.isEventServerRunning()
+        instance2.getEventServerPort().isPresent()
     }
 }

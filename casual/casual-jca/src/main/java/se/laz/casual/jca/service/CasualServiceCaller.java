@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -22,8 +22,8 @@ import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.Domain;
 import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEvent;
-import se.laz.casual.event.ServiceCallEventHandlerFactory;
 import se.laz.casual.event.ServiceCallEventPublisher;
+import se.laz.casual.event.ServiceCallEventStoreFactory;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
@@ -35,13 +35,8 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestM
 
 import javax.transaction.xa.Xid;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
@@ -242,7 +237,8 @@ public class CasualServiceCaller implements CasualServiceApi
     {
         if(eventPublisher == null)
         {
-            eventPublisher = ServiceCallEventPublisher.of(ServiceCallEventHandlerFactory.getHandler());
+            UUID domainId = ConfigurationService.getInstance().getConfiguration().getDomain().getId();
+            eventPublisher = ServiceCallEventPublisher.of(ServiceCallEventStoreFactory.getStore(domainId));
         }
         return eventPublisher;
     }

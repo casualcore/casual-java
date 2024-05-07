@@ -6,8 +6,9 @@
 
 package se.laz.casual.event.client
 
-import io.netty.channel.epoll.EpollEventLoopGroup
-import io.netty.channel.epoll.EpollSocketChannel
+
+import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.nio.NioSocketChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -16,9 +17,9 @@ class EventClientInformationTest extends Specification
     @Shared
     ConnectionInformation actualConnectionInformation = new ConnectionInformation("localhost", 3789)
     @Shared
-    def actualChannelClass = EpollSocketChannel.class
+    def actualChannelClass = NioSocketChannel.class
     @Shared
-    def actualEventLoop = new EpollEventLoopGroup()
+    def actualEventLoop = new NioEventLoopGroup()
 
     def 'failed construction'()
     {
