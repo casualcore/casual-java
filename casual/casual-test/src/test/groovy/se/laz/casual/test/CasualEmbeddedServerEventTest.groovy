@@ -100,10 +100,10 @@ class CasualEmbeddedServerEventTest extends Specification
 
     def "Create 2 parallel embedded server instance."()
     {
-        when:
-        CasualEmbeddedServer instance2 = CasualEmbeddedServer.newBuilder( ).eventServerEnabled( true ).eventServerPort( 7774 ).build()
+        given:
+        CasualEmbeddedServer instance2 = CasualEmbeddedServer.newBuilder( ).eventServerEnabled( true ).build()
         instance2.start()
-        CasualEmbeddedServer instance3 = CasualEmbeddedServer.newBuilder( ).eventServerEnabled( true ).eventServerPort( 7773 ).build()
+        CasualEmbeddedServer instance3 = CasualEmbeddedServer.newBuilder( ).eventServerEnabled( true ).build()
         instance3.start()
 
         CountDownLatch latch2 = new CountDownLatch( 2 )
@@ -122,6 +122,7 @@ class CasualEmbeddedServerEventTest extends Specification
         future2.get()
         future3.get()
 
+        when:
         instance2.publishEvent( event )
         instance3.publishEvent( event )
 
@@ -135,6 +136,36 @@ class CasualEmbeddedServerEventTest extends Specification
         client3.close()
         instance3.shutdown()
         instance2.shutdown()
+    }
 
+    def "Single server, multiple clients, all receive all published events."()
+    {
+        given:
+        CountDownLatch latch1 = new CountDownLatch( 2 )
+        CountDownLatch latch2 = new CountDownLatch( 2 )
+
+        EventClient client2 = EventClientBuilder.createBuilder().withHost( "127.0.0.1").withPort( instance.getEventServerPort().get() )
+                .withEventObserver( { it -> System.out.println( "Received event 1: "+ it ); latch1.countDown() } )
+                .withConnectionObserver( { System.out.println( "Connection closed 1." )} )
+                .build()
+
+        EventClient client3 = EventClientBuilder.createBuilder().withHost( "127.0.0.1").withPort( instance.getEventServerPort().get() )
+                .withEventObserver( { it -> System.out.println( "Received event 2: "+ it ); latch2.countDown() } )
+                .withConnectionObserver( { System.out.println( "Connection closed 2." )} )
+                .build()
+
+        client2.connect().get()
+        client3.connect().get()
+
+        when:
+        instance.publishEvent( event )
+        instance.publishEvent( event )
+
+        latch1.await( 1, TimeUnit.SECONDS )
+        latch2.await( 1, TimeUnit.SECONDS )
+
+        then:
+        latch1.getCount() == 0
+        latch2.getCount() == 0
     }
 }
