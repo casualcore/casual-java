@@ -50,7 +50,7 @@ public final class NetworkPortFactory
 
     private static int createTestSocket( int port )
     {
-        try(ServerSocket socket = new ServerSocket( port ) )
+        try( ServerSocket socket = new ServerSocket( port ) )
         {
             return socket.getLocalPort();
         }

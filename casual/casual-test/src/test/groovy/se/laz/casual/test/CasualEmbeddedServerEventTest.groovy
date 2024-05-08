@@ -168,4 +168,13 @@ class CasualEmbeddedServerEventTest extends Specification
         latch1.getCount() == 0
         latch2.getCount() == 0
     }
+
+    def "Publish event null, throws NullPointerException."()
+    {
+        when:
+        instance.publishEvent( null)
+
+        then:
+        thrown NullPointerException
+    }
 }

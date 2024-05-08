@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A light-weight instance of a casual server, initially focused on integration testing.
- *
+ * <p>
  * NB - Currently provides just a casual event server interface.
  */
 public class CasualEmbeddedServer
@@ -34,9 +34,19 @@ public class CasualEmbeddedServer
 
     private CasualEmbeddedServer( Builder builder )
     {
-        this.domainId = UUID.randomUUID();
+        this.domainId = builder.domainId;
         this.eventServerPort = builder.eventServerPort;
         this.eventServerEnabled = builder.eventServerEnabled;
+    }
+
+    /**
+     * The unique domain id for this instance.
+     *
+     * @return unique domain id.
+     */
+    public UUID getDomainId()
+    {
+        return domainId;
     }
 
     /**
@@ -81,7 +91,7 @@ public class CasualEmbeddedServer
 
     /**
      * Start the casual embedded server.
-     *
+     * <p>
      * NB - can only be called when the server is not running.
      */
     public void start()
@@ -112,7 +122,7 @@ public class CasualEmbeddedServer
 
     /**
      * Stop the currently running casual embedded server.
-     *
+     * <p>
      * NB - Can be called multiple times, though only has effect when server is currently running.
      */
     public void shutdown()
@@ -133,49 +143,58 @@ public class CasualEmbeddedServer
 
     /**
      * Simulate a service call event being published.
-     *
+     * <p>
      * Can be used to test integration with event server.
      *
      * @param serviceCallEvent to be published.
      */
-    public void publishEvent(ServiceCallEvent serviceCallEvent)
+    public void publishEvent( ServiceCallEvent serviceCallEvent )
     {
-        ServiceCallEventStore store = ServiceCallEventStoreFactory.getStore(this.domainId);
-        store.put(serviceCallEvent);
+        Objects.requireNonNull( serviceCallEvent, "ServiceCallEvent is null." );
+        ServiceCallEventStore store = ServiceCallEventStoreFactory.getStore( this.domainId );
+        store.put( serviceCallEvent );
     }
 
     @Override
-    public boolean equals(Object o)
+    public boolean equals( Object o )
     {
-        if (this == o) {
+        if( this == o )
+        {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if( o == null || getClass() != o.getClass() )
+        {
             return false;
         }
         CasualEmbeddedServer that = (CasualEmbeddedServer) o;
-        return eventServerPort == that.eventServerPort && eventServerEnabled == that.eventServerEnabled && Objects.equals(running, that.running);
+        return eventServerEnabled == that.eventServerEnabled && Objects.equals( domainId, that.domainId ) && Objects.equals( eventServerPort, that.eventServerPort );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(eventServerPort, eventServerEnabled, running);
+        return Objects.hash( domainId, eventServerPort, eventServerEnabled );
     }
 
     @Override
     public String toString()
     {
         return "CasualEmbeddedServer{" +
-                "eventServerPort=" + eventServerPort +
+                "domainId=" + domainId +
+                ", eventServerPort=" + eventServerPort +
                 ", eventServerEnabled=" + eventServerEnabled +
                 ", running=" + running +
+                ", eventServerRunning=" + eventServerRunning +
+                ", eventServer=" + eventServer +
                 '}';
     }
 
-    public static Builder newBuilder(CasualEmbeddedServer src )
+    public static Builder newBuilder( CasualEmbeddedServer src )
     {
-        return new Builder().eventServerPort( src.eventServerPort );
+        return new Builder()
+                .domainId( src.domainId )
+                .eventServerEnabled( src.eventServerEnabled )
+                .eventServerPort( src.eventServerPort );
     }
 
     public static Builder newBuilder()
@@ -188,10 +207,17 @@ public class CasualEmbeddedServer
         private boolean eventServerEnabled = false;
         private Integer eventServerPort;
 
+        private UUID domainId = UUID.randomUUID();
+
         public Builder()
         {
         }
 
+        public Builder domainId( UUID domainId )
+        {
+            this.domainId = domainId;
+            return this;
+        }
 
         public Builder eventServerPort( Integer eventServerPort )
         {
