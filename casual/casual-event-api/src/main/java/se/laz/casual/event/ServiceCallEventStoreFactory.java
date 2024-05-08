@@ -9,13 +9,14 @@ import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.spi.Prioritise;
 import se.laz.casual.spi.Priority;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ServiceLoader;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class ServiceCallEventHandlerFactory
+public class ServiceCallEventStoreFactory
 {
-    private ServiceCallEventHandlerFactory()
+    private static final Map<UUID, ServiceCallEventStore> STORES = new ConcurrentHashMap<>();
+
+    private ServiceCallEventStoreFactory()
     {}
 
     /**
@@ -23,16 +24,19 @@ public class ServiceCallEventHandlerFactory
      *
      * If there is no registered handler a {@link CasualRuntimeException} is thrown.
      *
+     * The store is cached based on the provided domainId.
+     *
+     * @param domainId unique id of the domain to which the ServiceCallEventStore belongs.
      * @return the appropriate handler.
      */
-    public static ServiceCallEventStore getHandler()
+    public static ServiceCallEventStore getStore(UUID domainId)
     {
-        return getHandlers().stream()
+        return STORES.computeIfAbsent( domainId, id -> getStores().stream()
                             .findFirst()
-                            .orElseThrow(() -> new NoServiceCallEventHandlerFoundException("No ServiceCallEventHandler found"));
+                            .orElseThrow(() -> new NoServiceCallEventHandlerFoundException("No ServiceCallEventHandler found")) );
     }
 
-    private static List<ServiceCallEventStore> getHandlers()
+    private static List<ServiceCallEventStore> getStores()
     {
         List<ServiceCallEventStore> handlers = new ArrayList<>();
         for( ServiceCallEventStore h: ServiceLoader.load( ServiceCallEventStore.class ) )

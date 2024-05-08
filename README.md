@@ -48,3 +48,5 @@ See [casual caller documentation](https://github.com/casualcore/casual-caller) f
 [Event server](event-server.md)
 
 [Event client](event-client.md)
+
+[Casual Test](casual-test.md)

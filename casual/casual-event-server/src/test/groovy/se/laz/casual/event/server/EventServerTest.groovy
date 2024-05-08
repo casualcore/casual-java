@@ -12,6 +12,8 @@ import java.nio.channels.SocketChannel
 
 class EventServerTest extends Specification
 {
+   UUID domainId = UUID.randomUUID()
+
    def 'connect'()
    {
       given:
@@ -20,7 +22,7 @@ class EventServerTest extends Specification
               .withServerInitialization (serverInitialization)
               .withPort(0)
               .build()
-      EventServer server = EventServer.of(connectionInformation)
+      EventServer server = EventServer.of(connectionInformation, domainId)
       InetSocketAddress address = (InetSocketAddress) server.channel.localAddress()
       when:
       connect(address)

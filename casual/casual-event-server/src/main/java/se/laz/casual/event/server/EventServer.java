@@ -9,10 +9,11 @@ import io.netty.channel.Channel;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
-import se.laz.casual.event.ServiceCallEventHandlerFactory;
 import se.laz.casual.event.ServiceCallEventStore;
+import se.laz.casual.event.ServiceCallEventStoreFactory;
 
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -33,17 +34,19 @@ public class EventServer
         this.shutdownTimeout = timeout;
     }
 
-    public static EventServer of(EventServerConnectionInformation connectionInformation)
+    public static EventServer of(EventServerConnectionInformation connectionInformation, UUID domainId )
     {
         Objects.requireNonNull(connectionInformation, "connectionInformation can not be null");
         ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
         Channel ch =  connectionInformation.getServerInitialization().init(connectionInformation, connectedClients);
-        final ServiceCallEventStore serviceCallEventStore = ServiceCallEventHandlerFactory.getHandler();
+        final ServiceCallEventStore serviceCallEventStore = ServiceCallEventStoreFactory.getStore(domainId);
         MessageLoop messageLoop = DefaultMessageLoop.of(connectedClients, serviceCallEventStore);
         EventServer eventServer = new EventServer(ch, connectionInformation.getShutdownQuietPeriod(), connectionInformation.getShutdownTimeout() );
         eventServer.setLoopConditionAndDispatch(Executors.newSingleThreadExecutor(), messageLoop);
         return eventServer;
     }
+
+
 
     public void setLoopConditionAndDispatch(ExecutorService executorService, MessageLoop messageLoop)
     {

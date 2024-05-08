@@ -1,0 +1,29 @@
+//-*- coding: utf-8 -*-
+plugins {
+    id 'java-library'
+    id 'jacoco'
+    id 'groovy'
+}
+defaultTasks 'build'
+
+dependencies {
+    api project(':casual:casual-event-api')
+    api project(':casual:casual-event-server')
+    api libs.gson
+    api libs.netty
+    compileOnly libs.javaee_api
+
+    testImplementation libs.javaee_api
+
+
+    testImplementation project(':casual:casual-api')
+    testImplementation project(':casual:casual-event-api')
+    testImplementation project(':casual:casual-event-client')
+    // for spock
+    testImplementation platform(libs.groovy_bom)
+    testImplementation libs.groovy
+    testImplementation platform(libs.spock_bom)
+    testImplementation libs.spock_core
+    testImplementation libs.byte_buddy
+    testImplementation libs.objenesis
+}

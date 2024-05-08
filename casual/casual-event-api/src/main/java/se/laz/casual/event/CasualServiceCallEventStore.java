@@ -15,7 +15,7 @@ import java.util.concurrent.LinkedBlockingDeque;
  */
 public class CasualServiceCallEventStore implements ServiceCallEventStore
 {
-    private static final BlockingDeque<ServiceCallEvent> EVENTS = new LinkedBlockingDeque<>();
+    private final BlockingDeque<ServiceCallEvent> EVENTS = new LinkedBlockingDeque<>();
 
     @Override
     public void put(ServiceCallEvent event)

@@ -1,10 +1,24 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 package se.laz.casual.jca;
 
+import jakarta.resource.ResourceException;
+import jakarta.resource.spi.ActivationSpec;
+import jakarta.resource.spi.BootstrapContext;
+import jakarta.resource.spi.ConfigProperty;
+import jakarta.resource.spi.Connector;
+import jakarta.resource.spi.ResourceAdapter;
+import jakarta.resource.spi.ResourceAdapterInternalException;
+import jakarta.resource.spi.TransactionSupport;
+import jakarta.resource.spi.XATerminator;
+import jakarta.resource.spi.endpoint.MessageEndpointFactory;
+import jakarta.resource.spi.work.Work;
+import jakarta.resource.spi.work.WorkException;
+import jakarta.resource.spi.work.WorkListener;
+import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.ReverseInbound;
 import se.laz.casual.event.server.EventServer;
@@ -22,20 +36,6 @@ import se.laz.casual.network.inbound.reverse.ReverseInboundConnectionInformation
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
-import jakarta.resource.ResourceException;
-import jakarta.resource.spi.ActivationSpec;
-import jakarta.resource.spi.BootstrapContext;
-import jakarta.resource.spi.ConfigProperty;
-import jakarta.resource.spi.Connector;
-import jakarta.resource.spi.ResourceAdapter;
-import jakarta.resource.spi.ResourceAdapterInternalException;
-import jakarta.resource.spi.TransactionSupport;
-import jakarta.resource.spi.XATerminator;
-import jakarta.resource.spi.endpoint.MessageEndpointFactory;
-import jakarta.resource.spi.work.Work;
-import jakarta.resource.spi.work.WorkException;
-import jakarta.resource.spi.work.WorkListener;
-import jakarta.resource.spi.work.WorkManager;
 import javax.transaction.xa.XAResource;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                     .withPort( config.getPortNumber() )
                     .withShutdownTimeout( config.getShutdown().getTimeout() )
                     .withShutdownQuietPeriod( config.getShutdown().getQuietPeriod() )
-                    .build() );
+                    .build(), configurationService.getConfiguration().getDomain().getId() );
             log.info("event server started at port: " + config.getPortNumber());
             RuntimeInformation.setEventServerStarted(true);
         });

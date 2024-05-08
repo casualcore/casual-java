@@ -36,6 +36,7 @@ class EventServerConnectionInformationTest extends Specification
         instance.isUseEpoll(  ) == useEpoll
         instance.getShutdownTimeout( ) == timeout
         instance.getShutdownQuietPeriod( ) == quiet
+        !instance.isLogHandlerEnabled()
     }
 
     def "Equals and hashcode"()
@@ -85,5 +86,16 @@ class EventServerConnectionInformationTest extends Specification
         epoll || expected
         true  || EpollServerSocketChannel.class
         false || NioServerSocketChannel.class
+    }
+
+    def "Set use log handler without env."()
+    {
+        when:
+        EventServerConnectionInformation info = EventServerConnectionInformation.createBuilder( instance )
+            .withLogHandlerEnabled( true )
+            .build()
+
+        then:
+        info.isLogHandlerEnabled()
     }
 }
