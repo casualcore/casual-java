@@ -21,6 +21,7 @@ import se.laz.casual.event.client.messages.ConnectionMessage;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 /**
@@ -40,6 +41,7 @@ public class EventClient
     private static final int MAX_MESSAGE_BYTE_SIZE = 4096;
     private final Channel channel;
     private final CompletableFuture<Boolean> connectFuture;
+    private final AtomicBoolean connected = new AtomicBoolean(true);
     private EventClient(Channel channel, CompletableFuture<Boolean> connectFuture)
     {
         this.channel = channel;
@@ -53,7 +55,7 @@ public class EventClient
         CompletableFuture<Boolean> connectFuture = new CompletableFuture<>();
         Channel channel = init(clientInformation, eventObserver, connectFuture, enableLogging);
         EventClient client =  new EventClient(channel, connectFuture);
-        channel.closeFuture().addListener(f -> handleClose(connectionObserver));
+        channel.closeFuture().addListener(f -> handleClose(client, connectionObserver));
         return client;
     }
 
@@ -67,9 +69,12 @@ public class EventClient
         return EventClientBuilder.createBuilder();
     }
 
-    private static void handleClose(ConnectionObserver connectionObserver)
+    private static void handleClose(EventClient client, ConnectionObserver connectionObserver)
     {
-        connectionObserver.connectionClosed();
+        if(client.connected.get())
+        {
+            connectionObserver.connectionClosed();
+        }
     }
 
     /**
@@ -82,6 +87,7 @@ public class EventClient
     }
     public void close()
     {
+        connected.set(false);
         channel.close();
     }
     private static Channel init(final EventClientInformation clientInformation, EventObserver eventObserver, CompletableFuture<Boolean> connectFuture, boolean enableLogHandler)
