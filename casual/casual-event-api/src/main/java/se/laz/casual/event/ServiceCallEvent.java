@@ -11,7 +11,6 @@ import se.laz.casual.api.util.PrettyPrinter;
 import javax.transaction.xa.Xid;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 import static se.laz.casual.api.util.time.InstantUtil.toDurationMicro;
@@ -50,9 +49,9 @@ public class ServiceCallEvent
         return service;
     }
 
-    public Optional<String> getParent()
+    public String getParent()
     {
-        return Optional.of(parent);
+        return parent;
     }
 
     public long getPid()

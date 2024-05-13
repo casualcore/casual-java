@@ -4,6 +4,7 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
+
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.util.PrettyPrinter
 import se.laz.casual.api.util.time.InstantUtil
@@ -17,7 +18,6 @@ import javax.transaction.xa.Xid
 import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalField
 
 class ServiceCallEventTest extends Specification
 {
@@ -67,7 +67,7 @@ class ServiceCallEventTest extends Specification
 
       then:
       instance.getService() == service1
-      instance.getParent().get() == parent1
+      instance.getParent() == parent1
       instance.getPid() == pid1
       instance.getExecution() == PrettyPrinter.casualStringify(execution1)
       instance.getTransactionId() == PrettyPrinter.casualStringify(transactionId1)
