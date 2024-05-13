@@ -6,6 +6,7 @@
 package se.laz.casual.event.server;
 
 import io.netty.channel.Channel;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
@@ -25,23 +26,29 @@ public class EventServer
     private final Channel channel;
     private final long shutdownQuietPeriod;
     private final long shutdownTimeout;
+    private final EventLoopGroup bossGroup;
+    private final EventLoopGroup workerGroup;
 
-    private EventServer(Channel channel, long quietPeriod, long timeout )
+    private EventServer(Channel channel, long quietPeriod, long timeout, EventLoopGroup bossGroup, EventLoopGroup workerGroup)
     {
         Objects.requireNonNull(channel, "channel can not be null");
         this.channel = channel;
         this.shutdownQuietPeriod = quietPeriod;
         this.shutdownTimeout = timeout;
+        this.bossGroup = bossGroup;
+        this.workerGroup = workerGroup;
     }
 
     public static EventServer of(EventServerConnectionInformation connectionInformation, UUID domainId )
     {
         Objects.requireNonNull(connectionInformation, "connectionInformation can not be null");
         ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-        Channel ch =  connectionInformation.getServerInitialization().init(connectionInformation, connectedClients);
+        EventLoopGroup bossGroup = connectionInformation.createEventLoopGroup();
+        EventLoopGroup workerGroup = connectionInformation.createEventLoopGroup();
+        Channel ch =  connectionInformation.getServerInitialization().init(connectionInformation, connectedClients, bossGroup, workerGroup);
         final ServiceCallEventStore serviceCallEventStore = ServiceCallEventStoreFactory.getStore(domainId);
         MessageLoop messageLoop = DefaultMessageLoop.of(connectedClients, serviceCallEventStore);
-        EventServer eventServer = new EventServer(ch, connectionInformation.getShutdownQuietPeriod(), connectionInformation.getShutdownTimeout() );
+        EventServer eventServer = new EventServer(ch, connectionInformation.getShutdownQuietPeriod(), connectionInformation.getShutdownTimeout(), bossGroup, workerGroup);
         eventServer.setLoopConditionAndDispatch(Executors.newSingleThreadExecutor(), messageLoop);
         return eventServer;
     }
@@ -68,8 +75,8 @@ public class EventServer
     public void close()
     {
         log.info(() -> "closing event server");
-        channel.close().syncUninterruptibly();
-        channel.eventLoop().shutdownGracefully( shutdownQuietPeriod, shutdownTimeout, TimeUnit.MILLISECONDS ).syncUninterruptibly();
+        bossGroup.shutdownGracefully( shutdownQuietPeriod, shutdownTimeout, TimeUnit.MILLISECONDS ).syncUninterruptibly();
+        workerGroup.shutdownGracefully( shutdownQuietPeriod, shutdownTimeout, TimeUnit.MILLISECONDS ).syncUninterruptibly();
         log.info(() -> "event server closed");
     }
 

@@ -39,12 +39,10 @@ public class DefaultServerInitialization implements ServerInitialization
     }
 
     @Override
-    public Channel init(EventServerConnectionInformation connectionInformation, ChannelGroup connectedClients)
+    public Channel init(EventServerConnectionInformation connectionInformation, ChannelGroup connectedClients, EventLoopGroup bossGroup, EventLoopGroup workerGroup)
     {
         Objects.requireNonNull(connectionInformation, "connectionInformation can not be null");
         Objects.requireNonNull(connectedClients, "connectedClients can not be null");
-        EventLoopGroup bossGroup = connectionInformation.createEventLoopGroup();
-        EventLoopGroup workerGroup = connectionInformation.createEventLoopGroup();
         Class<? extends ServerChannel> channelClass = connectionInformation.getChannelClass();
         ServerBootstrap b = new ServerBootstrap()
                 .group(bossGroup, workerGroup)
