@@ -138,6 +138,45 @@ class CasualEmbeddedServerEventTest extends Specification
         instance2.shutdown()
     }
 
+    def "Create 1 server instance, check disconnect on client occurs."()
+    {
+        given:
+        CasualEmbeddedServer instance2 = CasualEmbeddedServer.newBuilder( ).eventServerEnabled( true )
+                .eventServerPort( 7775 ).build()
+        instance2.start()
+
+        CountDownLatch latch2 = new CountDownLatch( 1 )
+        CountDownLatch disLatch2 = new CountDownLatch( 1 )
+        EventClient client2 = EventClientBuilder.createBuilder().withHost( "127.0.0.1").withPort( instance2.getEventServerPort().get() )
+                .withEventObserver( { it -> System.out.println( "Received event 2: "+ it ); latch2.countDown() } )
+                .withConnectionObserver( { System.out.println( "Connection closed 2." ); disLatch2.countDown(  ) } )
+                .withEnableLogging( true )
+                .build()
+
+        CompletableFuture future2 = client2.connect()
+        future2.get()
+
+        when:
+        instance2.publishEvent( event )
+        instance2.shutdown(  )
+
+        latch2.await( 1, TimeUnit.SECONDS )
+
+        then:
+        latch2.getCount() == 0
+
+        when:
+        disLatch2.await( 1, TimeUnit.SECONDS)
+
+        then:
+        disLatch2.getCount(  ) == 0
+
+        cleanup:
+        client2.close()
+        instance2.shutdown()
+    }
+
+
     def "Single server, multiple clients, all receive all published events."()
     {
         given:
