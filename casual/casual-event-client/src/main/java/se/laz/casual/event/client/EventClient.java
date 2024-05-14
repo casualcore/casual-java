@@ -55,7 +55,7 @@ public class EventClient
         CompletableFuture<Boolean> connectFuture = new CompletableFuture<>();
         Channel channel = init(clientInformation, eventObserver, connectFuture, enableLogging);
         EventClient client =  new EventClient(channel, connectFuture);
-        channel.closeFuture().addListener(f -> handleClose(client, connectionObserver));
+        channel.closeFuture().addListener(f -> client.handleClose(client, connectionObserver));
         return client;
     }
 
@@ -69,11 +69,11 @@ public class EventClient
         return EventClientBuilder.createBuilder();
     }
 
-    private static void handleClose(EventClient client, ConnectionObserver connectionObserver)
+    private void handleClose(EventClient client, ConnectionObserver connectionObserver)
     {
         if(client.connected.get())
         {
-            connectionObserver.connectionClosed();
+            connectionObserver.disconnected(this);
         }
     }
 
