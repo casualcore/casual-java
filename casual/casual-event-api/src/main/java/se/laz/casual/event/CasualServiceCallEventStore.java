@@ -15,13 +15,13 @@ import java.util.concurrent.LinkedBlockingDeque;
  */
 public class CasualServiceCallEventStore implements ServiceCallEventStore
 {
-    private final BlockingDeque<ServiceCallEvent> EVENTS = new LinkedBlockingDeque<>();
+    private final BlockingDeque<ServiceCallEvent> serviceCallEvents = new LinkedBlockingDeque<>();
 
     @Override
     public void put(ServiceCallEvent event)
     {
         Objects.requireNonNull(event, "event can not be null");
-        EVENTS.add(event);
+        serviceCallEvents.add(event);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class CasualServiceCallEventStore implements ServiceCallEventStore
     {
         try
         {
-            return EVENTS.takeFirst();
+            return serviceCallEvents.takeFirst();
         }
         catch (InterruptedException e)
         {
