@@ -38,7 +38,6 @@ import java.util.logging.Logger;
 public class EventClient
 {
     private static final Logger LOG = Logger.getLogger(EventClient.class.getName());
-    private static final int MAX_MESSAGE_BYTE_SIZE = 4096;
     private final Channel channel;
     private final CompletableFuture<Boolean> connectFuture;
     private final AtomicBoolean connected = new AtomicBoolean(true);
@@ -103,7 +102,7 @@ public class EventClient
                     @Override
                     protected void initChannel(SocketChannel ch)
                     {
-                        ch.pipeline().addLast(ConnectionMessageEncoder.of(), new JsonObjectDecoder(MAX_MESSAGE_BYTE_SIZE), FromJSONEventMessageDecoder.of(eventObserver, connectFuture), ExceptionHandler.of());
+                        ch.pipeline().addLast(ConnectionMessageEncoder.of(), new JsonObjectDecoder(), FromJSONEventMessageDecoder.of(eventObserver, connectFuture), ExceptionHandler.of());
                         if(enableLogHandler)
                         {
                             ch.pipeline().addFirst(new LoggingHandler(LogLevel.INFO));
