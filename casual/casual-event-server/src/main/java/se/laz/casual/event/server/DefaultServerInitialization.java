@@ -28,7 +28,6 @@ public class DefaultServerInitialization implements ServerInitialization
 {
     private static final Logger log = Logger.getLogger(DefaultServerInitialization.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
-    private static final int MAX_LOGON_PAYLOAD_SIZE = 128;
 
     private DefaultServerInitialization()
     {}
@@ -52,7 +51,7 @@ public class DefaultServerInitialization implements ServerInitialization
                     @Override
                     protected void initChannel(SocketChannel ch)
                     {
-                        ch.pipeline().addLast(new JsonObjectDecoder(MAX_LOGON_PAYLOAD_SIZE), FromJSONConnectDecoder.of(connectedClients), ConnectReplyMessageEncoder.of() , EventMessageEncoder.of(), ExceptionHandler.of(connectedClients));
+                        ch.pipeline().addLast(new JsonObjectDecoder(), FromJSONConnectDecoder.of(connectedClients), ConnectReplyMessageEncoder.of() , EventMessageEncoder.of(), ExceptionHandler.of(connectedClients));
                         if (connectionInformation.isLogHandlerEnabled())
                         {
                             ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler());
