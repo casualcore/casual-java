@@ -57,7 +57,7 @@ class EventClientTest extends Specification
                 getEventObserverUnderTest().notify(event)
             }
         }
-        channel = new EmbeddedChannel(ConnectionMessageEncoder.of(), new JsonObjectDecoder(EventClient.MAX_MESSAGE_BYTE_SIZE), FromJSONEventMessageDecoder.of(eventObserver, connectFuture), ExceptionHandler.of())
+        channel = new EmbeddedChannel(ConnectionMessageEncoder.of(), new JsonObjectDecoder(), FromJSONEventMessageDecoder.of(eventObserver, connectFuture), ExceptionHandler.of())
         instance = new EventClient(channel, connectFuture)
     }
 
