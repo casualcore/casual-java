@@ -209,10 +209,6 @@ public class CasualEmbeddedServer
 
         private UUID domainId = UUID.randomUUID();
 
-        public Builder()
-        {
-        }
-
         public Builder domainId( UUID domainId )
         {
             this.domainId = domainId;
