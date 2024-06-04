@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -120,7 +120,6 @@ class ConfigurationServiceTest extends Specification
    def 'no outbound config, useEpoll set via env var'()
    {
       given:
-      // Outbound.of('java:comp/DefaultManagedExecutorService', 0, false, true)
       Configuration expected = Configuration.newBuilder()
               .withOutbound(Outbound.newBuilder()
                       .withManagedExecutorServiceName('java:comp/DefaultManagedExecutorService')
@@ -131,13 +130,38 @@ class ConfigurationServiceTest extends Specification
               .build()
       when:
       Configuration actual
-      withEnvironmentVariable( Outbound.USE_EPOLL_ENV_VAR_NAME, "true" )
+      withEnvironmentVariable( Configuration.USE_EPOLL_ENV_VAR_NAME, "true" )
               .execute( {
                   reinitialiseConfigurationService( )
                   actual = instance.getConfiguration()
               } )
       then:
-      withEnvironmentVariable( Outbound.USE_EPOLL_ENV_VAR_NAME, "true" )
+      withEnvironmentVariable( Configuration.USE_EPOLL_ENV_VAR_NAME, "true" )
+              .execute( {
+                 actual == expected
+              } )
+   }
+
+   def 'no outbound config, unmanaged set via env var'()
+   {
+      given:
+      Configuration expected = Configuration.newBuilder()
+              .withOutbound(Outbound.newBuilder()
+                      .withManagedExecutorServiceName('java:comp/DefaultManagedExecutorService')
+                      .withNumberOfThreads(0)
+                      .withUnmanaged(true)
+                      .withUseEpoll(false)
+                      .build())
+              .build()
+      when:
+      Configuration actual
+      withEnvironmentVariable( Configuration.UNMANAGED_ENV_VAR_NAME, "true" )
+              .execute( {
+                 reinitialiseConfigurationService( )
+                 actual = instance.getConfiguration()
+              } )
+      then:
+      withEnvironmentVariable( Configuration.UNMANAGED_ENV_VAR_NAME, "true" )
               .execute( {
                  actual == expected
               } )

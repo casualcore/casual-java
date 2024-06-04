@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -14,9 +14,10 @@ public class Inbound
     public static final String CASUAL_INBOUND_STARTUP_MODE = "CASUAL_INBOUND_STARTUP_MODE";
     public static final String CASUAL_INBOUND_USE_EPOLL = "CASUAL_INBOUND_USE_EPOLL";
     public static final String CASUAL_INBOUND_STARTUP_INITIAL_DELAY_ENV_NAME = "CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS";
+    private static final boolean DEFAULT_USE_EPOLL = false;
 
     private final Startup startup;
-    private final boolean useEpoll;
+    private final Boolean useEpoll;
     private final long initialDelay;
 
     public Inbound( Builder builder )
@@ -33,7 +34,8 @@ public class Inbound
 
     public boolean isUseEpoll()
     {
-        return useEpoll;
+        Optional<Boolean> maybeAlreadySet = ConfigurationService.getInstance().getConfiguration().getUseEpoll();
+        return maybeAlreadySet.orElseGet(() -> null == useEpoll ? DEFAULT_USE_EPOLL : useEpoll);
     }
 
     public long getInitialDelay()
@@ -120,7 +122,8 @@ public class Inbound
             }
             if( useEpoll == null )
             {
-                useEpoll = Boolean.parseBoolean( Optional.ofNullable( System.getenv( CASUAL_INBOUND_USE_EPOLL ) ).orElse( "false" ) );
+                boolean envVarSet = Boolean.parseBoolean( Optional.ofNullable( System.getenv( CASUAL_INBOUND_USE_EPOLL ) ).orElse( "false" ) );
+                useEpoll = envVarSet ? true : null;
             }
             if( initialDelay == null )
             {

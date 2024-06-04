@@ -19,9 +19,10 @@ import java.util.logging.Logger;
 public final class EventLoopFactory
 {
     private static final Logger LOG = Logger.getLogger(EventLoopFactory.class.getName());
-    private static final Map<EventLoopClient, EventLoopGroup> INSTANCES = new ConcurrentHashMap<>();
+    private static final Map<EventLoopClient, EventLoopGroup> INSTANCES;
     static
     {
+        INSTANCES = new ConcurrentHashMap<>();
         INSTANCES.put(EventLoopClient.OUTBOUND, createEventLoopGroup());
         INSTANCES.put(EventLoopClient.REVERSE, createEventLoopGroup());
     }
