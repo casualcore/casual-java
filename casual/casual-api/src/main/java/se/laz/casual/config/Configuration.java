@@ -14,8 +14,8 @@ import java.util.Optional;
 
 public class Configuration
 {
-    public static final String USE_EPOLL_ENV_VAR_NAME = "CASUAL_OUTBOUND_USE_EPOLL";
-    public static final String UNMANAGED_ENV_VAR_NAME = "CASUAL_OUTBOUND_UNMANAGED";
+    public static final String USE_EPOLL_ENV_VAR_NAME = "CASUAL_USE_EPOLL";
+    public static final String UNMANAGED_ENV_VAR_NAME = "CASUAL_UNMANAGED";
     private final Inbound inbound;
     private final Domain domain;
     private final Outbound outbound;
