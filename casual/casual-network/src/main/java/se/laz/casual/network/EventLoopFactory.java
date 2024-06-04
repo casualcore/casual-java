@@ -44,7 +44,7 @@ public final class EventLoopFactory
 
     private static EventLoopGroup getUnmanagedEventLoopGroup(boolean useEpoll, int numberOfThreads)
     {
-        LOG.info(() -> "outbound not using any ManagedExecutorService, running unmanaged");
+        LOG.info(() -> "event loop group not using any ManagedExecutorService, running unmanaged");
         if(useEpoll)
         {
             LOG.info(() -> "using EpollEventLoopGroup");
