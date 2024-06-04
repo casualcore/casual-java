@@ -96,8 +96,8 @@ public class Configuration
                 ", domain=" + getDomain() +
                 ", outbound=" + getOutbound() +
                 ", reverseInbound=" + getReverseInbound() +
-                ", useEpoll=" + getUseEpoll() +
-                ", unmanaged=" + getUnmanaged() +
+                ", useEpoll=" + getUseEpoll().orElse(null) +
+                ", unmanaged=" + getUnmanaged().orElse(null) +
                 '}';
     }
 
