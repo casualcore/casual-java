@@ -127,6 +127,7 @@ class ConfigurationServiceTest extends Specification
                       .withUnmanaged(false)
                       .withUseEpoll(true)
                       .build())
+              .withInbound(Inbound.newBuilder().withUseEpoll(true).build())
               .build()
       when:
       Configuration actual

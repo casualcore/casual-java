@@ -69,8 +69,8 @@ public class Inbound
     public String toString()
     {
         return "Inbound{" +
-                "startup=" + startup +
-                ", useEpoll=" + useEpoll +
+                "startup=" + getStartup() +
+                ", useEpoll=" + isUseEpoll() +
                 ", initialDelay=" + initialDelay +
                 '}';
     }
@@ -122,8 +122,8 @@ public class Inbound
             }
             if( useEpoll == null )
             {
-                boolean envVarSet = Boolean.parseBoolean( Optional.ofNullable( System.getenv( CASUAL_INBOUND_USE_EPOLL ) ).orElse( "false" ) );
-                useEpoll = envVarSet ? true : null;
+                String useEpollMode = Optional.ofNullable(System.getenv(CASUAL_INBOUND_USE_EPOLL)).orElse(null);
+                useEpoll = null != useEpollMode ? Boolean.parseBoolean(useEpollMode) : null;
             }
             if( initialDelay == null )
             {
