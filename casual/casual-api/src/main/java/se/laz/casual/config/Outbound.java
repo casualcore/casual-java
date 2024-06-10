@@ -23,6 +23,8 @@ public final class Outbound
     private final Boolean unmanaged;
     private final Boolean useEpoll;
 
+    public static final String USE_EPOLL_ENV_VAR_NAME = "CASUAL_OUTBOUND_USE_EPOLL";
+
     private Outbound(Builder builder)
     {
         managedExecutorServiceName = builder.managedExecutorServiceName;
@@ -55,7 +57,7 @@ public final class Outbound
     public boolean getUseEpoll()
     {
         Optional<Boolean> maybeAlreadySet = ConfigurationService.getInstance().getConfiguration().getUseEpoll();
-        return maybeAlreadySet.orElseGet(() -> null == useEpoll ? DEFAULT_USE_EPOLL : useEpoll);
+        return maybeAlreadySet.orElseGet(() -> null != useEpoll ? useEpoll : getUseEPollFromEnv());
     }
 
     @Override
@@ -130,6 +132,11 @@ public final class Outbound
             numberOfThreads = null == numberOfThreads ? DEFAULT_NUMBER_OF_THREADS : numberOfThreads;
             return new Outbound(this);
         }
+    }
+
+    private boolean getUseEPollFromEnv()
+    {
+        return Boolean.valueOf(Optional.ofNullable(System.getenv(USE_EPOLL_ENV_VAR_NAME)).orElse("false"));
     }
 
 }
