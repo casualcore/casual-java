@@ -16,7 +16,7 @@ public final class Outbound
     // for the EventLoopGroup
     private static final int DEFAULT_NUMBER_OF_THREADS = 0;
     private static final boolean DEFAULT_UNMANAGED = false;
-    private static final boolean DEFAULT_USE_EPOLL = false;
+    private static final String DEFAULT_USE_EPOLL = "false";
 
     private final String managedExecutorServiceName;
     private int numberOfThreads;
@@ -136,7 +136,7 @@ public final class Outbound
 
     private boolean getUseEPollFromEnv()
     {
-        return Boolean.valueOf(Optional.ofNullable(System.getenv(USE_EPOLL_ENV_VAR_NAME)).orElse("false"));
+        return Boolean.valueOf(Optional.ofNullable(System.getenv(USE_EPOLL_ENV_VAR_NAME)).orElse(DEFAULT_USE_EPOLL));
     }
 
 }
