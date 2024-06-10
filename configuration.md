@@ -14,12 +14,12 @@ Casual supports the following configuration options which can be set using envir
 * `CASUAL_CONFIG_FILE` - Set path for casual configuration file. If not provided, default are used.
 * `CASUAL_INBOUND_STARTUP_MODE` - Set mode for inbound startup. Default `immediate`. Alternatives `trigger`, `discover`.
     See [Inbound Startup Configuration](inbound.md#startup-configuration) for more details.
-* `CASUAL_OUTBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO - deprecated, please see `CASUAL_OUTBOUND_USE_EPOLL` instead.
-* `CASUAL_INBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO - deprecated, please see `CASUAL_OUTBOUND_USE_EPOLL` instead.
+* `CASUAL_OUTBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO - deprecated, please see `CASUAL_USE_EPOLL` instead.
+* `CASUAL_INBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO - deprecated, please see `CASUAL_USE_EPOLL` instead.
 * `CASUAL_OUTBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO, this goes for outbound, inbound and reverse inbound.
 * `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS` - Delay the startup of the inbound server. Default is no delay.
 * `CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE` - The pool size of casual's scheduled executor service instance. Defaults to 10.
-* `CASUAL_UNMANAGED` - If set to true, outbound and reverse inbound will use a managed executor service.
+* `CASUAL_UNMANAGED` - If set to false, outbound and reverse inbound will use a managed executor service.
 
 NB - if a `CASUAL_CONFIG_FILE` is provided, it take precedence over the `CASUAL_INBOUND_STARTUP_MODE` setting.
 However, if some configuration is missing from the configuration file but has a setting via an environment variable then this will be used before any hardcoded default setting.
