@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -111,7 +111,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                                                                    .withAddress(new InetSocketAddress(instance.getAddress().getHost(), instance.getAddress().getPort()))
                                                                    .withDomainId(configurationService.getConfiguration().getDomain().getId())
                                                                    .withDomainName(configurationService.getConfiguration().getDomain().getName())
-                                                                   .withUseEpoll(configurationService.getConfiguration().getInbound().isUseEpoll())
+                                                                   .withUseEpoll(configurationService.getConfiguration().getOutbound().getUseEpoll())
                                                                    .withFactory(endpointFactory)
                                                                    .withWorkManager(workManager)
                                                                    .withXaTerminator(xaTerminator)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -13,7 +13,6 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
@@ -24,6 +23,8 @@ import se.laz.casual.jca.ConnectionObserver;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
+import se.laz.casual.network.EventLoopClient;
+import se.laz.casual.network.EventLoopFactory;
 import se.laz.casual.network.LogLevelProvider;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
@@ -84,7 +85,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         Objects.requireNonNull(ci, "network listener can not be null");
         ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException("network connection is gone"));
         errorInformer.addListener(networkListener);
-        EventLoopGroup workerGroup = EventLoopFactory.getInstance();
+        EventLoopGroup workerGroup = EventLoopFactory.getInstance(EventLoopClient.OUTBOUND);
         Correlator correlator = ci.getCorrelator();
         ConversationMessageStorage conversationMessageStorage = ConversationMessageStorageImpl.of();
         OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenersIfNotConnected(channel, errorInformer);

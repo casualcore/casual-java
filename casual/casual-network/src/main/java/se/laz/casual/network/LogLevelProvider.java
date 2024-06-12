@@ -18,7 +18,8 @@ public final class LogLevelProvider
     public static final LogLevel REVERSE_LOGGING_LEVEL = getOrDefault(CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL_NAME);
     public static final LogLevel INBOUND_LOGGING_LEVEL = getOrDefault(CASUAL_INBOUND_NETTY_LOGGING_LEVEL_NAME);
     public static final LogLevel OUTBOUND_LOGGING_LEVEL = getOrDefault(CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL_NAME);
-
+    private LogLevelProvider()
+    {}
     public static LogLevel getOrDefault(String envName)
     {
         ExternalLogLevel externalLogLevel = ExternalLogLevel.unmarshall(Optional.ofNullable(getEnv(envName)).orElse(DEFAULT_LOGGING_LEVEL));
