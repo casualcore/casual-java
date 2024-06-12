@@ -14,18 +14,24 @@ import java.util.Optional;
 
 public class Configuration
 {
+    public static final String USE_EPOLL_ENV_VAR_NAME = "CASUAL_USE_EPOLL";
+    public static final String UNMANAGED_ENV_VAR_NAME = "CASUAL_UNMANAGED";
     private final Inbound inbound;
     private final Domain domain;
     private final Outbound outbound;
     private final List<ReverseInbound> reverseInbound;
     private final EventServer eventServer;
-    public Configuration(Domain domain, Inbound inbound, Outbound outbound, List<ReverseInbound> reverseInbound, EventServer eventServer)
+    private final Boolean useEpoll;
+    private final Boolean unmanaged;
+    public Configuration(Domain domain, Inbound inbound, Outbound outbound, List<ReverseInbound> reverseInbound, EventServer eventServer, Boolean useEpoll, Boolean unmanaged)
     {
         this.domain = domain;
         this.inbound = inbound;
         this.outbound = outbound;
         this.reverseInbound = reverseInbound;
         this.eventServer = eventServer;
+        this.useEpoll = useEpoll;
+        this.unmanaged = unmanaged;
     }
 
     public Domain getDomain()
@@ -48,9 +54,19 @@ public class Configuration
         return null == reverseInbound ? Collections.emptyList() : Collections.unmodifiableList(reverseInbound);
     }
 
+
     public Optional<EventServer> getEventServer()
     {
         return Optional.ofNullable(eventServer);
+    }
+    public Optional<Boolean> getUseEpoll()
+    {
+        return null == useEpoll ? getUseEPollFromEnv() : Optional.of(useEpoll);
+    }
+
+    public Optional<Boolean> getUnmanaged()
+    {
+        return null == unmanaged ? getUnmanagedFromEnv() : Optional.of(unmanaged);
     }
 
     @Override
@@ -65,13 +81,19 @@ public class Configuration
             return false;
         }
         Configuration that = (Configuration) o;
-        return Objects.equals(getInbound(), that.getInbound()) && Objects.equals(getDomain(), that.getDomain()) && Objects.equals(getOutbound(), that.getOutbound()) && Objects.equals(getReverseInbound(), that.getReverseInbound()) && Objects.equals(getEventServer(), that.getEventServer());
+        return Objects.equals(getInbound(), that.getInbound()) &&
+                Objects.equals(getDomain(), that.getDomain()) &&
+                Objects.equals(getOutbound(), that.getOutbound()) &&
+                Objects.equals(getReverseInbound(), that.getReverseInbound()) &&
+                Objects.equals(getEventServer(), that.getEventServer()) &&
+                Objects.equals(getUseEpoll(), that.getUseEpoll()) &&
+                Objects.equals(getUnmanaged(), that.getUnmanaged());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getInbound(), getDomain(), getOutbound(), getReverseInbound(), getEventServer());
+        return Objects.hash(getInbound(), getDomain(), getOutbound(), getReverseInbound(), getEventServer(), getUseEpoll(), getUnmanaged());
     }
 
     @Override
@@ -83,6 +105,8 @@ public class Configuration
                 ", outbound=" + getOutbound() +
                 ", reverseInbound=" + getReverseInbound() +
                 ", eventServer=" + getEventServer() +
+                ", useEpoll=" + getUseEpoll().orElse(null) +
+                ", unmanaged=" + getUnmanaged().orElse(null) +
                 '}';
     }
 
@@ -98,6 +122,8 @@ public class Configuration
         private Outbound outbound;
         private List<ReverseInbound> reverseInbound = new ArrayList<>();
         private EventServer eventServer;
+        private Boolean useEpoll;
+        private Boolean unmanaged;
 
         private Builder()
         {
@@ -127,15 +153,45 @@ public class Configuration
             return this;
         }
 
+
         public Builder withEventServer( EventServer eventServer )
         {
             this.eventServer = eventServer;
             return this;
         }
+        public Builder withUseEpoll( boolean useEpoll )
+        {
+            this.useEpoll = useEpoll;
+            return this;
+        }
+
+        public Builder withUnmanaged( boolean unmanaged )
+        {
+            this.unmanaged = unmanaged;
+            return this;
+        }
 
         public Configuration build()
         {
-            return new Configuration(domain, inbound, outbound, reverseInbound, eventServer );
+            return new Configuration(domain, inbound, outbound, reverseInbound, eventServer, useEpoll, unmanaged );
         }
     }
+
+    private Optional<Boolean> getUseEPollFromEnv()
+    {
+        return getEnvValue(USE_EPOLL_ENV_VAR_NAME);
+    }
+
+    private Optional<Boolean> getUnmanagedFromEnv()
+    {
+        return getEnvValue(UNMANAGED_ENV_VAR_NAME);
+    }
+
+    private Optional<Boolean> getEnvValue(String envVarName)
+    {
+        String envString = System.getenv(envVarName);
+        Boolean envValue = null == envString ? null : Boolean.parseBoolean(envString);
+        return Optional.ofNullable(envValue);
+    }
+
 }

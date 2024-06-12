@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,13 +11,13 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
+import se.laz.casual.network.EventLoopClient;
+import se.laz.casual.network.EventLoopFactory;
 import se.laz.casual.network.LogLevelProvider;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
@@ -51,7 +51,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     {
         Objects.requireNonNull(reverseInboundConnectionInformation, "connectionInformation can not be null");
         ReverseInboundMessageHandler messageHandler = ReverseInboundMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager());
-        Channel ch = init(reverseInboundConnectionInformation.getAddress(), reverseInboundConnectionInformation.isUseEpoll(), messageHandler, ReverseInboundExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
+        Channel ch = init(reverseInboundConnectionInformation.getAddress(), messageHandler, ReverseInboundExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
         ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress(), workManagerSupplier);
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
         LOG.info(() -> "reverse inbound connected to: " + reverseInboundConnectionInformation.getAddress());
@@ -64,9 +64,9 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         AutoReconnect.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
     }
 
-    private static Channel init(final InetSocketAddress address, boolean useEpoll , final ReverseInboundMessageHandler messageHandler, ReverseInboundExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass)
+    private static Channel init(final InetSocketAddress address, final ReverseInboundMessageHandler messageHandler, ReverseInboundExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass)
     {
-        EventLoopGroup workerGroup = useEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+        EventLoopGroup workerGroup = EventLoopFactory.getInstance(EventLoopClient.REVERSE);
         Bootstrap b = new Bootstrap()
                 .group(workerGroup)
                 .channel(channelClass)

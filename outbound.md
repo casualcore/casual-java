@@ -27,6 +27,9 @@ Example configurations:
 }
 ```
 
+Note that the usage of both `unmanaged` and `useEpoll` in the outbound configuration section is `deprecated`.
+You should instead configure these properties at the root level of the configuration.
+
 See configuration(configuration.md) for more info regarding how configuration works in general.
 
 It is fine to only configure one attribute, the other one will then use the default value.

@@ -27,6 +27,7 @@ On *casual-jca* startup, this configuration is read and for each configuration a
 host:port. If no size is specified then only one such connection is created per configuration.
 
 After the connection has succeeded, this connection now works as it was a normal *inbound* connection.
+It is still in fact a client though.
 
 ## Error handling
 

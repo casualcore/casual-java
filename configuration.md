@@ -14,12 +14,14 @@ Casual supports the following configuration options which can be set using envir
 * `CASUAL_CONFIG_FILE` - Set path for casual configuration file. If not provided, default are used.
 * `CASUAL_INBOUND_STARTUP_MODE` - Set mode for inbound startup. Default `immediate`. Alternatives `trigger`, `discover`.
     See [Inbound Startup Configuration](inbound.md#startup-configuration) for more details.
-* `CASUAL_OUTBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO.
-* `CASUAL_INBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO.
+* `CASUAL_OUTBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO - deprecated, please use `CASUAL_USE_EPOLL` instead.
+* `CASUAL_INBOUND_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO - deprecated, please use `CASUAL_USE_EPOLL` instead.
+* `CASUAL_USE_EPOLL` - If set to true, Netty uses epoll instead of NIO, this goes for outbound, inbound and reverse inbound.
 * `CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS` - Delay the startup of the inbound server. Default is no delay.
 * `CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS` - Quiet period during event server shutdown to wait whilst closing the channel. Default `2000`
 * `CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS` - Timeout for the event server event loop to shutdown. Default `15000`
 * `CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE` - The pool size of casual's scheduled executor service instance. Defaults to 10.
+* `CASUAL_UNMANAGED` - If set to false, outbound and reverse inbound will use a managed executor service.
 
 NB - if a `CASUAL_CONFIG_FILE` is provided, it take precedence over the `CASUAL_INBOUND_STARTUP_MODE` setting.
 However, if some configuration is missing from the configuration file but has a setting via an environment variable then this will be used before any hardcoded default setting.
@@ -40,7 +42,6 @@ The available log levels are:
 Note, the level you set needs to be equal to or less than the level set to the package `io.netty`.
 For instance, with logging level for the package `io.netty` set to `DEBUG` and `CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL` also set to `DEBUG`, that will work.
 Using level `INFO` will also work where as `TRACE` would not in this case.
-
 
 ## Casual Config File
 
