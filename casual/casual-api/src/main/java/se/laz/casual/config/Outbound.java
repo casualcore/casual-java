@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -16,12 +16,12 @@ public final class Outbound
     // for the EventLoopGroup
     private static final int DEFAULT_NUMBER_OF_THREADS = 0;
     private static final boolean DEFAULT_UNMANAGED = false;
+    private static final String DEFAULT_USE_EPOLL = "false";
 
     private final String managedExecutorServiceName;
     private int numberOfThreads;
-    private boolean unmanaged;
-    private Boolean useEpoll;
-
+    private final Boolean unmanaged;
+    private final Boolean useEpoll;
 
     public static final String USE_EPOLL_ENV_VAR_NAME = "CASUAL_OUTBOUND_USE_EPOLL";
 
@@ -38,11 +38,6 @@ public final class Outbound
         return new Builder();
     }
 
-    private boolean getUseEPollFromEnv()
-    {
-        return Boolean.valueOf(Optional.ofNullable(System.getenv(USE_EPOLL_ENV_VAR_NAME)).orElse("false"));
-    }
-
     public String getManagedExecutorServiceName()
     {
         return null == managedExecutorServiceName ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME : managedExecutorServiceName;
@@ -55,12 +50,14 @@ public final class Outbound
 
     public boolean getUnmanaged()
     {
-        return unmanaged;
+        Optional<Boolean> maybeAlreadySet = ConfigurationService.getInstance().getConfiguration().getUnmanaged();
+        return maybeAlreadySet.orElseGet(() -> null == unmanaged ? DEFAULT_UNMANAGED : unmanaged);
     }
 
     public boolean getUseEpoll()
     {
-        return null == useEpoll ?  getUseEPollFromEnv() : useEpoll;
+        Optional<Boolean> maybeAlreadySet = ConfigurationService.getInstance().getConfiguration().getUseEpoll();
+        return maybeAlreadySet.orElseGet(() -> null != useEpoll ? useEpoll : getUseEPollFromEnv());
     }
 
     @Override
@@ -133,9 +130,13 @@ public final class Outbound
         {
             managedExecutorServiceName = null == managedExecutorServiceName ? DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME : managedExecutorServiceName;
             numberOfThreads = null == numberOfThreads ? DEFAULT_NUMBER_OF_THREADS : numberOfThreads;
-            unmanaged = null == unmanaged ? DEFAULT_UNMANAGED : unmanaged;
             return new Outbound(this);
         }
+    }
+
+    private boolean getUseEPollFromEnv()
+    {
+        return Boolean.valueOf(Optional.ofNullable(System.getenv(USE_EPOLL_ENV_VAR_NAME)).orElse(DEFAULT_USE_EPOLL));
     }
 
 }
