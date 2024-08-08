@@ -7,18 +7,12 @@
 package se.laz.casual.jca.inflow;
 
 import io.netty.channel.Channel;
-import jakarta.resource.spi.work.Work;
 import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
-import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.event.ServiceCallEventStoreFactory;
-import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
 import java.util.UUID;
 
@@ -30,22 +24,24 @@ public class ServiceCallWorkListener implements WorkListener
 {
     private final Channel channel;
     private final boolean isTpNoReply;
-    private final CasualServiceCallRequestMessage message;
+    private final WorkResponseContext context;
+    private final ResponseExtractFunction extractFunction;
     private ServiceCallEventPublisher eventPublisher;
 
     private final ServiceCallEvent.Builder eventBuilder;
 
-    public ServiceCallWorkListener(Channel channel, CasualServiceCallRequestMessage message)
+    public ServiceCallWorkListener(Channel channel, WorkResponseContext context)
     {
-        this(channel, message, false);
+        this(channel, context, false, ResponseCreator::create);
     }
 
-    public ServiceCallWorkListener(Channel channel, CasualServiceCallRequestMessage message, boolean isTpNoReply)
+    public ServiceCallWorkListener(Channel channel, WorkResponseContext context, boolean isTpNoReply, ResponseExtractFunction extractFunction)
     {
         this.channel = channel;
-        this.message = message;
+        this.context = context;
         this.isTpNoReply = isTpNoReply;
         this.eventBuilder = ServiceCallEvent.createBuilder();
+        this.extractFunction = extractFunction;
     }
 
     @Override
@@ -67,35 +63,16 @@ public class ServiceCallWorkListener implements WorkListener
     }
 
     @Override
-    public void workCompleted(WorkEvent e)
+    public void workCompleted(WorkEvent workEvent)
     {
         eventBuilder.end();
-        ServiceCallEvent event = createEvent( e.getWork() );
+        ServiceCallResult result = extractFunction.extract(workEvent, context, isTpNoReply);
+        ServiceCallEvent event = ServiceCallEventCreator.createEvent( eventBuilder, context, result.resultCode());
         getEventPublisher().post(event);
         if(!isTpNoReply)
         {
-            CasualServiceCallWork work = (CasualServiceCallWork) e.getWork();
-            channel.writeAndFlush(work.getResponse());
+            result.maybeResult().ifPresent(channel::writeAndFlush);
         }
-    }
-
-    private ServiceCallEvent createEvent(Work work )
-    {
-        eventBuilder.withTransactionId(message.getXid())
-                   .withExecution(message.getExecution())
-                   .withParent(message.getParentName())
-                   .withService(message.getServiceName())
-                   .withOrder(Order.SEQUENTIAL);
-        if(!isTpNoReply && work instanceof CasualServiceCallWork casualWork)
-        {
-            CasualServiceCallReplyMessage reply = casualWork.getResponse().getMessage();
-            eventBuilder.withCode(reply.getError());
-        }
-        else
-        {
-            eventBuilder.withCode(ErrorState.OK);
-        }
-        return eventBuilder.build();
     }
 
     ServiceCallEventPublisher getEventPublisher()

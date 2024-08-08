@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -130,16 +130,22 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         }
         boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
         CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply);
-
+        WorkResponseContext context = WorkResponseContext.createBuilder()
+                                                         .withCorrelationId(message.getCorrelationId())
+                                                         .withExecution(message.getMessage().getExecution())
+                                                         .withXid(message.getMessage().getXid())
+                                                         .withServiceName(message.getMessage().getServiceName())
+                                                         .withParentName(message.getMessage().getParentName())
+                                                         .build();
         try
         {
             if(!isTpNoReply && isServiceCallTransactional( xid ) )
             {
-                workManager.scheduleWork(work, WorkManager.INDEFINITE, createTransactionContext(xid, message.getMessage().getTimeout()), new ServiceCallWorkListener(channel, message.getMessage()));
+                workManager.scheduleWork(work, WorkManager.INDEFINITE, createTransactionContext(xid, message.getMessage().getTimeout()), new ServiceCallWorkListener(channel, context));
             }
             else
             {
-                workManager.scheduleWork(work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener(channel, message.getMessage(), isTpNoReply));
+                workManager.scheduleWork(work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener(channel, context, isTpNoReply, ResponseCreator::create));
             }
         }
         catch (WorkException e)

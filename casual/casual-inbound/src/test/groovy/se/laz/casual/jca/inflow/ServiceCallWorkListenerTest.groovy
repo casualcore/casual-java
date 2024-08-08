@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -26,7 +26,6 @@ import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
-import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -53,7 +52,7 @@ class ServiceCallWorkListenerTest extends Specification
     @Shared String serviceName = 'lovebites'
     @Shared UUID execution = UUID.randomUUID()
     @Shared Xid transactionId = createXid()
-    @Shared CasualServiceCallRequestMessage request
+    @Shared WorkResponseContext context
 
     def setup()
     {
@@ -80,13 +79,14 @@ class ServiceCallWorkListenerTest extends Specification
         work = new CasualServiceCallWork(correlationId, null)
         work.response = response
 
-        request = CasualServiceCallRequestMessage.createBuilder()
-               .setExecution(execution)
-               .setParentName("")
-               .setServiceName(serviceName)
-               .setXid(transactionId)
-               .build()
-        instance = new ServiceCallWorkListener(channel, request)
+        context = WorkResponseContext.createBuilder()
+                                     .withExecution(execution)
+                                     .withParentName("")
+                                     .withServiceName(serviceName)
+                                     .withXid(transactionId)
+                                     .withCorrelationId(correlationId)
+                                     .build()
+        instance = new ServiceCallWorkListener(channel, context)
         serviceCallEventPublisher = Mock(ServiceCallEventPublisher)
         instance.setEventPublisher(serviceCallEventPublisher)
     }
@@ -117,7 +117,7 @@ class ServiceCallWorkListenerTest extends Specification
    {
       setup:
       WorkEvent event = new WorkEvent( this, WorkEvent.WORK_COMPLETED, null, null )
-      instance = new ServiceCallWorkListener(channel, request, true)
+      instance = new ServiceCallWorkListener(channel, context, true, ResponseCreator::create)
       instance.setEventPublisher(serviceCallEventPublisher)
 
       when:
