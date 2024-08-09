@@ -71,7 +71,7 @@ public class ResponseCreator
     }
     private static String getCause(Exception exception)
     {
-        return null == exception ? "" : exception.getCause().toString();
+        return null == exception || null == exception.getCause()  ? "" : exception.getCause().toString();
     }
     private static String getStackStrace(Exception exception)
     {
