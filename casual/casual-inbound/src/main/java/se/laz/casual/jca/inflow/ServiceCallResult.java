@@ -34,10 +34,6 @@ public record ServiceCallResult(CasualNWMessage<CasualServiceCallReplyMessage> r
     {
         private CasualNWMessage<CasualServiceCallReplyMessage> result;
         private ErrorState resultCode;
-        public static Builder newBuilder()
-        {
-            return new Builder();
-        }
         public Builder withResult(CasualNWMessage<CasualServiceCallReplyMessage> result)
         {
             this.result = result;
