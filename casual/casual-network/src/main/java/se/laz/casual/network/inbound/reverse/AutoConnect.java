@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -36,10 +36,7 @@ public class AutoConnect
       Objects.requireNonNull(eventListener, "eventListener can not be null");
       Objects.requireNonNull(workManagerSupplier, "workManagerSupplier can not be null");
       Supplier<ReverseInboundServer> supplier = () -> ReverseInboundServerImpl.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
-      Consumer<ReverseInboundServer> consumer = server -> {
-         connectListener.connected(server);
-         eventListener.connected(server);
-      };
+      Consumer<ReverseInboundServer> consumer = connectListener::connected;
       RepeatUntilSuccessTaskWork<ReverseInboundServer> task = RepeatUntilSuccessTaskWork.of(
               supplier,
               consumer,

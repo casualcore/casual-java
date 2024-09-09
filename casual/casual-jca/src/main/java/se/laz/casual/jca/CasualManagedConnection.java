@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -321,7 +321,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
 
     private NetworkConnection createOneToOneManagedConnection()
     {
-        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()), mcf.getCasualProtocolVersion());
+        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(mcf.getHostName(), mcf.getPortNumber()), mcf.getCasualProtocolVersion());
         NetworkConnection newNetworkConnection = NettyNetworkConnection.of(ci, this);
         log.finest(() -> "created new nw connection " + this);
         return newNetworkConnection;
