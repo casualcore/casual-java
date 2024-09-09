@@ -124,7 +124,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         for(ReverseInbound instance : reverseInbound)
         {
             startReverseInbound(ReverseInboundConnectionInformation.createBuilder()
-                                                                   .withAddress(new InetSocketAddress(instance.getAddress().getHost(), instance.getAddress().getPort()))
+                                                                   .withAddress(InetSocketAddress.createUnresolved(instance.getAddress().getHost(), instance.getAddress().getPort()))
                                                                    .withDomainId(configurationService.getConfiguration().getDomain().getId())
                                                                    .withDomainName(configurationService.getConfiguration().getDomain().getName())
                                                                    .withUseEpoll(configurationService.getConfiguration().getOutbound().getUseEpoll())
@@ -147,7 +147,8 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                AutoConnect.of(connectionInformation, future::complete,this, () -> workManager);
                return future.join();
             };
-            Supplier<String> logMsg = () -> "casual reverse inbound connected to: " + connectionInformation.getAddress();
+            Supplier<String> logMsg = () -> "casual reverse inbound connected to: " +
+                    new InetSocketAddress(connectionInformation.getAddress().getHostName(), connectionInformation.getAddress().getPort());
             Work work = StartInboundServerWork.of(getInboundStartupServices(), logMsg, consumer, supplier);
             startWork(work, StartReverseInboundServerListener.of());
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -54,7 +54,7 @@ public class ReverseInboundConnectionInformation
 
     public InetSocketAddress getAddress()
     {
-        return address;
+        return InetSocketAddress.createUnresolved(address.getHostName(), address.getPort());
     }
 
     public ProtocolVersion getProtocolVersion()

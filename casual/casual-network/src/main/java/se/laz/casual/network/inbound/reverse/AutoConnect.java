@@ -1,18 +1,18 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.inbound.reverse;
 
+import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.api.util.work.RepeatUntilSuccessTaskWork;
 import se.laz.casual.network.outbound.JEEConcurrencyFactory;
 import se.laz.casual.network.reverse.inbound.ReverseInboundConnectListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
-import jakarta.resource.spi.work.WorkManager;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -36,10 +36,7 @@ public class AutoConnect
       Objects.requireNonNull(eventListener, "eventListener can not be null");
       Objects.requireNonNull(workManagerSupplier, "workManagerSupplier can not be null");
       Supplier<ReverseInboundServer> supplier = () -> ReverseInboundServerImpl.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
-      Consumer<ReverseInboundServer> consumer = server -> {
-         connectListener.connected(server);
-         eventListener.connected(server);
-      };
+      Consumer<ReverseInboundServer> consumer = connectListener::connected;
       RepeatUntilSuccessTaskWork<ReverseInboundServer> task = RepeatUntilSuccessTaskWork.of(
               supplier,
               consumer,

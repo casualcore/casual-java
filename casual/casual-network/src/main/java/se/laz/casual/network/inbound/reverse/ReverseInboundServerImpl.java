@@ -54,7 +54,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         Channel ch = init(reverseInboundConnectionInformation.getAddress(), messageHandler, ReverseInboundExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
         ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress(), workManagerSupplier);
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
-        LOG.info(() -> "reverse inbound connected to: " + reverseInboundConnectionInformation.getAddress());
+        LOG.info(() -> "reverse inbound connected to: " + server.getAddress());
         return server;
     }
 
@@ -91,7 +91,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     @Override
     public InetSocketAddress getAddress()
     {
-        return address;
+        return new InetSocketAddress(address.getHostName(), address.getPort());
     }
 
     @Override

@@ -1,9 +1,14 @@
+/*
+ * Copyright (c) 2024, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.network.inbound.reverse
 
 import io.netty.channel.Channel
-import io.netty.channel.epoll.EpollSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
+import io.netty.channel.epoll.EpollSocketChannel
+import io.netty.channel.socket.nio.NioSocketChannel
 import jakarta.resource.spi.XATerminator
 import jakarta.resource.spi.endpoint.MessageEndpointFactory
 import jakarta.resource.spi.work.WorkManager
@@ -11,10 +16,14 @@ import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.outbound.Correlator
 import spock.lang.Specification
 
-class ReverseInboundConnectionInformationTest extends Specification {
-   def "test ReverseInboundConnectionInformation, with useEpoll"() {
+import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
+
+class ReverseInboundConnectionInformationTest extends Specification
+{
+   def "test ReverseInboundConnectionInformation, with useEpoll"()
+   {
       setup:
-      InetSocketAddress address = new InetSocketAddress("localhost", 8080)
+      InetSocketAddress address = InetSocketAddress.createUnresolved("localhost", 8080)
       ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       Correlator correlator = Mock(Correlator)
       MessageEndpointFactory factory = Mock(MessageEndpointFactory)
@@ -58,9 +67,10 @@ class ReverseInboundConnectionInformationTest extends Specification {
       connectionInfo.isLogHandlerEnabled() == isLogHandlerEnabled
    }
 
-   def "test ReverseInboundConnectionInformation, no useEpoll"() {
+   def "test ReverseInboundConnectionInformation, no useEpoll"()
+   {
       setup:
-      InetSocketAddress address = new InetSocketAddress("localhost", 8080)
+      InetSocketAddress address = InetSocketAddress.createUnresolved("localhost", 8080)
       ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       Correlator correlator = Mock(Correlator)
       MessageEndpointFactory factory = Mock(MessageEndpointFactory)
