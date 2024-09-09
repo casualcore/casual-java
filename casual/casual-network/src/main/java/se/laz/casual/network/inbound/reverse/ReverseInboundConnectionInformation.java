@@ -54,9 +54,7 @@ public class ReverseInboundConnectionInformation
 
     public InetSocketAddress getAddress()
     {
-        // make sure that we always create a new InetSocketAddress in case
-        // the ip has changed, thus it has to be resolved again
-        return new InetSocketAddress(address.getHostName(), address.getPort());
+        return InetSocketAddress.createUnresolved(address.getHostName(), address.getPort());
     }
 
     public ProtocolVersion getProtocolVersion()

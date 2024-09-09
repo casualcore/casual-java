@@ -1,18 +1,10 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca;
-
-import se.laz.casual.internal.network.NetworkConnection;
-import se.laz.casual.jca.event.ConnectionEventHandler;
-import se.laz.casual.jca.pool.NetworkPoolHandler;
-import se.laz.casual.network.outbound.NettyConnectionInformation;
-import se.laz.casual.network.outbound.NettyNetworkConnection;
-import se.laz.casual.network.outbound.NettyConnectionInformationCreator;
-import se.laz.casual.network.outbound.NetworkListener;
 
 import jakarta.resource.NotSupportedException;
 import jakarta.resource.ResourceException;
@@ -25,6 +17,14 @@ import jakarta.resource.spi.ManagedConnection;
 import jakarta.resource.spi.ManagedConnectionMetaData;
 import jakarta.resource.spi.ResourceAdapter;
 import jakarta.resource.spi.work.WorkManager;
+import se.laz.casual.internal.network.NetworkConnection;
+import se.laz.casual.jca.event.ConnectionEventHandler;
+import se.laz.casual.jca.pool.NetworkPoolHandler;
+import se.laz.casual.network.outbound.NettyConnectionInformation;
+import se.laz.casual.network.outbound.NettyConnectionInformationCreator;
+import se.laz.casual.network.outbound.NettyNetworkConnection;
+import se.laz.casual.network.outbound.NetworkListener;
+
 import javax.security.auth.Subject;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
@@ -321,7 +321,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
 
     private NetworkConnection createOneToOneManagedConnection()
     {
-        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(new InetSocketAddress(mcf.getHostName(), mcf.getPortNumber()), mcf.getCasualProtocolVersion());
+        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(mcf.getHostName(), mcf.getPortNumber()), mcf.getCasualProtocolVersion());
         NetworkConnection newNetworkConnection = NettyNetworkConnection.of(ci, this);
         log.finest(() -> "created new nw connection " + this);
         return newNetworkConnection;
