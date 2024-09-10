@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,10 +8,10 @@ package se.laz.casual.jca.pool;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.Address;
 import se.laz.casual.jca.CasualResourceAdapterException;
-import se.laz.casual.network.outbound.NettyConnectionInformationCreator;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.outbound.NettyConnectionInformation;
+import se.laz.casual.network.outbound.NettyConnectionInformationCreator;
 import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
 
@@ -124,7 +124,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
 
     private static ReferenceCountedNetworkConnection createNetworkConnection(Address address, ProtocolVersion protocolVersion, NetworkListener networkListener, ReferenceCountedNetworkCloseListener referenceCountedNetworkCloseListener, NetworkListener ownListener)
     {
-        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(new InetSocketAddress(address.getHostName(), address.getPort()), protocolVersion);
+        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(address.getHostName(), address.getPort()), protocolVersion);
         NetworkConnection networkConnection = NettyNetworkConnection.of(ci, ownListener);
         if (networkConnection instanceof NettyNetworkConnection)
         {
