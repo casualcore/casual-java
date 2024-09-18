@@ -64,10 +64,16 @@ public class CasualServiceCaller implements CasualServiceApi
     @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
+        return tpcall(serviceName, data, flags, UUID.randomUUID());
+    }
+
+    @Override
+    public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution)
+    {
         try
         {
             throwIfTpCallFlagsInvalid(serviceName, flags);
-            return issueAsyncCall(serviceName, data, flags).join().orElseThrow(() -> new CasualConnectionException("result is missing, it should always be returned"));
+            return issueAsyncCall(serviceName, data, flags, execution).join().orElseThrow(() -> new CasualConnectionException("result is missing, it should always be returned"));
         }
         catch (Exception e)
         {
@@ -78,16 +84,21 @@ public class CasualServiceCaller implements CasualServiceApi
     @Override
     public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
-        throwIfTpacallFlagsInvalid(serviceName, flags);
-        return issueAsyncCall(serviceName, data, flags);
+        return tpacall(serviceName, data, flags, UUID.randomUUID());
     }
 
-    private CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> issueAsyncCall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    @Override
+    public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution)
+    {
+        throwIfTpacallFlagsInvalid(serviceName, flags);
+        return issueAsyncCall(serviceName, data, flags, execution);
+    }
+
+    private CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> issueAsyncCall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution)
     {
         CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> f = new CompletableFuture<>();
         UUID corrId = UUID.randomUUID();
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
-        final UUID execution = UUID.randomUUID();
         final Xid xid = connection.getCurrentXid();
 
         ServiceCallEvent.Builder eventBuilder = ServiceCallEvent.createBuilder()
