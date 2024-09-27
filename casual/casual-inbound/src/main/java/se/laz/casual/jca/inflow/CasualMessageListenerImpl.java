@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -63,7 +63,6 @@ import java.util.logging.Logger;
                 })
 public class CasualMessageListenerImpl implements CasualMessageListener
 {
-    private static final long MICROSECOND_FACTOR = 1000L;
     private static Logger log = Logger.getLogger(CasualMessageListenerImpl.class.getName());
     private static final Long CASUAL_PROTOCOL_VERSION = 1000L;
 
