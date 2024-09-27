@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -102,10 +102,24 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
+    public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution)
+    {
+        throwIfInvalidated();
+        return getCasualServiceCaller().tpcall(serviceName, data, flags, execution);
+    }
+
+    @Override
     public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         throwIfInvalidated();
         return getCasualServiceCaller().tpacall( serviceName, data, flags);
+    }
+
+    @Override
+    public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution)
+    {
+        throwIfInvalidated();
+        return getCasualServiceCaller().tpacall(serviceName, data, flags, execution);
     }
 
     @Override

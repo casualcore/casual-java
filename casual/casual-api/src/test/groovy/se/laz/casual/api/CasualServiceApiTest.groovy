@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,6 +8,7 @@ package se.laz.casual.api
 
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ServiceReturn
+import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.ServiceReturnState
 import se.laz.casual.api.service.ServiceDetails
@@ -87,7 +88,17 @@ class CasualServiceApiTest extends Specification
             }
         }
 
-        @Override
+       @Override
+       ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution) {
+          return null
+       }
+
+       @Override
+       CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution) {
+          return null
+       }
+
+       @Override
         boolean serviceExists(String serviceName)
         {
             return false
