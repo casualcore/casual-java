@@ -264,6 +264,43 @@ class ConfigurationServiceTest extends Specification
         ''                       || Mode.IMMEDIATE | []
     }
 
+    @Unroll
+    def "Get configuration where file empty and env mode is provided, returns matching configuration."()
+    {
+        given:
+        Configuration expected = Configuration.newBuilder(  )
+                .withInbound( Inbound.newBuilder(  )
+                        .withStartup( Startup.newBuilder(  )
+                                .withMode( mode )
+                                .withServices( services )
+                                .build(  ) )
+                        .build(  ) )
+                .build(  )
+
+        when:
+        Configuration actual
+        withEnvironmentVariable( ConfigurationService.CASUAL_INBOUND_STARTUP_MODE_ENV_NAME, env )
+                .and( ConfigurationService.CASUAL_CONFIG_FILE_ENV_NAME, "src/test/resources/casual-config-empty.json" )
+                .execute( {
+                    reinitialiseConfigurationService( )
+                    actual = instance.getConfiguration(  )
+                    System.out.println( "Config: " + actual )
+                } )
+
+        then:
+        actual == expected
+
+        where:
+        env                      || mode           | services
+        //Mode.Constants.IMMEDIATE || Mode.IMMEDIATE | []
+        Mode.Constants.TRIGGER   || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE]
+        //Mode.Constants.DISCOVER  || Mode.DISCOVER  | []
+        // This test is for when the env var is set such as FOO=
+        // When reading it with System.getEnv that then is returned as the empty string as opposed to null if the env var
+        // was not set at all - the expected behaviour in this case is that the default mode is used
+        //''                       || Mode.IMMEDIATE | []
+    }
+
    @Unroll
    def "reverse inbound config #host, #port, #size, #backoff"()
    {
