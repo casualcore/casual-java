@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -45,7 +45,8 @@ public final class Marshaller
         return writeMethodReturnValues(o, methods, b, mode);
     }
 
-    @SuppressWarnings("deprecation")
+    // java:S3011 - we need to change accessibility
+    @SuppressWarnings({"deprecation", "java:S3011"})
     private static FieldedTypeBuffer writeMethodReturnValues(Object o, List<Method> methods, FieldedTypeBuffer b, FieldedTypeBufferProcessorMode mode)
     {
         // For methods we get the return value and store it
@@ -78,7 +79,8 @@ public final class Marshaller
         return b;
     }
 
-    @SuppressWarnings("deprecation")
+    // java:S3011 - we need to change accessibility
+    @SuppressWarnings({"deprecation", "java:S3011"})
     private static FieldedTypeBuffer writeFields(final Object o, final List<Field> fields, FieldedTypeBuffer b, FieldedTypeBufferProcessorMode mode)
     {
         for (Field f : fields)

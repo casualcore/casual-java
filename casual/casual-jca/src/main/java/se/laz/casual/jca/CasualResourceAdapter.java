@@ -64,6 +64,8 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
     private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
     private List<ReverseInboundServer> reverseInbounds = new ArrayList<>();
+    // it is not really unused, it should never ever be gc:ed, thus it is part of this class
+    @SuppressWarnings("java:S1068")
     private EventServer eventServer;
 
     private WorkManager workManager;

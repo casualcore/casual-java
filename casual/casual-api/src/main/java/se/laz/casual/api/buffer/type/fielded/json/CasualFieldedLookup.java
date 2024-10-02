@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Data structure containing the canonical representation
@@ -86,7 +85,7 @@ public final class CasualFieldedLookup
      */
     public static List<String> getNames()
     {
-        return stringToField.keySet().stream().collect(Collectors.toList());
+        return stringToField.keySet().stream().toList();
     }
 
     private static CasualFielded slurpJSON(final URL resource)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,7 +7,6 @@
 package se.laz.casual.jca.inbound.handler.service.casual.discovery;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 /**
@@ -22,7 +21,7 @@ public class JndiMatcher
     {}
     public static String findMatch(String implementationType, String ejbName, String interfaceType, List<String> jndiUrls )
     {
-        List<String> found = jndiUrls.stream().filter( jndiUrl -> matches( implementationType, ejbName, interfaceType, jndiUrl ) ).collect(Collectors.toList());
+        List<String> found = jndiUrls.stream().filter( jndiUrl -> matches( implementationType, ejbName, interfaceType, jndiUrl ) ).toList();
 
         return found.size() == 1? found.get( 0 ) : null;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -51,9 +51,9 @@ public class PassThroughBufferHandler implements BufferHandler
     @Override
     public InboundResponse toResponse(ServiceCallInfo info, Object result)
     {
-        if( result instanceof InboundResponse )
+        if( result instanceof InboundResponse response )
         {
-            return (InboundResponse) result;
+            return response;
         }
         return InboundResponse.createBuilder().buffer( (CasualBuffer)result).build();
     }

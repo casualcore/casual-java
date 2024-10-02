@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
 {
@@ -93,7 +92,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
 
     public List<DequeueMessage> getMessages()
     {
-        return messages.stream().collect(Collectors.toList());
+        return messages.stream().toList();
     }
 
     public static final class Builder
@@ -121,7 +120,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         {
             Objects.requireNonNull(execution, "execution is not allowed to be null");
             Objects.requireNonNull(messages, "messages is not allowed to be null, can be empty though");
-            return new CasualDequeueReplyMessage(execution, messages.stream().collect(Collectors.toList()));
+            return new CasualDequeueReplyMessage(execution, new ArrayList<>(messages));
         }
     }
 }

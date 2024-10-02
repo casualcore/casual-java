@@ -411,9 +411,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     {
         LOG.finest(() -> "message: " + LogTool.asLogEntry(message));
         final T msg = message.getMessage();
-        if(msg instanceof DomainDisconnectRequestMessage)
+        if(msg instanceof DomainDisconnectRequestMessage requestMessage)
         {
-            DomainDisconnectRequestMessage requestMessage = (DomainDisconnectRequestMessage) msg;
             domainDisconnectHandler.domainDisconnected(DomainDisconnectReplyInfo.of(message.getCorrelationId(), requestMessage.getExecution()));
         }
         else if(msg instanceof DomainDiscoveryTopologyUpdateMessage)

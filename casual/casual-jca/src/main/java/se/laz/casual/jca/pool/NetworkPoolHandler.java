@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+// yes it is intentional
+@SuppressWarnings("java:S6548")
 public class NetworkPoolHandler
 {
     private static final Logger log = Logger.getLogger(NetworkPoolHandler.class.getName());

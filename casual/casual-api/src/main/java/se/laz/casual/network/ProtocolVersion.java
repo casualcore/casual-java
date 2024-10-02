@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,7 +9,6 @@ import se.laz.casual.network.connection.CasualConnectionException;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public enum ProtocolVersion
 {
@@ -79,7 +78,7 @@ public enum ProtocolVersion
     {
         return supportedVersionNumbers().stream()
                                         .map(version -> unmarshall(version).getVersionAsString())
-                                        .collect(Collectors.toList());
+                                        .toList();
     }
 
 }

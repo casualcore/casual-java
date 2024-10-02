@@ -5,6 +5,8 @@
  */
 package se.laz.casual.event.client.messages;
 
+// java:S6548 - yes it is intentional
+@SuppressWarnings("java:S6548")
 public class ConnectionMessage
 {
     private static final String CONNECTION_MESSAGE = "{\"message\":\"HELLO\"}";

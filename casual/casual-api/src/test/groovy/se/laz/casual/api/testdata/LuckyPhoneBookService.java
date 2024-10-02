@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,7 +10,6 @@ import se.laz.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class LuckyPhoneBookService
 {
@@ -36,7 +35,7 @@ public class LuckyPhoneBookService
         Objects.requireNonNull(name);
         Objects.requireNonNull(phoneNumbers);
         Objects.requireNonNull(luckyNumbers);
-        return new LuckyPhoneBookService(age, name, phoneNumbers.stream().collect(Collectors.toList()), luckyNumbers.stream().collect(Collectors.toList()));
+        return new LuckyPhoneBookService(age, name, phoneNumbers.stream().toList(), luckyNumbers.stream().toList());
     }
 
     public static LuckyPhoneBookService of()
@@ -56,7 +55,7 @@ public class LuckyPhoneBookService
 
     public void setPhoneNumbers(@CasualFieldElement(name = "FLD_STRING2") List<String> l)
     {
-        this.phoneNumbers = l.stream().collect(Collectors.toList());
+        this.phoneNumbers = l.stream().toList();
     }
 
     public void setLuckyNumbers(@CasualFieldElement(name = "FLD_LONG2", lengthName = "FLD_LONG4") List<Integer> numbers)

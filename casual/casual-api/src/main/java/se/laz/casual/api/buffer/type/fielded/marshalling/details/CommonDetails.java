@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * A collection of helper methods for marshalling/unmarshalling
@@ -69,7 +68,7 @@ public final class CommonDetails
     {
         return Arrays.stream(c.getDeclaredFields())
                      .filter(CommonDetails::hasCasualFieldAnnotation)
-                     .collect(Collectors.toList());
+                     .toList();
     }
 
     /**
@@ -82,7 +81,7 @@ public final class CommonDetails
     {
         return Arrays.stream(c.getMethods())
                      .filter(CommonDetails::hasCasualFieldAnnotation)
-                     .collect(Collectors.toList());
+                     .toList();
     }
 
     /**
@@ -94,7 +93,7 @@ public final class CommonDetails
     public static Map<Method, List<ParameterInfo>> getParameterInfo(final Class<?> c)
     {
         List<Method> methods = Arrays.stream(c.getMethods())
-                                     .collect(Collectors.toList());
+                                     .toList();
         Map<Method, List<ParameterInfo>> map = new HashMap<>();
         for(Method m : methods)
         {
@@ -115,7 +114,7 @@ public final class CommonDetails
      */
     public static List<ParameterInfo> getParameterInfo(final Method m)
     {
-        List<Type> genericParameterTypes = Arrays.stream(m.getGenericParameterTypes()).collect(Collectors.toList());
+        List<Type> genericParameterTypes = Arrays.stream(m.getGenericParameterTypes()).toList();
         List<ParameterInfo> parameterInfo = new ArrayList<>();
         Parameter[] parameters = m.getParameters();
         for(int i = 0; i < m.getParameterCount(); ++i)

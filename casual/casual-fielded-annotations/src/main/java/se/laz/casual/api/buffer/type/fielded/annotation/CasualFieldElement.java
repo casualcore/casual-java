@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -137,6 +137,7 @@ public @interface CasualFieldElement
      * That is, if no other mapper is supplied - no mapping will take place
      * @return mapper.
      */
+    @SuppressWarnings("java:S1452")
     Class<? extends CasualObjectMapper<? extends Object, ? extends Object>> mapper() default PassThroughMapper.class;
 
 }

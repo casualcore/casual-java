@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,9 +9,9 @@ package se.laz.casual.api.testdata;
 import se.laz.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class SimpleListPojo implements Serializable
 {
@@ -35,17 +35,17 @@ public class SimpleListPojo implements Serializable
     public static SimpleListPojo of(final List<String> l, final List<Integer> numbers)
     {
         Objects.requireNonNull(l);
-        return new SimpleListPojo(l.stream().collect(Collectors.toList()), numbers.stream().collect(Collectors.toList()));
+        return new SimpleListPojo(new ArrayList<>(l), new ArrayList<>(numbers));
     }
 
     public List<String> getStrings()
     {
-        return strings.stream().collect(Collectors.toList());
+        return strings.stream().toList();
     }
 
     public List<Integer> getNumbers()
     {
-        return numbers.stream().collect(Collectors.toList());
+        return numbers.stream().toList();
     }
 
     @Override

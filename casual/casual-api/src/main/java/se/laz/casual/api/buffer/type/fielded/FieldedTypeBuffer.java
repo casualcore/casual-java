@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -109,6 +109,8 @@ public final class FieldedTypeBuffer implements CasualBuffer
      * @param b the buffer to copy
      * @return a new buffer
      */
+    // java:S6204 - the resulting value list needs to be mutable
+    @SuppressWarnings("java:S6204")
     public static FieldedTypeBuffer of(FieldedTypeBuffer b)
     {
         Objects.requireNonNull(b, "buffer can not be null");
@@ -156,7 +158,8 @@ public final class FieldedTypeBuffer implements CasualBuffer
      * @return the same buffer but containing the new data
      */
     // squid:S1612 - sonar hates lambdas
-    @SuppressWarnings("squid:S1612")
+    // java:S6204 - the resulting value list needs to be mutable
+    @SuppressWarnings({"squid:S1612", "java:S6204"})
     public FieldedTypeBuffer replace(final Map<String, List<FieldedData<?>>> d)
     {
         m = new HashMap<>();
@@ -361,6 +364,8 @@ public final class FieldedTypeBuffer implements CasualBuffer
      * @param remove true if the item should be removed ( destructive {@code readAll} )
      * @return the data or if name is not found, and empty list
      */
+    // java:S6204 - the resulting value list needs to be mutable
+    @SuppressWarnings("java:S6204")
     public List<FieldedData<?>> readAll(final String name, boolean remove)
     {
         List<FieldedData<?>> l = m.get(name);
