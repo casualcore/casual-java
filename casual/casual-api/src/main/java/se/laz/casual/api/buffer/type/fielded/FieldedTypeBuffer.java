@@ -109,14 +109,12 @@ public final class FieldedTypeBuffer implements CasualBuffer
      * @param b the buffer to copy
      * @return a new buffer
      */
-    // java:S6204 - the resulting value list needs to be mutable
-    @SuppressWarnings("java:S6204")
     public static FieldedTypeBuffer of(FieldedTypeBuffer b)
     {
         Objects.requireNonNull(b, "buffer can not be null");
         FieldedTypeBuffer r = FieldedTypeBuffer.create();
         // shallow copy, keys and values are immutable
-        b.m.forEach((key, val) -> r.m.put(key, val.stream().collect(Collectors.toList())));
+        b.m.forEach((key, val) -> r.m.put(key, new ArrayList<>(val)));
         return r;
     }
 
@@ -364,8 +362,6 @@ public final class FieldedTypeBuffer implements CasualBuffer
      * @param remove true if the item should be removed ( destructive {@code readAll} )
      * @return the data or if name is not found, and empty list
      */
-    // java:S6204 - the resulting value list needs to be mutable
-    @SuppressWarnings("java:S6204")
     public List<FieldedData<?>> readAll(final String name, boolean remove)
     {
         List<FieldedData<?>> l = m.get(name);
@@ -377,7 +373,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
         {
             m.remove(name);
         }
-        return l.stream().collect(Collectors.toList());
+        return new ArrayList<>(l);
     }
 
     private <T> FieldedTypeBuffer writeAll(final String name, final List<T> values)
