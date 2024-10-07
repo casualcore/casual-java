@@ -8,25 +8,30 @@ package se.laz.casual.config
 
 import spock.lang.Specification
 
-class ConfigurationKeyTest extends Specification
+class ConfigurationOptionTest extends Specification
 {
+
+    String name = "mykey"
+    ConfigurationOption<String> instance
+
+    def setup()
+    {
+        instance = new ConfigurationOption<>( name )
+    }
 
     def "Get value"()
     {
-        given:
-        String keyValue = "mykey"
-
         when:
-        ConfigurationKey<String> instance = new ConfigurationKey<>( keyValue )
+        ConfigurationOption<String> instance = new ConfigurationOption<>( name )
 
         then:
-        instance.getValue() == keyValue
+        instance.getName() == name
     }
 
     def "No value throws NullPointerExcepiton"()
     {
         when:
-        new ConfigurationKey<Object>( null )
+        new ConfigurationOption<Object>( null )
 
         then:
         thrown NullPointerException
@@ -35,9 +40,8 @@ class ConfigurationKeyTest extends Specification
     def "equals and hashcode"()
     {
         when:
-        ConfigurationKey<String> instance = new ConfigurationKey<>( "mykey" )
-        ConfigurationKey<String> instance2 = new ConfigurationKey<>( "mykey" )
-        ConfigurationKey<Integer> instance3 = new ConfigurationKey<>( "mykey1" )
+        ConfigurationOption<String> instance2 = new ConfigurationOption<>( "mykey" )
+        ConfigurationOption<Integer> instance3 = new ConfigurationOption<>( "mykey1" )
 
         then:
         instance == instance
@@ -49,5 +53,13 @@ class ConfigurationKeyTest extends Specification
         !instance.equals( "String" )
     }
 
+    def "to string"()
+    {
+        when:
+        String actual = instance.toString(  )
+
+        then:
+        actual.contains( name )
+    }
 
 }

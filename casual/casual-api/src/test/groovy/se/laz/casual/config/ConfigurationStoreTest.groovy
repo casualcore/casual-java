@@ -8,7 +8,7 @@ package se.laz.casual.config
 
 import spock.lang.Specification
 
-class NewConfigurationStoreTest extends Specification
+class ConfigurationStoreTest extends Specification
 {
     def "Retrieve using a string key"()
     {
@@ -16,11 +16,10 @@ class NewConfigurationStoreTest extends Specification
         String expected = "UTF8"
 
         when:
-        String actual = NewConfigurationStore.get( ConfigurationKeys.CASUAL_API_FIELDED_ENCODING )
+        String actual = ConfigurationStore.get( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING )
 
         then:
         actual == expected
-
     }
 
     def "Retrieve using an enum key"()
@@ -29,7 +28,7 @@ class NewConfigurationStoreTest extends Specification
         Mode expected = Mode.TRIGGER
 
         when:
-        Mode actual = NewConfigurationStore.get( ConfigurationKeys.CASUAL_INBOUND_STARTUP_MODE )
+        Mode actual = ConfigurationStore.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE )
 
         then:
         actual == expected
@@ -41,7 +40,7 @@ class NewConfigurationStoreTest extends Specification
         List<String> expected = ["service1","service2"]
 
         when:
-        List<String> actual = NewConfigurationStore.get( ConfigurationKeys.CASUAL_INBOUND_STARTUP_SERVICES )
+        List<String> actual = ConfigurationStore.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES )
 
         then:
         actual == expected

@@ -8,19 +8,19 @@ package se.laz.casual.config;
 
 import java.util.Objects;
 
-public class ConfigurationKey<T>
+public class ConfigurationOption<T>
 {
-    private final String value;
+    private final String name;
 
-    public ConfigurationKey(String value )
+    public ConfigurationOption( String name )
     {
-        Objects.requireNonNull( value, "Value is null." );
-        this.value = value;
+        Objects.requireNonNull( name, "Value is null." );
+        this.name = name;
     }
 
-    public String getValue()
+    public String getName()
     {
-        return value;
+        return name;
     }
 
     @Override
@@ -34,21 +34,21 @@ public class ConfigurationKey<T>
         {
             return false;
         }
-        ConfigurationKey<?> that = (ConfigurationKey<?>) o;
-        return Objects.equals( value, that.value );
+        ConfigurationOption<?> that = (ConfigurationOption<?>) o;
+        return Objects.equals( name, that.name );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hashCode( value );
+        return Objects.hashCode( name );
     }
 
     @Override
     public String toString()
     {
-        return "ConfigurationKey{" +
-                "value='" + value + '\'' +
+        return "ConfigurationOption{" +
+                "name='" + name + '\'' +
                 '}';
     }
 }

@@ -66,7 +66,7 @@ class CasualConfigTest extends Specification
       when:
       Configuration actual
       withEnvironmentVariable(Inbound.CASUAL_INBOUND_STARTUP_MODE, modeFromEnv).execute( {
-         actual = JsonProviderFactory.getJsonProvider(  ).fromJson( new StringReader( config ), Configuration.class )
+          actual = JsonProviderFactory.getJsonProvider(  ).fromJson( new StringReader( config ), Configuration.class )
       })
 
       then:
