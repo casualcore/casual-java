@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -144,6 +144,7 @@ public final class UnmarshallerContextImpl<T> implements UnmarshallerContext<T>
         return CommonDetails.getCasuallyAnnotatedFields(getInstance().getClass());
     }
 
+    @SuppressWarnings("java:S3011")
     private T createInstance(Class<T> clazz)
     {
         try

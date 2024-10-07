@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2021-2023, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.work;
 
+import jakarta.resource.spi.work.Work;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.InboundStartupException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
 
-import jakarta.resource.spi.work.Work;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,9 +52,7 @@ public final class StartInboundServerWork<T> implements Work
         Objects.requireNonNull(startupServices, "Startup Services is null.");
         Objects.requireNonNull(consumer, "Consumer is null.");
         Objects.requireNonNull(supplier, "supplier is null");
-        // note: only needed to make the compiler, java 8, not spew out warnings
-        StartInboundServerWork<T> work = new StartInboundServerWork<>(startupServices, logMessage, consumer, supplier, delay);
-        return work;
+        return new StartInboundServerWork<>(startupServices, logMessage, consumer, supplier, delay);
     }
 
     @Override

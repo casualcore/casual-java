@@ -264,9 +264,9 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public WorkManager getWorkManager()
     {
         ResourceAdapter ra = mcf.getResourceAdapter();
-        if(ra instanceof CasualResourceAdapter)
+        if(ra instanceof CasualResourceAdapter resourceAdapter)
         {
-            return ((CasualResourceAdapter) ra).getWorkManager();
+            return resourceAdapter.getWorkManager();
         }
         throw new CasualResourceAdapterException("resource adapter should be a casual resource adapter");
     }

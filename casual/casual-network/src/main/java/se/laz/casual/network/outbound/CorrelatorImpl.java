@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -16,7 +16,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public final class CorrelatorImpl implements Correlator
 {
@@ -67,8 +66,7 @@ public final class CorrelatorImpl implements Correlator
     @Override
     public void completeAllExceptionally(Exception e)
     {
-        completeExceptionally(requests.keySet().stream()
-                                      .collect(Collectors.toList()), e);
+        completeExceptionally(requests.keySet().stream().toList(), e);
     }
 
     @Override

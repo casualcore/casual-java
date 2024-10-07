@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,11 +9,12 @@ package se.laz.casual.jca.inbound.handler.service.casual;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * Internal Registry for discovered EJB endpoints with CasualService annotation to allow inbound requests to be dispatched.
  */
+// yes it is intentional
+@SuppressWarnings("java:S6548")
 public final class CasualServiceRegistry
 {
     private final Map<String,CasualServiceMetaData> serviceMetaData;
@@ -74,7 +75,7 @@ public final class CasualServiceRegistry
 
     public List<CasualServiceMetaData> getUnresolvedServices()
     {
-        return serviceMetaData.values().stream().filter(CasualServiceMetaData::isUnresolved).collect(Collectors.toList());
+        return serviceMetaData.values().stream().filter(CasualServiceMetaData::isUnresolved).toList();
     }
 
     public void clear()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -114,7 +114,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
         Objects.requireNonNull(b, "buffer can not be null");
         FieldedTypeBuffer r = FieldedTypeBuffer.create();
         // shallow copy, keys and values are immutable
-        b.m.forEach((key, val) -> r.m.put(key, val.stream().collect(Collectors.toList())));
+        b.m.forEach((key, val) -> r.m.put(key, new ArrayList<>(val)));
         return r;
     }
 
@@ -156,7 +156,8 @@ public final class FieldedTypeBuffer implements CasualBuffer
      * @return the same buffer but containing the new data
      */
     // squid:S1612 - sonar hates lambdas
-    @SuppressWarnings("squid:S1612")
+    // java:S6204 - the resulting value list needs to be mutable
+    @SuppressWarnings({"squid:S1612", "java:S6204"})
     public FieldedTypeBuffer replace(final Map<String, List<FieldedData<?>>> d)
     {
         m = new HashMap<>();
@@ -372,7 +373,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
         {
             m.remove(name);
         }
-        return l.stream().collect(Collectors.toList());
+        return new ArrayList<>(l);
     }
 
     private <T> FieldedTypeBuffer writeAll(final String name, final List<T> values)

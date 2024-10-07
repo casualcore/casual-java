@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class CasualDomainConnectRequestMessage implements CasualNetworkTransmittable
 {
@@ -118,7 +117,7 @@ public class CasualDomainConnectRequestMessage implements CasualNetworkTransmitt
 
     public List<Long> getProtocols()
     {
-        return protocols.stream().collect(Collectors.toList());
+        return protocols.stream().toList();
     }
 
     public static Builder createBuilder()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -90,13 +90,13 @@ public class JndiUtil
             try
             {
                 Object tmp = ctx.lookup(name);
-                if (tmp instanceof Context)
+                if (tmp instanceof Context context)
                 {
-                    results.putAll(findAllProxyInstance((Context) tmp, childPath));
+                    results.putAll(findAllProxyInstance(context, childPath));
                 }
-                else if (tmp instanceof Proxy)
+                else if (tmp instanceof Proxy proxy)
                 {
-                    results.put(childPath, (Proxy) tmp);
+                    results.put(childPath, proxy);
                 }
             }
             catch(NamingException e)
