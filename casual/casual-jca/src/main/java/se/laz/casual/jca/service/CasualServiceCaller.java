@@ -109,7 +109,7 @@ public class CasualServiceCaller implements CasualServiceApi
         {
             f.complete(Optional.empty());
         }
-        return f;               
+        return f;
     }
 
     private void throwIfTpCallFlagsInvalid(String serviceName, Flag<AtmiFlags> flags)
