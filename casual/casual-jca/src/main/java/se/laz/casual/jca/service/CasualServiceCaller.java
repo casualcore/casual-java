@@ -173,7 +173,6 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setXatmiFlags(flags).build();
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
         LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
-
         if(noReply)
         {
             connection.getNetworkConnection().requestNoReply(serviceRequestNetworkMessage);
@@ -181,7 +180,6 @@ public class CasualServiceCaller implements CasualServiceApi
         }
         return Optional.of(connection.getNetworkConnection().request(serviceRequestNetworkMessage));
     }
-    
     private CasualNWMessage<CasualDomainDiscoveryReplyMessage> serviceDiscovery(UUID corrid, String serviceName)
     {
         LOG.finest(() -> "issuing domain discovery, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
