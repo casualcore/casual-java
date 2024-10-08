@@ -61,8 +61,8 @@ public class ConfigurationEnvsReader
 
     private static void populateEventServerShutdown( ConfigurationStore store )
     {
-        storeIntegerIfPresent( store, ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS );
-        storeIntegerIfPresent( store, ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS );
+        storeLongIfPresent( store, ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS );
+        storeLongIfPresent( store, ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS );
     }
 
     private static void populateEpoll( ConfigurationStore store )

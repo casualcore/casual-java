@@ -26,6 +26,9 @@ public class ConfigurationFileReader
         store.put( ConfigurationOptions.CASUAL_DOMAIN_NAME, configuration.getDomain().getName() );
 
         populateInbound( store, configuration.getInbound() );
+
+        configuration.getEventServer().ifPresent( e -> populateEventServer( store, e ) );
+
     }
 
     private static Configuration readFile( String filename )
@@ -37,6 +40,19 @@ public class ConfigurationFileReader
         catch( FileNotFoundException e  )
         {
             throw new ConfigurationException( "Could not find configuration file specified.", e );
+        }
+    }
+
+    private static void populateEventServer( ConfigurationStore store, EventServer eventServer )
+    {
+        store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL, eventServer.isUseEpoll() );
+        store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT, eventServer.getPortNumber() );
+
+        Shutdown shutdown = eventServer.getShutdown();
+        if( shutdown != null )
+        {
+            store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS, shutdown.getQuietPeriod() );
+            store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS, shutdown.getTimeout() );
         }
     }
 

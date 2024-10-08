@@ -51,8 +51,8 @@ public class ConfigurationStore
         put( ConfigurationOptions.CASUAL_USE_EPOLL, false ); //TODO check what default should be.
 
         put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS, 0L );
-        put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS, 2000 );
-        put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS, 15000 );
+        put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS, 2000L );
+        put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS, 15000L );
 
         put( ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE, 10 );
         put( ConfigurationOptions.CASUAL_UNMANAGED, false ); //TODO check what default should be.

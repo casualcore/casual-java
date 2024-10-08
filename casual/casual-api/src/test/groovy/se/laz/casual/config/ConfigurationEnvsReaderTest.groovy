@@ -193,8 +193,8 @@ class ConfigurationEnvsReaderTest extends Specification
             ConfigurationEnvsReader.populateStoreFromEnvs( store )
         }
 
-        int actualQuiet = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS )
-        int actualTimeout = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS )
+        long actualQuiet = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS )
+        long actualTimeout = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS )
 
         then:
         actualQuiet == expectedQuiet
@@ -202,10 +202,10 @@ class ConfigurationEnvsReaderTest extends Specification
 
         where:
         quiet | timeout || expectedQuiet | expectedTimeout
-        "10"  | "11"    || 10            | 11
-        ""    | ""      || 2000          | 15000
-        " "   | " "     || 2000          | 15000
-        null  | null    || 2000          | 15000
+        "10"  | "11"    || 10L            | 11L
+        ""    | ""      || 2000L          | 15000L
+        " "   | " "     || 2000L          | 15000L
+        null  | null    || 2000L          | 15000L
     }
 
     def "With unmanaged envs"()

@@ -30,8 +30,8 @@ public class ConfigurationOptions
     public static final ConfigurationOption<Boolean> CASUAL_INBOUND_USE_EPOLL = new ConfigurationOption<>( "CASUAL_INBOUND_USE_EPOLL" );
     public static final ConfigurationOption<Boolean> CASUAL_USE_EPOLL = new ConfigurationOption<>( "CASUAL_USE_EPOLL" );
     public static final ConfigurationOption<Long> CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS = new ConfigurationOption<>( "CASUAL_INBOUND_INITIAL_DELAY_SECONDS" );
-    public static final ConfigurationOption<Integer> CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_SECONDS" );
-    public static final ConfigurationOption<Integer> CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_SECONDS" );
+    public static final ConfigurationOption<Long> CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_SECONDS" );
+    public static final ConfigurationOption<Long> CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_SECONDS" );
     public static final ConfigurationOption<Integer> CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE = new ConfigurationOption<>( "CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE" );
     public static final ConfigurationOption<Boolean> CASUAL_UNMANAGED = new ConfigurationOption<>( "CASUAL_UNMANAGED" );
     public static final ConfigurationOption<List<String>> CASUAL_INBOUND_STARTUP_SERVICES = new ConfigurationOption<>( "CASUAL_INBOUND_STARTUP_SERVICES" );
