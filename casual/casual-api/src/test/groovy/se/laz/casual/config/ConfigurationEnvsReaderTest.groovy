@@ -114,8 +114,191 @@ class ConfigurationEnvsReaderTest extends Specification
         null    | null     | null    || "INFO"          | "INFO"           | "INFO"
     }
 
+    def "With inbound startup mode"()
+    {
+        when:
+        SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE.getName(  ), mode ).execute {
+            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+        }
+        Mode actual = store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE )
+
+        then:
+        actual == expected
+
+        where:
+        mode                     || expected
+        Mode.IMMEDIATE.getName() || Mode.IMMEDIATE
+        Mode.TRIGGER.getName()   || Mode.TRIGGER
+        Mode.DISCOVER.getName()  || Mode.DISCOVER
+        ""                       || Mode.IMMEDIATE
+        " "                      || Mode.IMMEDIATE
+        null                     || Mode.IMMEDIATE
+    }
+
+    def "With inbound startup delay"()
+    {
+        when:
+        SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS.getName(  ), delay ).execute {
+            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+        }
+        Long actual = store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS )
+
+        then:
+        actual == expected
+
+        where:
+        delay || expected
+        "100" || 100L
+        "1"   || 1L
+        "15"  || 15L
+        ""    || 0L
+        " "   || 0L
+        null  || 0L
+    }
+
+    def "With epoll envs"()
+    {
+        when:
+        SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL.getName(), outbound )
+                .and( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL.getName(), inbound )
+                .and( ConfigurationOptions.CASUAL_USE_EPOLL.getName(), epoll ).execute {
+            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+        }
+        Boolean actualInbound = store.get( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL )
+        Boolean actualOutbound = store.get( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL )
+        Boolean actualReverse = store.get( ConfigurationOptions.CASUAL_USE_EPOLL )
+
+        then:
+        actualInbound == expectedInbound
+        actualOutbound == expectedOutbound
+        actualReverse == expectedEpoll
+
+        where:
+        inbound | outbound | epoll   || expectedInbound | expectedOutbound | expectedEpoll
+        "false" | "false"  | "true"  || false           | false            | true
+        "false" | "true"   | "false" || false           | true             | false
+        "true"  | "false"  | "false" || true            | false            | false
+        "false" | "false"  | "false" || false           | false            | false
+        "true"  | "true"   | "true"  || true            | true             | true
+        ""      | ""       | ""      || false           | false            | false
+        " "     | " "      | " "     || false           | false            | false
+        null    | null     | null    || false           | false            | false
+    }
+
+    def "With event server shutdown envs"()
+    {
+        when:
+        SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS.getName(), quiet )
+                .and( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS.getName(), timeout ).execute {
+            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+        }
+
+        int actualQuiet = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS )
+        int actualTimeout = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS )
+
+        then:
+        actualQuiet == expectedQuiet
+        actualTimeout == expectedTimeout
+
+        where:
+        quiet | timeout || expectedQuiet | expectedTimeout
+        "10"  | "11"    || 10            | 11
+        ""    | ""      || 2000          | 15000
+        " "   | " "     || 2000          | 15000
+        null  | null    || 2000          | 15000
+    }
+
+    def "With unmanaged envs"()
+    {
+        when:
+        SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE.getName(), poolSize )
+                .and( ConfigurationOptions.CASUAL_UNMANAGED.getName(), unmanaged ).execute {
+            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+        }
+
+        int actualPoolSize = store.get( ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE )
+        boolean actualUnmanaged = store.get( ConfigurationOptions.CASUAL_UNMANAGED )
+
+        then:
+        actualPoolSize == expectedPoolSize
+        actualUnmanaged == expectedUnmanaged
+
+        where:
+        poolSize | unmanaged || expectedPoolSize | expectedUnmanaged
+        "12"     | "true"    || 12               | true
+        ""       | ""        || 10               | false
+        " "      | " "       || 10               | false
+        null     | null      || 10               | false
+    }
+
+    def "With outbound unmanaged envs"()
+    {
+        when:
+        SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS.getName(), threads )
+                .and( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME.getName(), name ).execute {
+            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+        }
+
+        int actualThreads = store.get( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS )
+        String actualName = store.get( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME )
+
+        then:
+        actualThreads == expectedThreads
+        actualName == expectedName
+
+        where:
+        threads | name      || expectedThreads | expectedName
+        "12"    | "another" || 12              | "another"
+        ""      | ""        || 0               | "java:comp/DefaultManagedExecutorService"
+        " "     | " "       || 0               | "java:comp/DefaultManagedExecutorService"
+        null    | null      || 0               | "java:comp/DefaultManagedExecutorService"
+    }
+
+    def "With event server envs"()
+    {
+        when:
+        SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT.getName(), port )
+                .and( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL.getName(), epoll ).execute {
+            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+        }
+
+        int actualPort = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT )
+        boolean actualEpoll = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL )
+
+        then:
+        actualPort == expectedPort
+        actualEpoll == expectedEpoll
+
+        where:
+        port   | epoll  || expectedPort | expectedEpoll
+        "1212" | "true" || 1212         | true
+        ""     | ""     || 7698         | false
+        " "    | " "    || 7698         | false
+        null   | null   || 7698         | false
+    }
+
+
+
     //TODO check conversions that are invalid values e.g. boolean with "xyz" or integer with "false".
-    //TODO what should we do when there is a value which maps to an enum and the value does not match?
+    //TODO what should we do when there is a value which maps to an enum and the value does not match? Fail Fast. //DONE
     //TODO netty log level, should that be an enum?
+    //TODO What is the default for unmanaged, why negation?! Why that name, feels very clunky, it's related to the executor service?
+    //TODO Where should defaults in the tests come from? Can I just use the existing store value?
+
+    def "incorrect data types that fail to cast throw CasualConfigException."()
+    {
+        when:
+        SystemLambda.withEnvironmentVariable( option.getName(  ), value ).execute {
+            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+        }
+
+        then:
+        thrown ConfigurationException
+
+        where:
+        option | value
+        ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE                      | "unknown"
+        ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS     | "true"
+    }
 
 }

@@ -35,4 +35,16 @@ public class ConfigurationOptions
     public static final ConfigurationOption<Integer> CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE = new ConfigurationOption<>( "CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE" );
     public static final ConfigurationOption<Boolean> CASUAL_UNMANAGED = new ConfigurationOption<>( "CASUAL_UNMANAGED" );
     public static final ConfigurationOption<List<String>> CASUAL_INBOUND_STARTUP_SERVICES = new ConfigurationOption<>( "CASUAL_INBOUND_STARTUP_SERVICES" );
+
+    //TODO Why can't we set the inbound port here too? I know there is the JCA way of doing it with ra.xml or something but still, could we somehow add this?
+
+    public static final ConfigurationOption<List<ReverseInbound>> CASUAL_REVERSE_INBOUND_INSTANCES = new ConfigurationOption<>( "CASUAL_REVERSE_INBOUND_INSTANCES" );
+
+    //TODO New Environment Variables to add to configuration.md
+    public static final ConfigurationOption<String> CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME = new ConfigurationOption<>( "CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME" );
+    public static final ConfigurationOption<Integer> CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS = new ConfigurationOption<>( "CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS" );
+
+    public static final ConfigurationOption<Integer> CASUAL_EVENT_SERVER_PORT = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_PORT" );
+    public static final ConfigurationOption<Boolean> CASUAL_EVENT_SERVER_USE_EPOLL = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_USE_EPOLL" );
+
 }

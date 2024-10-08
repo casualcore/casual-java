@@ -36,7 +36,7 @@ public class ConfigurationStore
         put( ConfigurationOptions.CASUAL_DOMAIN_NAME, "" );
 
         put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE, Mode.IMMEDIATE );
-        put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES, Collections.emptyList() );
+        put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES, Collections.emptyList() ); //TODO fix this if TRIGGER is used.
 
         put( ConfigurationOptions.CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER, false );
         put( ConfigurationOptions.CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER, false );
@@ -53,8 +53,19 @@ public class ConfigurationStore
         put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS, 0L );
         put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS, 2000 );
         put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS, 15000 );
+
         put( ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE, 10 );
         put( ConfigurationOptions.CASUAL_UNMANAGED, false ); //TODO check what default should be.
+
+        put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS, 0 );
+        put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME, "java:comp/DefaultManagedExecutorService" );
+
+        put( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT, 7698 );
+        put( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL, false ); //TODO check what default should be.
+
+        put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES, Collections.emptyList() );
+
+
     }
 
     /**
@@ -76,6 +87,7 @@ public class ConfigurationStore
      * @return value of stored configuration option.
      * @param <T> type of the configuration option value.
      */
+    // Values are only stored with the right type and type erasure prevents prior check with instanceof.
     @SuppressWarnings( "unchecked" )
     public <T> T get( final ConfigurationOption<T> option )
     {
