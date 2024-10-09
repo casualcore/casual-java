@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -58,10 +58,16 @@ public class CasualServiceCaller implements CasualServiceApi
     @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
+        return tpcall(serviceName, data, flags, UUID.randomUUID());
+    }
+
+    @Override
+    public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution)
+    {
         try
         {
             throwIfTpCallFlagsInvalid(serviceName, flags);
-            return tpacall(serviceName, data, flags).join().orElseThrow(() -> new CasualConnectionException("result is missing, it should always be returned"));
+            return issueAsyncCall(serviceName, data, flags, execution).join().orElseThrow(() -> new CasualConnectionException("result is missing, it should always be returned"));
         }
         catch (Exception e)
         {
@@ -72,11 +78,22 @@ public class CasualServiceCaller implements CasualServiceApi
     @Override
     public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
+        return tpacall(serviceName, data, flags, UUID.randomUUID());
+    }
+
+    @Override
+    public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution)
+    {
         throwIfTpacallFlagsInvalid(serviceName, flags);
+        return issueAsyncCall(serviceName, data, flags, execution);
+    }
+
+    private CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> issueAsyncCall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution)
+    {
         CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> f = new CompletableFuture<>();
         UUID corrId = UUID.randomUUID();
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
-        Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, noReply);
+        Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, execution, noReply);
         maybeServiceReturnValue.ifPresent(casualNWMessageCompletableFuture ->
             casualNWMessageCompletableFuture.whenComplete((v, e) -> {
                 if (null != e)
@@ -144,11 +161,11 @@ public class CasualServiceCaller implements CasualServiceApi
         return serviceDetailsList;
     }
 
-    private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, boolean noReply)
+    private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution, boolean noReply)
     {
         Duration timeout = Duration.of(connection.getTransactionTimeout(), ChronoUnit.SECONDS);
         CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
-                .setExecution(UUID.randomUUID())
+                .setExecution(execution)
                 .setServiceBuffer(ServiceBuffer.of(data))
                 .setServiceName(serviceName)
                 .setXid(connection.getCurrentXid())
@@ -163,7 +180,6 @@ public class CasualServiceCaller implements CasualServiceApi
         }
         return Optional.of(connection.getNetworkConnection().request(serviceRequestNetworkMessage));
     }
-
     private CasualNWMessage<CasualDomainDiscoveryReplyMessage> serviceDiscovery(UUID corrid, String serviceName)
     {
         LOG.finest(() -> "issuing domain discovery, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
