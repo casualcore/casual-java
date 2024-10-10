@@ -19,146 +19,157 @@ import java.util.logging.Logger;
  */
 public class ConfigurationEnvsReader
 {
-    private static final Logger logger = Logger.getLogger(ConfigurationEnvsReader.class.getName());
+    private static final Logger logger = Logger.getLogger( ConfigurationEnvsReader.class.getName() );
+
+    private final ConfigurationStore store;
+
+    public ConfigurationEnvsReader( ConfigurationStore store )
+    {
+        this.store = store;
+    }
+
     /**
      * Populate configuration store with value for a configuration file if the environment variable is set.
      */
-    public static void populateConfigFileEnv( ConfigurationStore store )
+    public void populateConfigFileEnv()
     {
-        storeStringIfPresent( store, ConfigurationOptions.CASUAL_CONFIG_FILE );
+        storeStringIfPresent( ConfigurationOptions.CASUAL_CONFIG_FILE );
     }
 
-    public static void populateStoreFromEnvs( ConfigurationStore store )
+    /**
+     * Populate configuration store with all known values present in the environment variables.
+     */
+    public void populateStoreFromEnvs()
     {
-        populateFieldedEnvs( store );
-        populateLogHandlers( store );
-        populateNettyLogLevels( store );
-        populateInbound( store );
-        populateEpoll( store );
-        populateEventServer( store );
-        populateUnmanaged( store );
-        populateOutbound( store );
+        populateFieldedEnvs();
+        populateLogHandlers();
+        populateNettyLogLevels();
+        populateInbound();
+        populateEpoll();
+        populateEventServer();
+        populateUnmanaged();
+        populateOutbound();
     }
 
-    private static void populateOutbound( ConfigurationStore store )
+    private void populateOutbound()
     {
-        storeIntegerIfPresent( store, ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS );
-        storeStringIfPresent( store, ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME );
+        storeIntegerIfPresent( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS );
+        storeStringIfPresent( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME );
     }
 
-    private static void populateUnmanaged( ConfigurationStore store )
+    private void populateUnmanaged()
     {
-        storeIntegerIfPresent( store, ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE );
-        storeBooleanIfPresent( store, ConfigurationOptions.CASUAL_UNMANAGED );
+        storeIntegerIfPresent( ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE );
+        storeBooleanIfPresent( ConfigurationOptions.CASUAL_UNMANAGED );
     }
 
-    private static void populateEventServer( ConfigurationStore store )
+    private void populateEventServer()
     {
-        storeIntegerIfPresent( store, ConfigurationOptions.CASUAL_EVENT_SERVER_PORT );
-        storeBooleanIfPresent( store, ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL );
-        populateEventServerShutdown( store );
+        storeIntegerIfPresent( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT );
+        storeBooleanIfPresent( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL );
+        populateEventServerShutdown();
     }
 
-    private static void populateEventServerShutdown( ConfigurationStore store )
+    private void populateEventServerShutdown()
     {
-        storeLongIfPresent( store, ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS );
-        storeLongIfPresent( store, ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS );
+        storeLongIfPresent( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS );
+        storeLongIfPresent( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS );
     }
 
-    private static void populateEpoll( ConfigurationStore store )
+    private void populateEpoll()
     {
-        storeBooleanIfPresent( store, ConfigurationOptions.CASUAL_USE_EPOLL );
-        storeBooleanIfPresent( store, ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL );
-        storeBooleanIfPresent( store, ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL );
+        storeBooleanIfPresent( ConfigurationOptions.CASUAL_USE_EPOLL );
+        storeBooleanIfPresent( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL );
+        storeBooleanIfPresent( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL );
     }
 
-    private static void populateInbound( ConfigurationStore store )
+    private void populateInbound()
     {
-        populateInboundStartupMode( store );
-        storeLongIfPresent( store, ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS );
+        populateInboundStartupMode();
+        storeLongIfPresent( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS );
     }
 
-    private static void populateInboundStartupMode( ConfigurationStore store )
+    private void populateInboundStartupMode()
     {
-        storeModeIfPresent( store, ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE );
+        storeModeIfPresent( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE );
     }
 
-    private static void populateNettyLogLevels( ConfigurationStore store )
+    private void populateNettyLogLevels()
     {
-        storeStringIfPresent( store, ConfigurationOptions.CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL );
-        storeStringIfPresent( store, ConfigurationOptions.CASUAL_INBOUND_NETTY_LOGGING_LEVEL );
-        storeStringIfPresent( store, ConfigurationOptions.CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL );
+        storeStringIfPresent( ConfigurationOptions.CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL );
+        storeStringIfPresent( ConfigurationOptions.CASUAL_INBOUND_NETTY_LOGGING_LEVEL );
+        storeStringIfPresent( ConfigurationOptions.CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL );
     }
 
-    private static void populateLogHandlers( ConfigurationStore store )
+    private void populateLogHandlers()
     {
-        storeBooleanIfPresent( store, ConfigurationOptions.CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER );
-        storeBooleanIfPresent( store, ConfigurationOptions.CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER );
-        storeBooleanIfPresent( store, ConfigurationOptions.CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER );
+        storeBooleanIfPresent( ConfigurationOptions.CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER );
+        storeBooleanIfPresent( ConfigurationOptions.CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER );
+        storeBooleanIfPresent( ConfigurationOptions.CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER );
     }
 
-    private static void populateFieldedEnvs( ConfigurationStore store )
+    private void populateFieldedEnvs()
     {
-        storeStringIfPresent( store, ConfigurationOptions.CASUAL_API_FIELDED_ENCODING );
-        storeStringIfPresent( store, ConfigurationOptions.CASUAL_FIELD_TABLE );
+        storeStringIfPresent( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING );
+        storeStringIfPresent( ConfigurationOptions.CASUAL_FIELD_TABLE );
     }
 
-    private static void storeStringIfPresent( ConfigurationStore store, ConfigurationOption<String> option )
+    private void storeStringIfPresent( ConfigurationOption<String> option )
     {
-        storeIfPresent( store, option, ConfigurationEnvsReader::getEnvAsString );
+        storeIfPresent( option, this::getEnvAsString );
     }
 
-    private static void storeBooleanIfPresent( ConfigurationStore store, ConfigurationOption<Boolean> option )
+    private void storeBooleanIfPresent( ConfigurationOption<Boolean> option )
     {
-        storeIfPresent( store, option, ConfigurationEnvsReader::getEnvAsBoolean );
+        storeIfPresent( option, this::getEnvAsBoolean );
     }
 
-    private static void storeIntegerIfPresent( ConfigurationStore store, ConfigurationOption<Integer> option )
+    private void storeIntegerIfPresent( ConfigurationOption<Integer> option )
     {
-        storeIfPresent( store, option, ConfigurationEnvsReader::getEnvAsInteger );
+        storeIfPresent( option, this::getEnvAsInteger );
     }
 
-    private static void storeLongIfPresent( ConfigurationStore store, ConfigurationOption<Long> option )
+    private void storeLongIfPresent( ConfigurationOption<Long> option )
     {
-        storeIfPresent( store, option, ConfigurationEnvsReader::getEnvAsLong );
+        storeIfPresent( option, this::getEnvAsLong );
     }
 
-    private static void storeModeIfPresent( ConfigurationStore store, ConfigurationOption<Mode> option )
+    private void storeModeIfPresent( ConfigurationOption<Mode> option )
     {
-        storeIfPresent( store, option, ConfigurationEnvsReader::getEnvAsMode );
+        storeIfPresent( option, this::getEnvAsMode );
     }
 
-    private static <T> void storeIfPresent( ConfigurationStore store, ConfigurationOption<T> option, Function<String,Optional<T>> getEnvFunction )
+    private <T> void storeIfPresent( ConfigurationOption<T> option, Function<String, Optional<T>> getEnvFunction )
     {
         getEnvFunction.apply( option.getName() ).ifPresent( value -> store.put( option, value ) );
     }
 
-    private static Optional<String> getEnvAsString( String name )
+    private Optional<String> getEnvAsString( String name )
     {
         return Optional.ofNullable( System.getenv( name ) ).map( env -> env.isBlank() ? null : env );
     }
 
-    private static Optional<Integer> getEnvAsInteger( String name )
+    private Optional<Integer> getEnvAsInteger( String name )
     {
         return getEnvAsString( name ).map( v -> castOrThrow( name, v, Integer::parseInt ) );
     }
 
-    private static Optional<Long> getEnvAsLong( String name )
+    private Optional<Long> getEnvAsLong( String name )
     {
         return getEnvAsString( name ).map( v -> castOrThrow( name, v, Long::parseLong ) );
     }
 
-    private static Optional<Boolean> getEnvAsBoolean( String name )
+    private Optional<Boolean> getEnvAsBoolean( String name )
     {
         return getEnvAsString( name ).map( v -> castOrThrow( name, v, Boolean::parseBoolean ) );
     }
 
-    private static Optional<Mode> getEnvAsMode( String name )
+    private Optional<Mode> getEnvAsMode( String name )
     {
         return getEnvAsString( name ).map( v -> castOrThrow( name, v, Mode::fromName ) );
     }
 
-    private static <T> T castOrThrow( String name, String value, Function<String,T> castFunction)
+    private <T> T castOrThrow( String name, String value, Function<String, T> castFunction )
     {
         try
         {
@@ -166,7 +177,8 @@ public class ConfigurationEnvsReader
         }
         catch( IllegalArgumentException e )
         {
-            Supplier<String> message = ()-> "Invalid environment variable data: " + name + " has value: '" + value + "'.";
+            Supplier<String> message =
+                    () -> "Invalid environment variable data: " + name + " has value: '" + value + "'.";
             logger.severe( message );
             throw new ConfigurationException( message.get(), e );
         }

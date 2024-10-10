@@ -12,17 +12,19 @@ import spock.lang.Specification
 class ConfigurationEnvsReaderTest extends Specification
 {
     ConfigurationStore store;
+    ConfigurationEnvsReader instance
 
     def setup()
     {
         store = new ConfigurationStore();
+        instance = new ConfigurationEnvsReader( store )
     }
 
     def "With config file set."()
     {
         when:
         SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_CONFIG_FILE.getName(  ), value ).execute {
-            ConfigurationEnvsReader.populateConfigFileEnv( store )
+            instance.populateConfigFileEnv( )
         }
         String actual = store.get( ConfigurationOptions.CASUAL_CONFIG_FILE )
 
@@ -41,7 +43,7 @@ class ConfigurationEnvsReaderTest extends Specification
         when:
         SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING.getName(  ), encoding )
                 .and( ConfigurationOptions.CASUAL_FIELD_TABLE.getName(  ), table ).execute {
-            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+            instance.populateStoreFromEnvs( )
         }
         String actualEncoding = store.get( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING )
         String actualTable = store.get( ConfigurationOptions.CASUAL_FIELD_TABLE )
@@ -64,7 +66,7 @@ class ConfigurationEnvsReaderTest extends Specification
         SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER.getName(  ), outbound )
                 .and( ConfigurationOptions.CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER.getName(  ), inbound )
                 .and( ConfigurationOptions.CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER.getName(  ), reverse ).execute {
-            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+            instance.populateStoreFromEnvs( )
         }
         Boolean actualInbound = store.get( ConfigurationOptions.CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER )
         Boolean actualOutbound = store.get( ConfigurationOptions.CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER )
@@ -93,7 +95,7 @@ class ConfigurationEnvsReaderTest extends Specification
         SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL.getName(  ), outbound )
                 .and( ConfigurationOptions.CASUAL_INBOUND_NETTY_LOGGING_LEVEL.getName(  ), inbound )
                 .and( ConfigurationOptions.CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL.getName(  ), reverse ).execute {
-            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+            instance.populateStoreFromEnvs( )
         }
         String actualInbound = store.get( ConfigurationOptions.CASUAL_INBOUND_NETTY_LOGGING_LEVEL )
         String actualOutbound = store.get( ConfigurationOptions.CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL )
@@ -118,7 +120,7 @@ class ConfigurationEnvsReaderTest extends Specification
     {
         when:
         SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE.getName(  ), mode ).execute {
-            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+            instance.populateStoreFromEnvs( )
         }
         Mode actual = store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE )
 
@@ -139,7 +141,7 @@ class ConfigurationEnvsReaderTest extends Specification
     {
         when:
         SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS.getName(  ), delay ).execute {
-            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+            instance.populateStoreFromEnvs( )
         }
         Long actual = store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS )
 
@@ -162,7 +164,7 @@ class ConfigurationEnvsReaderTest extends Specification
         SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL.getName(), outbound )
                 .and( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL.getName(), inbound )
                 .and( ConfigurationOptions.CASUAL_USE_EPOLL.getName(), epoll ).execute {
-            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+            instance.populateStoreFromEnvs( )
         }
         Boolean actualInbound = store.get( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL )
         Boolean actualOutbound = store.get( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL )
@@ -190,7 +192,7 @@ class ConfigurationEnvsReaderTest extends Specification
         when:
         SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS.getName(), quiet )
                 .and( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS.getName(), timeout ).execute {
-            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+            instance.populateStoreFromEnvs( )
         }
 
         long actualQuiet = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS )
@@ -213,7 +215,7 @@ class ConfigurationEnvsReaderTest extends Specification
         when:
         SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE.getName(), poolSize )
                 .and( ConfigurationOptions.CASUAL_UNMANAGED.getName(), unmanaged ).execute {
-            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+            instance.populateStoreFromEnvs( )
         }
 
         int actualPoolSize = store.get( ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE )
@@ -236,7 +238,7 @@ class ConfigurationEnvsReaderTest extends Specification
         when:
         SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS.getName(), threads )
                 .and( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME.getName(), name ).execute {
-            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+            instance.populateStoreFromEnvs( )
         }
 
         int actualThreads = store.get( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS )
@@ -259,7 +261,7 @@ class ConfigurationEnvsReaderTest extends Specification
         when:
         SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT.getName(), port )
                 .and( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL.getName(), epoll ).execute {
-            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+            instance.populateStoreFromEnvs( )
         }
 
         int actualPort = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT )
@@ -289,7 +291,7 @@ class ConfigurationEnvsReaderTest extends Specification
     {
         when:
         SystemLambda.withEnvironmentVariable( option.getName(  ), value ).execute {
-            ConfigurationEnvsReader.populateStoreFromEnvs( store )
+            instance.populateStoreFromEnvs( )
         }
 
         then:

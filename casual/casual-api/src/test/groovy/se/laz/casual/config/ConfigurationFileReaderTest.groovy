@@ -12,10 +12,12 @@ class ConfigurationFileReaderTest extends Specification
 {
 
     ConfigurationStore store;
+    ConfigurationFileReader instance
 
     def setup()
     {
         store = new ConfigurationStore();
+        instance = new ConfigurationFileReader( store )
     }
 
     def "Read file inbound startup discover, store updated"()
@@ -24,7 +26,7 @@ class ConfigurationFileReaderTest extends Specification
         String file = "src/test/resources/casual-config-discover.json"
 
         when:
-        ConfigurationFileReader.populateStoreFromFile( store, file )
+        instance.populateStoreFromFile( file )
 
         then:
         store.get( ConfigurationOptions.CASUAL_DOMAIN_NAME ) == ""
@@ -38,7 +40,7 @@ class ConfigurationFileReaderTest extends Specification
         String file = "src/test/resources/" + filename
 
         when:
-        ConfigurationFileReader.populateStoreFromFile( store, file )
+        instance.populateStoreFromFile( file )
 
         then:
         store.get( ConfigurationOptions.CASUAL_DOMAIN_NAME ) == expected
@@ -57,7 +59,7 @@ class ConfigurationFileReaderTest extends Specification
         String file = "src/test/resources/" + filename
 
         when:
-        ConfigurationFileReader.populateStoreFromFile( store, file )
+        instance.populateStoreFromFile( file )
 
         then:
         port == store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT )
@@ -78,7 +80,7 @@ class ConfigurationFileReaderTest extends Specification
         String file = "src/test/resources/" + filename
 
         when:
-        ConfigurationFileReader.populateStoreFromFile( store, file )
+        instance.populateStoreFromFile( file )
 
         then:
         mode == store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE )
@@ -101,7 +103,7 @@ class ConfigurationFileReaderTest extends Specification
         String file = "src/test/resources/" + filename
 
         when:
-        ConfigurationFileReader.populateStoreFromFile( store, file )
+        instance.populateStoreFromFile( file )
 
         then:
         executorName == store.get( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME )
@@ -126,7 +128,7 @@ class ConfigurationFileReaderTest extends Specification
         ReverseInbound expected = ReverseInbound.of( Address.of( host, port ),size, backoff )
 
         when:
-        ConfigurationFileReader.populateStoreFromFile( store, file )
+        instance.populateStoreFromFile( file )
 
         List<ReverseInbound> actual = store.get( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES )
 

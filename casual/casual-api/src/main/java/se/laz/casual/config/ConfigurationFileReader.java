@@ -17,20 +17,28 @@ import java.util.List;
  */
 public class ConfigurationFileReader
 {
+    private final ConfigurationStore store;
+
+    public ConfigurationFileReader( ConfigurationStore store )
+    {
+        this.store = store;
+    }
+
     /**
      * Populate from the provided file.
+     *
      * @param filename
      */
-    public static void populateStoreFromFile( ConfigurationStore store, String filename )
+    public void populateStoreFromFile( String filename )
     {
         Configuration configuration = readFile( filename );
         store.put( ConfigurationOptions.CASUAL_DOMAIN_NAME, configuration.getDomain().getName() );
 
-        populateInbound( store, configuration.getInbound() );
-        populateOutbound( store, configuration.getOutbound() );
-        populateReverseInbound( store, configuration.getReverseInbound() );
+        populateInbound( configuration.getInbound() );
+        populateOutbound( configuration.getOutbound() );
+        populateReverseInbound( configuration.getReverseInbound() );
 
-        configuration.getEventServer().ifPresent( e -> populateEventServer( store, e ) );
+        configuration.getEventServer().ifPresent( this::populateEventServer );
 
     }
 
@@ -40,13 +48,13 @@ public class ConfigurationFileReader
         {
             return JsonProviderFactory.getJsonProvider().fromJson( new FileReader( filename ), Configuration.class );
         }
-        catch( FileNotFoundException e  )
+        catch( FileNotFoundException e )
         {
             throw new ConfigurationException( "Could not find configuration file specified.", e );
         }
     }
 
-    private static void populateEventServer( ConfigurationStore store, EventServer eventServer )
+    private void populateEventServer( EventServer eventServer )
     {
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL, eventServer.isUseEpoll() );
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT, eventServer.getPortNumber() );
@@ -54,36 +62,39 @@ public class ConfigurationFileReader
         Shutdown shutdown = eventServer.getShutdown();
         if( shutdown != null )
         {
-            store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS, shutdown.getQuietPeriod() );
+            store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS,
+                    shutdown.getQuietPeriod() );
             store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS, shutdown.getTimeout() );
         }
     }
 
-    private static void populateOutbound( ConfigurationStore store, Outbound outbound )
+    private void populateOutbound( Outbound outbound )
     {
         if( outbound != null )
         {
             store.put( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, outbound.getUnmanaged() );
-            store.put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS, outbound.getNumberOfThreads() );
+            store.put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS,
+                    outbound.getNumberOfThreads() );
             store.put( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL, outbound.getUseEpoll() );
             if( outbound.getManagedExecutorServiceName() != null )
             {
-                store.put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME, outbound.getManagedExecutorServiceName() );
+                store.put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME,
+                        outbound.getManagedExecutorServiceName() );
             }
         }
     }
 
-    private static void populateInbound( ConfigurationStore store, Inbound inbound )
+    private void populateInbound( Inbound inbound )
     {
         if( inbound != null )
         {
-            populateStartup( store, inbound.getStartup() );
+            populateStartup( inbound.getStartup() );
             store.put( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL, inbound.isUseEpoll() );
             store.put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS, inbound.getInitialDelay() );
         }
     }
 
-    private static void populateStartup(  ConfigurationStore store, Startup startup )
+    private void populateStartup( Startup startup )
     {
         if( startup != null )
         {
@@ -92,7 +103,7 @@ public class ConfigurationFileReader
         }
     }
 
-    private static void populateReverseInbound( ConfigurationStore store, List<ReverseInbound> reverseInbound )
+    private void populateReverseInbound( List<ReverseInbound> reverseInbound )
     {
         store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES, reverseInbound );
     }
