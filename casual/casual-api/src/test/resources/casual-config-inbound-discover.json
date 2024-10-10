@@ -1,0 +1,8 @@
+{
+  "inbound": {
+    "startup": {
+      "mode": "discover",
+      "services": ["service1","service2"]
+    }
+  }
+}

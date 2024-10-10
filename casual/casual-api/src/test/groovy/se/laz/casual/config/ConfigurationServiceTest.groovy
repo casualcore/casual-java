@@ -65,8 +65,8 @@ class ConfigurationServiceTest extends Specification
 
         where:
         file                                       || mode           | services                         | epoll | initialDelay
-        "casual-config-immediate.json"             || Mode.IMMEDIATE | []                               | false | 0
-        "casual-config-trigger.json"               || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE] | false | 0
+        "casual-config-inbound-immediate.json"             || Mode.IMMEDIATE | []                               | false | 0
+        "casual-config-inbound-trigger.json"               || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE] | false | 0
         "casual-config-discover.json"              || Mode.DISCOVER  | ["service1", "service2"]         | false | 0
         "casual-config-inbound-epoll.json"         || Mode.IMMEDIATE | []                               | true  | 0
         "casual-config-inbound-initial-delay.json" || Mode.IMMEDIATE | []                               | false | 30

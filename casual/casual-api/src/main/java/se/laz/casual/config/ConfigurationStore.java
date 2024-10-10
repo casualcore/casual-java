@@ -56,6 +56,7 @@ public class ConfigurationStore
 
         put( ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE, 10 );
         put( ConfigurationOptions.CASUAL_UNMANAGED, false ); //TODO check what default should be.
+        put( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, false ); //TODO check what default should and if needed with above present.
 
         put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS, 0 );
         put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME, "java:comp/DefaultManagedExecutorService" );

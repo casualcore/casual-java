@@ -44,8 +44,8 @@ class CasualConfigTest extends Specification
 
         where:
         file                           || mode           | services
-        "casual-config-immediate.json" || Mode.IMMEDIATE | []
-        "casual-config-trigger.json"   || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE]
+        "casual-config-inbound-immediate.json" || Mode.IMMEDIATE | []
+        "casual-config-inbound-trigger.json"   || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE]
         "casual-config-discover.json"  || Mode.DISCOVER  | ["service1", "service2"]
     }
 
@@ -75,8 +75,8 @@ class CasualConfigTest extends Specification
       })
       where:
       file                           || mode           || modeFromEnv           | services
-      "casual-config-immediate.json" || Mode.IMMEDIATE || Mode.TRIGGER.name     | []
-      "casual-config-trigger.json"   || Mode.TRIGGER   || Mode.IMMEDIATE.name   | [Mode.Constants.TRIGGER_SERVICE]
+      "casual-config-inbound-immediate.json" || Mode.IMMEDIATE || Mode.TRIGGER.name     | []
+      "casual-config-inbound-trigger.json"   || Mode.TRIGGER   || Mode.IMMEDIATE.name   | [Mode.Constants.TRIGGER_SERVICE]
       "casual-config-discover.json"  || Mode.DISCOVER  || Mode.TRIGGER.name     | ["service1", "service2"]
    }
 

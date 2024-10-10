@@ -10,6 +10,7 @@ import se.laz.casual.api.external.json.JsonProviderFactory;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.List;
 
 /**
  * Read through the configuration file and envs and populate the configuration store with the appropriate values.
@@ -26,6 +27,8 @@ public class ConfigurationFileReader
         store.put( ConfigurationOptions.CASUAL_DOMAIN_NAME, configuration.getDomain().getName() );
 
         populateInbound( store, configuration.getInbound() );
+        populateOutbound( store, configuration.getOutbound() );
+        populateReverseInbound( store, configuration.getReverseInbound() );
 
         configuration.getEventServer().ifPresent( e -> populateEventServer( store, e ) );
 
@@ -56,6 +59,20 @@ public class ConfigurationFileReader
         }
     }
 
+    private static void populateOutbound( ConfigurationStore store, Outbound outbound )
+    {
+        if( outbound != null )
+        {
+            store.put( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, outbound.getUnmanaged() );
+            store.put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS, outbound.getNumberOfThreads() );
+            store.put( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL, outbound.getUseEpoll() );
+            if( outbound.getManagedExecutorServiceName() != null )
+            {
+                store.put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME, outbound.getManagedExecutorServiceName() );
+            }
+        }
+    }
+
     private static void populateInbound( ConfigurationStore store, Inbound inbound )
     {
         if( inbound != null )
@@ -75,5 +92,9 @@ public class ConfigurationFileReader
         }
     }
 
+    private static void populateReverseInbound( ConfigurationStore store, List<ReverseInbound> reverseInbound )
+    {
+        store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES, reverseInbound );
+    }
 
 }

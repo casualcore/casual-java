@@ -32,9 +32,14 @@ public class ConfigurationOptions
     public static final ConfigurationOption<Long> CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS = new ConfigurationOption<>( "CASUAL_INBOUND_INITIAL_DELAY_SECONDS" );
     public static final ConfigurationOption<Long> CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_SECONDS" );
     public static final ConfigurationOption<Long> CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_SECONDS" );
+    public static final ConfigurationOption<List<String>> CASUAL_INBOUND_STARTUP_SERVICES = new ConfigurationOption<>( "CASUAL_INBOUND_STARTUP_SERVICES" );
+
+    //TODO Why are these two now on the root?
     public static final ConfigurationOption<Integer> CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE = new ConfigurationOption<>( "CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE" );
     public static final ConfigurationOption<Boolean> CASUAL_UNMANAGED = new ConfigurationOption<>( "CASUAL_UNMANAGED" );
-    public static final ConfigurationOption<List<String>> CASUAL_INBOUND_STARTUP_SERVICES = new ConfigurationOption<>( "CASUAL_INBOUND_STARTUP_SERVICES" );
+    //TODO CASUAL_OUTBOUND_UNMANAGED Added to allow for deprecated property until i determine what to do with it.
+    public static final ConfigurationOption<Boolean> CASUAL_OUTBOUND_UNMANAGED = new ConfigurationOption<>( "CASUAL_OUTBOUND_UNMANAGED" );
+
 
     //TODO Why can't we set the inbound port here too? I know there is the JCA way of doing it with ra.xml or something but still, could we somehow add this?
 
@@ -46,5 +51,6 @@ public class ConfigurationOptions
 
     public static final ConfigurationOption<Integer> CASUAL_EVENT_SERVER_PORT = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_PORT" );
     public static final ConfigurationOption<Boolean> CASUAL_EVENT_SERVER_USE_EPOLL = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_USE_EPOLL" );
+
 
 }
