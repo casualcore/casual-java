@@ -6,30 +6,27 @@
 
 package se.laz.casual.network
 
-import se.laz.casual.config.Configuration
+import se.laz.casual.config.ConfigurationOptions
+import se.laz.casual.config.ConfigurationService
 import spock.lang.Specification
-
-import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
 
 class EventLoopFactoryTest extends Specification
 {
-   def 'correct instances are returned'()
-   {
-      given:
-      def outboundEventLoopGroup
-      def reverseEventLoopGroup
-      when:
-      withEnvironmentVariable( Configuration.UNMANAGED_ENV_VAR_NAME, "true" )
-              .execute( {
-                 outboundEventLoopGroup = EventLoopFactory.getInstance(EventLoopClient.OUTBOUND)
-                 reverseEventLoopGroup = EventLoopFactory.getInstance(EventLoopClient.REVERSE)
-              } )
-      then:
-      withEnvironmentVariable( Configuration.UNMANAGED_ENV_VAR_NAME, "true" )
-              .execute({
-                 outboundEventLoopGroup != reverseEventLoopGroup
-                 outboundEventLoopGroup == EventLoopFactory.getInstance(EventLoopClient.OUTBOUND)
-                 reverseEventLoopGroup == EventLoopFactory.getInstance(EventLoopClient.REVERSE)
-              })
-   }
+    def 'correct instances are returned'()
+    {
+        given:
+        def outboundEventLoopGroup
+        def reverseEventLoopGroup
+
+        when:
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, true ) //TODO: why two locations!
+
+        outboundEventLoopGroup = EventLoopFactory.getInstance( EventLoopClient.OUTBOUND )
+        reverseEventLoopGroup = EventLoopFactory.getInstance( EventLoopClient.REVERSE )
+
+        then:
+        outboundEventLoopGroup != reverseEventLoopGroup
+        outboundEventLoopGroup == EventLoopFactory.getInstance( EventLoopClient.OUTBOUND )
+        reverseEventLoopGroup == EventLoopFactory.getInstance( EventLoopClient.REVERSE )
+    }
 }

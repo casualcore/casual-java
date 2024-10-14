@@ -2,7 +2,10 @@
   "inbound": {
     "startup": {
       "mode": "discover",
-      "services": ["service1","service2"]
+      "services": [
+        "service1",
+        "service2"
+      ]
     }
   }
 }

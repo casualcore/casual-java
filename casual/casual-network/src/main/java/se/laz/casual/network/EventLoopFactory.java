@@ -8,8 +8,8 @@ package se.laz.casual.network;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.config.Outbound;
 import se.laz.casual.network.outbound.JEEConcurrencyFactory;
 
 import java.util.Map;
@@ -34,12 +34,14 @@ public final class EventLoopFactory
     }
     private static EventLoopGroup createEventLoopGroup()
     {
-        Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
-        if(outbound.getUnmanaged())
+        boolean unmanaged = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED );
+        boolean useEpoll = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL );
+        int numThreads = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS );
+        if(unmanaged)
         {
-            return getUnmanagedEventLoopGroup(outbound.getUseEpoll(), outbound.getNumberOfThreads());
+            return getUnmanagedEventLoopGroup(useEpoll, numThreads);
         }
-        return getManagedEventLoopGroup(outbound.getUseEpoll(), outbound.getNumberOfThreads());
+        return getManagedEventLoopGroup(useEpoll, numThreads );
     }
 
     private static EventLoopGroup getUnmanagedEventLoopGroup(boolean useEpoll, int numberOfThreads)

@@ -11,6 +11,7 @@ import jakarta.resource.spi.work.Work;
 import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
 import se.laz.casual.api.flags.ErrorState;
+import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEvent;
@@ -102,7 +103,7 @@ public class ServiceCallWorkListener implements WorkListener
     {
         if(eventPublisher == null)
         {
-            UUID domainId = ConfigurationService.getInstance().getConfiguration().getDomain().getId();
+            UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID );
             eventPublisher = ServiceCallEventPublisher.of(ServiceCallEventStoreFactory.getStore(domainId));
         }
         return eventPublisher;

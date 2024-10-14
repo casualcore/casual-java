@@ -3,7 +3,7 @@
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
-package se.laz.casual.config;
+package se.laz.casual.config.json;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -50,13 +50,13 @@ public final class Outbound
 
     public boolean getUnmanaged()
     {
-        Optional<Boolean> maybeAlreadySet = ConfigurationService.getInstance().getConfiguration().getUnmanaged();
+        Optional<Boolean> maybeAlreadySet = Optional.empty();
         return maybeAlreadySet.orElseGet(() -> null == unmanaged ? DEFAULT_UNMANAGED : unmanaged);
     }
 
     public boolean getUseEpoll()
     {
-        Optional<Boolean> maybeAlreadySet = ConfigurationService.getInstance().getConfiguration().getUseEpoll();
+        Optional<Boolean> maybeAlreadySet = Optional.empty();
         return maybeAlreadySet.orElseGet(() -> null != useEpoll ? useEpoll : getUseEPollFromEnv());
     }
 

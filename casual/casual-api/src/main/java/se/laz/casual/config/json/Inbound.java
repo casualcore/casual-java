@@ -4,7 +4,7 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.config;
+package se.laz.casual.config.json;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -34,7 +34,7 @@ public class Inbound
 
     public boolean isUseEpoll()
     {
-        Optional<Boolean> maybeAlreadySet = ConfigurationService.getInstance().getConfiguration().getUseEpoll();
+        Optional<Boolean> maybeAlreadySet = Optional.empty();
         return maybeAlreadySet.orElseGet(() -> null == useEpoll ? DEFAULT_USE_EPOLL : useEpoll);
     }
 
@@ -110,16 +110,16 @@ public class Inbound
 
         public Inbound build()
         {
-            if(startup == null)
-            {
-                // try to get startup mode from env variable, otherwise default
-                String startupMode = Optional.ofNullable(System.getenv(CASUAL_INBOUND_STARTUP_MODE)).orElse(null);
-                if(null != startupMode)
-                {
-                    Mode mode = Mode.fromName(startupMode);
-                    startup = Startup.newBuilder().withMode(mode).build();
-                }
-            }
+//            if(startup == null)
+//            {
+//                // try to get startup mode from env variable, otherwise default
+//                String startupMode = Optional.ofNullable(System.getenv(CASUAL_INBOUND_STARTUP_MODE)).orElse(null);
+//                if(null != startupMode)
+//                {
+//                    Mode mode = Mode.fromName(startupMode);
+//                    startup = Startup.newBuilder().withMode(mode).build();
+//                }
+//            }
             if( useEpoll == null )
             {
                 String useEpollMode = Optional.ofNullable(System.getenv(CASUAL_INBOUND_USE_EPOLL)).orElse(null);

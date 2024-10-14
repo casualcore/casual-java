@@ -1,5 +1,12 @@
+/*
+ * Copyright (c) 2024, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.config
 
+import se.laz.casual.config.json.Domain
 import spock.lang.Specification
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,9 +7,13 @@
 package se.laz.casual.jca.queue
 
 import se.laz.casual.api.buffer.type.JsonBuffer
-import se.laz.casual.api.queue.*
+import se.laz.casual.api.queue.DequeueReturn
+import se.laz.casual.api.queue.EnqueueReturn
+import se.laz.casual.api.queue.MessageSelector
+import se.laz.casual.api.queue.QueueInfo
+import se.laz.casual.api.queue.QueueMessage
 import se.laz.casual.api.xa.XID
-import se.laz.casual.config.Domain
+import se.laz.casual.config.json.Domain
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
@@ -19,7 +23,12 @@ import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.laz.casual.network.protocol.messages.domain.Queue
-import se.laz.casual.network.protocol.messages.queue.*
+import se.laz.casual.network.protocol.messages.queue.CasualDequeueReplyMessage
+import se.laz.casual.network.protocol.messages.queue.CasualDequeueRequestMessage
+import se.laz.casual.network.protocol.messages.queue.CasualEnqueueReplyMessage
+import se.laz.casual.network.protocol.messages.queue.CasualEnqueueRequestMessage
+import se.laz.casual.network.protocol.messages.queue.DequeueMessage
+import se.laz.casual.network.protocol.messages.queue.EnqueueMessage
 import spock.lang.Shared
 import spock.lang.Specification
 

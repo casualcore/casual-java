@@ -5,11 +5,11 @@
  */
 package se.laz.casual.network.outbound;
 
+import jakarta.enterprise.concurrent.ManagedExecutorService;
+import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.config.Outbound;
 import se.laz.casual.jca.CasualResourceAdapterException;
 
-import jakarta.enterprise.concurrent.ManagedExecutorService;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.concurrent.Executors;
@@ -51,12 +51,12 @@ public class JEEConcurrencyFactory
      */
     public static ManagedExecutorService getManagedExecutorService()
     {
-        Outbound outbound = ConfigurationService.getInstance().getConfiguration().getOutbound();
-        if(outbound.getUnmanaged())
+        boolean unmanaged = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED );
+        if(unmanaged)
         {
             return null;
         }
-        String name = outbound.getManagedExecutorServiceName();
+        String name = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME );
         try
         {
             LOG.info(() -> "using ManagedExecutorService: " + name);

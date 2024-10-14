@@ -1,16 +1,15 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.inbound.startup;
 
-import se.laz.casual.api.service.CasualService;
-import se.laz.casual.config.Mode;
-
 import jakarta.ejb.Remote;
 import jakarta.ejb.Stateless;
+import se.laz.casual.api.service.CasualService;
+import se.laz.casual.config.json.Mode;
 
 @Stateless
 @Remote(TriggerService.class)

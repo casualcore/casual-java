@@ -6,17 +6,26 @@
 
 package se.laz.casual.config
 
+import se.laz.casual.config.json.Mode
 import spock.lang.Specification
 
 class ConfigurationStoreTest extends Specification
 {
+    ConfigurationStore instance
+
+    def setup()
+    {
+        instance = new ConfigurationStore()
+    }
+
     def "Retrieve using a string key"()
     {
         given:
-        String expected = "UTF8"
+        String expected = "latin1"
+        instance.put( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING, expected )
 
         when:
-        String actual = ConfigurationStore.get( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING )
+        String actual = instance.get( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING )
 
         then:
         actual == expected
@@ -26,9 +35,10 @@ class ConfigurationStoreTest extends Specification
     {
         given:
         Mode expected = Mode.TRIGGER
+        instance.put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE, expected )
 
         when:
-        Mode actual = ConfigurationStore.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE )
+        Mode actual = instance.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE )
 
         then:
         actual == expected
@@ -38,9 +48,10 @@ class ConfigurationStoreTest extends Specification
     {
         given:
         List<String> expected = ["service1","service2"]
+        instance.put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES, expected )
 
         when:
-        List<String> actual = ConfigurationStore.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES )
+        List<String> actual = instance.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES )
 
         then:
         actual == expected

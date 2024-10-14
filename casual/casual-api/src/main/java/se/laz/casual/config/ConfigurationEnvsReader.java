@@ -6,6 +6,8 @@
 
 package se.laz.casual.config;
 
+import se.laz.casual.config.json.Mode;
+
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -65,6 +67,7 @@ public class ConfigurationEnvsReader
 
     private void populateEventServer()
     {
+        storeBooleanIfPresent( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLED );
         storeIntegerIfPresent( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT );
         storeBooleanIfPresent( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL );
         populateEventServerShutdown();

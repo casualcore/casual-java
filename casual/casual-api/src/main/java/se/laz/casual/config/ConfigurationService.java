@@ -1,82 +1,109 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.config;
 
-import se.laz.casual.api.external.json.JsonProviderFactory;
+import se.laz.casual.config.json.Mode;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Singleton access to Casual Configuration.
  */
 public class ConfigurationService
 {
-
-    public static final String CASUAL_CONFIG_FILE_ENV_NAME = "CASUAL_CONFIG_FILE";
-    public static final String CASUAL_INBOUND_STARTUP_MODE_ENV_NAME = "CASUAL_INBOUND_STARTUP_MODE";
-
     private static final ConfigurationService INSTANCE = new ConfigurationService();
 
-    private final Configuration configuration;
+    private ConfigurationStore store;
 
     ConfigurationService()
     {
-        this.configuration = init();
+        this.store = init();
     }
 
-    public static final ConfigurationService getInstance()
+    private ConfigurationStore init()
     {
-        return INSTANCE;
-    }
+        ConfigurationStore store = new ConfigurationStore();
 
-    private Configuration init()
-    {
-        return getEnv( CASUAL_CONFIG_FILE_ENV_NAME )
-                .map( this::buildConfigurationFromFile )
-                .orElse( buildConfigurationFromEnvs() );
-    }
+        ConfigurationDefaults defaults = new ConfigurationDefaults( store );
+        defaults.populate();
 
-    private Optional<String> getEnv( String name )
-    {
-        return Optional.ofNullable( System.getenv( name ) );
-    }
+        ConfigurationEnvsReader envsReader = new ConfigurationEnvsReader( store );
 
-    private Configuration buildConfigurationFromFile( String file )
-    {
-        try
+        envsReader.populateConfigFileEnv();
+
+        String configurationFile = store.get( ConfigurationOptions.CASUAL_CONFIG_FILE );
+        if( configurationFile != null && !configurationFile.isBlank() )
         {
-            return JsonProviderFactory.getJsonProvider().fromJson( new FileReader( file ), Configuration.class );
+            ConfigurationFileReader fileReader = new ConfigurationFileReader( store );
+            fileReader.populateStoreFromFile( configurationFile );
         }
-        catch( FileNotFoundException e  )
+
+        envsReader.populateStoreFromEnvs();
+
+        fixInboundStartupServices( store );
+
+        fixEpoll( store );
+
+        return store;
+    }
+
+    //TODO: Can we get rid of the need for this?
+    private void fixEpoll( ConfigurationStore store )
+    {
+        boolean rootEpoll = store.get( ConfigurationOptions.CASUAL_USE_EPOLL );
+        if( rootEpoll )
         {
-            throw new ConfigurationException( "Could not find configuration file specified.", e );
+            store.put( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL, true );
+            store.put( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL, true );
         }
     }
 
-    private Configuration buildConfigurationFromEnvs( )
+    private void fixInboundStartupServices( ConfigurationStore store )
     {
-        Mode mode = getEnv( CASUAL_INBOUND_STARTUP_MODE_ENV_NAME )
-                .map( name -> name.isEmpty() ? Mode.IMMEDIATE : Mode.fromName( name ) )
-                .orElse( Mode.IMMEDIATE );
-        return Configuration.newBuilder()
-                .withDomain( Domain.getFromEnv() )
-                .withInbound( Inbound.newBuilder()
-                        .withStartup( Startup.newBuilder()
-                                .withMode( mode )
-                                .build() )
-                        .build() )
-                .withOutbound(Outbound.newBuilder().build())
-                .build();
+        List<String> services =store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES );
+        services = switch( store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE ) )
+        {
+            case IMMEDIATE -> Collections.emptyList();
+            case TRIGGER -> Collections.singletonList( Mode.Constants.TRIGGER_SERVICE );
+            default -> services;
+        };
+        store.put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES, services );
     }
 
-    public Configuration getConfiguration()
+    /**
+     * Read only access to the  current configuration value for the requested option.
+     *
+     * @param option to retrieve.
+     * @return current value for the requested option.
+     * @param <T> type of the value returned.
+     */
+    public static <T> T getConfiguration( ConfigurationOption<T> option )
     {
-        return configuration;
+        return INSTANCE.store.get( option );
+    }
+
+    /**
+     * Mutable access to the current configuration values.
+     *
+     * @param option to set.
+     * @param value to set.
+     * @param <T> type of the value to set.
+     */
+    public static <T> void setConfiguration( ConfigurationOption<T> option, T value )
+    {
+        INSTANCE.store.put( option, value );
+    }
+
+    /**
+     * Reload the configuration.
+     */
+    public static void reload()
+    {
+        INSTANCE.store = new ConfigurationService().store;
     }
 }

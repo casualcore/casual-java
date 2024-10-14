@@ -7,6 +7,7 @@
 package se.laz.casual.config
 
 import com.github.stefanbirkner.systemlambda.SystemLambda
+import se.laz.casual.config.json.Mode
 import spock.lang.Specification
 
 class ConfigurationEnvsReaderTest extends Specification
@@ -16,7 +17,8 @@ class ConfigurationEnvsReaderTest extends Specification
 
     def setup()
     {
-        store = new ConfigurationStore();
+        store = new ConfigurationStore()
+        new ConfigurationDefaults( store ).populate(  )
         instance = new ConfigurationEnvsReader( store )
     }
 
@@ -259,24 +261,27 @@ class ConfigurationEnvsReaderTest extends Specification
     def "With event server envs"()
     {
         when:
-        SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT.getName(), port )
+        SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLED.getName(), enabled )
+                .and( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT.getName(), port )
                 .and( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL.getName(), epoll ).execute {
             instance.populateStoreFromEnvs( )
         }
 
+        boolean actualEnabled = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLED )
         int actualPort = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT )
         boolean actualEpoll = store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL )
 
         then:
+        actualEnabled == expectedEnabled
         actualPort == expectedPort
         actualEpoll == expectedEpoll
 
         where:
-        port   | epoll  || expectedPort | expectedEpoll
-        "1212" | "true" || 1212         | true
-        ""     | ""     || 7698         | false
-        " "    | " "    || 7698         | false
-        null   | null   || 7698         | false
+        enabled | port   | epoll  || expectedEnabled | expectedPort | expectedEpoll
+        "true"  | "1212" | "true" || true            | 1212         | true
+        ""      | ""     | ""     || false           | 7698         | false
+        " "     | " "    | " "    || false           | 7698         | false
+        null    | null   | null   || false           | 7698         | false
     }
 
 

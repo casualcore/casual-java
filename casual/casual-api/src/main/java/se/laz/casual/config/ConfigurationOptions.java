@@ -6,6 +6,9 @@
 
 package se.laz.casual.config;
 
+import se.laz.casual.config.json.Mode;
+import se.laz.casual.config.json.ReverseInbound;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -49,6 +52,7 @@ public class ConfigurationOptions
     public static final ConfigurationOption<String> CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME = new ConfigurationOption<>( "CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME" );
     public static final ConfigurationOption<Integer> CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS = new ConfigurationOption<>( "CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS" );
 
+    public static final ConfigurationOption<Boolean> CASUAL_EVENT_SERVER_ENABLED = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_ENABLED" );
     public static final ConfigurationOption<Integer> CASUAL_EVENT_SERVER_PORT = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_PORT" );
     public static final ConfigurationOption<Boolean> CASUAL_EVENT_SERVER_USE_EPOLL = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_USE_EPOLL" );
 

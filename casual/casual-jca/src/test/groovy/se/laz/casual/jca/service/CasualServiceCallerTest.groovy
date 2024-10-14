@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,10 +11,14 @@ import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ServiceReturn
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
-import se.laz.casual.api.flags.*
+import se.laz.casual.api.flags.AtmiFlags
+import se.laz.casual.api.flags.ErrorState
+import se.laz.casual.api.flags.Flag
+import se.laz.casual.api.flags.ServiceReturnState
+import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.api.xa.XID
-import se.laz.casual.config.Domain
+import se.laz.casual.config.json.Domain
 import se.laz.casual.event.Order
 import se.laz.casual.event.ServiceCallEvent
 import se.laz.casual.event.ServiceCallEventPublisher

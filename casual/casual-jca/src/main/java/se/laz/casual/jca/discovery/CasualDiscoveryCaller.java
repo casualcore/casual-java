@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,8 +11,8 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.queue.QueueDetails;
 import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.api.util.PrettyPrinter;
+import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.config.Domain;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
@@ -47,11 +47,11 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
     public DiscoveryReturn discover(UUID corrid, List<String> serviceNames, List<String> queueNames)
     {
         LOG.finest(() -> "issuing domain discovery, corrid: " + PrettyPrinter.casualStringify(corrid) + " service names: " + serviceNames + " queue names: " + queueNames);
-        Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
+
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
                                                                                             .setExecution(UUID.randomUUID())
-                                                                                            .setDomainId(domain.getId())
-                                                                                            .setDomainName(domain.getName())
+                                                                                            .setDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ))
+                                                                                            .setDomainName(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME ))
                                                                                             .setServiceNames(serviceNames)
                                                                                             .setQueueNames(queueNames)
                                                                                             .build();

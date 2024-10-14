@@ -7,6 +7,13 @@
 package se.laz.casual.config;
 
 import se.laz.casual.api.external.json.JsonProviderFactory;
+import se.laz.casual.config.json.Configuration;
+import se.laz.casual.config.json.EventServer;
+import se.laz.casual.config.json.Inbound;
+import se.laz.casual.config.json.Outbound;
+import se.laz.casual.config.json.ReverseInbound;
+import se.laz.casual.config.json.Shutdown;
+import se.laz.casual.config.json.Startup;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -56,6 +63,7 @@ public class ConfigurationFileReader
 
     private void populateEventServer( EventServer eventServer )
     {
+        store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLED, true );
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL, eventServer.isUseEpoll() );
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT, eventServer.getPortNumber() );
 

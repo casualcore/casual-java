@@ -6,6 +6,9 @@
 
 package se.laz.casual.config
 
+import se.laz.casual.config.json.Address
+import se.laz.casual.config.json.Mode
+import se.laz.casual.config.json.ReverseInbound
 import spock.lang.Specification
 
 class ConfigurationFileReaderTest extends Specification
@@ -17,13 +20,14 @@ class ConfigurationFileReaderTest extends Specification
     def setup()
     {
         store = new ConfigurationStore();
+        new ConfigurationDefaults( store ).populate(  )
         instance = new ConfigurationFileReader( store )
     }
 
     def "Read file inbound startup discover, store updated"()
     {
         given:
-        String file = "src/test/resources/casual-config-discover.json"
+        String file = "src/test/resources/casual-config-inbound-discover.json"
 
         when:
         instance.populateStoreFromFile( file )
@@ -62,16 +66,18 @@ class ConfigurationFileReaderTest extends Specification
         instance.populateStoreFromFile( file )
 
         then:
+        enabled == store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLED )
         port == store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT )
         epoll == store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL )
         quietPeriod == store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS )
         timeout == store.get( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS )
 
         where:
-        filename                                    || port | epoll | quietPeriod | timeout
-        "casual-config-event-server-use-epoll.json" || 6699 | true  | 2000        | 15000
-        "casual-config-event-server-no-epoll.json"  || 9966 | false | 2000        | 15000
-        "casual-config-event-server-shutdown.json"  || 5987 | true  | 100         | 200
+        filename                                    || enabled | port | epoll | quietPeriod | timeout
+        "casual-config-empty.json"                  || false   | 7698 | false | 2000        | 15000
+        "casual-config-event-server-use-epoll.json" || true    | 6699 | true  | 2000        | 15000
+        "casual-config-event-server-no-epoll.json"  || true    | 9966 | false | 2000        | 15000
+        "casual-config-event-server-shutdown.json"  || true    | 5987 | true  | 100         | 200
     }
 
     def "Read file inbound, store updated"()

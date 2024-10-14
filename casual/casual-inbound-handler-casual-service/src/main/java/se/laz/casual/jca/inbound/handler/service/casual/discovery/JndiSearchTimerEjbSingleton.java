@@ -1,21 +1,22 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.inbound.handler.service.casual.discovery;
 
+import jakarta.ejb.Schedule;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Timer;
 import se.laz.casual.api.service.CasualService;
+import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.inbound.handler.HandlerException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
 
-import jakarta.ejb.Schedule;
-import jakarta.ejb.Singleton;
-import jakarta.ejb.Timer;
 import javax.naming.InitialContext;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -37,12 +38,12 @@ import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodM
 public class JndiSearchTimerEjbSingleton
 {
     private static final Logger logger = Logger.getLogger(JndiSearchTimerEjbSingleton.class.getName());
-    private final TimerStopCondition stopCondition = TimerStopCondition.of();
+    private final TimerStopCondition stopCondition = TimerStopCondition.of(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE ));
 
     @Schedule(hour = "*", minute = "*", second = "*/10", persistent = false)
     public void findServicesInJndi(Timer timer)
     {
-        if(stopCondition.stop(ConfigurationService.getInstance().getConfiguration()))
+        if(stopCondition.stop())
         {
             logger.finest(() -> "Inbound startup mode is Trigger and inbound server has started, cancelling JndiSearchTimerEjbSingleton timer");
             timer.cancel();

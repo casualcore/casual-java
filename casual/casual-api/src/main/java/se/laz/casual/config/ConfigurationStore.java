@@ -6,67 +6,19 @@
 
 package se.laz.casual.config;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
-
-import static se.laz.casual.api.buffer.type.fielded.Constants.CASUAL_FIELD_JSON_EMBEDDED;
 
 /**
  * Store for all configuration options.
  */
 public class ConfigurationStore
 {
-    private final Map<ConfigurationOption<?>, Object> data = new HashMap<>();
+    private final Map<ConfigurationOption<?>, Object> data;
 
     public ConfigurationStore()
     {
-        initialiseDefaults();
-    }
-
-    private void initialiseDefaults()
-    {
-        put( ConfigurationOptions.CASUAL_CONFIG_FILE, "" );
-
-        put( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING, "UTF8" );
-        put( ConfigurationOptions.CASUAL_FIELD_TABLE, CASUAL_FIELD_JSON_EMBEDDED );
-
-        put( ConfigurationOptions.CASUAL_DOMAIN_ID, UUID.randomUUID() );
-        put( ConfigurationOptions.CASUAL_DOMAIN_NAME, "" );
-
-        put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE, Mode.IMMEDIATE );
-        put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES, Collections.emptyList() ); //TODO fix this if TRIGGER is used.
-
-        put( ConfigurationOptions.CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER, false );
-        put( ConfigurationOptions.CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER, false );
-        put( ConfigurationOptions.CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER, false );
-
-        put( ConfigurationOptions.CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL, "INFO" );
-        put( ConfigurationOptions.CASUAL_INBOUND_NETTY_LOGGING_LEVEL, "INFO" );
-        put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL, "INFO" );
-
-        put( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL, false ); //TODO check what default should be.
-        put( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL, false ); //TODO check what default should be.
-        put( ConfigurationOptions.CASUAL_USE_EPOLL, false ); //TODO check what default should be.
-
-        put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS, 0L );
-        put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS, 2000L );
-        put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS, 15000L );
-
-        put( ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE, 10 );
-        put( ConfigurationOptions.CASUAL_UNMANAGED, false ); //TODO check what default should be.
-        put( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, false ); //TODO check what default should and if needed with above present.
-
-        put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS, 0 );
-        put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME, "java:comp/DefaultManagedExecutorService" );
-
-        put( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT, 7698 );
-        put( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL, false ); //TODO check what default should be.
-
-        put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES, Collections.emptyList() );
-
-
+        data = new HashMap<>();
     }
 
     /**

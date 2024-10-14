@@ -1,13 +1,17 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.work
 
+import jakarta.resource.spi.XATerminator
+import jakarta.resource.spi.endpoint.MessageEndpointFactory
+import jakarta.resource.spi.work.Work
+import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.api.service.CasualService
-import se.laz.casual.config.Mode
+import se.laz.casual.config.json.Mode
 import se.laz.casual.jca.InboundStartupException
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceLiteral
@@ -18,10 +22,6 @@ import se.laz.casual.network.inbound.ConnectionInformation
 import spock.lang.Shared
 import spock.lang.Specification
 
-import jakarta.resource.spi.XATerminator
-import jakarta.resource.spi.endpoint.MessageEndpointFactory
-import jakarta.resource.spi.work.Work
-import jakarta.resource.spi.work.WorkManager
 import java.lang.reflect.Method
 import java.util.concurrent.CompletionService
 import java.util.concurrent.ExecutionException
@@ -29,7 +29,6 @@ import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-
 
 class StartInboundServerWorkTest extends Specification
 {

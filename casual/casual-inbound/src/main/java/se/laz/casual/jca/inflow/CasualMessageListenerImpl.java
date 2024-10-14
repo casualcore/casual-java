@@ -22,8 +22,8 @@ import se.laz.casual.api.service.ServiceInfo;
 import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.api.xa.XAReturnCode;
 import se.laz.casual.api.xa.XID;
+import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.config.Domain;
 import se.laz.casual.jca.CasualResourceAdapterException;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
@@ -49,6 +49,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -71,10 +72,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     {
         log.finest(() -> "domainConnectRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
 
-        Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
+        String domainName = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME );
+        UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID );
         CasualDomainConnectReplyMessage reply = CasualDomainConnectReplyMessage.createBuilder()
-                                                                               .withDomainId( domain.getId() )
-                                                                               .withDomainName( domain.getName() )
+                                                                               .withDomainId( domainId )
+                                                                               .withDomainName( domainName )
                                                                                .withExecution( message.getMessage().getExecution() )
                                                                                .withProtocolVersion(CASUAL_PROTOCOL_VERSION)
                                                                                .build();
@@ -88,8 +90,9 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     {
         log.finest(() -> "domainDiscoveryRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message);
 
-        Domain domain = ConfigurationService.getInstance().getConfiguration().getDomain();
-        CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), domain.getId(), domain.getName() );
+        String domainName = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME );
+        UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID );
+        CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), domainId, domainName );
 
         List<Service> services = new ArrayList<>();
 
