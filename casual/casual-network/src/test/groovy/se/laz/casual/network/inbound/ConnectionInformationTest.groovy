@@ -1,20 +1,18 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.inbound
 
-
-import spock.lang.Shared
-import spock.lang.Specification
-
 import jakarta.resource.spi.XATerminator
 import jakarta.resource.spi.endpoint.MessageEndpointFactory
 import jakarta.resource.spi.work.WorkManager
-
-import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
+import se.laz.casual.config.ConfigurationOptions
+import se.laz.casual.config.ConfigurationService
+import spock.lang.Shared
+import spock.lang.Specification
 
 class ConnectionInformationTest extends Specification
 {
@@ -24,6 +22,12 @@ class ConnectionInformationTest extends Specification
     def mockXATerminator = Mock(XATerminator)
     @Shared
     def mockWorkManager = Mock(WorkManager)
+
+    def cleanup()
+    {
+        ConfigurationService.reload(  )
+    }
+
     def 'invalid construction'()
     {
         when:
@@ -60,17 +64,15 @@ class ConnectionInformationTest extends Specification
     {
         given:
         def instance
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER, true )
 
         when:
-        withEnvironmentVariable(ConnectionInformation.USE_LOG_HANDLER_ENV_NAME,'true').execute(
-                {
-                    instance = ConnectionInformation.createBuilder()
-                        .withWorkManager(mockWorkManager)
-                        .withXaTerminator(mockXATerminator)
-                        .withFactory(mockFactory)
-                        .build()
-                }
-        )
+        instance = ConnectionInformation.createBuilder()
+            .withWorkManager(mockWorkManager)
+            .withXaTerminator(mockXATerminator)
+            .withFactory(mockFactory)
+            .build()
+
 
         then:
         noExceptionThrown()

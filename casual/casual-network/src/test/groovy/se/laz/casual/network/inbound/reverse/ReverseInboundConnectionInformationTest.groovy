@@ -12,14 +12,19 @@ import io.netty.channel.socket.nio.NioSocketChannel
 import jakarta.resource.spi.XATerminator
 import jakarta.resource.spi.endpoint.MessageEndpointFactory
 import jakarta.resource.spi.work.WorkManager
+import se.laz.casual.config.ConfigurationOptions
+import se.laz.casual.config.ConfigurationService
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.outbound.Correlator
 import spock.lang.Specification
 
-import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
-
 class ReverseInboundConnectionInformationTest extends Specification
 {
+   def cleanup()
+   {
+      ConfigurationService.reload(  )
+   }
+
    def "test ReverseInboundConnectionInformation, with useEpoll"()
    {
       setup:
@@ -37,20 +42,21 @@ class ReverseInboundConnectionInformationTest extends Specification
       boolean isLogHandlerEnabled = true
 
       ReverseInboundConnectionInformation connectionInfo
-      withEnvironmentVariable(ReverseInboundConnectionInformation.USE_LOG_HANDLER_ENV_NAME, isLogHandlerEnabled.toString()).execute( {
-         connectionInfo = ReverseInboundConnectionInformation.createBuilder()
-                 .withAddress(address)
-                 .withProtocolVersion(protocolVersion)
-                 .withCorrelator(correlator)
-                 .withFactory(factory)
-                 .withXaTerminator(xaTerminator)
-                 .withWorkManager(workManager)
-                 .withDomainId(domainId)
-                 .withDomainName(domainName)
-                 .withUseEpoll(useEpoll)
-                 .withMaxBackoffMillils(maxBackoffMillis)
-                 .build()
-      } )
+
+      ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER, isLogHandlerEnabled )
+
+      connectionInfo = ReverseInboundConnectionInformation.createBuilder()
+              .withAddress(address)
+              .withProtocolVersion(protocolVersion)
+              .withCorrelator(correlator)
+              .withFactory(factory)
+              .withXaTerminator(xaTerminator)
+              .withWorkManager(workManager)
+              .withDomainId(domainId)
+              .withDomainName(domainName)
+              .withUseEpoll(useEpoll)
+              .withMaxBackoffMillils(maxBackoffMillis)
+              .build()
 
       expect:
       connectionInfo.getAddress() == address
@@ -84,20 +90,21 @@ class ReverseInboundConnectionInformationTest extends Specification
       boolean isLogHandlerEnabled = false
 
       ReverseInboundConnectionInformation connectionInfo
-      withEnvironmentVariable(ReverseInboundConnectionInformation.USE_LOG_HANDLER_ENV_NAME, isLogHandlerEnabled.toString()).execute( {
-         connectionInfo = ReverseInboundConnectionInformation.createBuilder()
-                 .withAddress(address)
-                 .withProtocolVersion(protocolVersion)
-                 .withCorrelator(correlator)
-                 .withFactory(factory)
-                 .withXaTerminator(xaTerminator)
-                 .withWorkManager(workManager)
-                 .withDomainId(domainId)
-                 .withDomainName(domainName)
-                 .withUseEpoll(useEpoll)
-                 .withMaxBackoffMillils(maxBackoffMillis)
-                 .build()
-      } )
+
+      ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER, isLogHandlerEnabled )
+
+      connectionInfo = ReverseInboundConnectionInformation.createBuilder()
+              .withAddress(address)
+              .withProtocolVersion(protocolVersion)
+              .withCorrelator(correlator)
+              .withFactory(factory)
+              .withXaTerminator(xaTerminator)
+              .withWorkManager(workManager)
+              .withDomainId(domainId)
+              .withDomainName(domainName)
+              .withUseEpoll(useEpoll)
+              .withMaxBackoffMillils(maxBackoffMillis)
+              .build()
 
       expect:
       connectionInfo.getAddress() == address

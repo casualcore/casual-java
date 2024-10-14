@@ -16,6 +16,11 @@ import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironment
 class ConfigurationServiceTest extends Specification
 {
 
+    def cleanup()
+    {
+        ConfigurationService.reload(  )
+    }
+
     def "Get configuration with no file or envs returns default empty config."()
     {
         given:

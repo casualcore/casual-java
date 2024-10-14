@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,6 +8,8 @@ package se.laz.casual.network.outbound;
 
 import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import se.laz.casual.config.ConfigurationOptions;
+import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.network.ProtocolVersion;
 
 import java.net.InetSocketAddress;
@@ -131,7 +133,8 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
             Objects.requireNonNull(domainName, "domainName can not be null");
             channelClass = (null == channelClass) ? NioSocketChannel.class : channelClass;
             correlator = (null == correlator) ? CorrelatorImpl.of() : correlator;
-            return new NettyConnectionInformation(address, protocolVersion, domainId, domainName, channelClass, correlator, Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME)));
+            boolean useLogHandler = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER );
+            return new NettyConnectionInformation(address, protocolVersion, domainId, domainName, channelClass, correlator, useLogHandler );
         }
     }
 }

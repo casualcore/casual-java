@@ -6,35 +6,21 @@
 package se.laz.casual.network;
 
 import io.netty.handler.logging.LogLevel;
-
-import java.util.Optional;
+import se.laz.casual.config.ConfigurationOptions;
+import se.laz.casual.config.ConfigurationService;
 
 public final class LogLevelProvider
 {
-    public static final String DEFAULT_LOGGING_LEVEL = "INFO";
-    public static final String CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL_NAME = "CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL";
-    public static final String CASUAL_INBOUND_NETTY_LOGGING_LEVEL_NAME = "CASUAL_INBOUND_NETTY_LOGGING_LEVEL";
-    public static final String CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL_NAME = "CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL";
-    public static final LogLevel REVERSE_LOGGING_LEVEL = getOrDefault(CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL_NAME);
-    public static final LogLevel INBOUND_LOGGING_LEVEL = getOrDefault(CASUAL_INBOUND_NETTY_LOGGING_LEVEL_NAME);
-    public static final LogLevel OUTBOUND_LOGGING_LEVEL = getOrDefault(CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL_NAME);
+    public static final LogLevel REVERSE_LOGGING_LEVEL = toLogLevel( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL ) );
+    public static final LogLevel INBOUND_LOGGING_LEVEL = toLogLevel( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_NETTY_LOGGING_LEVEL  ) );
+    public static final LogLevel OUTBOUND_LOGGING_LEVEL = toLogLevel( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL) );
 
     private LogLevelProvider()
     {}
 
-    public static LogLevel getOrDefault(String envName)
+    public static LogLevel toLogLevel( String level )
     {
-        ExternalLogLevel externalLogLevel = ExternalLogLevel.unmarshall(Optional.ofNullable(getEnv(envName)).orElse(DEFAULT_LOGGING_LEVEL));
+        ExternalLogLevel externalLogLevel = ExternalLogLevel.unmarshall( level );
         return LogLevelMapper.map(externalLogLevel);
-    }
-
-    private static String getEnv(String envName)
-    {
-        String value = System.getenv(envName);
-        if(null != value && value.isEmpty())
-        {
-            value = null;
-        }
-        return value;
     }
 }

@@ -15,6 +15,11 @@ import spock.lang.Specification
 
 class NettyConnectionInformationCreatorTest extends Specification
 {
+   def cleanup()
+   {
+      ConfigurationService.reload(  )
+   }
+
    def 'default, does not use epoll'()
    {
       given:

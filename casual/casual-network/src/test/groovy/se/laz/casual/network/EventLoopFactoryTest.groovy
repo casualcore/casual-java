@@ -12,6 +12,12 @@ import spock.lang.Specification
 
 class EventLoopFactoryTest extends Specification
 {
+
+    def cleanup()
+    {
+        ConfigurationService.reload(  )
+    }
+
     def 'correct instances are returned'()
     {
         given:

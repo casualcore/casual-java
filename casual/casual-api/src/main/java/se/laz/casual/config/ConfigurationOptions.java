@@ -55,6 +55,7 @@ public class ConfigurationOptions
     public static final ConfigurationOption<Boolean> CASUAL_EVENT_SERVER_ENABLED = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_ENABLED" );
     public static final ConfigurationOption<Integer> CASUAL_EVENT_SERVER_PORT = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_PORT" );
     public static final ConfigurationOption<Boolean> CASUAL_EVENT_SERVER_USE_EPOLL = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_USE_EPOLL" );
+    public static final ConfigurationOption<Boolean> CASUAL_EVENT_SERVER_ENABLE_LOGHANDLER = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_ENABLE_LOGHANDLER" );
 
 
 }

@@ -8,10 +8,9 @@ package se.laz.casual.config;
 
 import se.laz.casual.config.json.Mode;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.UUID;
-
-import static se.laz.casual.api.buffer.type.fielded.Constants.CASUAL_FIELD_JSON_EMBEDDED;
 
 /**
  * Initialise a ConfigurationStore with the default values for all relevant ConfigurationOptions.
@@ -32,8 +31,8 @@ public class ConfigurationDefaults
     {
         store.put( ConfigurationOptions.CASUAL_CONFIG_FILE, "" );
 
-        store.put( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING, "UTF8" );
-        store.put( ConfigurationOptions.CASUAL_FIELD_TABLE, CASUAL_FIELD_JSON_EMBEDDED );
+        store.put( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING, StandardCharsets.UTF_8.name() );
+        store.put( ConfigurationOptions.CASUAL_FIELD_TABLE, null );
 
         store.put( ConfigurationOptions.CASUAL_DOMAIN_ID, UUID.randomUUID() );
         store.put( ConfigurationOptions.CASUAL_DOMAIN_NAME, "" );
@@ -67,6 +66,7 @@ public class ConfigurationDefaults
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLED, false );
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT, 7698 );
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL, false ); //TODO check what default should be.
+        store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLE_LOGHANDLER, false );
 
         store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES, Collections.emptyList() );
     }

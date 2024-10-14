@@ -1,18 +1,17 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.api.buffer.type.fielded
 
-
+import se.laz.casual.config.ConfigurationOptions
+import se.laz.casual.config.ConfigurationService
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
-
-import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
 
 class EncodingInfoProviderTest extends Specification
 {
@@ -29,6 +28,11 @@ class EncodingInfoProviderTest extends Specification
         instance = EncodingInfoProvider.of()
     }
 
+    def cleanup()
+    {
+        ConfigurationService.reload(  )
+    }
+
     def 'no env set, default encoding'()
     {
         when:
@@ -40,12 +44,12 @@ class EncodingInfoProviderTest extends Specification
     def 'env set to latin 1'()
     {
         given:
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING, latinOneEncoding.name(  ) )
+
         def c
 
         when:
-        withEnvironmentVariable(EncodingInfoProvider.FIELDED_ENCODING_ENV_NAME, latinOneEncoding.name()).execute( {
-            c = instance.getCharset()
-        } )
+        c = instance.getCharset()
 
         then:
         c == latinOneEncoding
@@ -54,12 +58,11 @@ class EncodingInfoProviderTest extends Specification
     def 'unknown charset name, should default to default encoding'()
     {
         given:
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING, 'this is not an encoding' )
         def c
 
         when:
-        withEnvironmentVariable(EncodingInfoProvider.FIELDED_ENCODING_ENV_NAME, 'this is not an encoding').execute( {
-            c = instance.getCharset()
-        } )
+        c = instance.getCharset()
 
         then:
         c == defaultEncoding

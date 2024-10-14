@@ -83,6 +83,11 @@ class CasualMessageListenerImplTest extends Specification
         xid = createXid()
     }
 
+    def cleanup()
+    {
+        ConfigurationService.reload(  )
+    }
+
     Xid createXid()
     {
         String gid = Integer.toString( ThreadLocalRandom.current().nextInt() )

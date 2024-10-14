@@ -115,19 +115,7 @@ public class JEEConcurrencyFactory
     {
         if (null == sharedScheduledExecutor)
         {
-            int schedulerPoolSize = DEFAULT_CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE;
-
-            final String poolSizeEnvValue = System.getenv(CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE_ENV_NAME);
-            try
-            {
-                schedulerPoolSize = Integer.parseInt(poolSizeEnvValue);
-            }
-            catch (NumberFormatException e)
-            {
-                LOG.info("Failed to read env '" + CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE_ENV_NAME
-                        + "' as int, value was '" + poolSizeEnvValue
-                        + "'. Will use default pool size=" + schedulerPoolSize);
-            }
+            int schedulerPoolSize = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE );
 
             sharedScheduledExecutor = Executors.newScheduledThreadPool(schedulerPoolSize);
         }

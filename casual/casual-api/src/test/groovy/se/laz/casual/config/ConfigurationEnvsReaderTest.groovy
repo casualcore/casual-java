@@ -58,8 +58,8 @@ class ConfigurationEnvsReaderTest extends Specification
         encoding | table          || expectedEncoding | expectedTable
         "UTF8"   | "some.json"    || "UTF8"           | "some.json"
         "latin1" | "another.json" || "latin1"         | "another.json"
-        ""       | ""             || "UTF8"           | "casual-fields.json"
-        null     | null           || "UTF8"           | "casual-fields.json"
+        ""       | ""             || "UTF-8"           | null
+        null     | null           || "UTF-8"           | null
     }
 
     def "With loghander envs"()
