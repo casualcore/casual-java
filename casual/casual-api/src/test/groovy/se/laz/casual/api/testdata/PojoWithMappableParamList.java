@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,9 +11,9 @@ import se.laz.casual.api.buffer.type.fielded.mapper.LocalDateMapper;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public final class PojoWithMappableParamList implements Serializable
 {
@@ -29,19 +29,19 @@ public final class PojoWithMappableParamList implements Serializable
     public static PojoWithMappableParamList of(final List<LocalDate> dates)
     {
         Objects.requireNonNull(dates);
-        return new PojoWithMappableParamList(dates.stream().collect(Collectors.toList()));
+        return new PojoWithMappableParamList(new ArrayList<>(dates));
     }
 
     @CasualFieldElement(name ="FLD_STRING1", mapper = LocalDateMapper.class)
     public List<LocalDate> getDates()
     {
-        return dates.stream().collect(Collectors.toList());
+        return new ArrayList<>(dates);
     }
 
     public PojoWithMappableParamList setDates(@CasualFieldElement(name ="FLD_STRING1", mapper = LocalDateMapper.class)
                                               final List<LocalDate> dates)
     {
-        this.dates = dates.stream().collect(Collectors.toList());
+        this.dates = new ArrayList<>(dates);
         return this;
     }
 

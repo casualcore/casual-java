@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Data structure containing the canonical representation
@@ -88,7 +87,7 @@ public final class CasualFieldedLookup
      */
     public static List<String> getNames()
     {
-        return stringToField.keySet().stream().collect(Collectors.toList());
+        return stringToField.keySet().stream().toList();
     }
 
     private static CasualFielded slurpJSON(final URL resource)

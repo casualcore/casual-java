@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,9 +9,9 @@ package se.laz.casual.api.testdata;
 import se.laz.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public final class WrappedListPojoWithAnnotatedMethods implements Serializable
 {
@@ -27,7 +27,7 @@ public final class WrappedListPojoWithAnnotatedMethods implements Serializable
     public static WrappedListPojoWithAnnotatedMethods of(final List<SimplePojo> simplePojos)
     {
         Objects.requireNonNull(simplePojos);
-        return new WrappedListPojoWithAnnotatedMethods(simplePojos.stream().collect(Collectors.toList()));
+        return new WrappedListPojoWithAnnotatedMethods(new ArrayList<>(simplePojos));
     }
     @CasualFieldElement
     public List<SimplePojo> getSimplePojos()

@@ -56,10 +56,10 @@ public class CasualDomainDiscoveryRequestMessage implements CasualNetworkTransmi
         final byte[] domainNameBytes = domainName.getBytes(StandardCharsets.UTF_8);
         final List<byte[]> serviceNameBytes = serviceNames.stream()
                                                           .map(s -> s.getBytes(StandardCharsets.UTF_8))
-                                                          .collect(Collectors.toList());
+                                                          .toList();
         final List<byte[]> queueNameBytes  = queueNames.stream()
-                                                          .map(s -> s.getBytes(StandardCharsets.UTF_8))
-                                                          .collect(Collectors.toList());
+                                                       .map(s -> s.getBytes(StandardCharsets.UTF_8))
+                                                       .toList();
         final long messageSize = DiscoveryRequestSizes.EXECUTION.getNetworkSize() + DiscoveryRequestSizes.DOMAIN_ID.getNetworkSize() +
                                  DiscoveryRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize() + domainNameBytes.length +
                                  DiscoveryRequestSizes.SERVICES_SIZE.getNetworkSize() +
@@ -138,6 +138,8 @@ public class CasualDomainDiscoveryRequestMessage implements CasualNetworkTransmi
         return this;
     }
 
+    // internal representation, fine to be mutable
+    @SuppressWarnings("java:S6204")
     private CasualDomainDiscoveryRequestMessage setServiceNames(List<String> serviceNames)
     {
         this.serviceNames = serviceNames.stream()
@@ -147,6 +149,8 @@ public class CasualDomainDiscoveryRequestMessage implements CasualNetworkTransmi
         return this;
     }
 
+    // internal representation, fine to be mutable
+    @SuppressWarnings("java:S6204")
     private CasualDomainDiscoveryRequestMessage setQueueNames(List<String> queueNames)
     {
         this.queueNames = queueNames.stream()

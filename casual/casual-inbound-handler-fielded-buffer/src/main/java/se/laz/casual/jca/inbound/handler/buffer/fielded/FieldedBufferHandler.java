@@ -59,9 +59,9 @@ public class FieldedBufferHandler implements BufferHandler
         FieldedTypeBuffer buffer = FieldedTypeBuffer.create();
         if( result != null )
         {
-            if( result instanceof InboundResponse )
+            if( result instanceof InboundResponse response)
             {
-                return (InboundResponse) result;
+                return response;
             }
 
             buffer = FieldedTypeBufferProcessor.marshall(result);

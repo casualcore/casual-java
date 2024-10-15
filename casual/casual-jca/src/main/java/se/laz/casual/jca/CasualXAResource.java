@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -78,6 +78,8 @@ public class CasualXAResource implements XAResource
      * @throws XAException if end fails.
      */
     @Override
+    // java:S1301 - opinionated and, in this case - wrong
+    @SuppressWarnings("java:S1301")
     public void end(Xid xid, int flag) throws XAException
     {
         LOG.finest(()-> String.format("end, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, flag, XAFlags.unmarshall(flag)));
@@ -86,10 +88,7 @@ public class CasualXAResource implements XAResource
         XAFlags f = XAFlags.unmarshall(flag);
         switch(f)
         {
-            // note: we want to fallthrough here
-            case TMSUCCESS:
-            case TMFAIL:
-            case TMSUSPEND:
+            case TMSUCCESS, TMFAIL, TMSUSPEND:
                 break;
             default:
                 LOG.finest(()->"throwing XAException.XAER_RMFAIL");
@@ -119,9 +118,8 @@ public class CasualXAResource implements XAResource
     @Override
     public boolean isSameRM(XAResource xaResource) throws XAException
     {
-        if(xaResource instanceof CasualXAResource)
+        if(xaResource instanceof CasualXAResource casualXAResource)
         {
-            CasualXAResource casualXAResource = (CasualXAResource) xaResource;
             return casualXAResource.casualManagedConnection.getDomainId().equals(casualManagedConnection.getDomainId());
         }
         return false;
@@ -223,12 +221,13 @@ public class CasualXAResource implements XAResource
         return readOnly;
     }
 
+    // java:S1301 - opinionated and, in this case - wrong
+    @SuppressWarnings("java:S1301")
     private void throwWhenTransactionErrorCode(final XAReturnCode transactionReturnCode) throws XAException
     {
         switch( transactionReturnCode )
         {
-            case XA_OK:
-            case XA_RDONLY:
+            case XA_OK, XA_RDONLY:
                 break;
             default:
                 LOG.finest(()->"throwing XAException for XAReturnCode: " + transactionReturnCode);

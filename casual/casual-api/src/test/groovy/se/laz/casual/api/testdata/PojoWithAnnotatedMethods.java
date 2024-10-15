@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,9 +9,9 @@ package se.laz.casual.api.testdata;
 import se.laz.casual.api.buffer.type.fielded.annotation.CasualFieldElement;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public final class PojoWithAnnotatedMethods implements Serializable
 {
@@ -36,7 +36,7 @@ public final class PojoWithAnnotatedMethods implements Serializable
     {
         Objects.requireNonNull(name);
         Objects.requireNonNull(phoneNumbers);
-        return new PojoWithAnnotatedMethods(age, name, phoneNumbers.stream().collect(Collectors.toList()), luckyNumbers.stream().collect(Collectors.toList()));
+        return new PojoWithAnnotatedMethods(age, name, new ArrayList<>(phoneNumbers), new ArrayList<>(luckyNumbers));
     }
 
     @CasualFieldElement(name = "FLD_LONG1")
@@ -68,7 +68,7 @@ public final class PojoWithAnnotatedMethods implements Serializable
     }
     public void setPhoneNumbers(@CasualFieldElement(name = "FLD_STRING2") List<String> l)
     {
-        this.phoneNumbers = l.stream().collect(Collectors.toList());
+        this.phoneNumbers = l.stream().toList();
     }
 
     @CasualFieldElement(name = "FLD_LONG2", lengthName = "FLD_LONG4")

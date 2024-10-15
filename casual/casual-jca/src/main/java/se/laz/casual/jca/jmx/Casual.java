@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.jca.jmx;
 
 import se.laz.casual.jca.pool.NetworkConnectionPool;
@@ -5,7 +11,6 @@ import se.laz.casual.jca.pool.NetworkPoolHandler;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class Casual implements CasualMBean
 {
@@ -16,7 +21,7 @@ public class Casual implements CasualMBean
       Map<String, NetworkConnectionPool> pools = NetworkPoolHandler.getInstance().getPools();
       return pools.keySet().stream()
                   .map(key -> key + "=" + pools.get(key))
-                  .collect(Collectors.toList());
+                  .toList();
    }
 
    @Override

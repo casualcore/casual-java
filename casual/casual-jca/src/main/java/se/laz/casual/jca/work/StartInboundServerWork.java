@@ -53,9 +53,7 @@ public final class StartInboundServerWork<T> implements Work
         Objects.requireNonNull(startupServices, "Startup Services is null.");
         Objects.requireNonNull(consumer, "Consumer is null.");
         Objects.requireNonNull(supplier, "supplier is null");
-        // note: only needed to make the compiler, java 8, not spew out warnings
-        StartInboundServerWork<T> work = new StartInboundServerWork<>(startupServices, logMessage, consumer, supplier, delay);
-        return work;
+        return new StartInboundServerWork<>(startupServices, logMessage, consumer, supplier, delay);
     }
 
     @Override

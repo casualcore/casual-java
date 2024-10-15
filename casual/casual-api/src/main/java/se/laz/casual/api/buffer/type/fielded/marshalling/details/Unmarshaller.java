@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -116,9 +116,8 @@ public final class Unmarshaller
         {
             final int finalIndex = i;
             final ParameterInfo p = parameterInfo.get(i);
-            if(p instanceof AnnotatedParameterInfo)
+            if(p instanceof AnnotatedParameterInfo info)
             {
-                AnnotatedParameterInfo info = (AnnotatedParameterInfo)p;
                 readValue(context, info.getAnnotation(), (Object v) -> l[finalIndex] = v, info.getType(), info::getParameterizedType);
             }
             else
@@ -129,6 +128,8 @@ public final class Unmarshaller
         return l;
     }
 
+    // java:S3011 - we need to change accessibility
+    @SuppressWarnings("java:S3011")
     private static <T> boolean readFields(UnmarshallerContext<T> context)
     {
         AtomicBoolean fieldedValueUnmarshalled = new AtomicBoolean(false);
@@ -178,6 +179,7 @@ public final class Unmarshaller
         }
     }
 
+    @SuppressWarnings("java:S3011")
     private static void setField(final Object instance, final Field f, final Object v, final AtomicBoolean fieldedValueUnmarshalled )
     {
         try

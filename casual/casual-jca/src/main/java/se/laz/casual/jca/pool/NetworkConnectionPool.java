@@ -126,9 +126,8 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     {
         NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(address.getHostName(), address.getPort()), protocolVersion);
         NetworkConnection networkConnection = NettyNetworkConnection.of(ci, ownListener);
-        if (networkConnection instanceof NettyNetworkConnection)
+        if (networkConnection instanceof NettyNetworkConnection impl)
         {
-            NettyNetworkConnection impl = (NettyNetworkConnection) networkConnection;
             impl.addListener(networkListener);
             LOG.finest(() -> "created network connection: " + networkConnection);
             return ReferenceCountedNetworkConnection.of(impl, referenceCountedNetworkCloseListener);
