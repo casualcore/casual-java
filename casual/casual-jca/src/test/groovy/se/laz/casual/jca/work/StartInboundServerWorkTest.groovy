@@ -11,7 +11,7 @@ import jakarta.resource.spi.endpoint.MessageEndpointFactory
 import jakarta.resource.spi.work.Work
 import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.api.service.CasualService
-import se.laz.casual.config.json.Mode
+import se.laz.casual.config.Mode
 import se.laz.casual.jca.InboundStartupException
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceLiteral

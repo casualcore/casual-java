@@ -9,7 +9,7 @@ package se.laz.casual.inbound.startup;
 import jakarta.ejb.Remote;
 import jakarta.ejb.Stateless;
 import se.laz.casual.api.service.CasualService;
-import se.laz.casual.config.json.Mode;
+import se.laz.casual.config.Mode;
 
 @Stateless
 @Remote(TriggerService.class)

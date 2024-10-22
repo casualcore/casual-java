@@ -7,30 +7,24 @@
 package se.laz.casual.config.json;
 
 import java.util.Objects;
-import java.util.Optional;
 
-public class Shutdown
+class Shutdown
 {
-    public static final String CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS_ENV_NAME = "CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS";
-    public static final String CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS_ENV_NAME = "CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS";
-    public static final long DEFAULT_QUIET_PERIOD_MILLIS = 2000;
-    public static final long DEFAULT_TIMEOUT_MILLIS = 15000;
+    private final Long quietPeriod;
+    private final Long timeout;
 
-    private final long quietPeriod;
-    private final long timeout;
-
-    public Shutdown( Builder builder )
+    private Shutdown( Builder builder )
     {
         this.quietPeriod = builder.quietPeriod;
         this.timeout = builder.timeout;
     }
 
-    public long getQuietPeriod()
+    public Long getQuietPeriod()
     {
         return quietPeriod;
     }
 
-    public long getTimeout()
+    public Long getTimeout()
     {
         return timeout;
     }
@@ -47,7 +41,7 @@ public class Shutdown
             return false;
         }
         Shutdown shutdown = (Shutdown) o;
-        return quietPeriod == shutdown.quietPeriod && timeout == shutdown.timeout;
+        return Objects.equals( quietPeriod, shutdown.quietPeriod ) && Objects.equals( timeout, shutdown.timeout );
     }
 
     @Override
@@ -70,23 +64,23 @@ public class Shutdown
         return new Builder();
     }
 
+    public static Builder newBuilder( Shutdown src )
+    {
+        return new Builder().withQuietPeriod( src.getQuietPeriod() ).withTimeout( src.getTimeout() );
+    }
 
     public static final class Builder
     {
         private Long quietPeriod;
         private Long timeout;
 
-        private Builder()
-        {
-        }
-
-        public Builder withQuietPeriod( long quietPeriod )
+        public Builder withQuietPeriod( Long quietPeriod )
         {
             this.quietPeriod = quietPeriod;
             return this;
         }
 
-        public Builder withTimeout( long timeout )
+        public Builder withTimeout( Long timeout )
         {
             this.timeout = timeout;
             return this;
@@ -94,20 +88,6 @@ public class Shutdown
 
         public Shutdown build()
         {
-            if( quietPeriod == null )
-            {
-                quietPeriod = Long.parseLong(
-                        Optional.ofNullable(System.getenv(CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS_ENV_NAME))
-                                .orElse( String.valueOf( DEFAULT_QUIET_PERIOD_MILLIS ) ) );
-            }
-
-            if( timeout == null )
-            {
-                timeout = Long.parseLong(
-                        Optional.ofNullable(System.getenv(CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS_ENV_NAME))
-                                .orElse( String.valueOf( DEFAULT_TIMEOUT_MILLIS ) ) );
-            }
-
             return new Shutdown( this );
         }
     }

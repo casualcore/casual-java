@@ -6,8 +6,6 @@
 
 package se.laz.casual.config;
 
-import se.laz.casual.config.json.Mode;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.UUID;
@@ -69,5 +67,7 @@ public class ConfigurationDefaults
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLE_LOGHANDLER, false );
 
         store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES, Collections.emptyList() );
+        store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCE_CONNECTION_POOL_SIZE, 1 );
+        store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCE_CONNECTION_MAX_BACKOFF_MILLIS, 30000L );
     }
 }

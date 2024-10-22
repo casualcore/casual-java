@@ -6,8 +6,6 @@
 
 package se.laz.casual.config;
 
-import se.laz.casual.config.json.Mode;
-
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;

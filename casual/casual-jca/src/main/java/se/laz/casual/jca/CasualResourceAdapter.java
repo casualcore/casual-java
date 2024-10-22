@@ -21,7 +21,7 @@ import jakarta.resource.spi.work.WorkListener;
 import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.config.json.ReverseInbound;
+import se.laz.casual.config.ReverseInbound;
 import se.laz.casual.event.server.EventServer;
 import se.laz.casual.event.server.EventServerConnectionInformation;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
@@ -132,7 +132,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         for(ReverseInbound instance : reverseInbound)
         {
             startReverseInbound(ReverseInboundConnectionInformation.createBuilder()
-                                                                   .withAddress(InetSocketAddress.createUnresolved(instance.getAddress().getHost(), instance.getAddress().getPort()))
+                                                                   .withAddress(InetSocketAddress.createUnresolved(instance.getHost(), instance.getPort()))
                                                                    .withDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ))
                                                                    .withDomainName(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME ))
                                                                    .withUseEpoll(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL ))

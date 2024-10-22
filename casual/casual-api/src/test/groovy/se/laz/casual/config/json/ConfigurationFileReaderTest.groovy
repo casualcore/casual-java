@@ -4,11 +4,11 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.config
+package se.laz.casual.config.json
 
-import se.laz.casual.config.json.Address
-import se.laz.casual.config.json.Mode
-import se.laz.casual.config.json.ReverseInbound
+import se.laz.casual.config.ConfigurationDefaults
+import se.laz.casual.config.ConfigurationOptions
+import se.laz.casual.config.ConfigurationStore
 import spock.lang.Specification
 
 class ConfigurationFileReaderTest extends Specification
@@ -34,7 +34,7 @@ class ConfigurationFileReaderTest extends Specification
 
         then:
         store.get( ConfigurationOptions.CASUAL_DOMAIN_NAME ) == ""
-        store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE ) == Mode.DISCOVER
+        store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE ) == se.laz.casual.config.Mode.DISCOVER
         store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES ) == ["service1","service2"]
     }
 
@@ -96,11 +96,11 @@ class ConfigurationFileReaderTest extends Specification
 
         where:
         filename                                   || mode           | epoll | delay | services
-        "casual-config-inbound-immediate.json"     || Mode.IMMEDIATE | false | 0L    | []
-        "casual-config-inbound-trigger.json"       || Mode.TRIGGER   | false | 0L    | [Mode.Constants.TRIGGER_SERVICE]
-        "casual-config-inbound-discover.json"      || Mode.DISCOVER  | false | 0L    | ["service1", "service2"]
-        "casual-config-inbound-epoll.json"         || Mode.IMMEDIATE | true  | 0L    | []
-        "casual-config-inbound-initial-delay.json" || Mode.IMMEDIATE | false | 30L   | []
+        "casual-config-inbound-immediate.json"     || se.laz.casual.config.Mode.IMMEDIATE | false | 0L    | []
+        "casual-config-inbound-trigger.json"       || se.laz.casual.config.Mode.TRIGGER   | false | 0L    | []
+        "casual-config-inbound-discover.json"      || se.laz.casual.config.Mode.DISCOVER  | false | 0L    | ["service1", "service2"]
+        "casual-config-inbound-epoll.json"         || se.laz.casual.config.Mode.IMMEDIATE | true  | 0L    | []
+        "casual-config-inbound-initial-delay.json" || se.laz.casual.config.Mode.IMMEDIATE | false | 30L   | []
     }
 
     def "Read file outbound, store updated"()
@@ -131,12 +131,17 @@ class ConfigurationFileReaderTest extends Specification
     {
         given:
         String file = "src/test/resources/" + filename
-        ReverseInbound expected = ReverseInbound.of( Address.of( host, port ),size, backoff )
+        se.laz.casual.config.ReverseInbound expected = se.laz.casual.config.ReverseInbound.newBuilder()
+                .withHost( host )
+                .withPort( port )
+                .withSize( size )
+                .withMaxConnectionBackoffMillis( backoff )
+                .build()
 
         when:
         instance.populateStoreFromFile( file )
 
-        List<ReverseInbound> actual = store.get( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES )
+        List<se.laz.casual.config.ReverseInbound> actual = store.get( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES )
 
         then:
         actual == [expected]

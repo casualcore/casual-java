@@ -7,18 +7,12 @@
 package se.laz.casual.config.json;
 
 import java.util.Objects;
-import java.util.Optional;
 
-public class Inbound
+class Inbound
 {
-    public static final String CASUAL_INBOUND_STARTUP_MODE = "CASUAL_INBOUND_STARTUP_MODE";
-    public static final String CASUAL_INBOUND_USE_EPOLL = "CASUAL_INBOUND_USE_EPOLL";
-    public static final String CASUAL_INBOUND_STARTUP_INITIAL_DELAY_ENV_NAME = "CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS";
-    private static final boolean DEFAULT_USE_EPOLL = false;
-
     private final Startup startup;
     private final Boolean useEpoll;
-    private final long initialDelay;
+    private final Long initialDelay;
 
     public Inbound( Builder builder )
     {
@@ -29,16 +23,15 @@ public class Inbound
 
     public Startup getStartup()
     {
-        return startup == null ? Startup.newBuilder().build() : startup;
+        return startup;
     }
 
-    public boolean isUseEpoll()
+    public Boolean getUseEpoll()
     {
-        Optional<Boolean> maybeAlreadySet = Optional.empty();
-        return maybeAlreadySet.orElseGet(() -> null == useEpoll ? DEFAULT_USE_EPOLL : useEpoll);
+        return useEpoll;
     }
 
-    public long getInitialDelay()
+    public Long getInitialDelay()
     {
         return initialDelay;
     }
@@ -55,22 +48,21 @@ public class Inbound
             return false;
         }
         Inbound inbound = (Inbound) o;
-        return isUseEpoll() == inbound.isUseEpoll() && Objects.equals( getStartup(), inbound.getStartup() ) &&
-                inbound.getInitialDelay() == getInitialDelay();
+        return Objects.equals( startup, inbound.startup ) && Objects.equals( useEpoll, inbound.useEpoll ) && Objects.equals( initialDelay, inbound.initialDelay );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( getStartup(), isUseEpoll(), getInitialDelay() );
+        return Objects.hash( startup, useEpoll, initialDelay );
     }
 
     @Override
     public String toString()
     {
         return "Inbound{" +
-                "startup=" + getStartup() +
-                ", useEpoll=" + isUseEpoll() +
+                "startup=" + startup +
+                ", useEpoll=" + useEpoll +
                 ", initialDelay=" + initialDelay +
                 '}';
     }
@@ -80,21 +72,18 @@ public class Inbound
         return new Builder();
     }
 
+    public static Builder newBuilder( Inbound src )
+    {
+        return new Builder().withInitialDelay( src.getInitialDelay() )
+                .withUseEpoll( src.getUseEpoll() )
+                .withStartup( src.getStartup() );
+    }
+
     public static final class Builder
     {
         private Startup startup;
         private Boolean useEpoll;
         private Long initialDelay;
-
-        private Builder()
-        {
-        }
-
-        public Builder withUseEpoll( boolean useEpoll )
-        {
-            this.useEpoll = useEpoll;
-            return this;
-        }
 
         public Builder withStartup( Startup startup )
         {
@@ -102,7 +91,13 @@ public class Inbound
             return this;
         }
 
-        public Builder withInitialDelay(long initialDelay)
+        public Builder withUseEpoll( Boolean useEpoll )
+        {
+            this.useEpoll = useEpoll;
+            return this;
+        }
+
+        public Builder withInitialDelay( Long initialDelay )
         {
             this.initialDelay = initialDelay;
             return this;
@@ -110,27 +105,6 @@ public class Inbound
 
         public Inbound build()
         {
-//            if(startup == null)
-//            {
-//                // try to get startup mode from env variable, otherwise default
-//                String startupMode = Optional.ofNullable(System.getenv(CASUAL_INBOUND_STARTUP_MODE)).orElse(null);
-//                if(null != startupMode)
-//                {
-//                    Mode mode = Mode.fromName(startupMode);
-//                    startup = Startup.newBuilder().withMode(mode).build();
-//                }
-//            }
-            if( useEpoll == null )
-            {
-                String useEpollMode = Optional.ofNullable(System.getenv(CASUAL_INBOUND_USE_EPOLL)).orElse(null);
-                useEpoll = null != useEpollMode ? Boolean.parseBoolean(useEpollMode) : null;
-            }
-            if( initialDelay == null )
-            {
-                initialDelay = Optional.ofNullable( System.getenv(CASUAL_INBOUND_STARTUP_INITIAL_DELAY_ENV_NAME) )
-                                       .map( delay -> delay.isEmpty() ? 0L : Long.parseLong( delay ) )
-                                       .orElse(0L );
-            }
             return new Inbound( this );
         }
     }

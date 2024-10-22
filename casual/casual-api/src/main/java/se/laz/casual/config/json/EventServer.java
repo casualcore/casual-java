@@ -7,32 +7,32 @@ package se.laz.casual.config.json;
 
 import java.util.Objects;
 
-public final class EventServer
+final class EventServer
 {
-    private final int portNumber;
-    private final boolean useEpoll;
+    private final Integer portNumber;
+    private final Boolean useEpoll;
     private final Shutdown shutdown;
 
-    private EventServer(Builder builder)
+    private EventServer( Builder builder )
     {
         this.portNumber = builder.portNumber;
         this.useEpoll = builder.useEpoll;
         this.shutdown = builder.shutdown;
     }
 
-    public int getPortNumber()
+    public Integer getPortNumber()
     {
         return portNumber;
     }
 
-    public boolean isUseEpoll()
+    public Boolean getUseEpoll()
     {
         return useEpoll;
     }
 
     public Shutdown getShutdown()
     {
-        return shutdown == null ? Shutdown.newBuilder().build() : shutdown;
+        return shutdown;
     }
 
     @Override
@@ -47,51 +47,50 @@ public final class EventServer
             return false;
         }
         EventServer that = (EventServer) o;
-        return getPortNumber() == that.getPortNumber() && isUseEpoll() == that.isUseEpoll() && Objects.equals( getShutdown(), that.getShutdown() );
+        return Objects.equals( portNumber, that.portNumber ) && Objects.equals( useEpoll, that.useEpoll ) && Objects.equals( shutdown, that.shutdown );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( getPortNumber(), isUseEpoll(), getShutdown() );
+        return Objects.hash( portNumber, useEpoll, shutdown );
     }
 
     @Override
     public String toString()
     {
         return "EventServer{" +
-                "portNumber=" + portNumber +
+                "port=" + portNumber +
                 ", useEpoll=" + useEpoll +
                 ", shutdown=" + shutdown +
                 '}';
     }
 
-    public static Builder createBuilder()
+    public static Builder newBuilder()
     {
         return new Builder();
     }
 
+    public static Builder newBuilder( EventServer src )
+    {
+        return new Builder().withPort( src.getPortNumber() )
+                .withUseEpoll( src.getUseEpoll() )
+                .withShutdown( src.getShutdown() );
+    }
+
     public static final class Builder
     {
-        private int portNumber = 7698;
-        private boolean useEpoll;
+        private Integer portNumber;
+        private Boolean useEpoll;
         private Shutdown shutdown;
 
-        private Builder()
-        {}
-
-        public static Builder builder()
+        public Builder withPort( Integer port )
         {
-            return new Builder();
-        }
-
-        public Builder withPortNumber(int portNumber)
-        {
-            this.portNumber = portNumber;
+            this.portNumber = port;
             return this;
         }
 
-        public Builder withUseEpoll(boolean useEpoll)
+        public Builder withUseEpoll( Boolean useEpoll )
         {
             this.useEpoll = useEpoll;
             return this;
@@ -105,7 +104,7 @@ public final class EventServer
 
         public EventServer build()
         {
-            return new EventServer(this);
+            return new EventServer( this );
         }
     }
 }

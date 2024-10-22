@@ -10,19 +10,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 
-public class Startup
+class Startup
 {
-    private static final Logger LOG = Logger.getLogger(Startup.class.getName());
     private final Mode mode;
     private final List<String> services;
-    public static final String CASUAL_INBOUND_STARTUP_MODE_ENV_NAME = "CASUAL_INBOUND_STARTUP_MODE";
 
-    public Startup( Mode mode, List<String> services )
+    private Startup( Builder builder )
     {
-        this.mode = mode;
-        this.services = services;
+        this.mode = builder.mode;
+        this.services = builder.services;
     }
 
     public Mode getMode()
@@ -32,15 +29,7 @@ public class Startup
 
     public List<String> getServices()
     {
-        switch( this.mode )
-        {
-            case IMMEDIATE:
-                return Collections.emptyList();
-            case TRIGGER:
-                return Collections.singletonList( Mode.Constants.TRIGGER_SERVICE );
-            default:
-                return services == null ? Collections.emptyList() : new ArrayList<>( services );
-        }
+        return services == null ? Collections.emptyList() : new ArrayList<>( services );
     }
 
     @Override
@@ -55,22 +44,21 @@ public class Startup
             return false;
         }
         Startup startup = (Startup) o;
-        return getMode() == startup.getMode() &&
-                Objects.equals( getServices(), startup.getServices() );
+        return mode == startup.mode && Objects.equals( services, startup.services );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( getMode(), getServices() );
+        return Objects.hash( mode, services );
     }
 
     @Override
     public String toString()
     {
         return "Startup{" +
-                "mode=" + getMode() +
-                ", services=" + getServices() +
+                "mode=" + mode +
+                ", services=" + services +
                 '}';
     }
 
@@ -79,14 +67,15 @@ public class Startup
         return new Builder();
     }
 
+    public static Builder newBuilder( Startup src)
+    {
+        return new Builder().withMode( src.getMode() ).withServices( src.getServices() );
+    }
+
     public static final class Builder
     {
-        private Mode mode = Mode.IMMEDIATE;
-        private List<String> services = new ArrayList<>(  );
-
-        private Builder()
-        {
-        }
+        private Mode mode;
+        private List<String> services = new ArrayList<>();
 
         public Builder withMode( Mode mode )
         {
@@ -96,14 +85,15 @@ public class Startup
 
         public Builder withServices( List<String> services )
         {
-            this.services = services;
+            this.services = new ArrayList<>( services );
             return this;
         }
 
         public Startup build()
         {
-            LOG.info(() -> "Casual Inbound Startup mode is: " + mode);
-            return new Startup( mode, services );
+            Collections.sort( services );
+
+            return new Startup( this );
         }
     }
 }

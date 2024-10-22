@@ -6,9 +6,6 @@
 
 package se.laz.casual.config;
 
-import se.laz.casual.config.json.Mode;
-import se.laz.casual.config.json.ReverseInbound;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -57,5 +54,8 @@ public class ConfigurationOptions
     public static final ConfigurationOption<Boolean> CASUAL_EVENT_SERVER_USE_EPOLL = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_USE_EPOLL" );
     public static final ConfigurationOption<Boolean> CASUAL_EVENT_SERVER_ENABLE_LOGHANDLER = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_ENABLE_LOGHANDLER" );
 
+    //Naming?
+    public static final ConfigurationOption<Integer> CASUAL_REVERSE_INBOUND_INSTANCE_CONNECTION_POOL_SIZE = new ConfigurationOption<>( "CASUAL_REVERSE_INBOUND_INSTANCE_CONNECTION_POOL_SIZE" );
+    public static final ConfigurationOption<Long> CASUAL_REVERSE_INBOUND_INSTANCE_CONNECTION_MAX_BACKOFF_MILLIS = new ConfigurationOption<>( "CASUAL_REVERSE_INBOUND_INSTANCE_CONNECTION_MAX_BACKOFF_MILLIS" );
 
 }

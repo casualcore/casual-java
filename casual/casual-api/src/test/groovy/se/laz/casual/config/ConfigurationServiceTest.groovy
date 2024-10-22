@@ -6,8 +6,7 @@
 
 package se.laz.casual.config
 
-import se.laz.casual.config.json.Configuration
-import se.laz.casual.config.json.Mode
+
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -60,7 +59,7 @@ class ConfigurationServiceTest extends Specification
    def 'no outbound config, useEpoll set via env var'()
    {
       when:
-      withEnvironmentVariable( Configuration.USE_EPOLL_ENV_VAR_NAME, "true" )
+      withEnvironmentVariable( ConfigurationOptions.CASUAL_USE_EPOLL.getName(  ), "true" )
               .execute( {
                   ConfigurationService.reload(  )
               } )

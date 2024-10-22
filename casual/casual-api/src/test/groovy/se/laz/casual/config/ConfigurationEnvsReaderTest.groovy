@@ -7,7 +7,6 @@
 package se.laz.casual.config
 
 import com.github.stefanbirkner.systemlambda.SystemLambda
-import se.laz.casual.config.json.Mode
 import spock.lang.Specification
 
 class ConfigurationEnvsReaderTest extends Specification

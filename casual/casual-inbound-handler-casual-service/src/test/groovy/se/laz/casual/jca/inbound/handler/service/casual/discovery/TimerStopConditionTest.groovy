@@ -6,7 +6,7 @@
 package se.laz.casual.jca.inbound.handler.service.casual.discovery
 
 
-import se.laz.casual.config.json.Mode
+import se.laz.casual.config.Mode
 import se.laz.casual.jca.RuntimeInformation
 import spock.lang.Specification
 

@@ -7,30 +7,18 @@
 package se.laz.casual.config.json;
 
 import com.google.gson.annotations.SerializedName;
+import se.laz.casual.config.Mode.Constants;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public enum Mode
+enum Mode
 {
-    @SerializedName(Constants.IMMEDIATE)
+    @SerializedName( Constants.IMMEDIATE)
     IMMEDIATE( Constants.IMMEDIATE ),
     @SerializedName(Constants.TRIGGER)
     TRIGGER( Constants.TRIGGER ),
     @SerializedName(Constants.DISCOVER)
-    DISCOVER( Constants.DISCOVER );
+    DISCOVER( se.laz.casual.config.Mode.Constants.DISCOVER );
 
-    private static Map<String,Mode> lookup = new HashMap<>(  );
-
-    static
-    {
-        for( Mode m: Mode.values() )
-        {
-            lookup.put( m.getName(), m );
-        }
-    }
-
-    private String name;
+    private final String name;
 
     Mode( String name )
     {
@@ -40,28 +28,5 @@ public enum Mode
     public String getName()
     {
         return name;
-    }
-
-    public static Mode fromName( String name )
-    {
-        if( !lookup.containsKey( name ) )
-        {
-            throw new IllegalArgumentException( "Name is not a valid Mode: " + name );
-        }
-
-        return lookup.get( name );
-    }
-
-    public static class Constants
-    {
-        private Constants()
-        {
-        }
-
-        public static final String IMMEDIATE = "immediate";
-        public static final String TRIGGER = "trigger";
-        public static final String DISCOVER = "discover";
-
-        public static final String TRIGGER_SERVICE = "casual.internal.inbound.startup.service";
     }
 }

@@ -6,7 +6,7 @@
 
 package se.laz.casual.config;
 
-import se.laz.casual.config.json.Mode;
+import se.laz.casual.config.json.ConfigurationFileReader;
 
 import java.util.Collections;
 import java.util.List;

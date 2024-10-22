@@ -6,7 +6,7 @@
 
 package se.laz.casual.config
 
-import se.laz.casual.config.json.Mode
+
 import spock.lang.Specification
 
 class ConfigurationStoreTest extends Specification

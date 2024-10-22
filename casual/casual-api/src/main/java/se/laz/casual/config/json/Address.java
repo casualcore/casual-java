@@ -7,21 +7,15 @@ package se.laz.casual.config.json;
 
 import java.util.Objects;
 
-public final class Address
+final class Address
 {
     private final String host;
-    private final int port;
+    private final Integer port;
 
-    private Address(String host, int port)
+    public Address( Builder builder )
     {
-        this.host = host;
-        this.port = port;
-    }
-
-    public static Address of(String host, int port)
-    {
-        Objects.requireNonNull(host, "host can not be null");
-        return new Address(host, port);
+        this.host = builder.host;
+        this.port = builder.port;
     }
 
     public String getHost()
@@ -29,30 +23,30 @@ public final class Address
         return host;
     }
 
-    public int getPort()
+    public Integer getPort()
     {
         return port;
     }
 
     @Override
-    public boolean equals(Object o)
+    public boolean equals( Object o )
     {
-        if (this == o)
+        if( this == o )
         {
             return true;
         }
-        if (o == null || getClass() != o.getClass())
+        if( o == null || getClass() != o.getClass() )
         {
             return false;
         }
         Address address = (Address) o;
-        return getPort() == address.getPort() && Objects.equals(getHost(), address.getHost());
+        return Objects.equals( host, address.host ) && Objects.equals( port, address.port );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getHost(), getPort());
+        return Objects.hash( host, port );
     }
 
     @Override
@@ -62,5 +56,39 @@ public final class Address
                 "host='" + host + '\'' +
                 ", port=" + port +
                 '}';
+    }
+
+
+    public static Builder newBuilder()
+    {
+        return new Builder();
+    }
+
+    public static Builder newBuilder( Address src )
+    {
+        return new Builder().withHost( src.host ).withPort( src.port );
+    }
+
+    public static final class Builder
+    {
+        private String host;
+        private Integer port;
+
+        public Builder withHost( String host )
+        {
+            this.host = host;
+            return this;
+        }
+
+        public Builder withPort( Integer port )
+        {
+            this.port = port;
+            return this;
+        }
+
+        public Address build()
+        {
+            return new Address( this );
+        }
     }
 }

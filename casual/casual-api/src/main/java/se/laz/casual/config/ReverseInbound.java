@@ -3,26 +3,33 @@
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
-package se.laz.casual.config.json;
+package se.laz.casual.config;
 
 import java.util.Objects;
 
-final class ReverseInbound
+public final class ReverseInbound
 {
-    private final Address address;
+    private final String host;
+    private final Integer port;
     private final Integer size;
     private final Long maxConnectionBackoffMillis;
 
-    private ReverseInbound( Builder builder)
+    public ReverseInbound( Builder builder )
     {
-        this.address = builder.address;
+        this.host = builder.host;
+        this.port = builder.port;
         this.size = builder.size;
         this.maxConnectionBackoffMillis = builder.maxConnectionBackoffMillis;
     }
 
-    public Address getAddress()
+    public String getHost()
     {
-        return address;
+        return host;
+    }
+
+    public Integer getPort()
+    {
+        return port;
     }
 
     public Integer getSize()
@@ -47,20 +54,21 @@ final class ReverseInbound
             return false;
         }
         ReverseInbound that = (ReverseInbound) o;
-        return Objects.equals( address, that.address ) && Objects.equals( size, that.size ) && Objects.equals( maxConnectionBackoffMillis, that.maxConnectionBackoffMillis );
+        return Objects.equals( host, that.host ) && Objects.equals( port, that.port ) && Objects.equals( size, that.size ) && Objects.equals( maxConnectionBackoffMillis, that.maxConnectionBackoffMillis );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( address, size, maxConnectionBackoffMillis );
+        return Objects.hash( host, port, size, maxConnectionBackoffMillis );
     }
 
     @Override
     public String toString()
     {
         return "ReverseInbound{" +
-                "address=" + address +
+                "host='" + host + '\'' +
+                ", port=" + port +
                 ", size=" + size +
                 ", maxConnectionBackoffMillis=" + maxConnectionBackoffMillis +
                 '}';
@@ -73,20 +81,28 @@ final class ReverseInbound
 
     public static Builder newBuilder( ReverseInbound src )
     {
-        return new Builder().withAddress( src.getAddress() )
+        return new Builder().withHost( src.getHost() )
+                .withPort( src.getPort() )
                 .withSize( src.getSize() )
                 .withMaxConnectionBackoffMillis( src.getMaxConnectionBackoffMillis() );
     }
 
     public static final class Builder
     {
-        private Address address;
+        private String host;
+        private Integer port;
         private Integer size;
         private Long maxConnectionBackoffMillis;
 
-        public Builder withAddress( Address address )
+        public Builder withHost( String host )
         {
-            this.address = address;
+            this.host = host;
+            return this;
+        }
+
+        public Builder withPort( Integer port )
+        {
+            this.port = port;
             return this;
         }
 
