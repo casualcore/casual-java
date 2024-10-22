@@ -36,7 +36,7 @@ public class ConfigurationDefaults
         store.put( ConfigurationOptions.CASUAL_DOMAIN_NAME, "" );
 
         store.put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE, Mode.IMMEDIATE );
-        store.put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES, Collections.emptyList() ); //TODO fix this if TRIGGER is used.
+        store.put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES, Collections.emptyList() );
 
         store.put( ConfigurationOptions.CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER, false );
         store.put( ConfigurationOptions.CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER, false );

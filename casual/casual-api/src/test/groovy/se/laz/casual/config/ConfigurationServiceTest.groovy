@@ -101,7 +101,7 @@ class ConfigurationServiceTest extends Specification
         where:
         env                      || mode           | services
         Mode.Constants.IMMEDIATE || Mode.IMMEDIATE | []
-        Mode.Constants.TRIGGER   || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE] //TODO fix this.
+        Mode.Constants.TRIGGER   || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE]
         Mode.Constants.DISCOVER  || Mode.DISCOVER  | []
         // This test is for when the env var is set such as FOO=
         // When reading it with System.getEnv that then is returned as the empty string as opposed to null if the env var

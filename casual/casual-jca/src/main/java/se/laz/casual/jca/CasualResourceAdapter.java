@@ -77,8 +77,6 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     @ConfigProperty( defaultValue = "7772")
     private Integer inboundServerPort;
 
-    private ConfigurationService configurationService;
-
     public CasualResourceAdapter()
     {
         //JCA requires ResourceAdapter has a no arg constructor.

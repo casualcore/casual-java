@@ -283,11 +283,6 @@ class ConfigurationEnvsReaderTest extends Specification
         null    | null   | null   || false           | 7698         | false
     }
 
-
-
-    //TODO check conversions that are invalid values e.g. boolean with "xyz" or integer with "false".
-    //TODO what should we do when there is a value which maps to an enum and the value does not match? Fail Fast. //DONE
-    //TODO netty log level, should that be an enum?
     //TODO What is the default for unmanaged, why negation?! Why that name, feels very clunky, it's related to the executor service?
     //TODO Where should defaults in the tests come from? Can I just use the existing store value?
 
