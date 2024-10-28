@@ -6,8 +6,9 @@
 
 package se.laz.casual.config;
 
+import se.laz.casual.jca.DomainId;
+
 import java.util.List;
-import java.util.UUID;
 
 /**
  * All available configuration options.
@@ -22,7 +23,7 @@ public class ConfigurationOptions
     public static final ConfigurationOption<String> CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL = new ConfigurationOption<>( "CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL" );
     public static final ConfigurationOption<String> CASUAL_INBOUND_NETTY_LOGGING_LEVEL = new ConfigurationOption<>( "CASUAL_INBOUND_NETTY_LOGGING_LEVEL" );
     public static final ConfigurationOption<String> CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL = new ConfigurationOption<>( "CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL" );
-    public static final ConfigurationOption<UUID> CASUAL_DOMAIN_ID = new ConfigurationOption<>( "CASUAL_DOMAIN_ID" );
+    public static final ConfigurationOption<DomainId> CASUAL_DOMAIN_ID = new ConfigurationOption<>( "CASUAL_DOMAIN_ID" );
     public static final ConfigurationOption<String> CASUAL_DOMAIN_NAME = new ConfigurationOption<>( "CASUAL_DOMAIN_NAME" );
     public static final ConfigurationOption<String> CASUAL_CONFIG_FILE = new ConfigurationOption<>( "CASUAL_CONFIG_FILE" );
     public static final ConfigurationOption<Mode> CASUAL_INBOUND_STARTUP_MODE = new ConfigurationOption<>( "CASUAL_INBOUND_STARTUP_MODE" );

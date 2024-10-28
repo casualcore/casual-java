@@ -25,6 +25,7 @@ import se.laz.casual.api.xa.XID
 import se.laz.casual.config.ConfigurationOptions
 import se.laz.casual.config.ConfigurationService
 import se.laz.casual.jca.CasualResourceAdapterException
+import se.laz.casual.jca.DomainId
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
@@ -72,7 +73,7 @@ class CasualMessageListenerImplTest extends Specification
 
     def setup()
     {
-        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID, domainId )
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID, DomainId.of( domainId ) )
         ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME, domainName )
         instance = new CasualMessageListenerImpl()
         inboundHandler = TestInboundHandler.of()

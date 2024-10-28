@@ -50,7 +50,7 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
 
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
                                                                                             .setExecution(UUID.randomUUID())
-                                                                                            .setDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ))
+                                                                                            .setDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId())
                                                                                             .setDomainName(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME ))
                                                                                             .setServiceNames(serviceNames)
                                                                                             .setQueueNames(queueNames)

@@ -222,7 +222,7 @@ public class CasualServiceCaller implements CasualServiceApi
 
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
                 .setExecution(UUID.randomUUID())
-                .setDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ))
+                .setDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId())
                 .setDomainName(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME ))
                 .setServiceNames(Arrays.asList(serviceName))
                 .build();
@@ -252,7 +252,7 @@ public class CasualServiceCaller implements CasualServiceApi
     {
         if(eventPublisher == null)
         {
-            UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID );
+            UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId();
             eventPublisher = ServiceCallEventPublisher.of(ServiceCallEventStoreFactory.getStore(domainId));
         }
         return eventPublisher;

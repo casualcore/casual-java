@@ -6,6 +6,8 @@
 
 package se.laz.casual.config;
 
+import se.laz.casual.jca.DomainId;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.UUID;
@@ -32,7 +34,7 @@ public class ConfigurationDefaults
         store.put( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING, StandardCharsets.UTF_8.name() );
         store.put( ConfigurationOptions.CASUAL_FIELD_TABLE, null );
 
-        store.put( ConfigurationOptions.CASUAL_DOMAIN_ID, UUID.randomUUID() );
+        store.put( ConfigurationOptions.CASUAL_DOMAIN_ID, DomainId.of( UUID.randomUUID() ) );
         store.put( ConfigurationOptions.CASUAL_DOMAIN_NAME, "" );
 
         store.put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE, Mode.IMMEDIATE );

@@ -23,7 +23,7 @@ public final class NettyConnectionInformationCreator
 
         NettyConnectionInformation.Builder builder = NettyConnectionInformation.createBuilder().withAddress(address)
                                                                   .withProtocolVersion(protocolVersion)
-                                                                  .withDomainId( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ) )
+                                                                  .withDomainId( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId() )
                                                                   .withDomainName(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME ));
         boolean useEPoll = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL );
         if(useEPoll)

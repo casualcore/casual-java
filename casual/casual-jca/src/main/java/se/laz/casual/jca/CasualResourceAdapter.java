@@ -96,7 +96,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                     .withPort( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT ) )
                     .withShutdownTimeout( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS ) )
                     .withShutdownQuietPeriod( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS ) )
-                    .build(), ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ) );
+                    .build(), ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId() );
             log.info("event server started at port: " + ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT ) );
             RuntimeInformation.setEventServerStarted(true);
         }
@@ -131,7 +131,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         {
             startReverseInbound(ReverseInboundConnectionInformation.createBuilder()
                                                                    .withAddress(InetSocketAddress.createUnresolved(instance.getHost(), instance.getPort()))
-                                                                   .withDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ))
+                                                                   .withDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId())
                                                                    .withDomainName(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME ))
                                                                    .withUseEpoll(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL ))
                                                                    .withFactory(endpointFactory)

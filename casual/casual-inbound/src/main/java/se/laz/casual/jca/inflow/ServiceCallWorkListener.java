@@ -103,7 +103,7 @@ public class ServiceCallWorkListener implements WorkListener
     {
         if(eventPublisher == null)
         {
-            UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID );
+            UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId();
             eventPublisher = ServiceCallEventPublisher.of(ServiceCallEventStoreFactory.getStore(domainId));
         }
         return eventPublisher;

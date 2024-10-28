@@ -131,7 +131,7 @@ public class CasualQueueCaller implements CasualQueueApi
     {
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
                                                                                             .setExecution(UUID.randomUUID())
-                                                                                            .setDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ))
+                                                                                            .setDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId())
                                                                                             .setDomainName(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME ))
                                                                                             .setQueueNames(Arrays.asList(queueName))
                                                                                             .build();

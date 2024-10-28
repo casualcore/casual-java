@@ -52,7 +52,6 @@ public class ConfigurationService
         return store;
     }
 
-    //TODO: Can we get rid of the need for this?
     private void fixEpoll( ConfigurationStore store )
     {
         boolean rootEpoll = store.get( ConfigurationOptions.CASUAL_USE_EPOLL );
