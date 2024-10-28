@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Read through the configuration file and envs and populate the configuration store with the appropriate values.
+ * Read through the configuration file populate the configuration store with the appropriate values.
  */
 public class ConfigurationFileReader
 {

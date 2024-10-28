@@ -8,6 +8,11 @@ package se.laz.casual.config;
 
 import java.util.Objects;
 
+/**
+ * Configuration option for use as a Key in configuration store map.
+ *
+ * @param <T> the type of data of the value of the configuration option.
+ */
 public class ConfigurationOption<T>
 {
     private final String name;

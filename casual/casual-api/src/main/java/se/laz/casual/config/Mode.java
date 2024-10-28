@@ -9,6 +9,9 @@ package se.laz.casual.config;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Inbound Startup Mode.
+ */
 public enum Mode
 {
     IMMEDIATE( Constants.IMMEDIATE ),

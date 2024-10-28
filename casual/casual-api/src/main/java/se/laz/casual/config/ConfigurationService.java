@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Singleton access to Casual Configuration.
+ * Singleton access to Casual ConfigurationStore.
  */
 public class ConfigurationService
 {

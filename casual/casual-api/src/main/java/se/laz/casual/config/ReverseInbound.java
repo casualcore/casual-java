@@ -7,6 +7,9 @@ package se.laz.casual.config;
 
 import java.util.Objects;
 
+/**
+ * Reverse Inbound configuration.
+ */
 public final class ReverseInbound
 {
     private final String host;
