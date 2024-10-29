@@ -47,4 +47,13 @@ public class ConfigurationStore
         return (T) data.get( option );
     }
 
+    /**
+     * Retrieve the data currently stored in the store.
+     *
+     * @return copy of the store data.
+     */
+    public Map<ConfigurationOption<?>, Object> getData()
+    {
+        return new HashMap<>( this.data );
+    }
 }

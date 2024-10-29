@@ -9,7 +9,10 @@ package se.laz.casual.config
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.function.Supplier
+
 import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
+import static se.laz.casual.config.ConfigurationDefaults.ENCODING_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.INBOUND_STARTUP_INITIAL_DELAY_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.INBOUND_STARTUP_MODE_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.INBOUND_START_SERVICES_DEFAULT
@@ -188,6 +191,24 @@ class ConfigurationServiceTest extends Specification
 
         then:
         actual == initial
+    }
 
+    def "Log configuration."()
+    {
+        when:
+        Supplier<String> supplier = ConfigurationService.log( )
+        String actual = supplier.get(  )
+
+        then:
+        actual.contains( ENCODING_DEFAULT )
+
+        when:
+        String encoding = "latin1"
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING, encoding )
+        supplier = ConfigurationService.log( )
+        actual = supplier.get(  )
+
+        then:
+        actual.contains( encoding )
     }
 }

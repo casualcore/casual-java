@@ -9,7 +9,9 @@ package se.laz.casual.config;
 import se.laz.casual.config.json.ConfigurationFileReader;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Singleton access to Casual ConfigurationStore.
@@ -123,5 +125,25 @@ public class ConfigurationService
     public static void reload()
     {
         INSTANCE.store = new ConfigurationService().store;
+    }
+
+    /**
+     * Retrieve the current configuration as a string supplier for use with debugging/logging.
+     */
+    public static Supplier<String> log( )
+    {
+        List<ConfigurationOption<?>> options = INSTANCE.store.getData().keySet().stream()
+                .sorted( Comparator.comparing( ConfigurationOption::getName ) )
+                .toList();
+
+        StringBuilder builder = new StringBuilder();
+        for( ConfigurationOption<?> option : options )
+        {
+            builder.append( option.getName() )
+                    .append( " : " )
+                    .append( INSTANCE.store.get( option ) )
+                    .append( "\n" );
+        }
+        return builder::toString;
     }
 }

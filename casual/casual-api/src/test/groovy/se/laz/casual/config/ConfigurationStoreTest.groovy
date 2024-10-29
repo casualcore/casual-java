@@ -56,4 +56,26 @@ class ConfigurationStoreTest extends Specification
         then:
         actual == expected
     }
+
+    def "Get a defensive copy of data."()
+    {
+        given:
+        instance.put( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING, "latin1" )
+        instance.put( ConfigurationOptions.CASUAL_USE_EPOLL, true )
+
+        Map<ConfigurationOption<Object>, Object> expected = [(ConfigurationOptions.CASUAL_USE_EPOLL): true,
+                                                             (ConfigurationOptions.CASUAL_API_FIELDED_ENCODING): "latin1"]
+        when:
+        Map<ConfigurationOption<Object>, Object> actual = instance.getData( )
+
+        then:
+        actual == expected
+        instance.get( ConfigurationOptions.CASUAL_USE_EPOLL ) == true
+
+        when:
+        actual.put( ConfigurationOptions.CASUAL_USE_EPOLL, false )
+
+        then:
+        instance.get( ConfigurationOptions.CASUAL_USE_EPOLL ) != false
+    }
 }
