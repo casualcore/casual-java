@@ -57,8 +57,9 @@ public class ConfigurationDefaults
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS, 15000L );
 
         store.put( ConfigurationOptions.CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE, 10 );
-        store.put( ConfigurationOptions.CASUAL_UNMANAGED, false ); //TODO check what default should be.
-        store.put( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, false ); //TODO check what default should and if needed with above present.
+
+        store.put( ConfigurationOptions.CASUAL_UNMANAGED, null );
+        store.put( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, false );
 
         store.put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS, 0 );
         store.put( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME, "java:comp/DefaultManagedExecutorService" );

@@ -49,7 +49,26 @@ public class ConfigurationService
 
         fixEpoll( store );
 
+        fixUnmanaged( store );
+
         return store;
+    }
+
+    private void fixUnmanaged( ConfigurationStore store )
+    {
+        Boolean rootUnmanaged = store.get( ConfigurationOptions.CASUAL_UNMANAGED );
+        Boolean outboundUnmanaged = store.get( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED );
+        if( rootUnmanaged == null )
+        {
+            rootUnmanaged = outboundUnmanaged;
+            store.put( ConfigurationOptions.CASUAL_UNMANAGED, rootUnmanaged );
+
+        }
+
+        if( rootUnmanaged != outboundUnmanaged )
+        {
+            store.put( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, rootUnmanaged );
+        }
     }
 
     private void fixEpoll( ConfigurationStore store )

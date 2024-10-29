@@ -109,6 +109,40 @@ class ConfigurationServiceTest extends Specification
         ''                       || Mode.IMMEDIATE | []
     }
 
+    def "Unmanaged confusion for default and settings."()
+    {
+        given:
+        withEnvironmentVariable( ConfigurationOptions.CASUAL_UNMANAGED.getName(  ), unmanaged )
+                .and( ConfigurationOptions.CASUAL_CONFIG_FILE.getName(  ), "src/test/resources/" + file )
+                .execute( {
+                    ConfigurationService.reload( )
+                } )
+
+        when:
+        Boolean actualRootUnmanaged = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_UNMANAGED )
+        Boolean actualOutboundUnmanaged = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED )
+
+        then:
+        actualRootUnmanaged == expectedRootUnmanaged
+        actualOutboundUnmanaged == expectedOutboundUnmanaged
+
+        where:
+        file                                          | unmanaged | expectedRootUnmanaged | expectedOutboundUnmanaged
+        "casual-config-empty.json"                    | ""        | false                 | false
+        "casual-config-empty.json"                    | "false"   | false                 | false
+        "casual-config-empty.json"                    | "true"    | true                  | true
+        "casual-config-outbound.json"                 | ""        | false                 | false
+        "casual-config-outbound.json"                 | "false"   | false                 | false
+        "casual-config-outbound.json"                 | "true"    | true                  | true
+        "casual-config-outbound-unmanaged.json"       | ""        | true                  | true
+        "casual-config-outbound-unmanaged.json"       | "false"   | false                 | false
+        "casual-config-outbound-unmanaged.json"       | "true"    | true                  | true
+        "casual-config-outbound-unmanaged-false.json" | ""        | false                 | false
+        "casual-config-outbound-unmanaged-false.json" | "false"   | false                 | false
+        "casual-config-outbound-unmanaged-false.json" | "true"    | true                  | true
+
+    }
+
     def "Set configuration value dynamically, e.g. for testing."()
     {
         given:
