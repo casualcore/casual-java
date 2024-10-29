@@ -283,7 +283,6 @@ class ConfigurationEnvsReaderTest extends Specification
         null    | null   | null   || false           | 7698         | false
     }
 
-    //TODO What is the default for unmanaged, why negation?! Why that name, feels very clunky, it's related to the executor service?
     //TODO Where should defaults in the tests come from? Can I just use the existing store value?
 
     def "incorrect data types that fail to cast throw CasualConfigException."()

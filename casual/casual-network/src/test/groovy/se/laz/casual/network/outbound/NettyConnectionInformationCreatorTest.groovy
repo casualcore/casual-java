@@ -36,7 +36,7 @@ class NettyConnectionInformationCreatorTest extends Specification
       given:
       InetSocketAddress address = new InetSocketAddress('foo.bar', 1234)
       ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
-      ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL, true ) //TODO: how did this work before with the root epoll setting being set.
+      ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL, true )
 
       when:
       NettyConnectionInformation ci = NettyConnectionInformationCreator.create(address, protocolVersion)

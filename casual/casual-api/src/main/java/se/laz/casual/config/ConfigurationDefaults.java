@@ -48,9 +48,9 @@ public class ConfigurationDefaults
         store.put( ConfigurationOptions.CASUAL_INBOUND_NETTY_LOGGING_LEVEL, "INFO" );
         store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL, "INFO" );
 
-        store.put( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL, false ); //TODO check what default should be.
-        store.put( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL, false ); //TODO check what default should be.
-        store.put( ConfigurationOptions.CASUAL_USE_EPOLL, false ); //TODO check what default should be.
+        store.put( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL, false );
+        store.put( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL, false );
+        store.put( ConfigurationOptions.CASUAL_USE_EPOLL, false );
 
         store.put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS, 0L );
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS, 2000L );
@@ -66,7 +66,7 @@ public class ConfigurationDefaults
 
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLED, false );
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT, 7698 );
-        store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL, false ); //TODO check what default should be.
+        store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL, false );
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLE_LOGHANDLER, false );
 
         store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES, Collections.emptyList() );

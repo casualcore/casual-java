@@ -25,7 +25,7 @@ class EventLoopFactoryTest extends Specification
         def reverseEventLoopGroup
 
         when:
-        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, true ) //TODO: why two locations!
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, true )
 
         outboundEventLoopGroup = EventLoopFactory.getInstance( EventLoopClient.OUTBOUND )
         reverseEventLoopGroup = EventLoopFactory.getInstance( EventLoopClient.REVERSE )

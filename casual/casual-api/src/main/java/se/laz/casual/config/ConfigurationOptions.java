@@ -35,18 +35,15 @@ public class ConfigurationOptions
     public static final ConfigurationOption<Long> CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS = new ConfigurationOption<>( "CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_SECONDS" );
     public static final ConfigurationOption<List<String>> CASUAL_INBOUND_STARTUP_SERVICES = new ConfigurationOption<>( "CASUAL_INBOUND_STARTUP_SERVICES" );
 
-    //TODO Why are these two now on the root?
+    //In a future release, these UNMANAGED options should be moved to live under CASUAL_OUTBOUND_, rather than root level.
     public static final ConfigurationOption<Integer> CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE = new ConfigurationOption<>( "CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE" );
     public static final ConfigurationOption<Boolean> CASUAL_UNMANAGED = new ConfigurationOption<>( "CASUAL_UNMANAGED" );
-    //TODO CASUAL_OUTBOUND_UNMANAGED Added to allow for deprecated property until i determine what to do with it.
+
+    //Added to replace future deprecation of CASUAL_UNMANAGED
     public static final ConfigurationOption<Boolean> CASUAL_OUTBOUND_UNMANAGED = new ConfigurationOption<>( "CASUAL_OUTBOUND_UNMANAGED" );
-
-
-    //TODO Why can't we set the inbound port here too? I know there is the JCA way of doing it with ra.xml or something but still, could we somehow add this?
 
     public static final ConfigurationOption<List<ReverseInbound>> CASUAL_REVERSE_INBOUND_INSTANCES = new ConfigurationOption<>( "CASUAL_REVERSE_INBOUND_INSTANCES" );
 
-    //TODO New Environment Variables to add to configuration.md
     public static final ConfigurationOption<String> CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME = new ConfigurationOption<>( "CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME" );
     public static final ConfigurationOption<Integer> CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS = new ConfigurationOption<>( "CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS" );
 
