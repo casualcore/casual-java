@@ -9,6 +9,22 @@ package se.laz.casual.config
 import com.github.stefanbirkner.systemlambda.SystemLambda
 import spock.lang.Specification
 
+import static se.laz.casual.config.ConfigurationDefaults.CONFIG_FILE_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.ENCODING_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.EVENT_SERVER_ENABLED_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.EVENT_SERVER_PORT_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.EXECUTOR_NUMBER_OF_THREADS_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.INBOUND_STARTUP_INITIAL_DELAY_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.INBOUND_STARTUP_MODE_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.NETTY_LOGGING_LEVEL_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.NETWORK_ENABLE_LOGHANDLER_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.SHUTDOWN_QUIET_PERIOD_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.SHUTDOWN_TIMEOUT_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.UNMANAGED_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.USE_EPOLL_DEFAULT
+
 class ConfigurationEnvsReaderTest extends Specification
 {
     ConfigurationStore store;
@@ -34,9 +50,9 @@ class ConfigurationEnvsReaderTest extends Specification
 
         where:
         value         || expected
-        ""            || ""
+        ""            || CONFIG_FILE_DEFAULT
         "casual.json" || "casual.json"
-        null          || ""
+        null          || CONFIG_FILE_DEFAULT
     }
 
     def "With fielded envs"()
@@ -54,11 +70,11 @@ class ConfigurationEnvsReaderTest extends Specification
         actualTable == expectedTable
 
         where:
-        encoding | table          || expectedEncoding | expectedTable
-        "UTF8"   | "some.json"    || "UTF8"           | "some.json"
-        "latin1" | "another.json" || "latin1"         | "another.json"
-        ""       | ""             || "UTF-8"           | null
-        null     | null           || "UTF-8"           | null
+        encoding | table          || expectedEncoding                    | expectedTable
+        "UTF8"   | "some.json"    || "UTF8"                              | "some.json"
+        "latin1" | "another.json" || "latin1"                            | "another.json"
+        ""       | ""             || ENCODING_DEFAULT | null
+        null     | null           || ENCODING_DEFAULT | null
     }
 
     def "With loghander envs"()
@@ -79,15 +95,15 @@ class ConfigurationEnvsReaderTest extends Specification
         actualReverse == expectedReverse
 
         where:
-        inbound | outbound | reverse || expectedInbound | expectedOutbound | expectedReverse
-        "false" | "false"  | "true"  || false           | false            | true
-        "false" | "true"   | "false" || false           | true             | false
-        "true"  | "false"  | "false" || true            | false            | false
-        "false" | "false"  | "false" || false           | false            | false
-        "true"  | "true"   | "true"  || true            | true             | true
-        ""      | ""       | ""      || false           | false            | false
-        " "     | " "      | " "     || false           | false            | false
-        null    | null     | null    || false           | false            | false
+        inbound | outbound | reverse || expectedInbound                   | expectedOutbound                  | expectedReverse
+        "false" | "false"  | "true"  || false                             | false                             | true
+        "false" | "true"   | "false" || false                             | true                              | false
+        "true"  | "false"  | "false" || true                              | false                             | false
+        "false" | "false"  | "false" || false                             | false                             | false
+        "true"  | "true"   | "true"  || true                              | true                              | true
+        ""      | ""       | ""      || NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT
+        " "     | " "      | " "     || NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT
+        null    | null     | null    || NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT
     }
 
     def "With netty log levels envs"()
@@ -108,13 +124,13 @@ class ConfigurationEnvsReaderTest extends Specification
         actualReverse == expectedReverse
 
         where:
-        inbound | outbound | reverse || expectedInbound | expectedOutbound | expectedReverse
-        "ERROR" | "INFO"   | "WARN"  || "ERROR"         | "INFO"           | "WARN"
-        "TRACE" | "DEBUG"  | "ERROR" || "TRACE"         | "DEBUG"          | "ERROR"
-        "INFO"  | "INFO"   | "INFO"  || "INFO"          | "INFO"           | "INFO"
-        ""      | ""       | ""      || "INFO"          | "INFO"           | "INFO"
-        " "     | " "      | " "     || "INFO"          | "INFO"           | "INFO"
-        null    | null     | null    || "INFO"          | "INFO"           | "INFO"
+        inbound | outbound | reverse || expectedInbound             | expectedOutbound            | expectedReverse
+        "ERROR" | "INFO"   | "WARN"  || "ERROR"                     | "INFO"                      | "WARN"
+        "TRACE" | "DEBUG"  | "ERROR" || "TRACE"                     | "DEBUG"                     | "ERROR"
+        "INFO"  | "INFO"   | "INFO"  || "INFO"                      | "INFO"                      | "INFO"
+        ""      | ""       | ""      || NETTY_LOGGING_LEVEL_DEFAULT | NETTY_LOGGING_LEVEL_DEFAULT | NETTY_LOGGING_LEVEL_DEFAULT
+        " "     | " "      | " "     || NETTY_LOGGING_LEVEL_DEFAULT | NETTY_LOGGING_LEVEL_DEFAULT | NETTY_LOGGING_LEVEL_DEFAULT
+        null    | null     | null    || NETTY_LOGGING_LEVEL_DEFAULT | NETTY_LOGGING_LEVEL_DEFAULT | NETTY_LOGGING_LEVEL_DEFAULT
     }
 
     def "With inbound startup mode"()
@@ -133,9 +149,9 @@ class ConfigurationEnvsReaderTest extends Specification
         Mode.IMMEDIATE.getName() || Mode.IMMEDIATE
         Mode.TRIGGER.getName()   || Mode.TRIGGER
         Mode.DISCOVER.getName()  || Mode.DISCOVER
-        ""                       || Mode.IMMEDIATE
-        " "                      || Mode.IMMEDIATE
-        null                     || Mode.IMMEDIATE
+        ""                       || INBOUND_STARTUP_MODE_DEFAULT
+        " "                      || INBOUND_STARTUP_MODE_DEFAULT
+        null                     || INBOUND_STARTUP_MODE_DEFAULT
     }
 
     def "With inbound startup delay"()
@@ -154,9 +170,9 @@ class ConfigurationEnvsReaderTest extends Specification
         "100" || 100L
         "1"   || 1L
         "15"  || 15L
-        ""    || 0L
-        " "   || 0L
-        null  || 0L
+        ""    || INBOUND_STARTUP_INITIAL_DELAY_DEFAULT
+        " "   || INBOUND_STARTUP_INITIAL_DELAY_DEFAULT
+        null  || INBOUND_STARTUP_INITIAL_DELAY_DEFAULT
     }
 
     def "With epoll envs"()
@@ -177,15 +193,15 @@ class ConfigurationEnvsReaderTest extends Specification
         actualReverse == expectedEpoll
 
         where:
-        inbound | outbound | epoll   || expectedInbound | expectedOutbound | expectedEpoll
-        "false" | "false"  | "true"  || false           | false            | true
-        "false" | "true"   | "false" || false           | true             | false
-        "true"  | "false"  | "false" || true            | false            | false
-        "false" | "false"  | "false" || false           | false            | false
-        "true"  | "true"   | "true"  || true            | true             | true
-        ""      | ""       | ""      || false           | false            | false
-        " "     | " "      | " "     || false           | false            | false
-        null    | null     | null    || false           | false            | false
+        inbound | outbound | epoll   || expectedInbound   | expectedOutbound  | expectedEpoll
+        "false" | "false"  | "true"  || false             | false             | true
+        "false" | "true"   | "false" || false             | true              | false
+        "true"  | "false"  | "false" || true              | false             | false
+        "false" | "false"  | "false" || false             | false             | false
+        "true"  | "true"   | "true"  || true              | true              | true
+        ""      | ""       | ""      || USE_EPOLL_DEFAULT | USE_EPOLL_DEFAULT | USE_EPOLL_DEFAULT
+        " "     | " "      | " "     || USE_EPOLL_DEFAULT | USE_EPOLL_DEFAULT | USE_EPOLL_DEFAULT
+        null    | null     | null    || USE_EPOLL_DEFAULT | USE_EPOLL_DEFAULT | USE_EPOLL_DEFAULT
     }
 
     def "With event server shutdown envs"()
@@ -204,11 +220,11 @@ class ConfigurationEnvsReaderTest extends Specification
         actualTimeout == expectedTimeout
 
         where:
-        quiet | timeout || expectedQuiet | expectedTimeout
-        "10"  | "11"    || 10L            | 11L
-        ""    | ""      || 2000L          | 15000L
-        " "   | " "     || 2000L          | 15000L
-        null  | null    || 2000L          | 15000L
+        quiet | timeout || expectedQuiet                                     | expectedTimeout
+        "10"  | "11"    || 10L                                               | 11L
+        ""    | ""      || SHUTDOWN_QUIET_PERIOD_DEFAULT | SHUTDOWN_TIMEOUT_DEFAULT
+        " "   | " "     || SHUTDOWN_QUIET_PERIOD_DEFAULT | SHUTDOWN_TIMEOUT_DEFAULT
+        null  | null    || SHUTDOWN_QUIET_PERIOD_DEFAULT | SHUTDOWN_TIMEOUT_DEFAULT
     }
 
     def "With unmanaged envs"()
@@ -227,11 +243,11 @@ class ConfigurationEnvsReaderTest extends Specification
         actualUnmanaged == expectedUnmanaged
 
         where:
-        poolSize | unmanaged || expectedPoolSize | expectedUnmanaged
-        "12"     | "true"    || 12               | true
-        ""       | ""        || 10               | false
-        " "      | " "       || 10               | false
-        null     | null      || 10               | false
+        poolSize | unmanaged || expectedPoolSize                                       | expectedUnmanaged
+        "12"     | "true"    || 12                                                     | true
+        ""       | ""        || UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE_DEFAULT | UNMANAGED_DEFAULT
+        " "      | " "       || UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE_DEFAULT | UNMANAGED_DEFAULT
+        null     | null      || UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE_DEFAULT | UNMANAGED_DEFAULT
     }
 
     def "With outbound unmanaged envs"()
@@ -250,11 +266,11 @@ class ConfigurationEnvsReaderTest extends Specification
         actualName == expectedName
 
         where:
-        threads | name      || expectedThreads | expectedName
-        "12"    | "another" || 12              | "another"
-        ""      | ""        || 0               | "java:comp/DefaultManagedExecutorService"
-        " "     | " "       || 0               | "java:comp/DefaultManagedExecutorService"
-        null    | null      || 0               | "java:comp/DefaultManagedExecutorService"
+        threads | name      || expectedThreads                                     | expectedName
+        "12"    | "another" || 12                                                  | "another"
+        ""      | ""        || EXECUTOR_NUMBER_OF_THREADS_DEFAULT | OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME_DEFAULT
+        " "     | " "       || EXECUTOR_NUMBER_OF_THREADS_DEFAULT | OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME_DEFAULT
+        null    | null      || EXECUTOR_NUMBER_OF_THREADS_DEFAULT | OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME_DEFAULT
     }
 
     def "With event server envs"()
@@ -276,14 +292,12 @@ class ConfigurationEnvsReaderTest extends Specification
         actualEpoll == expectedEpoll
 
         where:
-        enabled | port   | epoll  || expectedEnabled | expectedPort | expectedEpoll
-        "true"  | "1212" | "true" || true            | 1212         | true
-        ""      | ""     | ""     || false           | 7698         | false
-        " "     | " "    | " "    || false           | 7698         | false
-        null    | null   | null   || false           | 7698         | false
+        enabled | port   | epoll  || expectedEnabled              | expectedPort              | expectedEpoll
+        "true"  | "1212" | "true" || true                         | 1212                      | true
+        ""      | ""     | ""     || EVENT_SERVER_ENABLED_DEFAULT | EVENT_SERVER_PORT_DEFAULT | USE_EPOLL_DEFAULT
+        " "     | " "    | " "    || EVENT_SERVER_ENABLED_DEFAULT | EVENT_SERVER_PORT_DEFAULT | USE_EPOLL_DEFAULT
+        null    | null   | null   || EVENT_SERVER_ENABLED_DEFAULT | EVENT_SERVER_PORT_DEFAULT | USE_EPOLL_DEFAULT
     }
-
-    //TODO Where should defaults in the tests come from? Can I just use the existing store value?
 
     def "incorrect data types that fail to cast throw CasualConfigException."()
     {

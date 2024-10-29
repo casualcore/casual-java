@@ -6,11 +6,14 @@
 
 package se.laz.casual.config
 
-
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
+import static se.laz.casual.config.ConfigurationDefaults.INBOUND_STARTUP_INITIAL_DELAY_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.INBOUND_STARTUP_MODE_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.INBOUND_START_SERVICES_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.USE_EPOLL_DEFAULT
 
 class ConfigurationServiceTest extends Specification
 {
@@ -48,12 +51,12 @@ class ConfigurationServiceTest extends Specification
         delay == ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS )
 
         where:
-        file                                       || mode           | services                         | epoll | delay
-        "casual-config-inbound-immediate.json"     || Mode.IMMEDIATE | []                               | false | 0
-        "casual-config-inbound-trigger.json"       || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE] | false | 0
-        "casual-config-inbound-discover.json"      || Mode.DISCOVER  | ["service1", "service2"]         | false | 0
-        "casual-config-inbound-epoll.json"         || Mode.IMMEDIATE | []                               | true  | 0
-        "casual-config-inbound-initial-delay.json" || Mode.IMMEDIATE | []                               | false | 30
+        file                                       || mode                         | services                         | epoll             | delay
+        "casual-config-inbound-immediate.json"     || Mode.IMMEDIATE               | INBOUND_START_SERVICES_DEFAULT   | USE_EPOLL_DEFAULT | INBOUND_STARTUP_INITIAL_DELAY_DEFAULT
+        "casual-config-inbound-trigger.json"       || Mode.TRIGGER                 | [Mode.Constants.TRIGGER_SERVICE] | USE_EPOLL_DEFAULT | INBOUND_STARTUP_INITIAL_DELAY_DEFAULT
+        "casual-config-inbound-discover.json"      || Mode.DISCOVER                | ["service1", "service2"]         | USE_EPOLL_DEFAULT | INBOUND_STARTUP_INITIAL_DELAY_DEFAULT
+        "casual-config-inbound-epoll.json"         || INBOUND_STARTUP_MODE_DEFAULT | INBOUND_START_SERVICES_DEFAULT   | true              | INBOUND_STARTUP_INITIAL_DELAY_DEFAULT
+        "casual-config-inbound-initial-delay.json" || INBOUND_STARTUP_MODE_DEFAULT | INBOUND_START_SERVICES_DEFAULT   | USE_EPOLL_DEFAULT | 30
     }
 
    def 'no outbound config, useEpoll set via env var'()
@@ -99,14 +102,11 @@ class ConfigurationServiceTest extends Specification
         actualServices == services
 
         where:
-        env                      || mode           | services
-        Mode.Constants.IMMEDIATE || Mode.IMMEDIATE | []
-        Mode.Constants.TRIGGER   || Mode.TRIGGER   | [Mode.Constants.TRIGGER_SERVICE]
-        Mode.Constants.DISCOVER  || Mode.DISCOVER  | []
-        // This test is for when the env var is set such as FOO=
-        // When reading it with System.getEnv that then is returned as the empty string as opposed to null if the env var
-        // was not set at all - the expected behaviour in this case is that the default mode is used
-        ''                       || Mode.IMMEDIATE | []
+        env                      || mode                         | services
+        Mode.Constants.IMMEDIATE || Mode.IMMEDIATE               | []
+        Mode.Constants.TRIGGER   || Mode.TRIGGER                 | [Mode.Constants.TRIGGER_SERVICE]
+        Mode.Constants.DISCOVER  || Mode.DISCOVER                | []
+        ''                       || INBOUND_STARTUP_MODE_DEFAULT | []
     }
 
     def "Unmanaged confusion for default and settings."()
