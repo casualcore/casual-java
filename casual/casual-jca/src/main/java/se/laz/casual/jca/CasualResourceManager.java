@@ -8,6 +8,8 @@ package se.laz.casual.jca;
 
 
 import javax.transaction.xa.Xid;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -17,38 +19,47 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class CasualResourceManager
 {
     private static final CasualResourceManager INSTANCE = new CasualResourceManager();
+    private static final Set<Xid> EMPTY_SET = Collections.emptySet();
     private final AtomicInteger currentRMId = new AtomicInteger(1);
-    private final ConcurrentMap<Xid, Boolean> pendingRequests = new ConcurrentHashMap<>();
+    private final ConcurrentMap<DomainId, Set<Xid>> pendingRequests = new ConcurrentHashMap<>();
     private CasualResourceManager()
     {}
 
-    public static final CasualResourceManager getInstance()
+    public static CasualResourceManager getInstance()
     {
         return INSTANCE;
     }
 
-    public final Integer getNextId()
+    public Integer getNextId()
     {
         return currentRMId.getAndIncrement();
     }
 
-    public void put(final Xid xid)
+    public void put(DomainId domainId, final Xid xid)
     {
-        if(pendingRequests.containsKey(xid))
+        if(pendingRequests.getOrDefault(domainId, EMPTY_SET).contains(xid))
         {
-            throw new CasualResourceAdapterException("xid: " + xid + " already stored");
+            throw new CasualResourceAdapterException("xid: " + xid + " already stored for domain: " + domainId);
         }
-        pendingRequests.put(xid, true);
+        pendingRequests.computeIfAbsent(domainId, k -> ConcurrentHashMap.newKeySet()).add(xid);
     }
 
-    public void remove(final Xid xid)
+    public synchronized void remove(DomainId domainId, final Xid xid)
     {
-        pendingRequests.remove(xid);
+        Set<Xid> inFlight = pendingRequests.get(domainId);
+        if(inFlight != null)
+        {
+            inFlight.remove(xid);
+            if(inFlight.isEmpty())
+            {
+                pendingRequests.remove(domainId);
+            }
+        }
     }
 
-    public boolean isPending(final Xid xid)
+    public boolean isPending(DomainId domainId, final Xid xid)
     {
-        return pendingRequests.containsKey(xid);
+        return pendingRequests.getOrDefault(domainId, EMPTY_SET).contains(xid);
     }
 
     @Override

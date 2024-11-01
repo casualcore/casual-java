@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,7 +11,11 @@ import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.ServiceReturn
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
-import se.laz.casual.api.flags.*
+import se.laz.casual.api.flags.AtmiFlags
+import se.laz.casual.api.flags.ErrorState
+import se.laz.casual.api.flags.Flag
+import se.laz.casual.api.flags.ServiceReturnState
+import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.api.xa.XID
 import se.laz.casual.config.Domain
@@ -23,6 +27,7 @@ import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceAdapter
 import se.laz.casual.jca.CasualResourceManager
+import se.laz.casual.jca.DomainId
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -46,6 +51,7 @@ class CasualServiceCallerTest extends Specification
     @Shared NetworkConnection networkConnection
     @Shared UUID executionId
     @Shared UUID domainId
+    @Shared DomainId domainOne = DomainId.of(UUID.randomUUID())
     @Shared String domainName
     @Shared String serviceName
     @Shared JsonBuffer message
@@ -67,13 +73,15 @@ class CasualServiceCallerTest extends Specification
         workManager = Mock(WorkManager)
         ra.workManager = workManager
         mcf = Mock(CasualManagedConnectionFactory)
-        networkConnection = Mock(NetworkConnection)
+        networkConnection = Mock(NetworkConnection){
+           getDomainId() >> domainOne
+        }
         connection = new CasualManagedConnection( mcf )
         connection.networkConnection =  networkConnection
 
-        CasualResourceManager.getInstance().remove(XID.NULL_XID)
+        CasualResourceManager.getInstance().remove(domainOne, XID.NULL_XID)
         connection.getXAResource().start( XID.NULL_XID, 0 )
-        CasualResourceManager.getInstance().remove(XID.NULL_XID)
+        CasualResourceManager.getInstance().remove(domainOne, XID.NULL_XID)
 
         instance = CasualServiceCaller.of( connection )
         serviceCallEventPublisher = Mock(ServiceCallEventPublisher)

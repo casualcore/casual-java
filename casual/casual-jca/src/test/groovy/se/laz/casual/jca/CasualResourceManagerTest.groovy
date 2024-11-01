@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -17,6 +17,7 @@ class CasualResourceManagerTest extends Specification
 {
     @Shared CasualResourceManager instance
     @Shared Xid xid1, xid2, xid3
+    @Shared DomainId domainOne, domainTwo
 
     def setup()
     {
@@ -24,13 +25,15 @@ class CasualResourceManagerTest extends Specification
         xid1 = XID.of( "123".getBytes(StandardCharsets.UTF_8), "321".getBytes(StandardCharsets.UTF_8), 0 )
         xid2 = XID.of("456".getBytes(StandardCharsets.UTF_8), "654".getBytes(StandardCharsets.UTF_8), 0 )
         xid3 = XID.of( xid1 )
+        domainOne = DomainId.of(UUID.randomUUID())
+        domainTwo = DomainId.of(UUID.randomUUID())
     }
 
     def cleanup()
     {
-        instance.remove( xid1 )
-        instance.remove( xid2 )
-        instance.remove( xid3 )
+        instance.remove(domainOne, xid1 )
+        instance.remove(domainOne, xid2 )
+        instance.remove(domainOne, xid3 )
     }
 
     def "Check xid constraints"()
@@ -53,41 +56,56 @@ class CasualResourceManagerTest extends Specification
         instance.is( second )
     }
 
-    def "XidPending persists in the queue."()
+    def "XidPending xid1."()
     {
         setup:
-        instance.put( xid1 )
+        instance.put( domainOne, xid1 )
 
         expect:
-        instance.isPending( xid1 )
-        !instance.isPending( xid2 )
-        instance.isPending( xid3 )
+        instance.isPending( domainOne, xid1 )
+        !instance.isPending( domainOne, xid2 )
+        instance.isPending( domainOne, xid3 )
     }
 
     def "RemoveResourceIdForXid"()
     {
         setup:
-        instance.put( xid1 )
-        instance.put( xid2 )
+        instance.put( domainOne, xid1 )
+        instance.put( domainOne, xid2 )
 
         when:
-        instance.remove( xid1 )
+        instance.remove( domainOne, xid1 )
 
         then:
-        !instance.isPending( xid1 )
-        instance.isPending( xid2 )
-        !instance.isPending( xid3 )
+        !instance.isPending( domainOne, xid1 )
+        instance.isPending( domainOne, xid2 )
+        !instance.isPending( domainOne, xid3 )
     }
 
     def 'add same xid twice'()
     {
         given:
-        instance.put( xid1 )
+        instance.put( domainOne, xid1 )
         when:
-        instance.put( xid1 )
+        instance.put( domainOne, xid1 )
         then:
         def e = thrown(CasualResourceAdapterException)
-        e.message == "xid: ${xid1} already stored"
+        e.message == "xid: ${xid1} already stored for domain: ${domainOne}"
+    }
+
+    def 'two resources, two domains'()
+    {
+       when:
+       instance.put(domainOne, xid1)
+       instance.put(domainTwo, xid1)
+       then:
+       instance.isPending(domainOne, xid1)
+       instance.isPending(domainTwo, xid1)
+       when:
+       instance.remove(domainOne, xid1)
+       then:
+       !instance.isPending(domainOne, xid1)
+       instance.isPending(domainTwo, xid1)
     }
 
     def "toString test."()
