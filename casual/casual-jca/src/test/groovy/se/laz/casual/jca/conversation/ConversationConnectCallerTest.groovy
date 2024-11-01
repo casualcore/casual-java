@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -20,6 +20,7 @@ import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceAdapter
 import se.laz.casual.jca.CasualResourceManager
+import se.laz.casual.jca.DomainId
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.conversation.ConnectReply
@@ -36,6 +37,7 @@ class ConversationConnectCallerTest extends Specification
    @Shared NetworkConnection networkConnection
    @Shared UUID executionId
    @Shared UUID corrId
+   @Shared DomainId domainOne = DomainId.of(UUID.randomUUID())
    @Shared String serviceName
    @Shared JsonBuffer message
    @Shared CasualNWMessageImpl<ConnectRequest> expectedConnectRequest
@@ -54,14 +56,16 @@ class ConversationConnectCallerTest extends Specification
       ra = new CasualResourceAdapter()
       ra.workManager = workManager
       mcf = Mock(CasualManagedConnectionFactory)
-      networkConnection = Mock(NetworkConnection)
+      networkConnection = Mock(NetworkConnection){
+         getDomainId() >> domainOne
+      }
 
       connection = new CasualManagedConnection( mcf )
       connection.networkConnection =  networkConnection
 
-      CasualResourceManager.getInstance().remove(XID.NULL_XID)
+      CasualResourceManager.getInstance().remove(domainOne, XID.NULL_XID)
       connection.getXAResource().start( XID.NULL_XID, 0 )
-      CasualResourceManager.getInstance().remove(XID.NULL_XID)
+      CasualResourceManager.getInstance().remove(domainOne, XID.NULL_XID)
 
       instance = ConversationConnectCaller.of( connection )
 
