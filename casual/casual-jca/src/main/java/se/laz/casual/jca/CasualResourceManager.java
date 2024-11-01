@@ -35,7 +35,7 @@ public final class CasualResourceManager
         return currentRMId.getAndIncrement();
     }
 
-    public void put(DomainId domainId, final Xid xid)
+    public synchronized void put(DomainId domainId, final Xid xid)
     {
         if(pendingRequests.getOrDefault(domainId, EMPTY_SET).contains(xid))
         {
