@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca
-
 
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.flags.XAFlags
@@ -13,7 +12,12 @@ import se.laz.casual.api.xa.XAReturnCode
 import se.laz.casual.api.xa.XID
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.transaction.*
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -30,6 +34,7 @@ class CasualXAResourceTest extends Specification
     @Shared CasualXAResource instance
     @Shared CasualManagedConnection managedConnection
     @Shared NetworkConnection networkConnection
+    @Shared DomainId domainOne = DomainId.of(UUID.randomUUID())
     @Shared Xid xid1, xid2
     @Shared CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> expectedPrepareRequestMessage
     @Shared CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> actualPrepareRequestMessage
@@ -49,7 +54,9 @@ class CasualXAResourceTest extends Specification
         mcf.getResourceId() >> {
             resourceId
         }
-        networkConnection = Mock(NetworkConnection)
+        networkConnection = Mock(NetworkConnection){
+           getDomainId() >> domainOne
+        }
         managedConnection = new CasualManagedConnection( Mock(CasualManagedConnectionFactory) )
         managedConnection.networkConnection = networkConnection
         instance = new CasualXAResource( managedConnection, mcf.getResourceId() )
@@ -65,8 +72,8 @@ class CasualXAResourceTest extends Specification
 
     def cleanup()
     {
-        transactionResources.remove( xid1 )
-        transactionResources.remove( xid2 )
+        transactionResources.remove( domainOne, xid1 )
+        transactionResources.remove( domainOne, xid2 )
     }
 
     def initialiseExpectedRequests()
@@ -153,7 +160,7 @@ class CasualXAResourceTest extends Specification
     def "GetCurrentXid returns value given during start."()
     {
         when:
-        transactionResources.remove( xid1 )
+        transactionResources.remove( domainOne, xid1 )
         instance.start( xid1, 0 )
 
         then:
@@ -163,7 +170,7 @@ class CasualXAResourceTest extends Specification
     def "GetCurrentXid returns null xid after end has been called."()
     {
         when:
-        transactionResources.remove( xid1 )
+        transactionResources.remove( domainOne, xid1 )
         instance.start( xid1, 0 )
         instance.end(xid1, XAFlags.TMSUCCESS.getValue())
         then:

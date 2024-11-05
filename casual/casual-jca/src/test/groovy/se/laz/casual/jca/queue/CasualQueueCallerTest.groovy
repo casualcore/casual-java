@@ -18,6 +18,7 @@ import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceManager
+import se.laz.casual.jca.DomainId
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
@@ -45,6 +46,7 @@ class CasualQueueCallerTest extends Specification
     @Shared NetworkConnection networkConnection
     @Shared UUID executionId
     @Shared UUID domainId
+    @Shared DomainId domainOne = DomainId.of(UUID.randomUUID())
     @Shared UUID enqueueReplyId
     @Shared def domainName
     @Shared def queueName
@@ -69,13 +71,15 @@ class CasualQueueCallerTest extends Specification
         mcf.getResourceId() >> {
             resourceId
         }
-        networkConnection = Mock(NetworkConnection)
+        networkConnection = Mock(NetworkConnection){
+           getDomainId() >> domainOne
+        }
         connection = new CasualManagedConnection( mcf )
         connection.networkConnection =  networkConnection
 
-        CasualResourceManager.getInstance().remove(XID.NULL_XID)
+        CasualResourceManager.getInstance().remove(domainOne, XID.NULL_XID)
         connection.getXAResource().start( XID.NULL_XID, 0 )
-        CasualResourceManager.getInstance().remove(XID.NULL_XID)
+        CasualResourceManager.getInstance().remove(domainOne,XID.NULL_XID)
 
         instance = CasualQueueCaller.of( connection )
 
