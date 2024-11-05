@@ -29,31 +29,31 @@ public class ConfigurationService
 
     private ConfigurationStore init()
     {
-        ConfigurationStore store = new ConfigurationStore();
+        ConfigurationStore newStore = new ConfigurationStore();
 
-        ConfigurationDefaults defaults = new ConfigurationDefaults( store );
+        ConfigurationDefaults defaults = new ConfigurationDefaults( newStore );
         defaults.populate();
 
-        ConfigurationEnvsReader envsReader = new ConfigurationEnvsReader( store );
+        ConfigurationEnvsReader envsReader = new ConfigurationEnvsReader( newStore );
 
         envsReader.populateConfigFileEnv();
 
-        String configurationFile = store.get( ConfigurationOptions.CASUAL_CONFIG_FILE );
+        String configurationFile = newStore.get( ConfigurationOptions.CASUAL_CONFIG_FILE );
         if( configurationFile != null && !configurationFile.isBlank() )
         {
-            ConfigurationFileReader fileReader = new ConfigurationFileReader( store );
+            ConfigurationFileReader fileReader = new ConfigurationFileReader( newStore );
             fileReader.populateStoreFromFile( configurationFile );
         }
 
         envsReader.populateStoreFromEnvs();
 
-        fixInboundStartupServices( store );
+        fixInboundStartupServices( newStore );
 
-        fixEpoll( store );
+        fixEpoll( newStore );
 
-        fixUnmanaged( store );
+        fixUnmanaged( newStore );
 
-        return store;
+        return newStore;
     }
 
     private void fixUnmanaged( ConfigurationStore store )
@@ -64,10 +64,9 @@ public class ConfigurationService
         {
             rootUnmanaged = outboundUnmanaged;
             store.put( ConfigurationOptions.CASUAL_UNMANAGED, rootUnmanaged );
-
         }
 
-        if( rootUnmanaged != outboundUnmanaged )
+        if( !rootUnmanaged.equals( outboundUnmanaged ) )
         {
             store.put( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, rootUnmanaged );
         }

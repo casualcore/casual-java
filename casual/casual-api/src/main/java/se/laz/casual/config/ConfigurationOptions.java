@@ -15,6 +15,10 @@ import java.util.List;
  */
 public class ConfigurationOptions
 {
+    private ConfigurationOptions()
+    {
+    }
+
     public static final ConfigurationOption<String> CASUAL_API_FIELDED_ENCODING = new ConfigurationOption<>( "CASUAL_API_FIELDED_ENCODING" );
     public static final ConfigurationOption<String> CASUAL_FIELD_TABLE = new ConfigurationOption<>( "CASUAL_FIELD_TABLE" );
     public static final ConfigurationOption<Boolean> CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER = new ConfigurationOption<>( "CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER" );

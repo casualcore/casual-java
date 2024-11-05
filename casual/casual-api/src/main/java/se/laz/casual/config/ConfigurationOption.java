@@ -13,6 +13,8 @@ import java.util.Objects;
  *
  * @param <T> the type of data of the value of the configuration option.
  */
+// The type is used for compile time checks even though it is not used in the class.
+@SuppressWarnings( "java:S2326" )
 public class ConfigurationOption<T>
 {
     private final String name;

@@ -89,16 +89,17 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
 
     private void startEventServer()
     {
-        if( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLED ) )
+        boolean enabled = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLED );
+        if( enabled )
         {
-            log.info("starting event server.");
+            log.info( ()-> "starting event server.");
             eventServer = EventServer.of(EventServerConnectionInformation.createBuilder()
                     .withUseEpoll( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL ) )
                     .withPort( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT ) )
                     .withShutdownTimeout( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS ) )
                     .withShutdownQuietPeriod( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS ) )
                     .build(), ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId() );
-            log.info("event server started at port: " + ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT ) );
+            log.info( ()-> "event server started at port: " + ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT ) );
             RuntimeInformation.setEventServerStarted(true);
         }
     }

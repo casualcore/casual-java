@@ -52,6 +52,8 @@ public class ConfigurationStore
      *
      * @return copy of the store data.
      */
+    // There is no other way to return the map data without wildcards here.
+    @SuppressWarnings( "java:S1452" )
     public Map<ConfigurationOption<?>, Object> getData()
     {
         return new HashMap<>( this.data );
