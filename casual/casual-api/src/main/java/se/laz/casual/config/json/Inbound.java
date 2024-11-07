@@ -14,7 +14,7 @@ class Inbound
     private final Boolean useEpoll;
     private final Long initialDelay;
 
-    public Inbound( Builder builder )
+    private Inbound( Builder builder )
     {
         this.startup = builder.startup;
         this.useEpoll = builder.useEpoll;

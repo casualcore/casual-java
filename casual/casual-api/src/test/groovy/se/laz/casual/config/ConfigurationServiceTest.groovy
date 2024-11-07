@@ -75,7 +75,7 @@ class ConfigurationServiceTest extends Specification
       epoll
    }
 
-    def "Get configuration where file not found, throws CasualRuntimeException."()
+    def "Get configuration where file not found, throws ConfigurationException."()
     {
         when:
         withEnvironmentVariable( ConfigurationOptions.CASUAL_CONFIG_FILE.getName(  ), "invalid.json" )

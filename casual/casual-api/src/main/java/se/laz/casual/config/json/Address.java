@@ -12,7 +12,7 @@ final class Address
     private final String host;
     private final Integer port;
 
-    public Address( Builder builder )
+    private Address( Builder builder )
     {
         this.host = builder.host;
         this.port = builder.port;

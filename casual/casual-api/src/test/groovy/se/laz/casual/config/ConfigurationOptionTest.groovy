@@ -40,8 +40,8 @@ class ConfigurationOptionTest extends Specification
     def "equals and hashcode"()
     {
         when:
-        ConfigurationOption<String> instance2 = new ConfigurationOption<>( "mykey" )
-        ConfigurationOption<Integer> instance3 = new ConfigurationOption<>( "mykey1" )
+        ConfigurationOption<String> instance2 = new ConfigurationOption<>( name )
+        ConfigurationOption<Integer> instance3 = new ConfigurationOption<>( name + "1" )
 
         then:
         instance == instance

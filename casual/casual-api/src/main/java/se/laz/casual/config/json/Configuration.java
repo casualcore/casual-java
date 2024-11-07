@@ -7,6 +7,7 @@
 package se.laz.casual.config.json;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,7 +21,7 @@ class Configuration
     private final Boolean useEpoll;
     private final Boolean unmanaged;
 
-    public Configuration( Builder builder )
+    private Configuration( Builder builder )
     {
         this.inbound = builder.inbound;
         this.domain = builder.domain;
@@ -48,7 +49,7 @@ class Configuration
 
     public List<ReverseInbound> getReverseInbound()
     {
-        return reverseInbound;
+        return reverseInbound == null ? Collections.emptyList() : new ArrayList<>( reverseInbound );
     }
 
     public EventServer getEventServer()
@@ -147,7 +148,7 @@ class Configuration
 
         public Builder withReverseInbound( List<ReverseInbound> reverseInbounds )
         {
-            this.reverseInbound = reverseInbounds;
+            this.reverseInbound = new ArrayList<>( reverseInbounds );
             return this;
         }
 
