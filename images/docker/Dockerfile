@@ -21,6 +21,8 @@ RUN /opt/jboss/wildfly/bin/jboss-cli.sh --command="module add --name=se.laz.casu
 
 ENV WILDFLY_HOME=/opt/jboss/wildfly
 
+COPY dist/*.ear $WILDFLY_HOME/standalone/deployments
+
 USER root
 
 RUN chgrp -R 0 /opt && \
