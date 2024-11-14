@@ -10,11 +10,12 @@ import jakarta.resource.spi.work.Work;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.InboundStartupException;
-import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
+import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
+import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
+import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -113,14 +114,25 @@ public final class StartInboundServerWork<T> implements Work
 
     private Set<String> checkRemainingServices( Set<String> remaining )
     {
-        CasualServiceRegistry registry = CasualServiceRegistry.getInstance();
-        Map<Boolean,Set<String>> found = remaining.stream()
-                .collect( Collectors.partitioningBy( registry::hasServiceEntry, Collectors.toSet() ) );
-        for( String foundService: found.get( true ) )
+        Set<String> notFound = new HashSet<>( remaining );
+        for( String find: remaining )
         {
-            log.info( ()-> "Startup service registered: " + foundService );
+            try
+            {
+                ServiceHandler handler = ServiceHandlerFactory.getHandler( find );
+                if( handler.isServiceAvailable( find ) )
+                {
+                    notFound.remove( find );
+                    log.info( () -> "Startup service registered: " + find );
+                }
+
+            }
+            catch( ServiceHandlerNotFoundException e )
+            {
+                //Service not registered.
+            }
         }
-        return found.get( false );
+        return notFound;
     }
 
     private void maybeDelay()

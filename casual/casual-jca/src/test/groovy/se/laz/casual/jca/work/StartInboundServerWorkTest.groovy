@@ -10,19 +10,15 @@ import jakarta.resource.spi.XATerminator
 import jakarta.resource.spi.endpoint.MessageEndpointFactory
 import jakarta.resource.spi.work.Work
 import jakarta.resource.spi.work.WorkManager
-import se.laz.casual.api.service.CasualService
 import se.laz.casual.config.Mode
 import se.laz.casual.jca.InboundStartupException
-import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry
-import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceLiteral
-import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData
-import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
+import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory
+import se.laz.casual.jca.inbound.handler.test.TestServiceHandler
 import se.laz.casual.network.inbound.CasualServer
 import se.laz.casual.network.inbound.ConnectionInformation
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.lang.reflect.Method
 import java.util.concurrent.CompletionService
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorCompletionService
@@ -41,7 +37,10 @@ class StartInboundServerWorkTest extends Specification
     Work instance
     ConnectionInformation ci
 
-    CasualServiceRegistry registry = CasualServiceRegistry.getInstance()
+    TestServiceHandler testHandler = (TestServiceHandler) ServiceHandlerFactory.getHandlers(  ).stream(  )
+            .filter {  it instanceof TestServiceHandler }
+            .findFirst(  )
+            .orElseThrow( ()-> new RuntimeException( "pop" ))
 
     CasualServer server
 
@@ -60,7 +59,7 @@ class StartInboundServerWorkTest extends Specification
 
     def cleanup()
     {
-        registry.clear(  )
+        testHandler.clear(  )
         if( server != null )
         {
             server.close(  )
@@ -85,14 +84,14 @@ class StartInboundServerWorkTest extends Specification
     {
         given:
         String serviceName1 = Mode.Constants.TRIGGER_SERVICE
-        CasualServiceEntry entry = prepareRegistry( serviceName1 )
+        testHandler.registerService( serviceName1 )
 
         instance = StartInboundServerWork.of( [serviceName1], {"inbound started"},{s -> server = s}, {CasualServer.of(ci)})
 
         when:
         completionService.submit( { instance.run(  ) } )
         completionService.submit( {
-            registry.register( entry )
+            testHandler.makeServiceAvailable( serviceName1 )
         } )
 
         completionService.take(  ).get( 5, TimeUnit.SECONDS )
@@ -106,7 +105,7 @@ class StartInboundServerWorkTest extends Specification
     {
         given:
         String serviceName1 = Mode.Constants.TRIGGER_SERVICE
-        prepareRegistry( serviceName1 )
+        testHandler.registerService( serviceName1 )
 
         instance = StartInboundServerWork.of( [serviceName1], {"inbound started"}, {s -> server = s}, {CasualServer.of(ci)} )
 
@@ -131,10 +130,9 @@ class StartInboundServerWorkTest extends Specification
     {
         given:
         List<String> serviceNames = ["service1","service2"]
-        List<CasualServiceEntry> entries = []
         for( String serviceName: serviceNames )
         {
-            entries.add( prepareRegistry( serviceName ) )
+            testHandler.registerService( serviceName )
         }
 
         instance = StartInboundServerWork.of( serviceNames, {"inbound started"},{s -> server = s}, {CasualServer.of(ci)})
@@ -142,9 +140,9 @@ class StartInboundServerWorkTest extends Specification
         when:
         completionService.submit( { instance.run(  ) } )
         completionService.submit( {
-            for( CasualServiceEntry entry: entries )
+            for( String service: serviceNames )
             {
-                registry.register( entry )
+                testHandler.makeServiceAvailable( service )
                 Thread.sleep( 1010 )
             }
         } )
@@ -156,21 +154,21 @@ class StartInboundServerWorkTest extends Specification
         server.isActive(  )
     }
 
-    CasualServiceEntry prepareRegistry( String serviceName )
-    {
-        CasualService service = new CasualServiceLiteral( serviceName, "" )
-        Class<?> serviceClass = String.class
-        Method serviceMethod = String.class.getMethod( "toString" )
-
-        CasualServiceMetaData metaData = CasualServiceMetaData.newBuilder(  )
-                .service( service )
-                .implementationClass( serviceClass )
-                .serviceMethod( serviceMethod )
-                .build(  )
-
-        registry.register( metaData )
-
-        return CasualServiceEntry.of( serviceName, "", null, null )
-    }
+//    CasualServiceEntry prepareRegistry( String serviceName )
+//    {
+//        CasualService service = new CasualServiceLiteral( serviceName, "" )
+//        Class<?> serviceClass = String.class
+//        Method serviceMethod = String.class.getMethod( "toString" )
+//
+//        CasualServiceMetaData metaData = CasualServiceMetaData.newBuilder(  )
+//                .service( service )
+//                .implementationClass( serviceClass )
+//                .serviceMethod( serviceMethod )
+//                .build(  )
+//
+//        registry.register( metaData )
+//
+//        return CasualServiceEntry.of( serviceName, "", null, null )
+//    }
 
 }

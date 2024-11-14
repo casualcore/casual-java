@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -41,6 +41,7 @@ dependencies {
     implementation project(':casual:casual-network-protocol')
     implementation project(':casual:casual-event-api')
     implementation project(':casual:casual-event-server')
+    compileOnly project(':casual:casual-inbound-handler-api')
     implementation libs.netty
     compileOnly libs.javaee_api
     compileOnly libs.gson
@@ -53,6 +54,8 @@ dependencies {
 
     testImplementation libs.javaee_api
     testImplementation libs.hamcrest_all
+    testImplementation project(':casual:casual-inbound-handler-api')
+    //testImplementation project(':casual:casual-inbound-handler-casual-service')
     // for spock
     testImplementation platform(libs.groovy_bom)
     testImplementation libs.groovy
