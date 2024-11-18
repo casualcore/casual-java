@@ -29,6 +29,8 @@ COPY images/docker/files/setup.cli /tmp
 RUN ${WILDFLY_HOME}/bin/jboss-cli.sh --file=/tmp/setup.cli
 RUN rm -rf /opt/jboss/wildfly/standalone/configuration/standalone_xml_history/current
 
+COPY images/docker/files/*.war $WILDFLY_HOME/standalone/deployments/
+
 USER root
 
 RUN chgrp -R 0 /opt && \
