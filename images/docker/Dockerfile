@@ -14,6 +14,7 @@ RUN wget -P /opt/jboss/wildfly/casual https://repo1.maven.org/maven2/org/objenes
 ENV CASUAL_ROOT /opt/jboss/wildfly/casual
 
 COPY dist/*.jar $CASUAL_ROOT
+COPY dist/casual-jca-app-*.ear $CASUAL_ROOT
 
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --command="module add --name=se.laz.casual \
 	--resources=/opt/jboss/wildfly/casual/casual-inbound-handler-api-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-fielded-annotations-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-service-discovery-extension-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-api-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-event-api-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/gson-${GSON_VERSION}.jar:/opt/jboss/wildfly/casual/objenesis-${OBJENESIS_VERSION}.jar \
@@ -21,7 +22,9 @@ RUN /opt/jboss/wildfly/bin/jboss-cli.sh --command="module add --name=se.laz.casu
 
 ENV WILDFLY_HOME=/opt/jboss/wildfly
 
-COPY dist/*.ear $WILDFLY_HOME/standalone/deployments
+COPY files/setup.cli /tmp
+RUN ${WILDFLY_HOME}/bin/jboss-cli.sh --file=/tmp/setup.cli
+RUN rm -rf /opt/jboss/wildfly/standalone/configuration/standalone_xml_history/current
 
 USER root
 
@@ -31,3 +34,5 @@ RUN chgrp -R 0 /opt && \
 USER 1001
 
 EXPOSE 8080 7772 9990
+
+CMD ["/opt/jboss/wildfly/bin/standalone.sh",  "-c", "standalone-full.xml", "--debug", "-b", "0.0.0.0", "-bmanagement", "0.0.0.0"]
