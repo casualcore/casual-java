@@ -5,12 +5,13 @@ USER 1001
 RUN mkdir /opt/jboss/wildfly/casual
 
 ENV CASUAL_VERSION 3.2.47
+ENV CASUAL_CALLER_VERSION 3.2.17
 ENV GSON_VERSION 2.11.0
 ENV OBJENESIS_VERSION 3.4
 
 RUN wget -P /opt/jboss/wildfly/casual https://repo1.maven.org/maven2/com/google/code/gson/gson/$GSON_VERSION/gson-$GSON_VERSION.jar
 RUN wget -P /opt/jboss/wildfly/casual https://repo1.maven.org/maven2/org/objenesis/objenesis/$OBJENESIS_VERSION/objenesis-$OBJENESIS_VERSION.jar
-
+RUN wget -P /opt/jboss/wildfly/casual https://repo1.maven.org/maven2/se/laz/casual/casual-caller-app/$CASUAL_CALLER_VERSION/casual-caller-app-$CASUAL_CALLER_VERSION.ear
 
 ENV CASUAL_ROOT /opt/jboss/wildfly/casual
 
