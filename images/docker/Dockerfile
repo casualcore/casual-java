@@ -22,7 +22,7 @@ RUN /opt/jboss/wildfly/bin/jboss-cli.sh --command="module add --name=se.laz.casu
 
 ENV WILDFLY_HOME=/opt/jboss/wildfly
 
-COPY files/setup.cli /tmp
+COPY images/docker/files/setup.cli /tmp
 RUN ${WILDFLY_HOME}/bin/jboss-cli.sh --file=/tmp/setup.cli
 RUN rm -rf /opt/jboss/wildfly/standalone/configuration/standalone_xml_history/current
 
