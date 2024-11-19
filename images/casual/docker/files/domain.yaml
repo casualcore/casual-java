@@ -1,0 +1,16 @@
+domain:
+  default:
+    server:
+      instances: 1
+      restart: false
+  gateway:
+    inbound:
+      groups:
+        - alias: "casual-inbound"
+          connections:
+            - address: 0.0.0.0:7771
+  name: test-domain
+  servers:
+    - instances: 1
+      note: exampleserver
+      path: ${CASUAL_HOME}/example/bin/casual-example-server
