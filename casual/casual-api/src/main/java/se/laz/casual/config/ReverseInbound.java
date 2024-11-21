@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,81 +7,123 @@ package se.laz.casual.config;
 
 import java.util.Objects;
 
+/**
+ * Reverse Inbound configuration.
+ */
 public final class ReverseInbound
 {
-    private static final int DEFAULT_SIZE = 1;
-    private static final long DEFAULT_MAX_CONNECTION_BACKOFF_MILLIS = 30000;
-    private final Address address;
-    private Integer size;
-    private Long maxConnectionBackoffMillis;
+    private final String host;
+    private final Integer port;
+    private final Integer size;
+    private final Long maxConnectionBackoffMillis;
 
-    private ReverseInbound(Address address, int size, long maxConnectionBackoffMillis)
+    public ReverseInbound( Builder builder )
     {
-        this.address = address;
-        this.size = size;
-        this.maxConnectionBackoffMillis = maxConnectionBackoffMillis;
+        this.host = builder.host;
+        this.port = builder.port;
+        this.size = builder.size;
+        this.maxConnectionBackoffMillis = builder.maxConnectionBackoffMillis;
     }
 
-    public static ReverseInbound of(Address address, int size, long maxBackoffMillis)
+    public String getHost()
     {
-        Objects.requireNonNull(address, "address can not be null");
-        return new ReverseInbound(address, size, maxBackoffMillis);
+        return host;
     }
 
-    public static ReverseInbound of(Address address, int size)
+    public Integer getPort()
     {
-        Objects.requireNonNull(address, "address can not be null");
-        return new ReverseInbound(address, size, DEFAULT_MAX_CONNECTION_BACKOFF_MILLIS);
+        return port;
     }
 
-    public static ReverseInbound of(Address address)
+    public Integer getSize()
     {
-        return of(address, DEFAULT_SIZE);
+        return size;
     }
 
-    public Address getAddress()
+    public Long getMaxConnectionBackoffMillis()
     {
-        return address;
-    }
-
-    public int getSize()
-    {
-        return null == size ? DEFAULT_SIZE : size;
-    }
-
-    public long getMaxConnectionBackoffMillis()
-    {
-        return null == maxConnectionBackoffMillis ? DEFAULT_MAX_CONNECTION_BACKOFF_MILLIS : maxConnectionBackoffMillis;
+        return maxConnectionBackoffMillis;
     }
 
     @Override
-    public boolean equals(Object o)
+    public boolean equals( Object o )
     {
-        if (this == o)
+        if( this == o )
         {
             return true;
         }
-        if (o == null || getClass() != o.getClass())
+        if( o == null || getClass() != o.getClass() )
         {
             return false;
         }
         ReverseInbound that = (ReverseInbound) o;
-        return getMaxConnectionBackoffMillis() == that.getMaxConnectionBackoffMillis() && getSize() == that.getSize() && Objects.equals(getAddress(), that.getAddress());
+        return Objects.equals( host, that.host ) && Objects.equals( port, that.port ) && Objects.equals( size, that.size ) && Objects.equals( maxConnectionBackoffMillis, that.maxConnectionBackoffMillis );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getAddress(), getSize(), getMaxConnectionBackoffMillis());
+        return Objects.hash( host, port, size, maxConnectionBackoffMillis );
     }
 
     @Override
     public String toString()
     {
         return "ReverseInbound{" +
-                "address=" + address +
+                "host='" + host + '\'' +
+                ", port=" + port +
                 ", size=" + size +
                 ", maxConnectionBackoffMillis=" + maxConnectionBackoffMillis +
                 '}';
+    }
+
+    public static Builder newBuilder()
+    {
+        return new Builder();
+    }
+
+    public static Builder newBuilder( ReverseInbound src )
+    {
+        return new Builder().withHost( src.getHost() )
+                .withPort( src.getPort() )
+                .withSize( src.getSize() )
+                .withMaxConnectionBackoffMillis( src.getMaxConnectionBackoffMillis() );
+    }
+
+    public static final class Builder
+    {
+        private String host;
+        private Integer port;
+        private Integer size;
+        private Long maxConnectionBackoffMillis;
+
+        public Builder withHost( String host )
+        {
+            this.host = host;
+            return this;
+        }
+
+        public Builder withPort( Integer port )
+        {
+            this.port = port;
+            return this;
+        }
+
+        public Builder withSize( Integer size )
+        {
+            this.size = size;
+            return this;
+        }
+
+        public Builder withMaxConnectionBackoffMillis( Long maxConnectionBackoffMillis )
+        {
+            this.maxConnectionBackoffMillis = maxConnectionBackoffMillis;
+            return this;
+        }
+
+        public ReverseInbound build()
+        {
+            return new ReverseInbound( this );
+        }
     }
 }

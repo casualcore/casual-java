@@ -1,25 +1,26 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.api.buffer.type.fielded;
 
+import se.laz.casual.config.ConfigurationOptions;
+import se.laz.casual.config.ConfigurationService;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Provides the encoding information for encoding/decoding strings
- * Defaults to UTF-8 but can be set via the environment variable {@code CASUAL_API_FIELDED_ENCODING}
+ * Value determined by the {@link ConfigurationService}.
  */
 public class EncodingInfoProvider
 {
     private static final Logger log = Logger.getLogger(EncodingInfoProvider.class.getName());
-    public static final String FIELDED_ENCODING_ENV_NAME = "CASUAL_API_FIELDED_ENCODING";
     private EncodingInfoProvider()
     {}
 
@@ -36,7 +37,7 @@ public class EncodingInfoProvider
      */
     public Charset getCharset()
     {
-        final String name = getEncoding().orElse(StandardCharsets.UTF_8.name());
+        final String name = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_API_FIELDED_ENCODING );
         Charset c;
         try
         {
@@ -49,13 +50,4 @@ public class EncodingInfoProvider
         }
         return c;
     }
-
-    /**
-     * @return the name of the encoding to use if set via the environment variable
-     */
-    public static Optional<String> getEncoding()
-    {
-        return Optional.ofNullable(System.getenv(FIELDED_ENCODING_ENV_NAME));
-    }
-
 }

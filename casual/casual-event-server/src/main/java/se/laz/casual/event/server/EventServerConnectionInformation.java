@@ -11,12 +11,13 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import se.laz.casual.config.ConfigurationOptions;
+import se.laz.casual.config.ConfigurationService;
 
 import java.util.Objects;
 
 public class EventServerConnectionInformation
 {
-    public static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_EVENT_SERVER_ENABLE_LOGHANDLER";
     private final int port;
     private final boolean logHandlerEnabled;
     private final boolean useEpoll;
@@ -180,7 +181,7 @@ public class EventServerConnectionInformation
         {
             if( logHandlerEnabled == null )
             {
-                logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME));
+                logHandlerEnabled = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLE_LOGHANDLER );
             }
             serverInitialization = null == serverInitialization ? DefaultServerInitialization.of() : serverInitialization;
             return new EventServerConnectionInformation(this);

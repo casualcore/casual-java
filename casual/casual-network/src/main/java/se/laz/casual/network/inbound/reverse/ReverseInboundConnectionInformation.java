@@ -12,6 +12,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import jakarta.resource.spi.XATerminator;
 import jakarta.resource.spi.endpoint.MessageEndpointFactory;
 import jakarta.resource.spi.work.WorkManager;
+import se.laz.casual.config.ConfigurationOptions;
+import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.outbound.Correlator;
 import se.laz.casual.network.outbound.CorrelatorImpl;
@@ -22,7 +24,6 @@ import java.util.UUID;
 
 public class ReverseInboundConnectionInformation
 {
-    public static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER";
     private final InetSocketAddress address;
     private final ProtocolVersion protocolVersion;
     private final Correlator correlator;
@@ -203,7 +204,7 @@ public class ReverseInboundConnectionInformation
             Objects.requireNonNull(domainName, "domainName can not be null");
             correlator = null == correlator ? CorrelatorImpl.of() : correlator;
             channelClass = useEpoll ? EpollSocketChannel.class : NioSocketChannel.class;
-            logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME));
+            logHandlerEnabled = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER );
             return new ReverseInboundConnectionInformation(this);
         }
     }

@@ -1,23 +1,21 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.config;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Inbound Startup Mode.
+ */
 public enum Mode
 {
-    @SerializedName(Constants.IMMEDIATE)
     IMMEDIATE( Constants.IMMEDIATE ),
-    @SerializedName(Constants.TRIGGER)
     TRIGGER( Constants.TRIGGER ),
-    @SerializedName(Constants.DISCOVER)
     DISCOVER( Constants.DISCOVER );
 
     private static Map<String,Mode> lookup = new HashMap<>(  );
@@ -30,7 +28,7 @@ public enum Mode
         }
     }
 
-    private String name;
+    private final String name;
 
     Mode( String name )
     {

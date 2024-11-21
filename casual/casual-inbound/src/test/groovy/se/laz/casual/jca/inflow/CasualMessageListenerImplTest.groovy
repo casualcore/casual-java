@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -22,9 +22,10 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.service.CasualService
 import se.laz.casual.api.xa.XAReturnCode
 import se.laz.casual.api.xa.XID
+import se.laz.casual.config.ConfigurationOptions
 import se.laz.casual.config.ConfigurationService
-import se.laz.casual.config.Domain
 import se.laz.casual.jca.CasualResourceAdapterException
+import se.laz.casual.jca.DomainId
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
@@ -32,9 +33,18 @@ import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.domain.*
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
+import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
+import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
+import se.laz.casual.network.protocol.messages.domain.Service
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.network.protocol.messages.transaction.*
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -60,11 +70,11 @@ class CasualMessageListenerImplTest extends Specification
     @Shared Xid xid
     @Shared String serviceName = "echo"
     @Shared TestInboundHandler inboundHandler
-    @Shared Domain domain
 
     def setup()
     {
-        domain = ConfigurationService.getInstance().getConfiguration().getDomain()
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID, DomainId.of( domainId ) )
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME, domainName )
         instance = new CasualMessageListenerImpl()
         inboundHandler = TestInboundHandler.of()
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), inboundHandler)
@@ -72,6 +82,11 @@ class CasualMessageListenerImplTest extends Specification
         xaTerminator = Mock( XATerminator )
 
         xid = createXid()
+    }
+
+    def cleanup()
+    {
+        ConfigurationService.reload(  )
     }
 
     Xid createXid()
@@ -103,8 +118,8 @@ class CasualMessageListenerImplTest extends Specification
         reply != null
         reply.getType() == CasualNWMessageType.DOMAIN_CONNECT_REPLY
         reply.getCorrelationId() == correlationId
-        reply.getMessage().getDomainId() == domain.getId()
-        reply.getMessage().getDomainName() == domain.getName()
+        reply.getMessage().getDomainId() == domainId
+        reply.getMessage().getDomainName() == domainName
         reply.getMessage().getExecution() == execution
         reply.getMessage().getProtocolVersion() == protocolVersion
     }
@@ -139,8 +154,8 @@ class CasualMessageListenerImplTest extends Specification
         reply != null
         reply.getType() == CasualNWMessageType.DOMAIN_DISCOVERY_REPLY
         reply.getCorrelationId() == correlationId
-        reply.getMessage().getDomainId() == domain.getId()
-        reply.getMessage().getDomainName() == domain.getName()
+        reply.getMessage().getDomainId() == domainId
+        reply.getMessage().getDomainName() == domainName
         reply.getMessage().getExecution() == execution
         reply.getMessage().getServices() == expectedServices
     }

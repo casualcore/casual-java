@@ -1,82 +1,167 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.config;
 
-import se.laz.casual.api.external.json.JsonProviderFactory;
+import se.laz.casual.config.json.ConfigurationFileReader;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
- * Singleton access to Casual Configuration.
+ * Singleton access to Casual ConfigurationStore.
  */
 public class ConfigurationService
 {
-
-    public static final String CASUAL_CONFIG_FILE_ENV_NAME = "CASUAL_CONFIG_FILE";
-    public static final String CASUAL_INBOUND_STARTUP_MODE_ENV_NAME = "CASUAL_INBOUND_STARTUP_MODE";
-
     private static final ConfigurationService INSTANCE = new ConfigurationService();
 
-    private final Configuration configuration;
+    private ConfigurationStore store;
 
     ConfigurationService()
     {
-        this.configuration = init();
+        this.store = init();
     }
 
-    public static final ConfigurationService getInstance()
+    private ConfigurationStore init()
     {
-        return INSTANCE;
-    }
+        ConfigurationStore newStore = new ConfigurationStore();
 
-    private Configuration init()
-    {
-        return getEnv( CASUAL_CONFIG_FILE_ENV_NAME )
-                .map( this::buildConfigurationFromFile )
-                .orElse( buildConfigurationFromEnvs() );
-    }
+        ConfigurationDefaults defaults = new ConfigurationDefaults( newStore );
+        defaults.populate();
 
-    private Optional<String> getEnv( String name )
-    {
-        return Optional.ofNullable( System.getenv( name ) );
-    }
+        ConfigurationEnvsReader envsReader = new ConfigurationEnvsReader( newStore );
 
-    private Configuration buildConfigurationFromFile( String file )
-    {
-        try
+        envsReader.populateConfigFileEnv();
+
+        String configurationFile = newStore.get( ConfigurationOptions.CASUAL_CONFIG_FILE );
+        if( configurationFile != null && !configurationFile.isBlank() )
         {
-            return JsonProviderFactory.getJsonProvider().fromJson( new FileReader( file ), Configuration.class );
+            ConfigurationFileReader fileReader = new ConfigurationFileReader( newStore );
+            fileReader.populateStoreFromFile( configurationFile );
         }
-        catch( FileNotFoundException e  )
+
+        envsReader.populateStoreFromEnvs();
+
+        fixInboundStartupServices( newStore );
+
+        fixEpoll( newStore );
+
+        fixUnmanaged( newStore );
+
+        return newStore;
+    }
+
+    private void fixUnmanaged( ConfigurationStore store )
+    {
+        Boolean rootUnmanaged = store.get( ConfigurationOptions.CASUAL_UNMANAGED );
+        Boolean outboundUnmanaged = store.get( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED );
+        if( rootUnmanaged == null )
         {
-            throw new ConfigurationException( "Could not find configuration file specified.", e );
+            rootUnmanaged = outboundUnmanaged;
+            store.put( ConfigurationOptions.CASUAL_UNMANAGED, rootUnmanaged );
+        }
+
+        if( !rootUnmanaged.equals( outboundUnmanaged ) )
+        {
+            store.put( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, rootUnmanaged );
         }
     }
 
-    private Configuration buildConfigurationFromEnvs( )
+    private void fixEpoll( ConfigurationStore store )
     {
-        Mode mode = getEnv( CASUAL_INBOUND_STARTUP_MODE_ENV_NAME )
-                .map( name -> name.isEmpty() ? Mode.IMMEDIATE : Mode.fromName( name ) )
-                .orElse( Mode.IMMEDIATE );
-        return Configuration.newBuilder()
-                .withDomain( Domain.getFromEnv() )
-                .withInbound( Inbound.newBuilder()
-                        .withStartup( Startup.newBuilder()
-                                .withMode( mode )
-                                .build() )
-                        .build() )
-                .withOutbound(Outbound.newBuilder().build())
-                .build();
+        boolean rootEpoll = store.get( ConfigurationOptions.CASUAL_USE_EPOLL );
+        if( rootEpoll )
+        {
+            store.put( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL, true );
+            store.put( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL, true );
+        }
     }
 
-    public Configuration getConfiguration()
+    private void fixInboundStartupServices( ConfigurationStore store )
     {
-        return configuration;
+        List<String> services =store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES );
+        services = switch( store.get( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE ) )
+        {
+            case IMMEDIATE -> Collections.emptyList();
+            case TRIGGER -> Collections.singletonList( Mode.Constants.TRIGGER_SERVICE );
+            default -> services;
+        };
+        store.put( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES, services );
+    }
+
+    /**
+     * Read only access to the  current configuration value for the requested option.
+     *
+     * @param option to retrieve.
+     * @return current value for the requested option.
+     * @param <T> type of the value returned.
+     */
+    public static <T> T getConfiguration( ConfigurationOption<T> option )
+    {
+        return INSTANCE.store.get( option );
+    }
+
+    /**
+     * Mutable access to the current configuration values.
+     *
+     * @param option to set.
+     * @param value to set.
+     * @param <T> type of the value to set.
+     */
+    public static <T> void setConfiguration( ConfigurationOption<T> option, T value )
+    {
+        INSTANCE.store.put( option, value );
+    }
+
+    /**
+     * Reload the configuration.
+     */
+    public static void reload()
+    {
+        INSTANCE.store = new ConfigurationService().store;
+    }
+
+    /**
+     * Retrieve the current configuration as a string supplier for use with debugging/logging.
+     */
+    public static Supplier<String> log( )
+    {
+        List<ConfigurationOption<?>> options = INSTANCE.store.getData().keySet().stream()
+                .sorted( Comparator.comparing( ConfigurationOption::getName ) )
+                .toList();
+
+        StringBuilder builder = new StringBuilder();
+        builder.append( "casual jca configuration:" ).append( System.lineSeparator() );
+        for( ConfigurationOption<?> option : options )
+        {
+            builder.append( option.getName() )
+                    .append( " : " )
+                    .append( asString( INSTANCE.store.get( option ) ) )
+                    .append( System.lineSeparator() );
+        }
+        return builder::toString;
+    }
+
+    /**
+     * Quick hack to output mode as lowercase until we remove the case requirements on configuration enums.
+     * @param object to convert to string.
+     * @return converted string.
+     */
+    private static String asString( Object object )
+    {
+        if( object == null )
+        {
+            return "";
+        }
+        if( object instanceof Mode mode)
+        {
+            return mode.getName();
+        }
+        return object.toString();
     }
 }

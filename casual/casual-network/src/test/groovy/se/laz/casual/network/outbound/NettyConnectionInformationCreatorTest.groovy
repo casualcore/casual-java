@@ -8,14 +8,18 @@ package se.laz.casual.network.outbound
 
 import io.netty.channel.epoll.EpollSocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
-import se.laz.casual.config.Configuration
+import se.laz.casual.config.ConfigurationOptions
+import se.laz.casual.config.ConfigurationService
 import se.laz.casual.network.ProtocolVersion
 import spock.lang.Specification
 
-import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable
-
 class NettyConnectionInformationCreatorTest extends Specification
 {
+   def cleanup()
+   {
+      ConfigurationService.reload(  )
+   }
+
    def 'default, does not use epoll'()
    {
       given:
@@ -32,12 +36,10 @@ class NettyConnectionInformationCreatorTest extends Specification
       given:
       InetSocketAddress address = new InetSocketAddress('foo.bar', 1234)
       ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
+      ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL, true )
+
       when:
-      NettyConnectionInformation ci
-      withEnvironmentVariable( Configuration.USE_EPOLL_ENV_VAR_NAME, "true" )
-              .execute( {
-                 ci = NettyConnectionInformationCreator.create(address, protocolVersion)
-                 } )
+      NettyConnectionInformation ci = NettyConnectionInformationCreator.create(address, protocolVersion)
 
       then:
       ci.getChannelClass() == EpollSocketChannel.class

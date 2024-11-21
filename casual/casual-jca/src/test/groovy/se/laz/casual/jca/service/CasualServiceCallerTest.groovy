@@ -18,7 +18,7 @@ import se.laz.casual.api.flags.ServiceReturnState
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.api.xa.XID
-import se.laz.casual.config.Domain
+import se.laz.casual.config.json.Domain
 import se.laz.casual.event.Order
 import se.laz.casual.event.ServiceCallEvent
 import se.laz.casual.event.ServiceCallEventPublisher

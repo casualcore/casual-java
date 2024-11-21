@@ -9,6 +9,8 @@ package se.laz.casual.api.buffer.type.fielded.json;
 import se.laz.casual.api.buffer.type.fielded.Constants;
 import se.laz.casual.api.buffer.type.fielded.FieldType;
 import se.laz.casual.api.external.json.JsonProviderFactory;
+import se.laz.casual.config.ConfigurationOptions;
+import se.laz.casual.config.ConfigurationService;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -124,8 +126,8 @@ public final class CasualFieldedLookup
 
     private static Optional<Supplier<URL>> getSystemFieldedJsonSupplier()
     {
-        final String envJsonFieldFilename = System.getenv(Constants.CASUAL_FIELD_TABLE);
-        final Supplier<URL> s = () -> getSystemResource(System.getenv(Constants.CASUAL_FIELD_TABLE));
+        final String envJsonFieldFilename = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_FIELD_TABLE );
+        final Supplier<URL> s = () -> getSystemResource( envJsonFieldFilename );
         return Optional.ofNullable((null == envJsonFieldFilename) ? null : s);
     }
 

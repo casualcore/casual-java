@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,11 +9,13 @@ package se.laz.casual.network.inbound;
 import jakarta.resource.spi.XATerminator;
 import jakarta.resource.spi.endpoint.MessageEndpointFactory;
 import jakarta.resource.spi.work.WorkManager;
+import se.laz.casual.config.ConfigurationOptions;
+import se.laz.casual.config.ConfigurationService;
+
 import java.util.Objects;
 
 public final class ConnectionInformation
 {
-    public static final String USE_LOG_HANDLER_ENV_NAME = "CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER";
     private final int port;
     private final MessageEndpointFactory factory;
     private final XATerminator xaTerminator;
@@ -116,7 +118,7 @@ public final class ConnectionInformation
             Objects.requireNonNull(factory, "factory can not be null");
             Objects.requireNonNull(xaTerminator, "xaTerminator can not be null");
             Objects.requireNonNull(workManager, "workManager can not be null");
-            logHandlerEnabled = Boolean.parseBoolean(System.getenv(USE_LOG_HANDLER_ENV_NAME));
+            logHandlerEnabled = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER );
             return new ConnectionInformation( this );
         }
     }

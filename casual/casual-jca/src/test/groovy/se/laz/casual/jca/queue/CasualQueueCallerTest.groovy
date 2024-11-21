@@ -13,7 +13,7 @@ import se.laz.casual.api.queue.MessageSelector
 import se.laz.casual.api.queue.QueueInfo
 import se.laz.casual.api.queue.QueueMessage
 import se.laz.casual.api.xa.XID
-import se.laz.casual.config.Domain
+import se.laz.casual.config.json.Domain
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory

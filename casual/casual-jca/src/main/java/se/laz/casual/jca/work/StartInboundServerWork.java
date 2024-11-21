@@ -7,6 +7,7 @@
 package se.laz.casual.jca.work;
 
 import jakarta.resource.spi.work.Work;
+import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.InboundStartupException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry;
@@ -98,7 +99,7 @@ public final class StartInboundServerWork<T> implements Work
 
     private void logInitialStartupServices(List<String> startupServices)
     {
-        log.info(() -> "Inbound startup mode: " + ConfigurationService.getInstance().getConfiguration().getInbound().getStartup().getMode());
+        log.info(() -> "Inbound startup mode: " + ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE ) );
         log.info(() -> "Waiting for " + startupServices.size() + " services to be registered before inbound starts.");
         log.info(() -> "Initial services list: " + startupServices.stream()
                                                                   .collect(Collectors.joining()));

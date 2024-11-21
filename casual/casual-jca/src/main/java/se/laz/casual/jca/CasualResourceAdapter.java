@@ -19,6 +19,7 @@ import jakarta.resource.spi.work.Work;
 import jakarta.resource.spi.work.WorkException;
 import jakarta.resource.spi.work.WorkListener;
 import jakarta.resource.spi.work.WorkManager;
+import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.ReverseInbound;
 import se.laz.casual.event.server.EventServer;
@@ -76,27 +77,31 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     @ConfigProperty( defaultValue = "7772")
     private Integer inboundServerPort;
 
-    private ConfigurationService configurationService;
-
     public CasualResourceAdapter()
     {
         //JCA requires ResourceAdapter has a no arg constructor.
         //It is also not possible to inject with CDI on wildfly only ConfigProperty annotations.
-        configurationService = ConfigurationService.getInstance();
-        log.info(() -> "casual jca configuration: " + configurationService.getConfiguration());
-        configurationService.getConfiguration().getEventServer().ifPresent(config -> {
-            log.info("starting event server with config: " + config);
-            eventServer = EventServer.of(EventServerConnectionInformation.createBuilder()
-                    .withUseEpoll( config.isUseEpoll() )
-                    .withPort( config.getPortNumber() )
-                    .withShutdownTimeout( config.getShutdown().getTimeout() )
-                    .withShutdownQuietPeriod( config.getShutdown().getQuietPeriod() )
-                    .build(), configurationService.getConfiguration().getDomain().getId() );
-            log.info("event server started at port: " + config.getPortNumber());
-            RuntimeInformation.setEventServerStarted(true);
-        });
+
+        log.info( ConfigurationService.log() );
+        startEventServer();
     }
 
+    private void startEventServer()
+    {
+        boolean enabled = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLED );
+        if( enabled )
+        {
+            log.info( ()-> "starting event server.");
+            eventServer = EventServer.of(EventServerConnectionInformation.createBuilder()
+                    .withUseEpoll( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_USE_EPOLL ) )
+                    .withPort( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT ) )
+                    .withShutdownTimeout( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_TIMEOUT_MILLIS ) )
+                    .withShutdownQuietPeriod( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_SHUTDOWN_QUIET_PERIOD_MILLIS ) )
+                    .build(), ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId() );
+            log.info( ()-> "event server started at port: " + ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_EVENT_SERVER_PORT ) );
+            RuntimeInformation.setEventServerStarted(true);
+        }
+    }
 
 
     @Override
@@ -111,12 +116,12 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                 .withPort(as.getPort())
                 .withWorkManager(workManager)
                 .withXaTerminator(xaTerminator)
-                .withUseEpoll( configurationService.getConfiguration().getInbound().isUseEpoll() )
+                .withUseEpoll( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL ) )
                 .build();
         activations.put(as.getPort(), as);
         log.info(() -> "start casual inbound server" );
         startInboundServer( ci );
-        maybeStartReverseInbound( ConfigurationService.getInstance().getConfiguration().getReverseInbound(), endpointFactory, workManager, xaTerminator);
+        maybeStartReverseInbound( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES ), endpointFactory, workManager, xaTerminator);
         log.finest(() -> "end endpointActivation()");
 
     }
@@ -126,10 +131,10 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         for(ReverseInbound instance : reverseInbound)
         {
             startReverseInbound(ReverseInboundConnectionInformation.createBuilder()
-                                                                   .withAddress(InetSocketAddress.createUnresolved(instance.getAddress().getHost(), instance.getAddress().getPort()))
-                                                                   .withDomainId(configurationService.getConfiguration().getDomain().getId())
-                                                                   .withDomainName(configurationService.getConfiguration().getDomain().getName())
-                                                                   .withUseEpoll(configurationService.getConfiguration().getOutbound().getUseEpoll())
+                                                                   .withAddress(InetSocketAddress.createUnresolved(instance.getHost(), instance.getPort()))
+                                                                   .withDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId())
+                                                                   .withDomainName(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME ))
+                                                                   .withUseEpoll(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL ))
                                                                    .withFactory(endpointFactory)
                                                                    .withWorkManager(workManager)
                                                                    .withXaTerminator(xaTerminator)
@@ -164,14 +169,14 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         };
         Supplier<CasualServer> supplier = () -> CasualServer.of(connectionInformation);
         Supplier<String> logMsg = () -> "Casual inbound server bound to port: " + connectionInformation.getPort();
-        long delay = ConfigurationService.getInstance().getConfiguration().getInbound().getInitialDelay();
+        long delay = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS );
         Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier, delay);
         startWork(work, StartInboundServerListener.of());
     }
 
     private List<String> getInboundStartupServices()
     {
-        return configurationService.getConfiguration().getInbound().getStartup().getServices();
+        return ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_STARTUP_SERVICES );
     }
 
     private void startWork(Work work, WorkListener workListener)
