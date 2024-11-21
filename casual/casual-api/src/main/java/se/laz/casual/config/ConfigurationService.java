@@ -136,13 +136,32 @@ public class ConfigurationService
                 .toList();
 
         StringBuilder builder = new StringBuilder();
+        builder.append( "casual jca configuration:" ).append( System.lineSeparator() );
         for( ConfigurationOption<?> option : options )
         {
             builder.append( option.getName() )
                     .append( " : " )
-                    .append( INSTANCE.store.get( option ) )
-                    .append( "\n" );
+                    .append( asString( INSTANCE.store.get( option ) ) )
+                    .append( System.lineSeparator() );
         }
         return builder::toString;
+    }
+
+    /**
+     * Quick hack to output mode as lowercase until we remove the case requirements on configuration enums.
+     * @param object to convert to string.
+     * @return converted string.
+     */
+    private static String asString( Object object )
+    {
+        if( object == null )
+        {
+            return "";
+        }
+        if( object instanceof Mode mode)
+        {
+            return mode.getName();
+        }
+        return object.toString();
     }
 }
