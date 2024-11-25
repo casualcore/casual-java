@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -18,7 +18,7 @@ public interface ServiceHandler extends Prioritisable
      * service of this name.
      *
      * Differs from {@link #isServiceAvailable} in that a
-     * service could be registered  but unavailable,
+     * service could be registered and possible to handle but unavailable,
      * in which case this method would return true,
      * but {@link #isServiceAvailable} would return false.
      *
@@ -28,8 +28,15 @@ public interface ServiceHandler extends Prioritisable
     boolean canHandleService( String serviceName );
 
     /**
-     * Determine if the provided service is available
-     * in this handler.
+     * Determine if the provided service is available to receive requests
+     * through this handler.
+     *
+     * Differs from {@link #canHandleService} in that a
+     * service may not yet be available/ready to receive requests, but
+     * this handler can handle the service when it is available.
+     * In which case this method would return false,
+     * but {@link #canHandleService} would return true.
+     *
      * @param serviceName name
      * @return if the service is available.
      */
