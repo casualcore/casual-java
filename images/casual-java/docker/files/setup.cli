@@ -1,0 +1,40 @@
+#
+# Copyright (c) 2024, The casual project. All rights reserved.
+#
+# This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+#
+
+embed-server --server-config=standalone-full.xml --std-out=echo
+
+set CASUAL_VERSION=${env.CASUAL_VERSION}
+set CASUAL_CALLER_VERSION=${env.CASUAL_CALLER_VERSION}
+set CASUAL_ROOT=${env.CASUAL_ROOT}
+set CASUAL_HOST=${env.CASUAL_HOST}
+set CASUAL_PORT=${env.CASUAL_PORT}
+
+# global module
+/subsystem=ee:list-add(name=global-modules, value={name=se.laz.casual})
+
+# create a unique transaction node identifier
+/system-property=jboss.tx.node.id:add(value='wildfly-only')
+
+# configure casual RA
+set baseNode=/subsystem=resource-adapters/resource-adapter=casual-jca
+$baseNode:add(archive=casual-jca-app-$CASUAL_VERSION.ear#casual-jca.rar,transaction-support=XATransaction)
+
+set connectionDefinitionNode=$baseNode/connection-definitions=casual-pool
+$connectionDefinitionNode:add(\
+    class-name=se.laz.casual.jca.CasualManagedConnectionFactory,\
+    jndi-name=eis/casualConnectionFactoryDefault,\
+    min-pool-size=100, initial-pool-size=100, max-pool-size=100,\
+    enabled=true,background-validation=false,validate-on-match=false)
+
+$connectionDefinitionNode/config-properties=HostName:add(value=$CASUAL_HOST)
+$connectionDefinitionNode/config-properties=PortNumber:add(value=$CASUAL_PORT)
+$connectionDefinitionNode/config-properties=NetworkConnectionPoolName:add(value=pool-one)
+$connectionDefinitionNode/config-properties=NetworkConnectionPoolSize:add(value=1)
+
+deploy $CASUAL_ROOT/casual-jca-app-$CASUAL_VERSION.ear
+deploy $CASUAL_ROOT/casual-caller-app-$CASUAL_CALLER_VERSION.ear
+
+stop-embedded-server
