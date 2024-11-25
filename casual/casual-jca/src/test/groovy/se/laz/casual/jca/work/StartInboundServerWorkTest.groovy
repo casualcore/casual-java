@@ -153,22 +153,4 @@ class StartInboundServerWorkTest extends Specification
         then:
         server.isActive(  )
     }
-
-//    CasualServiceEntry prepareRegistry( String serviceName )
-//    {
-//        CasualService service = new CasualServiceLiteral( serviceName, "" )
-//        Class<?> serviceClass = String.class
-//        Method serviceMethod = String.class.getMethod( "toString" )
-//
-//        CasualServiceMetaData metaData = CasualServiceMetaData.newBuilder(  )
-//                .service( service )
-//                .implementationClass( serviceClass )
-//                .serviceMethod( serviceMethod )
-//                .build(  )
-//
-//        registry.register( metaData )
-//
-//        return CasualServiceEntry.of( serviceName, "", null, null )
-//    }
-
 }

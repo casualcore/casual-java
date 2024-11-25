@@ -55,7 +55,6 @@ dependencies {
     testImplementation libs.javaee_api
     testImplementation libs.hamcrest_all
     testImplementation project(':casual:casual-inbound-handler-api')
-    //testImplementation project(':casual:casual-inbound-handler-casual-service')
     // for spock
     testImplementation platform(libs.groovy_bom)
     testImplementation libs.groovy
