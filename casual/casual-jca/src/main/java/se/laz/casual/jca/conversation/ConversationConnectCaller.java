@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.conversation;
 
-import se.laz.casual.api.CasualConversationAPI;
+import se.laz.casual.api.CasualConversationApi;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.conversation.Duplex;
@@ -28,7 +28,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
-public class ConversationConnectCaller implements CasualConversationAPI
+public class ConversationConnectCaller implements CasualConversationApi
 {
     private static final Logger LOG = Logger.getLogger(ConversationConnectCaller.class.getName());
     private static final int RESULT_CODE_UNKNOWN = -1;
