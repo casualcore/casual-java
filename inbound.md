@@ -13,9 +13,9 @@ There are currently two types of services which are supported by Casual JCA.
 * Casual Services
 * JavaEE Services - (testing purpose only)
 
-### Casual Service Registration
+### Casual Service Discovery
 
-In order to register inbound services, applications can for example use the `@CasualService` annotation upon their
+In order to make inbound services discoverable, applications can for example use the `@CasualService` annotation upon their
 method of a `@Remote` Java bean.
 In the following example you can see how a service called `echo` is defined.
 
@@ -34,16 +34,25 @@ public class EchoServiceImpl implements EchoService
                 .build();
     }
 }
-``` 
-During application deployment Casual JCA application will `@Observe` the deployment of the `@CasualService` and 
+```
+
+All available `ServiceHandler` implementation are used to respond to domain discovery requests by calling the`isServiceAvailable` method. 
+It is therefore the responsibility of the `ServiceHandler` implementations to ensure it responds correctly to these domain discovery requests and
+dispatch incoming requests to the appropriate deployed application.
+
+As new applications containing casual inbound services are deployed, the domain discovery requests must respond accordingly. Therefore all
+`ServiceHandler` implementations must monitor the deployment of applications containing "their services" over time.
+
+### CasualServiceHandler implementation
+
+Internally the `CasualServiceHandler` implementation of `ServiceHandler` uses a private CasualServiceRegistry which
+determines whether a service can be handled and or is available to be called.
+
+During application deployment Casual JCA application will `@Observe` the deployment of the `@CasualService` and
 register them as inbound services, allowing clients to make requests against these services.
 This applies to all applications that are deployed throughout the runtime of the application server.
 
-The resulting inbound service registry is used to respond to domain discovery requests. As well as to dispatch incoming
-request to the appropriate deployed application. As new applications containing casual inbound services are deployed, 
-the domain discovery requests will respond accordingly.
-
-NB - undeployment of an application currently does not remove the associated casual services from the registry.
+NB - undeployment of an application currently does not remove the associated casual services from the private internal registry.
 
 ### Extending Casual Service Handler
 
