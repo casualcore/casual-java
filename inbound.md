@@ -41,7 +41,7 @@ It is therefore the responsibility of the `ServiceHandler` implementations to en
 dispatch incoming requests to the appropriate deployed application.
 
 As new applications containing casual inbound services are deployed, the domain discovery requests must respond accordingly. Therefore all
-`ServiceHandler` implementations must monitor the deployment of applications containing Casual Services over time.
+`ServiceHandler` implementations must monitor the deployment of applications containing "their services" over time.
 
 ### CasualServiceHandler implementation
 
