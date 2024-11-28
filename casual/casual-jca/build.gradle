@@ -29,6 +29,7 @@ configurations {
  */
 configurations.resourceAdapter{
     exclude( group: 'io.netty' )
+    exclude( group: 'com.google.code.gson' )
     exclude( group: 'se.laz.casual', module: 'casual-api')
     exclude( group: 'se.laz.casual', module: 'casual-inbound-handler-api')
 }
@@ -44,13 +45,14 @@ dependencies {
     compileOnly project(':casual:casual-inbound-handler-api')
     implementation libs.netty
     compileOnly libs.javaee_api
-    compileOnly libs.gson
+    implementation libs.gson
 
     resourceAdapter( project(':casual:casual-network') )
     resourceAdapter project(':casual:casual-network-protocol')
     resourceAdapter (project(':casual:casual-event-server')){ transitive = false }
     resourceAdapterLib libs.netty
     resourceAdapterLib libs.netty_epoll
+    resourceAdapterLib libs.gson
 
     testImplementation libs.javaee_api
     testImplementation libs.hamcrest_all
