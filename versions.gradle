@@ -10,7 +10,7 @@ group = 'se.laz.casual'
 version = '3.2.49-SNAPSHOT'
 
 def netty_version = '4.1.114.Final'
-def gson_version = '2.10.1'
+def gson_version = '2.11.0'
 
 ext.libs = [
   netty : "io.netty:netty-all:${netty_version}",
