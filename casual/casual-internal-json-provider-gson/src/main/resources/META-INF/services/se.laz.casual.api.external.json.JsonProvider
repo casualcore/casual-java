@@ -3,5 +3,4 @@
 #
 # This software is licensed under the MIT license, https://opensource.org/licenses/MIT
 #
-
-se.laz.casual.jca.GsonProvider
+se.laz.casual.json.provider.GsonProvider

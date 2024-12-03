@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -26,3 +26,4 @@ include 'casual:casual-event-api'
 include 'casual:casual-event-server'
 include 'casual:casual-event-client'
 include 'casual:casual-test'
+include 'casual:casual-internal-json-provider-gson'

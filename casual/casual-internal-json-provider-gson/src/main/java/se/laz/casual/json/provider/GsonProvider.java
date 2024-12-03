@@ -1,38 +1,36 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
-
-package se.laz.casual.api.external.json.impl;
+package se.laz.casual.json.provider;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
-import se.laz.casual.api.external.json.JsonProvider;
 
 import java.io.Reader;
 
 /**
  * JsonProvider using gson
  */
-public final class GsonProvider implements JsonProvider
+public final class GsonProvider// implements JsonProvider
 {
-    @Override
+    //@Override
     public <T> T fromJson(Reader r, Class<T> clazz)
     {
         Gson gson = new Gson();
         return gson.fromJson(new JsonReader(r), clazz);
     }
 
-    @Override
+    //@Override
     public <T> T fromJson(String s, Class<T> clazz)
     {
         Gson gson = new Gson();
         return gson.fromJson(s, clazz);
     }
 
-    @Override
+    //@Override
     public <T> T fromJson(String s, Class<T> clazz, Object typeAdapter)
     {
         GsonBuilder builder = new GsonBuilder();
@@ -41,7 +39,7 @@ public final class GsonProvider implements JsonProvider
         return gson.fromJson(s, clazz);
     }
 
-    @Override
+    //@Override
     public String toJson( Object object )
     {
         Gson gson = new Gson();

@@ -1,0 +1,27 @@
+/*
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
+//-*- coding: utf-8 -*-
+plugins {
+    id 'java-library'
+    id 'jacoco'
+    id 'groovy'
+}
+defaultTasks 'build'
+
+dependencies {
+  compileOnly libs.javaee_api
+  implementation libs.gson
+
+  testImplementation libs.javaee_api
+    
+  // for spock
+  testImplementation platform(libs.groovy_bom)
+  testImplementation libs.groovy
+  testImplementation platform(libs.spock_bom)
+  testImplementation libs.spock_core
+  testImplementation libs.spock_junit4 
+}

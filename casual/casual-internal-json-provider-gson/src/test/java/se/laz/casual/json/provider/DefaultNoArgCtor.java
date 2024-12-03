@@ -1,0 +1,53 @@
+/*
+ * Copyright (c) 2024, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
+package se.laz.casual.json.provider;
+
+import java.util.Objects;
+
+public class DefaultNoArgCtor
+{
+    private String value;
+
+    public String getValue()
+    {
+        return value;
+    }
+
+    public void setValue( String value )
+    {
+        this.value = value;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if( this == o )
+        {
+            return true;
+        }
+        if( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+        DefaultNoArgCtor that = (DefaultNoArgCtor) o;
+        return Objects.equals( value, that.value );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode( value );
+    }
+
+    @Override
+    public String toString()
+    {
+        return "DefaultNoArgCtor{" +
+                "value='" + value + '\'' +
+                '}';
+    }
+}
