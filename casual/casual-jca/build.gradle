@@ -53,6 +53,7 @@ dependencies {
     resourceAdapterLib libs.netty
     resourceAdapterLib libs.netty_epoll
     resourceAdapterLib libs.gson
+    resourceAdapterLib libs.objenesis
 
     testImplementation libs.javaee_api
     testImplementation libs.hamcrest_all
