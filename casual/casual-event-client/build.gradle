@@ -19,7 +19,8 @@ dependencies {
     
     testImplementation project(':casual:casual-api')
     testImplementation project(':casual:casual-event-api')
-    testImplementation libs.gson
+    testRuntimeOnly project(':casual:casual-internal')
+    testRuntimeOnly libs.gson
     // for spock
     testImplementation platform(libs.groovy_bom)
     testImplementation libs.groovy
