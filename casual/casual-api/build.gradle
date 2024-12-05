@@ -16,12 +16,11 @@ dependencies {
   api project(":casual:casual-fielded-annotations")
   compileOnly libs.javaee_api
   compileOnly libs.gson
-
+    
   testImplementation libs.javaee_api
   testImplementation libs.gson
   testImplementation libs.system_lambda
-   testRuntimeOnly project(':casual:casual-internal')
-   testRuntimeOnly libs.gson
+  testRuntimeOnly project(':casual:casual-api-spi-impl')
 
   // for spock
   testImplementation platform(libs.groovy_bom)

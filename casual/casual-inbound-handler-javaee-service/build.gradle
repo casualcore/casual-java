@@ -16,7 +16,7 @@ dependencies {
   compileOnly libs.javaee_api
 
   testImplementation libs.javaee_api
-  testRuntimeOnly libs.gson
+  testRuntimeOnly project(':casual:casual-api-spi-impl')
   // for spock
   testImplementation platform(libs.groovy_bom)
   testImplementation libs.groovy

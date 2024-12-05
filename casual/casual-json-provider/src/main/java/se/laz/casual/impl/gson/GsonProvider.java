@@ -4,7 +4,7 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.internal.spi;
+package se.laz.casual.impl.gson;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

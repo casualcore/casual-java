@@ -45,14 +45,13 @@ dependencies {
     compileOnly project(':casual:casual-inbound-handler-api')
     implementation libs.netty
     compileOnly libs.javaee_api
-    //implementation libs.gson
 
     resourceAdapter( project(':casual:casual-network') )
     resourceAdapter project(':casual:casual-network-protocol')
     resourceAdapter (project(':casual:casual-event-server')){ transitive = false }
     resourceAdapterLib libs.netty
     resourceAdapterLib libs.netty_epoll
-    resourceAdapterLib libs.gson
+    resourceAdapterLib project(':casual:casual-api-spi-impl')
 
     testImplementation libs.javaee_api
     testImplementation libs.hamcrest_all

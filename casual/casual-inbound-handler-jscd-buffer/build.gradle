@@ -14,8 +14,8 @@ dependencies {
   api project(":casual:casual-inbound-handler-api")
   compileOnly libs.javaee_api
 
-   testRuntimeOnly project(':casual:casual-internal')
-   testRuntimeOnly libs.gson
+  testRuntimeOnly project(':casual:casual-api-spi-impl')
+
   // for spock
   testImplementation platform(libs.groovy_bom)
   testImplementation libs.groovy

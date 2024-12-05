@@ -18,8 +18,7 @@ dependencies {
     api libs.netty
     compileOnly libs.javaee_api
 
-    testRuntimeOnly project(':casual:casual-internal')
-    testRuntimeOnly libs.gson
+    testRuntimeOnly project(':casual:casual-api-spi-impl')
     testImplementation libs.javaee_api
 
 
