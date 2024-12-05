@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.api.external.json;
 
-import se.laz.casual.api.external.json.impl.GsonProvider;
+import java.util.ServiceLoader;
 
 public final class JsonProviderFactory
 {
@@ -20,6 +20,7 @@ public final class JsonProviderFactory
      */
     public static JsonProvider getJsonProvider()
     {
-        return new GsonProvider();
+        ServiceLoader<JsonProvider> loader = ServiceLoader.load(JsonProvider.class);
+        return loader.iterator().next();
     }
 }
