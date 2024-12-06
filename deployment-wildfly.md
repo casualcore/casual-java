@@ -12,6 +12,9 @@ module add --name=se.laz.casual \
                 --dependencies=javaee.api,sun.jdk"
 ```
 
+Where ```CASUAL_VERSION``` is the casual-jca version, such as ```3.2.49```.
+
+
 To make this module available globally you can either update the standalone.xml:
 ```xml
 <global-modules>
