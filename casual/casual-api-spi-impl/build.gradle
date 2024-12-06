@@ -13,5 +13,7 @@ plugins {
 defaultTasks 'build'
 
 dependencies {
-    implementation project(':casual:casual-json-provider')
+    implementation (project(':casual:casual-json-provider')){
+        exclude group: 'se.laz.casual', module : 'casual-api'
+    }
 }
