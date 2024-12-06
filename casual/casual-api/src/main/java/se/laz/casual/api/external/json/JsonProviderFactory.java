@@ -21,6 +21,10 @@ public final class JsonProviderFactory
     public static JsonProvider getJsonProvider()
     {
         ServiceLoader<JsonProvider> loader = ServiceLoader.load(JsonProvider.class);
+        if(!loader.iterator().hasNext())
+        {
+            throw new NoJsonProviderAvailableException("No json provider available!");
+        }
         return loader.iterator().next();
     }
 }
