@@ -1,7 +1,7 @@
 # Deployment - General
 ## How is Casual JCA packaged?
 
-* Casual JCA is packaged as a Java Enterprise Archive file, e.g. `casual-jca-app-1.0.17-beta.ear`, which contains:
+* Casual JCA is packaged as a Java Enterprise Archive file, e.g. `casual-jca-app-3.2.49.ear`, which contains:
     * Casual Resource Adapater (RA) - casual-jca.rar
     * JCA Inbound Message Driven Bean (MDB) - casual-inbound.jar
 * The JCA Inbound MDB is activated only if the Casual RA is activated
@@ -17,7 +17,7 @@ The settings for the Casual RA include:
 | Setting   | Comment   | Example   |
 | ---   | ---   | --- |
 | id | Identifier of the casual resrouce adapter must be `casual-jca` | `casual-jca` |
-| archive | Location of the rar within the ear | `casual-jca-app-3.2.31.ear#casual-jca.rar` |
+| archive | Location of the rar within the ear | `casual-jca-app-3.2.49.ear#casual-jca.rar` |
 | class-name | FQCN of the Casaul Managed Connection Factory | `se.laz.casual.jca.CasualManagedConnectionFactory` |
 | HostName | Casual Server Host | `192.168.99.100` |
 | PortNumber | Casual Server Port | `7771`
@@ -35,18 +35,19 @@ There are a number of deployment alternatives, however the simplest is to regist
 ## Third party dependencies
 Casual JCA makes use of the following third party libraries:
 
-* [Netty v4.1.107.Final](https://github.com/netty/netty)
-* [gson v2.10.1](https://github.com/google/gson)
-* [objenis v3.3](https://github.com/easymock/objenesis)
+* [Netty v4.1.114.Final](https://github.com/netty/netty)
+* [gson v2.11.0](https://github.com/google/gson)
+* [objenis v3.4](https://github.com/easymock/objenesis) - only used for fielded marshalling
 
-Netty is packaged within the Casual JCA ear.
+Netty and gson is packaged within the Casual JCA ear.
 
-Casual api currently requires gson and objenesis, they therefore must be available from where the api is deployed.
+Casual api currently requires objenesis if fielded marshalling is used, it must be available from where the api is deployed.
 
-We are working on removing dependencies to gson and objenesis in a future release.
+We are working on removing dependencies to objenesis in a future release.
 
 ## Fielded
 If you are using fielded then you need to set the environment variable CASUAL_FIELD_TABLE to point to a json file containing all your fielded definitions.
+As mentioned in the previous section, fielded marshalling currently depends on ```objenesis``` for default constructor usage.
 
 ## Dumping all network traffic to the logs
 * outbound - set the environment variable CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER=true
