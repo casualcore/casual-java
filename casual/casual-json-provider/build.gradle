@@ -16,6 +16,7 @@ dependencies {
     api project(':casual:casual-api')
     implementation libs.gson
 
+    testRuntimeOnly libs.gson
     // for spock
     testImplementation platform(libs.groovy_bom)
     testImplementation libs.groovy
