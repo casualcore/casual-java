@@ -8,7 +8,7 @@
 include 'casual:casual-jca'
 include 'casual:casual-api'
 include 'casual:casual-api-spi-impl'
-include 'casual:casual-json-provider'
+include 'casual:casual-json-provider-gson'
 include 'casual:casual-network'
 include 'casual:casual-network-protocol'
 include 'casual:casual-internal'
