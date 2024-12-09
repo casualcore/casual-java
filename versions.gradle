@@ -7,17 +7,17 @@
 
 // casual-java group and version
 group = 'se.laz.casual'
-version = '3.2.48'
+version = '3.2.49'
 
 def netty_version = '4.1.114.Final'
-def gson_version = '2.10.1'
+def gson_version = '2.11.0'
 
 ext.libs = [
   netty : "io.netty:netty-all:${netty_version}",
   netty_epoll: "io.netty:netty-transport-native-epoll:${netty_version}",
   javaee_api: 'jakarta.platform:jakarta.jakartaee-api:10.0.0',
   gson: "com.google.code.gson:gson:${gson_version}",
-  objenesis: 'org.objenesis:objenesis:3.3',
+  objenesis: 'org.objenesis:objenesis:3.4',
   microprofile_config: 'org.eclipse.microprofile.config:microprofile-config-api:1.4',
   // test
   hamcrest_all: 'org.hamcrest:hamcrest-all:1.3',

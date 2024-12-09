@@ -16,10 +16,11 @@ dependencies {
     api project(':casual:casual-api')
     api project(':casual:casual-event-api')
     api libs.netty
+    implementation project(':casual:casual-api-spi-impl')
     
     testImplementation project(':casual:casual-api')
     testImplementation project(':casual:casual-event-api')
-    testImplementation libs.gson
+    testRuntimeOnly project(':casual:casual-api-spi-impl')
     // for spock
     testImplementation platform(libs.groovy_bom)
     testImplementation libs.groovy

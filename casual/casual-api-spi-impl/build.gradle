@@ -1,0 +1,16 @@
+/*
+ * Copyright (c) 2024, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
+//-*- coding: utf-8 -*-
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation (project(':casual:casual-json-provider-gson')){
+        exclude group: 'se.laz.casual', module : 'casual-api'
+    }
+}

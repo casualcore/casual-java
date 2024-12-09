@@ -15,11 +15,9 @@ dependencies {
   implementation project(":casual:casual-internal")
   implementation project(":casual:casual-service-discovery-extension")
   compileOnly libs.javaee_api
-  compileOnly libs.gson
-    
-  testImplementation libs.javaee_api
 
-  testRuntimeOnly libs.gson
+  testRuntimeOnly project(':casual:casual-api-spi-impl')
+  testImplementation libs.javaee_api
 
   // for spock
   testImplementation platform(libs.groovy_bom)

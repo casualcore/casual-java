@@ -14,7 +14,6 @@ defaultTasks 'build'
 
 dependencies {
   api project(":casual:casual-api")
-  compileOnly libs.gson
   compileOnly libs.javaee_api
 
   // for spock

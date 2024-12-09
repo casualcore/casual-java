@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -16,11 +16,12 @@ dependencies {
   api project(":casual:casual-fielded-annotations")
   compileOnly libs.javaee_api
   compileOnly libs.gson
-
+    
   testImplementation libs.javaee_api
   testImplementation libs.gson
   testImplementation libs.system_lambda
-    
+  testRuntimeOnly project(':casual:casual-api-spi-impl')
+
   // for spock
   testImplementation platform(libs.groovy_bom)
   testImplementation libs.groovy
