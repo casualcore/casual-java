@@ -84,11 +84,28 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         //It is also not possible to inject with CDI on wildfly only ConfigProperty annotations.
 
         log.info( ConfigurationService.log() );
+        initialiseFielded();
+        startEventServer();
+    }
+
+    /**
+     * Initialise fielded if there is a field table configured.
+     * This is to ensure json parsing required to populate static maps
+     * from within RA where `casual-api-spi-impl` is available.
+     * Therefore, other apps don't need to include casual-api-spi-impl in
+     * their own deployments too.
+     * Statics are unique per classloader.
+     * This only works due to the casual-api being available in a global module,
+     * meaning that the classloader is shared by all deployments.
+     * Any deployment utilising fielded is expected to have casual-jca deployed first.
+     */
+    private void initialiseFielded()
+    {
         if( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_FIELD_TABLE ) != null )
         {
-            log.info( ()-> "CasualFieldedLookup Vomit: " + CasualFieldedLookup.getURL() );
+
+            log.finest( ()-> "CasualFieldedLookup static initialisation: " + CasualFieldedLookup.getURL() );
         }
-        startEventServer();
     }
 
     private void startEventServer()
