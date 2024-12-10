@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.conversation;
 
-import se.laz.casual.api.CasualConversationAPI;
-import se.laz.casual.api.Conversation;
+import se.laz.casual.api.CasualConversationApi;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.conversation.Duplex;
+import se.laz.casual.api.conversation.TpConnectReturn;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.Flag;
@@ -28,7 +28,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
-public class ConversationConnectCaller implements CasualConversationAPI
+public class ConversationConnectCaller implements CasualConversationApi
 {
     private static final Logger LOG = Logger.getLogger(ConversationConnectCaller.class.getName());
     private static final int RESULT_CODE_UNKNOWN = -1;
@@ -46,13 +46,13 @@ public class ConversationConnectCaller implements CasualConversationAPI
     }
 
     @Override
-    public Conversation tpconnect(String serviceName, Flag<AtmiFlags> flags)
+    public TpConnectReturn tpconnect(String serviceName, Flag<AtmiFlags> flags)
     {
         return tpconnect(serviceName, null, flags);
     }
 
     @Override
-    public Conversation tpconnect(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
+    public TpConnectReturn tpconnect(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         Objects.requireNonNull(serviceName, "serviceName can not be null");
         Objects.requireNonNull(flags, "flags can not be null");
@@ -91,10 +91,10 @@ public class ConversationConnectCaller implements CasualConversationAPI
             ErrorState errorState = ErrorState.unmarshal(reply.getResultCode());
             if (errorState != ErrorState.OK)
             {
-                throw new ConversationConnectException("tpconnect failed with " + errorState + " for request: " + connectRequest);
+                return TpConnectReturn.of(errorState);
             }
         }
-        return CasualConversationImpl.of(managedConnection, conversationDirection, corrId, conversationExecution);
+        return TpConnectReturn.of(CasualConversationImpl.of(managedConnection, conversationDirection, corrId, conversationExecution));
     }
 
     private ConversationDirection getDirection(Flag<AtmiFlags> flags)

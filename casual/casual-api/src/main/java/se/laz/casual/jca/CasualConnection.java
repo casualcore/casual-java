@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca;
 
-import se.laz.casual.api.CasualConversationAPI;
+import se.laz.casual.api.CasualConversationApi;
 import se.laz.casual.api.CasualDiscoveryApi;
 import se.laz.casual.api.CasualQueueApi;
 import se.laz.casual.api.CasualServiceApi;
@@ -16,7 +16,7 @@ import se.laz.casual.api.CasualServiceApi;
  *
  * @version $Revision: $
  */
-public interface CasualConnection extends CasualServiceApi, CasualQueueApi, CasualConversationAPI, CasualDiscoveryApi, AutoCloseable
+public interface CasualConnection extends CasualServiceApi, CasualQueueApi, CasualConversationApi, CasualDiscoveryApi, AutoCloseable
 {
     /**
      * Clean up the connection handle and close.
