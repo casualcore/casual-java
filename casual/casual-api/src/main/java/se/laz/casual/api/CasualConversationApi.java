@@ -27,6 +27,8 @@ public interface CasualConversationApi
      * The conversation is only available if {@link TpConnectReturn#getErrorState()} equals to {@link se.laz.casual.api.flags.ErrorState#OK}
      * - if not, you should fail the call with the provided error.
      *
+     * In the event of such things as IOExceptions, this can and will be thrown.
+     *
      * Note:
      * Always issue the call using try-with-resources to make sure that nothing leaks
      *
