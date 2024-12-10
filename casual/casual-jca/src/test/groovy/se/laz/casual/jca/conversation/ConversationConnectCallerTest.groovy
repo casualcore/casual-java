@@ -176,4 +176,17 @@ class ConversationConnectCallerTest extends Specification
       thrown(CasualConnectionException)
    }
 
+   def 'tpconnect TPFAIL not ok errorstate'()
+   {
+      given:
+      1 * networkConnection.request( _ ) >> {
+         CasualNWMessageImpl<ConnectRequest> input ->
+            return CompletableFuture.completedFuture(connectReplyFail)
+      }
+      when:
+      TpConnectReturn connectReturn = instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPSENDONLY))
+      then:
+      connectReturn.getErrorState() == ErrorState.unmarshal(connectReplyFail.getMessage().getResultCode())
+   }
+
 }
