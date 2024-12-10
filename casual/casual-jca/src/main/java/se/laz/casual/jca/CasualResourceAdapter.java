@@ -19,6 +19,7 @@ import jakarta.resource.spi.work.Work;
 import jakarta.resource.spi.work.WorkException;
 import jakarta.resource.spi.work.WorkListener;
 import jakarta.resource.spi.work.WorkManager;
+import se.laz.casual.api.buffer.type.fielded.json.CasualFieldedLookup;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.ReverseInbound;
@@ -83,6 +84,10 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         //It is also not possible to inject with CDI on wildfly only ConfigProperty annotations.
 
         log.info( ConfigurationService.log() );
+        if( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_FIELD_TABLE ) != null )
+        {
+            log.info( ()-> "CasualFieldedLookup Vomit: " + CasualFieldedLookup.getURL() );
+        }
         startEventServer();
     }
 
