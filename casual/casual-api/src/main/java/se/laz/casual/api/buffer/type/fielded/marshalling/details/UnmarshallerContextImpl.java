@@ -89,7 +89,7 @@ public final class UnmarshallerContextImpl<T> implements UnmarshallerContext<T>
         }
         if(instance == null)
         {
-            instance = createInstance(clazz);
+            instance = InstanceCreator.createInstance(clazz);
         }
         return instance;
     }

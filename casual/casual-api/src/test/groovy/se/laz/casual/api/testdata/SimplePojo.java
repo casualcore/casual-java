@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -15,24 +15,20 @@ public final class SimplePojo implements Serializable
 {
     private static final long serialVersionUID = 1;
     @CasualFieldElement(name = "FLD_STRING2")
-    private final String name;
+    private String name;
     @CasualFieldElement(name = "FLD_LONG1")
-    private final int age;
+    private Integer age;
     // NOP-constructor needed
     private SimplePojo()
-    {
-        name = null;
-        age = 0;
-    }
-    private SimplePojo(final String name, int age)
+    {}
+    private SimplePojo(final String name, Integer age)
     {
         this.name = name;
         this.age = age;
     }
 
-    public static SimplePojo of(final String name, int age)
+    public static SimplePojo of(final String name, Integer age)
     {
-        Objects.requireNonNull(name);
         return new SimplePojo(name, age);
     }
 
@@ -41,7 +37,7 @@ public final class SimplePojo implements Serializable
         return name;
     }
 
-    public int getAge()
+    public Integer getAge()
     {
         return age;
     }
@@ -49,11 +45,11 @@ public final class SimplePojo implements Serializable
     @Override
     public boolean equals(Object o)
     {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SimplePojo that = (SimplePojo) o;
-        return age == that.age &&
-            Objects.equals(name, that.name);
+        if (!(o instanceof SimplePojo that))
+        {
+            return false;
+        }
+        return Objects.equals(getName(), that.getName()) && Objects.equals(getAge(), that.getAge());
     }
 
     @Override

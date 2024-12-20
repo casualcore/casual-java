@@ -44,7 +44,7 @@ public final class Unmarshaller
     public static <T> T createObject(final FieldedTypeBuffer b, final Class<T> clazz, FieldedTypeBufferProcessorMode mode)
     {
         UnmarshallerContext<T> context = UnmarshallerContextImpl.of(b, 0, mode, clazz);
-        return createObject(context).orElseThrow(() -> new FieldedUnmarshallingException("could not create instance using context: " + context));
+        return createObject(context).orElseGet(() -> InstanceCreator.createInstance(clazz));
     }
 
     public static Object[] createMethodParameterObjects(FieldedTypeBuffer b, Method m, FieldedTypeBufferProcessorMode mode)

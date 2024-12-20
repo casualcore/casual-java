@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,7 +10,25 @@ import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedMarshallingExcep
 import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessor
 import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedTypeBufferProcessorMode
 import se.laz.casual.api.buffer.type.fielded.marshalling.FieldedUnmarshallingException
-import se.laz.casual.api.testdata.*
+import se.laz.casual.api.testdata.ArrayWithWrappedPojo
+import se.laz.casual.api.testdata.ArraysSameNamePojo
+import se.laz.casual.api.testdata.LuckyPhoneBookService
+import se.laz.casual.api.testdata.PojoWithAnnotatedMethods
+import se.laz.casual.api.testdata.PojoWithMappableField
+import se.laz.casual.api.testdata.PojoWithMappableFieldArray
+import se.laz.casual.api.testdata.PojoWithMappableFieldList
+import se.laz.casual.api.testdata.PojoWithMappableParam
+import se.laz.casual.api.testdata.PojoWithMappableParamArray
+import se.laz.casual.api.testdata.PojoWithMappableParamList
+import se.laz.casual.api.testdata.PojoWithNullableFields
+import se.laz.casual.api.testdata.SimpleArrayPojo
+import se.laz.casual.api.testdata.SimpleListPojo
+import se.laz.casual.api.testdata.SimplePojo
+import se.laz.casual.api.testdata.SimplePojoService
+import se.laz.casual.api.testdata.TwoListsSameName
+import se.laz.casual.api.testdata.WrappedListPojo
+import se.laz.casual.api.testdata.WrappedListPojoWithAnnotatedMethods
+import se.laz.casual.api.testdata.WrappedPojo
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -26,6 +44,10 @@ class FieldedTypeBufferProcessorTest extends Specification
     def age = 42
     @Shared
     SimplePojo simplePojo = SimplePojo.of(name, age)
+    @Shared
+    SimplePojo simplePojoAllNullValues = SimplePojo.of(null, null)
+    @Shared
+    SimplePojo simplePojoAgeNull = SimplePojo.of(name, null)
     @Shared
     WrappedPojo wrappedSimplePojo = WrappedPojo.of(simplePojo, 'burrito')
     @Shared
@@ -184,6 +206,26 @@ class FieldedTypeBufferProcessorTest extends Specification
         then:
         s != null
         s == simplePojoService
+    }
+
+    def 'round trip one null value'()
+    {
+        setup:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(simplePojoAgeNull)
+        when:
+        SimplePojo roundTripped = FieldedTypeBufferProcessor.unmarshall(b, SimplePojo.class)
+        then:
+        roundTripped == simplePojoAgeNull
+    }
+
+    def 'round trip all null values'()
+    {
+        setup:
+        FieldedTypeBuffer b = FieldedTypeBufferProcessor.marshall(simplePojoAllNullValues)
+        when:
+        SimplePojo roundTripped = FieldedTypeBufferProcessor.unmarshall(b, SimplePojo.class)
+        then:
+        roundTripped == simplePojoAllNullValues
     }
 
     Object invokeAllServiceMethods(FieldedTypeBuffer b, Object instance)
