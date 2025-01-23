@@ -36,4 +36,5 @@ dependencies {
     integrationImplementation "org.testcontainers:spock:1.20.4"
     integrationImplementation "org.testcontainers:postgresql:1.20.4"
     integrationImplementation 'com.zaxxer:HikariCP:5.1.0'
+    integrationImplementation 'org.postgresql:postgresql:42.7.5'
 }
