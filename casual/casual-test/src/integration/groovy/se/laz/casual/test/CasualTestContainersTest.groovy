@@ -8,6 +8,7 @@ package se.laz.casual.test
 
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.spock.Testcontainers
+import org.testcontainers.utility.DockerImageName
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -19,11 +20,12 @@ import java.net.http.HttpResponse
 class CasualTestContainersTest extends Specification
 {
     @Shared
-    GenericContainer casual = new GenericContainer( "192.168.68.130:5000/casual:0.0.1-SNAPSHOT" )
+    DockerImageName imageName = DockerImageName.parse("192.168.68.130:5000/casual:0.0.1-SNAPSHOT"  )
+
+    GenericContainer casual = new GenericContainer( imageName )
         .withExposedPorts( 7771 )
         .withEnv( ["CASUAL_LOG_PATH":"logs" ] )
 
-    @Shared
     GenericContainer casual_jca = new GenericContainer( "192.168.68.130:5000/casual-java:3.2.50-SNAPSHOT" )
         .withExposedPorts( 8080 )
         .withEnv( [
@@ -47,6 +49,15 @@ class CasualTestContainersTest extends Specification
 //        value: "java:/eis"
 //    - name: CASUAL_FIELD_TABLE
 //        value: "/opt/jboss/wildfly/casual/configs/casual-fields.json"
+
+    def setupSpec()
+    {
+        System.out.println( imageName.toString(  ) )
+        System.out.println( imageName.getRegistry(  ) )
+        assert imageName.getRegistry(  ) == "192.168.68.130:5000"
+        assert imageName.getRepository(  ) == "casual"
+        assert imageName.getVersionPart(  ) == "0.0.1-SNAPSHOT"
+    }
 
     def "Connect to casual and call echo."()
     {
