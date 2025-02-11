@@ -20,13 +20,13 @@ import java.net.http.HttpResponse
 class CasualTestContainersTest extends Specification
 {
     @Shared
-    DockerImageName imageName = DockerImageName.parse("casual:0.0.1-SNAPSHOT"  )
+    DockerImageName imageName = DockerImageName.parse("192.168.68.130:5000/casual:0.0.1-SNAPSHOT"  )
 
     GenericContainer casual = new GenericContainer( imageName )
         .withExposedPorts( 7771 )
         .withEnv( ["CASUAL_LOG_PATH":"logs" ] )
 
-    GenericContainer casual_jca = new GenericContainer( "casual-java:3.2.50-SNAPSHOT" )
+    GenericContainer casual_jca = new GenericContainer( "192.168.68.130:5000/casual-java:3.2.50-SNAPSHOT" )
         .withExposedPorts( 8080 )
         .withEnv( [
                 "CASUAL_HOST": casual.getHost(),
