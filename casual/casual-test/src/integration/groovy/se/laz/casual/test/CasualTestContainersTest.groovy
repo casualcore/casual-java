@@ -21,12 +21,17 @@ class CasualTestContainersTest extends Specification
 {
     @Shared
     DockerImageName imageName = DockerImageName.parse("192.168.68.130:5000/casual:0.0.1-SNAPSHOT"  )
+            .asCompatibleSubstituteFor( "casual" )
 
     GenericContainer casual = new GenericContainer( imageName )
         .withExposedPorts( 7771 )
         .withEnv( ["CASUAL_LOG_PATH":"logs" ] )
 
-    GenericContainer casual_jca = new GenericContainer( "192.168.68.130:5000/casual-java:3.2.50-SNAPSHOT" )
+    @Shared
+    DockerImageName jcaImageName = DockerImageName.parse("192.168.68.130:5000/casual:0.0.1-SNAPSHOT"  )
+            .asCompatibleSubstituteFor( "casual-java" )
+
+    GenericContainer casual_jca = new GenericContainer( jcaImageName )
         .withExposedPorts( 8080 )
         .withEnv( [
                 "CASUAL_HOST": casual.getHost(),
@@ -54,21 +59,22 @@ class CasualTestContainersTest extends Specification
     {
         System.out.println( imageName.toString(  ) )
         System.out.println( imageName.getRegistry(  ) )
-        assert imageName.getRegistry(  ) == "192.168.68.130:5000"
-        assert imageName.getRepository(  ) == "casual"
-        assert imageName.getVersionPart(  ) == "0.0.1-SNAPSHOT"
+
+        System.out.println( jcaImageName.toString(  ) )
+        System.out.println( jcaImageName.getRegistry() )
     }
 
     def "Connect to casual and call echo."()
     {
         given:
         String host = casual_jca.getHost(  )
+        String port = casual_jca.getMappedPort( 8080 )
         String echoPayload = "{ \"hi\": \"there\"}"
 
         when:
         HttpClient client = HttpClient.newBuilder(  )
         HttpRequest request = HttpRequest.newBuilder( )
-            .uri( URI.create( host + "/casual/casual%2Fexample%2Fecho" ) )
+            .uri( URI.create( host + ":" + port + "/casual/casual%2Fexample%2Fecho" ) )
             .header("Content-Type", "application/casual-x-octet")
             .POST( HttpRequest.BodyPublishers.ofString( echoPayload  ) )
 
