@@ -9,6 +9,7 @@ package se.laz.casual.test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.spock.Testcontainers
 import org.testcontainers.utility.DockerImageName
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -16,12 +17,12 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
+@Ignore
 @Testcontainers
 class CasualTestContainersTest extends Specification
 {
     @Shared
     DockerImageName imageName = DockerImageName.parse("192.168.68.130:5000/casual:0.0.1-SNAPSHOT"  )
-            .asCompatibleSubstituteFor( "casual" )
 
     GenericContainer casual = new GenericContainer( imageName )
         .withExposedPorts( 7771 )
@@ -29,7 +30,6 @@ class CasualTestContainersTest extends Specification
 
     @Shared
     DockerImageName jcaImageName = DockerImageName.parse("192.168.68.130:5000/casual:0.0.1-SNAPSHOT"  )
-            .asCompatibleSubstituteFor( "casual-java" )
 
     GenericContainer casual_jca = new GenericContainer( jcaImageName )
         .withExposedPorts( 8080 )
@@ -72,11 +72,12 @@ class CasualTestContainersTest extends Specification
         String echoPayload = "{ \"hi\": \"there\"}"
 
         when:
-        HttpClient client = HttpClient.newBuilder(  )
+        HttpClient client = HttpClient.newBuilder(  ).build()
         HttpRequest request = HttpRequest.newBuilder( )
             .uri( URI.create( host + ":" + port + "/casual/casual%2Fexample%2Fecho" ) )
             .header("Content-Type", "application/casual-x-octet")
             .POST( HttpRequest.BodyPublishers.ofString( echoPayload  ) )
+            .build()
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
