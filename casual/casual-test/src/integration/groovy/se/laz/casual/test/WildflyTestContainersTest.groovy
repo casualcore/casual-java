@@ -35,7 +35,7 @@ class WildflyTestContainersTest extends Specification
     {
         given:
         String host = wildfly.getHost(  )
-        String port = wildfly.getMappedPort( 8080 )
+        Integer port = wildfly.getMappedPort( 8080 )
         String echoPayload = "{ \"hi\": \"there\"}"
 
         when:
