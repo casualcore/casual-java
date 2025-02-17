@@ -10,10 +10,14 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.api.model.apps.Deployment
+import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
+import io.fabric8.kubernetes.client.VersionInfo
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.lang.reflect.Method
 
 class WildflyTestFabric8Test extends Specification
 {
@@ -23,7 +27,22 @@ class WildflyTestFabric8Test extends Specification
 
     def setupSpec()
     {
-        System.out.println( client.getKubernetesVersion(  ) )
+        VersionInfo info = client.getKubernetesVersion(  )
+        printGetMethods( info )
+
+        Config config = client.getConfiguration(  )
+        printGetMethods( config )
+    }
+
+    void printGetMethods( Object o )
+    {
+        for( Method m : o.getClass(  ).getMethods(  ) )
+        {
+            if( m.getName(  ).startsWith( "get" ) && m.getParameterCount(  ) == 0 )
+            {
+                System.out.println( m.getName() + " : " + m.invoke( o ) )
+            }
+        }
     }
 
     def "Retrieve pods"()
