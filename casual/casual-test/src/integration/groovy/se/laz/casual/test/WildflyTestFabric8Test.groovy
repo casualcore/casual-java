@@ -104,7 +104,7 @@ class WildflyTestFabric8Test extends Specification
         noExceptionThrown(  )
     }
 
-    def "Create pod"()
+    def "delete pod"()
     {
         given:
         Pod p = new PodBuilder(  )
