@@ -1,5 +1,5 @@
 # Changelog
-This changelog includes the tag, commit date, commit message, and full commit message for each tag in the project's history.
+This changelog includes the tag, commit date, commit message, and full commit messages.
 
 ## [3.3.1] - 2025-01-13
 - Feature/3.2/unmarshall all null values (#143)
