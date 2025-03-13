@@ -38,5 +38,5 @@ dependencies {
     integrationImplementation 'com.zaxxer:HikariCP:5.1.0'
     integrationImplementation 'org.postgresql:postgresql:42.7.5'
 
-    integrationImplementation 'io.fabric8:kubernetes-client:7.1.0'
+    integrationImplementation project(':casual:test-kube')
 }

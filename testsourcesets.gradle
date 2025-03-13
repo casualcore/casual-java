@@ -13,7 +13,7 @@ allprojects {
             }
         }
         configurations {
-            integrationImplementation.extendsFrom testCompile
+            integrationImplementation.extendsFrom testImplementation
             integrationRuntimeOnly.extendsFrom testRuntime
         }
 

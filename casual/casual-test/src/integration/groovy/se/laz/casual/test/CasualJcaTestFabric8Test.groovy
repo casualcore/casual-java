@@ -143,7 +143,7 @@ class CasualJcaTestFabric8Test extends Specification
         })
 
         when:
-        Pod pod = client.pods(  ).resource( p ).serverSideApply(  )
+        Pod pod = client.resource( p ).serverSideApply(  )
 
         client.pods( ).withName( pod.getMetadata(  ).getName(  ) ).waitUntilReady( 2, TimeUnit.MINUTES )
 
