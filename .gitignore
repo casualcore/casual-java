@@ -3,6 +3,7 @@
 javadoc/
 docs/source/casual-docs/
 docs/source/version
+.qodo/
 *.iml
 *.class
 *.jar
