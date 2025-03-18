@@ -1,6 +1,7 @@
 #-*- coding: utf-8-unix -*-
 import re
 import subprocess
+from datetime import datetime
 
 # Function to extract version from versions.gradle
 def get_version_from_gradle():
@@ -24,6 +25,10 @@ print(f"Created annotated tag: {tag_name}")
 # Get the latest commit message
 commit_msg = subprocess.getoutput("git log -1 --pretty=%B").strip().replace("\\r\\n", '\n')
 
+# Get the commit date in YYYY-MM-DD format
+commit_date_raw = subprocess.getoutput("git log -1 --pretty=%cd --date=short")
+commit_date = datetime.strptime(commit_date_raw, "%Y-%m-%d").strftime("%Y-%m-%d")
+
 # Read the current changelog (or initialize it if it doesn’t exist)
 try:
     with open("CHANGELOG.md", "r") as f:
@@ -32,7 +37,7 @@ except FileNotFoundError:
     changelog = "# Changelog\n"
 
 # Find or create the version section
-version_section = f"## [{version}]"
+version_section = f"## [{version}] - {commit_date}"
 if version_section not in changelog:
     changelog = changelog.replace("This is the changelog for *casual java* and all changes are listed in this document.\n", f"This is the changelog for *casual java* and all changes are listed in this document.\n\n{version_section}\n", 1)
 
