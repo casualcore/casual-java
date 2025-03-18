@@ -3,7 +3,7 @@ name: Release and Update Changelog
 on:
   push:
     branches:
-      - not-dev  # Changed from 'dev' to 'not-dev' for testing
+      - feature/not-dev  # will be dev when used for real
 
 jobs:
   release-and-update:
