@@ -1,8 +1,6 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
-## [protocol-version-0.5] - 2017-10-05
-- feature/network-protocol-0.5-no-conversation
 
 ## [3.3.1] - 2025-01-13
 - Feature/3.2/unmarshall all null values (#143)

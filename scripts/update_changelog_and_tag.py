@@ -18,11 +18,11 @@ tag_name = f"{version}"  # e.g., v1.0.0
 tag_message = "This is version {0}".format(tag_name)
 
 # Create a Git tag for the release
-subprocess.run(["git", "tag", "-a {0}".format(tag_name), "-m", tag_message], check=True)
-print(f"Created tag: {tag_name}")
+subprocess.run(['git', 'tag', '-a', tag_name, '-m', tag_message], check=True)
+print(f"Created annotated tag: {tag_name}")
 
 # Get the latest commit message
-commit_msg = subprocess.getoutput("git log -1 --pretty=%B").strip()
+commit_msg = subprocess.getoutput("git log -1 --pretty=%B").strip().replace("\\r\\n", '\n')
 
 # Read the current changelog (or initialize it if it doesn’t exist)
 try:
@@ -34,7 +34,7 @@ except FileNotFoundError:
 # Find or create the version section
 version_section = f"## [{version}]"
 if version_section not in changelog:
-    changelog = changelog.replace("# Changelog\n", f"# Changelog\n\n{version_section}\n", 1)
+    changelog = changelog.replace("This is the changelog for *casual java* and all changes are listed in this document.\n", f"This is the changelog for *casual java* and all changes are listed in this document.\n\n{version_section}\n", 1)
 
 # Append the commit message under the version section
 new_entry = f"- {commit_msg}\n"

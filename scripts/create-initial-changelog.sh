@@ -2,7 +2,7 @@
 #!/usr/bin/env bash
 
 # Initialize the changelog file
-filename='changelog.md'
+filename='CHANGELOG.md'
 
 echo "# Changelog" > $filename
 echo "This is the changelog for *casual java* and all changes are listed in this document." >> $filename
@@ -35,4 +35,4 @@ done
 
 dos2unix $filename
 
-echo "Changelog generated successfully at changelog.md"
+echo "Changelog generated successfully at CHANGELOG.md"
