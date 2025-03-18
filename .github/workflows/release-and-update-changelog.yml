@@ -22,13 +22,13 @@ jobs:
 
       - name: Validate Commit Message
         run: |
-          python validate_commit_message.py
+          python scripts/validate_commit_message.py
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
       - name: Update Changelog and Tag Release
         run: |
-          python update_changelog_and_tag.py
+          python scripts/update_changelog_and_tag.py
 
       - name: Commit and push changelog changes
         run: |
