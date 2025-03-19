@@ -19,6 +19,6 @@ jobs:
           python-version: '3.x'
 
       - name: Validate PR title
-        run: python validate_pr_title.py
+        run: python scripts/validate_pr_title.py
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
