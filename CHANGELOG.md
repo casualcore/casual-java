@@ -1,18 +1,6 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
-## [3.3.1-test-gh-actions-2] - 2025-03-19
-- feat: version bump (#156)
-
-Should pass
-
-
-## [3.3.1-test-gh-actions] - 2025-03-19
-- feat: very nice commit
-
-The best!
-
-
 
 ## [3.3.1] - 2025-01-13
 - Feature/3.2/unmarshall all null values (#143)
