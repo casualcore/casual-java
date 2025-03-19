@@ -10,14 +10,15 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate PR title
-        uses: amannn/action-semantic-pull-request@v5
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          types: |
-            feat
-            fix
-            docs
-            style
-            refactor
-            test
-            chore
+          python-version: '3.x'
+
+      - name: Validate PR title
+        run: python validate_pr_title.py
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
