@@ -35,11 +35,14 @@ jobs:
       - name: Commit and push changelog changes
         run: |
           if ! git diff --quiet CHANGELOG.md; then
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add CHANGELOG.md
-          git commit --amend --no-edit
-          git push --force-with-lease origin feature/not-dev
-          git push origin --tags
+            git config user.name "GitHub Action"
+            git config user.email "action@github.com"
+            git add CHANGELOG.md
+            git commit --amend --no-edit
+            git push --force-with-lease origin feature/not-dev
+            git push origin --tags
+          else
+            echo "Changelog already up to date"
+          fi
 
 
