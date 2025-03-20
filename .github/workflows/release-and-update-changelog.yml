@@ -34,12 +34,12 @@ jobs:
 
       - name: Commit and push changelog changes
         run: |
+          if ! git diff --quiet CHANGELOG.md; then
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
           git add CHANGELOG.md
-          git commit -m "chore(changelog): auto update for version $(grep '^version' versions.gradle | cut -d "'" -f2) [skip ci]" || echo "No changes to commit"
-          git push
-
-      - name: Push the tag
-        run: |
+          git commit --amend --no-edit
+          git push --force-with-lease origin feature/not-dev
           git push origin --tags
+
+
