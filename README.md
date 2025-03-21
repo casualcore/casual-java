@@ -5,7 +5,7 @@ java native communication implementation for
 casual-middleware. It also contains a JCA 1.7
 ResourceAdapter to allow for distributed XA
 transactions between a compliant JEE7+ server
-and casual-middleware
+and casual-middleware.
 
 ## Note
 This 3.2 branch is for Jakarta EE.
