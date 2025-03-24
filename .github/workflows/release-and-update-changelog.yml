@@ -3,7 +3,7 @@ name: Release and Update Changelog
 on:
   push:
     branches:
-      - feature/not-dev
+      - dev
 
 jobs:
   release-and-update:
