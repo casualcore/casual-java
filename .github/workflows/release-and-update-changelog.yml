@@ -48,5 +48,5 @@ jobs:
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
-          python scripts/creaate_tag.py
+          python scripts/create_tag.py
           git push origin --tags
