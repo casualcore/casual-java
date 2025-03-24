@@ -1,6 +1,15 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.3.1-test-gh-action-16] - 2025-03-24
+- feat: testing list ([#166](https://github.com/casualcore/casual-java/issues/166))
+
+* This is something
+* Something else
+* Yet another thing
+* And more things
+
+
 ## [3.3.1-test-gh-action-15] - 2025-03-24
 - feat: testing adding md links for issues ([#165](https://github.com/casualcore/casual-java/issues/165))
 
