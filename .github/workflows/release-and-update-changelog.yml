@@ -3,7 +3,7 @@ name: Release and Update Changelog
 on:
   push:
     branches:
-      - dev
+      - feature/not-dev
 
 jobs:
   release-and-update:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -26,20 +26,27 @@ jobs:
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
-      - name: Update Changelog and Tag Release
+      - name: Update the changelog
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
-          python scripts/update_changelog_and_tag.py
+          python scripts/update_changelog.py
 
       - name: Commit and push changelog changes
         run: |
+          if ! git diff --quiet CHANGELOG.md; then
+            git config user.name "GitHub Action"
+            git config user.email "action@github.com"
+            git add CHANGELOG.md
+            git commit --amend --no-edit
+            git push --force-with-lease origin feature/not-dev
+          else
+            echo "Changelog already up to date"
+          fi
+
+      - name: Create and push the tag
+        run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
-          git add CHANGELOG.md
-          git commit -m "chore(changelog): auto update for version $(grep '^version' versions.gradle | cut -d "'" -f2) [skip ci]" || echo "No changes to commit"
-          git push
-
-      - name: Push the tag
-        run: |
+          python scripts/create_tag.py
           git push origin --tags
