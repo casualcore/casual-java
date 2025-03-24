@@ -26,11 +26,11 @@ jobs:
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
-      - name: Update Changelog and Tag Release
+      - name: Update the changelog
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
-          python scripts/update_changelog_and_tag.py
+          python scripts/update_changelog.py
 
       - name: Commit and push changelog changes
         run: |
@@ -44,6 +44,9 @@ jobs:
             echo "Changelog already up to date"
           fi
 
-      - name: Push the tag
+      - name: Create and push the tag
         run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          python scripts/creaate_tag.py
           git push origin --tags
