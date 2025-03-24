@@ -1,6 +1,17 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.3.1-test-gh-action-15] - 2025-03-24
+- feat: testing adding md links for issues ([#165](https://github.com/casualcore/casual-java/issues/165))
+
+We go with some closed issues:
+[#139](https://github.com/casualcore/casual-java/issues/139) 
+[#135](https://github.com/casualcore/casual-java/issues/135) 
+[#131](https://github.com/casualcore/casual-java/issues/131)
+
+Those will all be replaced with md links in the changelog.
+
+
 
 ## [3.3.1] - 2025-01-13
 - Feature/3.2/unmarshall all null values (#143)
