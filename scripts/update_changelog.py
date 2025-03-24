@@ -13,11 +13,22 @@ def get_version_from_gradle():
                     return match.group(1)
     raise ValueError("Version not found in versions.gradle")
 
+# Function to replace issue numbers with markdown link
+# such as:
+# #132 -> [#132](https://github.com/casualcore/casual-java/issues/132)
+def replace_issue_numbers(commit_msg):
+    pattern = r'#(\d+)' 
+    def replacement(match):
+        number = match.group(1)  
+        return f'[{match.group(0)}](https://github.com/casualcore/casual-java/issues/{number})'
+    return re.sub(pattern, replacement, commit_msg)
+
 # Get the current version
 version = get_version_from_gradle()
 
 # Get the latest commit message
 commit_msg = subprocess.getoutput("git log -1 --pretty=%B").strip().replace("\\r\\n", '\n')
+commit_msg = replace_issue_numbers(commit_msg)
 
 # Get the commit date in YYYY-MM-DD format
 commit_date_raw = subprocess.getoutput("git log -1 --pretty=%cd --date=short")
