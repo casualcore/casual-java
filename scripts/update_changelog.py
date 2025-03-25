@@ -1,28 +1,7 @@
 #-*- coding: utf-8-unix -*-
-import re
 import subprocess
 from datetime import datetime
-
-# Function to extract version from versions.gradle
-def get_version_from_gradle():
-    with open("versions.gradle", "r") as f:
-        for line in f:
-            if "version" in line:
-                match = re.search(r"version\s*=\s*['\"]([^'\"]+)['\"]", line)
-                if match:
-                    return match.group(1)
-    raise ValueError("Version not found in versions.gradle")
-
-# Function to replace issue numbers with markdown link
-# such as:
-# #132 -> [#132](https://github.com/casualcore/casual-java/issues/132)
-# Works for no issue #s or n > 0 issue numbers
-def replace_issue_numbers(commit_msg):
-    pattern = r'#(\d+)'
-    def replacement(match):
-        number = match.group(1)
-        return f'[{match.group(0)}](https://github.com/casualcore/casual-java/issues/{number})'
-    return re.sub(pattern, replacement, commit_msg)
+from utilities import get_version_from_gradle, replace_issue_numbers
 
 # Get the current version
 version = get_version_from_gradle()
