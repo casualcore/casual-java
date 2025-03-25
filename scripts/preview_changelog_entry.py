@@ -2,7 +2,7 @@
 import os
 from datetime import date
 
-from utilities import get_version_from_gradle
+from utilities import get_version_from_gradle, clean_message
 version = get_version_from_gradle()
 
 pr_title = os.getenv("PR_TITLE", "").strip()
@@ -12,6 +12,6 @@ commit_msg = f"{pr_title}/n{pr_body}"
 today = date.today()
 title = f"## [{version}] - {today}"
 
-new_entry = f"- {commit_msg}\n"
+new_entry = clean_message(f"- {commit_msg}\n")
 
 print(f"{title}\n{new_entry}")
