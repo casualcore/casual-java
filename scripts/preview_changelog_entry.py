@@ -2,13 +2,13 @@
 import os
 from datetime import date
 
-from utilities import get_version_from_gradle, clean_message
+from utilities import get_version_from_gradle, clean_message, replace_issue_numbers
 version = get_version_from_gradle()
 
 pr_title = os.getenv("PR_TITLE", "").strip()
 pr_body = os.getenv("PR_BODY", "").strip()
 
-commit_msg = f"{pr_title}/n{pr_body}"
+commit_msg = replace_issue_numbers(f"{pr_title}/n{pr_body}")
 today = date.today()
 title = f"## [{version}] - {today}"
 
