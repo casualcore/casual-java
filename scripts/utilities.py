@@ -46,3 +46,31 @@ def validate_format(msg):
     else:
         print(f"PR title '{msg}' is valid.")
         return True
+
+def update_changelog(version, title, body, commit_date, changelog):
+    """
+    returns an updated version of the changelog
+    :param version: such as 1.0.0
+    :param title: The title
+    :param body: The body
+    :param commit_date: The commit date
+    :param changelog: The changelog
+    :return the updated version of the changelog:
+    """
+    title = replace_issue_numbers(title)
+    # body might not exist - if so, use empty body
+    # it SHOULD exist but alas
+    if body is None:
+        body = ""
+    body = replace_issue_numbers(body)
+    version_section = f"## [{version}] - {commit_date}"
+    if version_section not in changelog:
+        changelog = changelog.replace(
+            "This is the changelog for *casual java* and all changes are listed in this document.\n",
+            f"This is the changelog for *casual java* and all changes are listed in this document.\n\n{version_section}\n",
+            1)
+
+    # append the commit message under the version section
+    new_entry = clean_message(f"### {title}\n{body}\n")
+    print(f"Changelog will be updated for version {version} with: {version_section}\n{new_entry}")
+    return changelog.replace(version_section, f"{version_section}\n{new_entry}", 1)
