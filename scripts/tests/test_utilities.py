@@ -3,10 +3,7 @@ import unittest
 import re
 
 from utilities import get_version_from_gradle, replace_issue_numbers, validate_format, clean_message
-
-
-def create_issue_replacement(issue_number, base_url):
-    return f"[#{issue_number}]({base_url}/{issue_number})"
+from utils_for_test import create_issue_replacement
 
 
 class UtilitiesTest(unittest.TestCase):
