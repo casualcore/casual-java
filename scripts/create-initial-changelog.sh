@@ -24,10 +24,8 @@ for tag in $(git tag --sort=-version:refname); do
     
     # Write the tag and commit details to the changelog
     echo "## [$tag] - $commit_date" >> $filename
-    echo -e "- $title\n" >> $filename    
-
-    
-    
+    echo -e "### $title\n" >> $filename    
+      
     [ -n "$body" ] && echo "$body" >> $filename
     echo "" >> $filename
 done
