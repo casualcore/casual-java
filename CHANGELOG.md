@@ -1,6 +1,13 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.3.1-test-gh-action-17] - 2025-03-25
+- feat: The best feature
+
+Absolutely the best
+Fixes issue [#132](https://github.com/casualcore/casual-java/issues/132)
+
+
 ## [3.3.1-test-gh-action-16] - 2025-03-24
 - feat: testing list ([#166](https://github.com/casualcore/casual-java/issues/166))
 
