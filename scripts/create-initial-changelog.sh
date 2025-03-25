@@ -14,22 +14,21 @@ for tag in $(git tag --sort=-version:refname); do
     commit_hash=$(git rev-list -n 1 "$tag")
     
     # Get the commit message (summary)
-    commit_message=$(git log -1 --pretty=format:"%s" "$commit_hash")
+    title=$(git log -1 --pretty=format:"%s" "$commit_hash")
     
     # Get the full commit message (body)
-    full_commit_message=$(git log -1 --pretty=format:"%b" "$commit_hash")
+    body=$(git log -1 --pretty=format:"%b" "$commit_hash")
     
     # Get the commit date in YYYY-MM-DD format
     commit_date=$(git log -1 --pretty=format:"%cd" --date=short "$commit_hash")
     
     # Write the tag and commit details to the changelog
     echo "## [$tag] - $commit_date" >> $filename
-    echo "- $commit_message" >> $filename
+    echo -e "- $title\n" >> $filename    
 
-    # Remove leading '*' and whitespace
-    modified_full_commit_message=$(echo "$full_commit_message" | sed 's/^[*[:space:]]*//')
     
-    [ -n "$modified_full_commit_message" ] && echo "- $modified_full_commit_message" >> $filename
+    
+    [ -n "$body" ] && echo "$body" >> $filename
     echo "" >> $filename
 done
 
