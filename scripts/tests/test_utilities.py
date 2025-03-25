@@ -2,7 +2,7 @@
 import unittest
 import re
 
-from utilities import get_version_from_gradle, replace_issue_numbers, validate_format
+from utilities import get_version_from_gradle, replace_issue_numbers, validate_format, clean_message
 
 
 def create_issue_replacement(issue_number, base_url):
@@ -53,6 +53,20 @@ class UtilitiesTest(unittest.TestCase):
                   'refactored: shiny', 'tested: shiny', 'chored: shiny', 'Best commit ever']
         for title in titles:
             self.assertFalse(validate_format(title), f"{title} is valid but it should be invalid")
+
+    def test_clean_messages(self):
+        message_already_clean = "This is a very nice message"
+        self.assertEqual(message_already_clean, clean_message(message_already_clean))
+
+        co_author_one = "Co-authored-by: janedoe <jdoe@gmail.com>"
+        co_author_two = "Co-authored-by: johndoe <jdoe@gmail.com>"
+        message_with_co_authors = f"{message_already_clean}\n{co_author_one}\n{co_author_two}"
+        self.assertEqual(message_already_clean, clean_message(message_with_co_authors))
+
+        approved_by_one = "Approved-by: janedoe <jdoe@gmail.com>"
+        approved_by_two = "Approved-by: johndoe <jdoe@gmail.com>"
+        message_with_co_authors = f"{message_already_clean}\n{approved_by_one}\n{approved_by_two}"
+        self.assertEqual(message_already_clean, clean_message(message_with_co_authors))
 
 
 if __name__ == '__main__':

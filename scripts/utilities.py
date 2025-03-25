@@ -25,6 +25,16 @@ def replace_issue_numbers(commit_msg):
     return re.sub(pattern, replacement, commit_msg)
 
 
+def clean_message(msg):
+    """ removes any lines with
+        Co - authored - by or
+        Approved - by
+    """
+    lines = msg.splitlines()
+    clean_lines = [line for line in lines if not (line.startswith('Co-authored-by') or line.startswith('Approved-by'))]
+    return '\n'.join(clean_lines)
+
+
 def validate_format(msg):
     pattern = r"^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+"
     if not re.match(pattern, msg):
