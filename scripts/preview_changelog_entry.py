@@ -12,6 +12,6 @@ commit_msg = replace_issue_numbers(f"### {pr_title}/n{pr_body}")
 today = date.today()
 title = f"## [{version}] - {today}"
 
-new_entry = clean_message(f"- {commit_msg}\n")
+new_entry = clean_message(f"{commit_msg}\n")
 
 print(f"{title}\n{new_entry}")
