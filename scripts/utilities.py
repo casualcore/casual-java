@@ -57,7 +57,7 @@ def create_expected_new_changelog_entry(version, title, body, commit_date):
     body = replace_issue_numbers(body)
     version_section = f"## [{version}] - {commit_date}"
     new_entry = clean_message(f"### {title}\n{body}\n")
-    return f"{version_section}\n{new_entry}"
+    return f"{version_section}\n\n{new_entry}"
 
 
 def update_changelog(version, title, body, commit_date, changelog):
