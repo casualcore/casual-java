@@ -38,7 +38,7 @@ jobs:
             git config user.email "action@github.com"
             git add CHANGELOG.md
             git commit --amend --no-edit
-            git push --force-with-lease origin feature/not-dev
+            git push --force-with-lease origin dev
           else
             echo "Changelog already up to date"
           fi
