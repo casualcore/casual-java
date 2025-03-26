@@ -1,6 +1,17 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.3.2-test-gh-action-20] - 2025-03-26
+### feat: new changlog entry look ([#172](https://github.com/casualcore/casual-java/issues/172))
+This should look very nice
+
+* One item
+* Two items
+* Issue [#131](https://github.com/casualcore/casual-java/issues/131) 
+* Issue [#11](https://github.com/casualcore/casual-java/issues/11) 
+
+Shiny happy joy joy!
+
 
 ## [3.3.1] - 2025-01-13
 ### Feature/3.2/unmarshall all null values (#143)
