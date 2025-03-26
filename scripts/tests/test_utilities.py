@@ -2,7 +2,7 @@
 import unittest
 import re
 
-from utilities import get_version_from_gradle, replace_issue_numbers, validate_format, clean_message
+from utilities import get_version_from_gradle, replace_issue_numbers, validate_format, clean_message, update_changelog, create_expected_new_changelog_entry
 from utils_for_test import create_issue_replacement
 
 
@@ -64,6 +64,16 @@ class UtilitiesTest(unittest.TestCase):
         approved_by_two = "Approved-by: johndoe <jdoe@gmail.com>"
         message_with_co_authors = f"{message_already_clean}\n{approved_by_one}\n{approved_by_two}"
         self.assertEqual(message_already_clean, clean_message(message_with_co_authors))
+
+    def test_update_changelog(self):
+        version = '1.1.1'
+        title = 'feat: nice feature'
+        body = 'Very nice body'
+        commit_date = '2025-01-04'
+        changelog = "# Changelog\nThis is the changelog for *casual java* and all changes are listed in this document.\n\n## [1.1.0] - 2025-01-13\n### feat: unmarshall all null values (#143)\n* handle null values correctly\n* This fixes #131"
+        changelog = update_changelog(version, title, body, commit_date, changelog)
+        expected_new_entry = create_expected_new_changelog_entry(version, title, body, commit_date)
+        self.assertIn(expected_new_entry, changelog, f"{expected_new_entry} missing from {changelog}")
 
 
 if __name__ == '__main__':

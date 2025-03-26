@@ -1,6 +1,7 @@
 #-*- coding: utf-8-unix -*-
 import subprocess
 from datetime import datetime
+
 from utilities import get_version_from_gradle, update_changelog
 
 version = get_version_from_gradle()
