@@ -46,3 +46,36 @@ def validate_format(msg):
     else:
         print(f"PR title '{msg}' is valid.")
         return True
+
+
+def create_expected_new_changelog_entry(version, title, body, commit_date):
+    title = replace_issue_numbers(title)
+    # body might not exist - if so, use empty body
+    # it SHOULD exist but alas
+    if body is None:
+        body = ""
+    body = replace_issue_numbers(body)
+    version_section = f"## [{version}] - {commit_date}"
+    new_entry = clean_message(f"### {title}\n{body}\n")
+    return f"{version_section}\n\n{new_entry}"
+
+
+def update_changelog(version, title, body, commit_date, changelog):
+    """
+    returns an updated version of the changelog
+    :param version: such as 1.0.0
+    :param title: The title
+    :param body: The body
+    :param commit_date: The commit date
+    :param changelog: The changelog
+    :return the updated version of the changelog:
+    """
+    new_entry = create_expected_new_changelog_entry(version, title, body, commit_date)
+    version_section = f"## [{version}] - {commit_date}"
+    if version_section not in changelog:
+        changelog = changelog.replace(
+            "This is the changelog for *casual java* and all changes are listed in this document.\n",
+            f"This is the changelog for *casual java* and all changes are listed in this document.\n\n{version_section}\n",
+            1)
+    print(f"Changelog will be updated for version {version} with:\n{new_entry}")
+    return changelog.replace(version_section, new_entry, 1)
