@@ -6,6 +6,7 @@
  */
 
 // casual-java group and version
+
 group = 'se.laz.casual'
 version = '3.3.2-test-gh-action-20'
 
