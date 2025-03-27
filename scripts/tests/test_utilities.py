@@ -1,22 +1,26 @@
 #-*- coding: utf-8-unix -*-
-import unittest
+import os
 import re
+from unittest import TestCase, mock, main
 
-from utilities import get_version_from_gradle, replace_issue_numbers, validate_format, clean_message, update_changelog, create_expected_new_changelog_entry
-from utils_for_test import create_issue_replacement
+from utilities import get_version_from_gradle, replace_issue_numbers, validate_format, clean_message, update_changelog, \
+    create_expected_new_changelog_entry
+from utils_for_test import create_issue_replacement, github_server_url, github_repository
 
 
-class UtilitiesTest(unittest.TestCase):
+class UtilitiesTest(TestCase):
     @staticmethod
     def test_version_matches():
         version = get_version_from_gradle().strip()
         assert re.match("^[A-Za-z0-9]*", version)
 
+    @mock.patch.dict(os.environ, {'GITHUB_SERVER_URL': f"{github_server_url()}", 'GITHUB_REPOSITORY': f"{github_repository()}"})
     def test_issue_replace_nothing(self):
         msg = 'This is a message that contains no issues at all'
         replaced_msg = replace_issue_numbers(msg)
         self.assertEqual(msg, replaced_msg, 'no issues, msg should be unchanged')
 
+    @mock.patch.dict(os.environ,{'GITHUB_SERVER_URL': f"{github_server_url()}", 'GITHUB_REPOSITORY': f"{github_repository()}"})
     def test_one_issue_is_replaced(self):
         base_msg = 'This is the message '
         issue_number = '143'
@@ -27,6 +31,7 @@ class UtilitiesTest(unittest.TestCase):
         actual = replace_issue_numbers(msg)
         self.assertEqual(expected, actual, f"expected: {expected} should equal actual {actual}")
 
+    @mock.patch.dict(os.environ,{'GITHUB_SERVER_URL': f"{github_server_url()}", 'GITHUB_REPOSITORY': f"{github_repository()}"})
     def test_two_issues_is_replaced(self):
         base_msg = 'This is the message '
         issue_number_one = '143'
@@ -65,6 +70,8 @@ class UtilitiesTest(unittest.TestCase):
         message_with_co_authors = f"{message_already_clean}\n{approved_by_one}\n{approved_by_two}"
         self.assertEqual(message_already_clean, clean_message(message_with_co_authors))
 
+    @mock.patch.dict(os.environ,
+                     {'GITHUB_SERVER_URL': f"{github_server_url()}", 'GITHUB_REPOSITORY': f"{github_repository()}"})
     def test_update_changelog(self):
         version = '1.1.1'
         title = 'feat: nice feature'
@@ -77,4 +84,4 @@ class UtilitiesTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    main()
