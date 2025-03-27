@@ -1,4 +1,5 @@
 #-*- coding: utf-8-unix -*-
+import os
 import re
 
 
@@ -11,6 +12,10 @@ def get_version_from_gradle():
                     return match.group(1)
     raise ValueError("Version not found in versions.gradle")
 
+def get_url():
+    github_server_url = os.getenv("GITHUB_SERVER_URL").strip()
+    github_repository = os.getenv("GITHUB_REPOSITORY").strip()
+    return f"{github_server_url}/{github_repository}/issues"
 
 def replace_issue_numbers(commit_msg):
     """ Function to replace issue numbers with markdown link
@@ -18,10 +23,10 @@ def replace_issue_numbers(commit_msg):
     #132 -> [#132](https://github.com/casualcore/casual-java/issues/132)
     """
     pattern = r'#(\d+)'
-
+    url = get_url()
     def replacement(match):
         number = match.group(1)
-        return f'[{match.group(0)}](https://github.com/casualcore/casual-java/issues/{number})'
+        return f'[{match.group(0)}]({url}/{number})'
     return re.sub(pattern, replacement, commit_msg)
 
 
