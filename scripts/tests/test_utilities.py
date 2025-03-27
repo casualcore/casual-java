@@ -4,7 +4,7 @@ import re
 from unittest import TestCase, mock, main
 
 from utilities import get_version_from_gradle, replace_issue_numbers, validate_format, clean_message, update_changelog, \
-    create_expected_new_changelog_entry
+    create_expected_new_changelog_entry, get_url
 from utils_for_test import create_issue_replacement, github_server_url, github_repository
 
 
@@ -25,8 +25,7 @@ class UtilitiesTest(TestCase):
         base_msg = 'This is the message '
         issue_number = '143'
         msg = f"{base_msg} - #{issue_number}"
-        base_url = 'https://github.com/casualcore/casual-java/issues'
-        issue_replacement = create_issue_replacement(issue_number, base_url)
+        issue_replacement = create_issue_replacement(issue_number, get_url())
         expected = f"{base_msg} - {issue_replacement}"
         actual = replace_issue_numbers(msg)
         self.assertEqual(expected, actual, f"expected: {expected} should equal actual {actual}")
@@ -37,9 +36,8 @@ class UtilitiesTest(TestCase):
         issue_number_one = '143'
         issue_number_two = '245'
         msg = f"{base_msg} - #{issue_number_one}, #{issue_number_two}"
-        base_url = 'https://github.com/casualcore/casual-java/issues'
-        issue_replacement_one = create_issue_replacement(issue_number_one, base_url)
-        issue_replacement_two = create_issue_replacement(issue_number_two, base_url)
+        issue_replacement_one = create_issue_replacement(issue_number_one, get_url())
+        issue_replacement_two = create_issue_replacement(issue_number_two, get_url())
         expected = f"{base_msg} - {issue_replacement_one}, {issue_replacement_two}"
         actual = replace_issue_numbers(msg)
         self.assertEqual(expected, actual, f"expected: {expected} should equal actual {actual}")
