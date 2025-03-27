@@ -102,10 +102,6 @@ The deprecated configuration options re epoll and unmanaged will be removed in a
 * EventClient guard so that it does notify observer if the user called close
 * EventServer close - changes so that it works in test as well
 
----------
-
-Co-authored-by: cklellie <christopherjkelly@gmail.com>
-
 ## [3.2.39] - 2024-05-08
 ### Feature/3.2/casual test (https://github.com/casualcore/casual-java/issues/114)
 
@@ -163,10 +159,6 @@ Event Server - will only ever be available on 3.2
 Sonar version bump
 Gradle version bump
 System lambda version bump
-
----------
-
-Co-authored-by: cklellie <christopherjkelly@gmail.com>
 
 ## [3.2.31] - 2024-03-01
 ### do not run prepare, commit, rollback on netty threads (https://github.com/casualcore/casual-java/issues/97)
@@ -371,9 +363,6 @@ This feature has been verified by a 3rd party that it fulfills their needs and w
 
 Stateless is removed from any SPI classes as that was something that accidently was not removed once we moved to using SPI.
 
----------
-
-Co-authored-by: cklellie <christopherjkelly@gmail.com>
 
 ## [2.2.16] - 2023-03-08
 ### Feature/maven central publishinghttps://github.com/casualcore/casual-java/issues/17 (https://github.com/casualcore/casual-java/issues/62)
@@ -437,8 +426,6 @@ xceptions when starting inbound should be logged as SEVERE not WARNING
 * prepared, log if XA_RDONLY
 * start/end log flag also by name
 * inbound start work, better logging overall
-
-Co-authored-by: cklellie <christopherjkelly@gmail.com>
 
 ## [2.2.8] - 2022-11-16
 ### finest instead of info logging (https://github.com/casualcore/casual-java/issues/47)
