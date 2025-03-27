@@ -1,6 +1,12 @@
 #-*- coding: utf-8-unix -*-
 #!/usr/bin/env bash
 
+# helper functions
+replace_issue_numbers() {
+    local input="$1"
+    echo "$input" | sed -E 's/#([0-9]+)/https:\/\/github.com\/casualcore\/casual-java\/issues\/\1/g'
+}
+
 # Initialize the changelog file
 filename='CHANGELOG.md'
 
@@ -15,9 +21,11 @@ for tag in $(git tag --sort=-version:refname); do
     
     # Get the commit message (summary)
     title=$(git log -1 --pretty=format:"%s" "$commit_hash")
-    
+    title=$(replace_issue_numbers "$title")
+        
     # Get the full commit message (body)
     body=$(git log -1 --pretty=format:"%b" "$commit_hash")
+    body=$(replace_issue_numbers "$body")
     
     # Get the commit date in YYYY-MM-DD format
     commit_date=$(git log -1 --pretty=format:"%cd" --date=short "$commit_hash")
