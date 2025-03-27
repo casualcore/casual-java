@@ -9,14 +9,11 @@ package se.laz.casual.test.k8s;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
-import io.fabric8.kubernetes.client.Watch;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Facade / Abstraction providing mechanisms to
@@ -38,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  * For more complex resource definitions it is advised to implement your own mapping
  * code which produces you own fabric8 {@link io.fabric8.kubernetes.client.dsl.Resource}
  * objects.
- *
+ * <br/>
  * By default, the TestKube instance will use a {@link io.fabric8.kubernetes.client.KubernetesClient}
  * with no additional configuration. If you require more complex setup, you can provide the appropriate
  * {@link io.fabric8.kubernetes.client.KubernetesClient} instance into the TestKube builder.
@@ -50,11 +47,15 @@ public class TestKube
     private final String label;
     private final List<Pod> pods;
 
+    private final KubeController kubeController;
+
     private TestKube(final Builder builder )
     {
         this.client = builder.client;
         this.label = builder.label;
         this.pods = builder.pods;
+
+        this.kubeController = new KubeController( this );
     }
 
     public KubernetesClient getClient()
@@ -70,6 +71,22 @@ public class TestKube
     public List<Pod> getPods()
     {
         return new ArrayList<>( pods );
+    }
+
+    /**
+     * To gain more control over the TestKube, you can access the
+     * {@link KubeController} for this TestKube instance here,
+     * providing you with more methods for example:
+     * <ul>
+     *     <li>{@link KubeController#initAsync()}</li>
+     *     <li>{@link KubeController#destroyAsync()}</li>
+     * </ul>
+     *
+     * @return controller instance for this TestKube.
+     */
+    public KubeController getController()
+    {
+        return kubeController;
     }
 
     @Override
@@ -103,69 +120,24 @@ public class TestKube
                 '}';
     }
 
+    public void init()
+    {
+        this.kubeController.init();
+    }
+
+    public void destroy()
+    {
+        this.kubeController.destroy();
+    }
+
     public static Builder newBuilder()
     {
         return new Builder();
     }
 
-    private final List<Watch> watches = new ArrayList<>();
-    private final List<PodWatcher> podWatchers = new ArrayList<>();
-
-    public void init()
+    public KubeConnection getConnection( String resource, int port )
     {
-        initAsync();
-        waitUntilReady();
-    }
-
-    public void initAsync()
-    {
-        for( Pod p: pods )
-        {
-            Map<String,String> labels = p.getMetadata().getLabels();
-            labels.put( "TestKube", this.getLabel() );
-            Pod updated = p.edit().editMetadata().withLabels( labels ).endMetadata().build();
-            client.pods().resource( updated ).serverSideApply();
-        }
-    }
-
-    public void waitUntilReady()
-    {
-        for( Pod p: pods )
-        {
-            client.pods().resource( p ).waitUntilReady( 1, TimeUnit.MINUTES );
-        }
-    }
-
-    public void destroy()
-    {
-        destroyAsync();
-        waitUntilDestroyed();
-    }
-
-    public void destroyAsync()
-    {
-        for( Pod p: client.pods().withLabel( "TestKube", this.getLabel() ).list().getItems() )
-        {
-            PodWatcher podWatcher = new PodWatcher();
-            Watch watch = client.pods().resource( p ).watch( podWatcher );
-
-            watches.add( watch );
-            podWatchers.add( podWatcher );
-
-            client.pods().resource( p ).delete();
-        }
-    }
-
-    public void waitUntilDestroyed()
-    {
-        for( PodWatcher podWatcher: podWatchers )
-        {
-            podWatcher.waitUntilDeleted();
-        }
-        for( Watch watch: watches )
-        {
-            watch.close();
-        }
+        return this.kubeController.getConnection( resource, port );
     }
 
     public static final class Builder

@@ -12,26 +12,28 @@ import io.fabric8.kubernetes.client.WatcherException;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class PodWatcher implements Watcher<Pod>
 {
+    Logger log = Logger.getLogger(PodWatcher.class.getName());
+
     private final CountDownLatch deleteLatch = new CountDownLatch( 1 );
 
     @Override
     public void eventReceived( Action action, Pod resource )
     {
-        System.out.println( action.toString(  ) + ":" + resource.getStatus(  ).toString(  ) );
         switch( action )
         {
             case DELETED:
-                System.out.println( "Deleted" );
+                log.finest( ()-> "Deleted." );
                 deleteLatch.countDown();
                 break;
             case MODIFIED:
-                System.out.println( "Modified" );
+                log.finest( ()-> "Modified." );
                 break;
             case ADDED:
-                System.out.println( "Added" );
+                log.finest( ()-> "Added." );
                 break;
         }
     }

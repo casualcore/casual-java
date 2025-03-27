@@ -14,12 +14,12 @@ import se.laz.casual.test.k8s.TestKube
 import spock.lang.Shared
 import spock.lang.Specification
 
-class TestKubeIntegrationTest extends Specification
+class InitDestroyIntTest extends Specification
 {
     @Shared
     KubernetesClient client = new KubernetesClientBuilder().build()
     @Shared
-    String id = TestKubeIntegrationTest.class.getName(  )
+    String id = InitDestroyIntTest.class.getSimpleName(  )
 
     def setupSpec()
     {
@@ -65,6 +65,59 @@ class TestKubeIntegrationTest extends Specification
 
         when:
         instance.destroy()
+
+        then:
+        client.pods(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
+    }
+
+    def "Create TestKube with a single pod resource async."()
+    {
+        given:
+        Pod pod = new PodBuilder()
+                .withNewMetadata()
+                    .withName( "wildfly-test" )
+                .endMetadata()
+                .withNewSpec()
+                    .addNewContainer()
+                        .withName( "wildfly" )
+                        .withImage( "quay.io/wildfly/wildfly:32.0.1.Final-jdk21" )
+                        .addNewPort().withContainerPort( 8080 ).endPort()
+                        .withNewReadinessProbe()
+                            .withNewTcpSocket()
+                                .withNewPort()
+                                    .withValue( 8080 )
+                                .endPort()
+                            .endTcpSocket()
+                        .endReadinessProbe()
+                    .endContainer()
+                .endSpec()
+                .build()
+
+        TestKube instance = TestKube.newBuilder()
+                .label( id )
+                .addPod( pod )
+                .build()
+
+        when:
+        instance.getController().initAsync(  )
+
+        then:
+        client.pods(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 1
+
+        when:
+        instance.getController(  ).waitUntilReady(  )
+
+        then:
+        client.pods(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 1
+
+        when:
+        instance.getController().destroyAsync(  )
+
+        then:
+        client.pods(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 1
+
+        when:
+        instance.getController().waitUntilDestroyed(  )
 
         then:
         client.pods(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
