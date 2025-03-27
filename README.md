@@ -11,24 +11,24 @@ and casual-middleware.
 This 3.2 branch is for Jakarta EE.
 For Java EE see the 2.2 branch.
 
-## Casual API
+## casual API
 
 This project is the casual API, compare this 
 to the javax:javaee-api
 
-## Casual Network
+## casual Network
 
 This is the network implementation
 
-## Casual network protocol
+## casual network protocol
 
 This is the network protocol implementation
 
-## Casual JCA
+## casual JCA
 
 This is the JCA ResourceAdapter
 
-## Casual Caller
+## casual Caller
 
 Abstraction layer on top of 1-n outbound connection pools
 
