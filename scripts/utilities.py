@@ -1,7 +1,7 @@
 #-*- coding: utf-8-unix -*-
 import os
 import re
-
+import subprocess
 
 def get_version_from_gradle():
     with open("versions.gradle", "r") as f:
@@ -84,3 +84,6 @@ def update_changelog(version, title, body, commit_date, changelog):
             1)
     print(f"Changelog will be updated for version {version} with:\n{new_entry}")
     return changelog.replace(version_section, new_entry, 1)
+
+def run_subprocess(command):
+    return subprocess.getoutput(command).strip().replace("\\r\\n", '\n')
