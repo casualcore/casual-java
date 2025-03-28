@@ -19,9 +19,9 @@ The user should check the ErrorState before using the Conversation, this is in t
 This code will be used in casual caller to support conversation as well.
 
 ## [3.2.50] - 2024-12-10
-### Feature/3.2/initialise fieled on startup ([#140](https://github.com/casualcore/casual-java/issues/140))
+### Feature/3.2/initialise fielded on startup ([#140](https://github.com/casualcore/casual-java/issues/140))
 
-* Try to initialise fieled on startup if the user has provided a configuration for the file.
+* Try to initialise fielded on startup if the user has provided a configuration for the file.
 
 ## [3.2.49] - 2024-12-09
 ### Feature/3.2/bundle gson ([#138](https://github.com/casualcore/casual-java/issues/138))
@@ -43,7 +43,7 @@ casual-api-spi-impl - Module that wraps all our spi modules, currently only casu
 
 * Refactoring configuration functionality to ensure correctness of resulting configuration values.
 * Simplifying configuration to flatter property based structure for ease of retrieval.
-* Consolidating location for definition of defaults and reading of environment varilables for all configuration options.
+* Consolidating location for definition of defaults and reading of environment variables for all configuration options.
 
 ## [3.2.46] - 2024-11-01
 ### trid unique per resource, not global ([#127](https://github.com/casualcore/casual-java/issues/127))
@@ -57,7 +57,7 @@ Java 17 sonar fixes.
 There are still 2 issues found, that ServiceReturn and CasualFielded should be made into records.
 That is correct, however they live in the API and we would need to do a major release to fix that.
 
-Thus they should remain as issues, no supression, until we make a major release can convert them into records.
+Thus they should remain as issues, no suppression, until we make a major release can convert them into records.
 
 ## [3.2.44] - 2024-09-27
 ### Feature/3.2/execution sticky ([#122](https://github.com/casualcore/casual-java/issues/122))
@@ -135,7 +135,7 @@ The deprecated configuration options re epoll and unmanaged will be removed in a
 
 Added a backoff delay before retrying connections when reverse-inbound can't connect.
 
-This fixes an issue where connection retries were performed rapidly which could cause exessive logging and even cause out-of-memory errors on servers with small heap.
+This fixes an issue where connection retries were performed rapidly which could cause excessive logging and even cause out-of-memory errors on servers with small heap.
 
 The backoff will increment the delay time for each failure for a specific connection, up to some configurable max connection backoff for reverse-inbound (30 seconds).
 
@@ -281,7 +281,7 @@ allow real optional method as well
 
 Added a backoff delay before retrying connections when reverse-inbound can't connect.
 
-This fixes an issue where connection retries were performed rapidly which could cause exessive logging and even cause out-of-memory errors on servers with small heap.
+This fixes an issue where connection retries were performed rapidly which could cause excessive logging and even cause out-of-memory errors on servers with small heap.
 
 The backoff will increment the delay time for each failure for a specific connection, up to some configurable max connection backoff for reverse-inbound (30 seconds).
 
@@ -291,7 +291,7 @@ The backoff will increment the delay time for each failure for a specific connec
 Reverse inbound is in fact a client and as such we do not want prepare/commit/rollback to run on any of nettys networking threads.
 This is especially true since in fact an inbound prepare can result in an oubound prepare call via CasualXAResource, that then blocks that thread until an answer is received.
 
-All of the operations are expected to be short running as they are not service calls, service calls stil run on the supplied work manager.
+All of the operations are expected to be short running as they are not service calls, service calls still run on the supplied work manager.
 
 ## [2.2.27] - 2024-02-06
 ### bugfix/2.2/reverse-inbound-use-own-worker-group
@@ -427,7 +427,7 @@ The endpointActivation call from the appserver runs in another thread and should
 ## [2.2.10] - 2022-12-16
 ### log start inbound exception as SEVERE ([#52](https://github.com/casualcore/casual-java/issues/52))
 
-xceptions when starting inbound should be logged as SEVERE not WARNING
+exceptions when starting inbound should be logged as SEVERE not WARNING
 
 ## [2.2.9] - 2022-11-28
 ### Feature/more logging ([#50](https://github.com/casualcore/casual-java/issues/50))
@@ -440,7 +440,7 @@ xceptions when starting inbound should be logged as SEVERE not WARNING
 ## [2.2.8] - 2022-11-16
 ### finest instead of info logging ([#47](https://github.com/casualcore/casual-java/issues/47))
 
-Use finest instead of info, we need to be careful not to accidently spam logs
+Use finest instead of info, we need to be careful not to accidentally spam logs
 
 ## [2.2.7] - 2022-10-26
 ### Feature/inbound epoll ([#43](https://github.com/casualcore/casual-java/issues/43))
