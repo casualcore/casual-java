@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, edited]
     branches:
-      - dev
+      - feature/not-dev
 
 jobs:
   validate:
