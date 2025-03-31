@@ -1,6 +1,18 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.3.2] - 2025-01-13
+### chore(changelog): initial auto tagging and changelog updating ([#157](https://github.com/casualcore/casual-java/issues/157))
+
+After this, all commits are required to follow:
+https://www.conventionalcommits.org/en/v1.0.0/
+
+The squash message that is created is the same as for the PR, you are
+*NOT* allowed to change this.
+Thus create a very good conventional commit message for the PR.
+If you change it before squash merging, it will merge it but there is an
+extra check that will fail and email that it failed - thus it would then
+have to be reverted.
 
 ## [3.3.1] - 2025-01-13
 ### Feature/3.2/unmarshall all null values ([#143](https://github.com/casualcore/casual-java/issues/143))
