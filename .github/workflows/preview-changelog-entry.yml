@@ -1,0 +1,25 @@
+name: Preview changelog message
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+    branches:
+      - dev
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: output preview of change log message
+        run: python scripts/preview_changelog_entry.py
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}

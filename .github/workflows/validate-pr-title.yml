@@ -1,0 +1,24 @@
+name: Validate PR Title
+
+on:
+  pull_request:
+    types: [opened, edited]
+    branches:
+      - dev
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Validate PR title
+        run: python scripts/validate_pr_title.py
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}

@@ -1,0 +1,51 @@
+name: Release and Update Changelog
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  release-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Validate Commit Message
+        run: |
+          python scripts/validate_commit_message.py
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
+      - name: Update the changelog
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          python scripts/update_changelog.py
+
+      - name: Commit and push changelog changes
+        run: |
+          if ! git diff --quiet CHANGELOG.md; then
+            git config user.name "GitHub Action"
+            git config user.email "action@github.com"
+            git add CHANGELOG.md
+            git commit --amend --no-edit
+            git push --force-with-lease origin dev
+          else
+            echo "Changelog already up to date"
+          fi
+
+      - name: Create and push the tag
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          python scripts/create_tag.py
+          git push origin --tags
