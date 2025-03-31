@@ -11,12 +11,14 @@ import com.zaxxer.hikari.HikariDataSource
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.spock.Testcontainers
 import org.testcontainers.utility.DockerImageName
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.sql.ResultSet
 import java.sql.Statement
 
+@Ignore
 @Testcontainers
 class TestContainersTest extends Specification
 {

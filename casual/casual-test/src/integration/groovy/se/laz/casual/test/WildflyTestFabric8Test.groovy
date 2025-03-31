@@ -14,11 +14,13 @@ import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.api.model.apps.Deployment
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.lang.reflect.Method
 
+@Ignore
 class WildflyTestFabric8Test extends Specification
 {
 

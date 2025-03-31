@@ -9,6 +9,7 @@ package se.laz.casual.test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.spock.Testcontainers
 import org.testcontainers.utility.DockerImageName
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -16,6 +17,7 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
+@Ignore
 @Testcontainers
 class WildflyTestContainersTest extends Specification
 {

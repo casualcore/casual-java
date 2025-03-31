@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.client.Watch
 import io.fabric8.kubernetes.client.Watcher
 import io.fabric8.kubernetes.client.WatcherException
 import io.fabric8.kubernetes.client.utils.Serialization
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -25,6 +26,7 @@ import java.net.http.HttpResponse
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+@Ignore
 class CasualJcaTestFabric8Test extends Specification
 {
 

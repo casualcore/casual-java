@@ -38,6 +38,7 @@ class ConnectivityIntTest extends Specification
         Pod pod = new PodBuilder()
                 .withNewMetadata()
                 .withName( "wildfly-test" )
+                .addToLabels( "app", "wildfly" )
                 .endMetadata()
                 .withNewSpec()
                 .addNewContainer()
@@ -56,12 +57,25 @@ class ConnectivityIntTest extends Specification
                 .endSpec()
                 .build()
 
+//        Service service = new ServiceBuilder(  )
+//                .withNewMetadata(  )
+//                    .withName( "wildfly-service" )
+//                    .addToLabels( "TestKube", id )
+//                .endMetadata(  )
+//                .withNewSpec(  )
+//                    .addToSelector( "app","wildfly" )
+//                    .addNewPort(  ).withPort( 9990 ).endPort(  )
+//                .endSpec(  )
+//                .build(  )
+
         instance = TestKube.newBuilder()
                 .label( id )
                 .addPod( pod )
                 .build()
 
         instance.init(  )
+
+        //client.services(  ).resource( service ).serverSideApply(  )
 
     }
 

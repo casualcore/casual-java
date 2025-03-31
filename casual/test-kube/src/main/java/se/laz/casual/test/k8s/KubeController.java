@@ -88,12 +88,16 @@ public class KubeController
 
     public KubeConnection getConnection( String resource, int port )
     {
-        InetAddress local = InetAddress.getLoopbackAddress();
-        LocalPortForward portForward = testKube.getClient().pods().withName( resource ).portForward( port, local, 0 );
+        if( !ContainerAwareness.inContainer() )
+        {
+            InetAddress local = InetAddress.getLoopbackAddress();
+            LocalPortForward portForward = testKube.getClient().pods().withName( resource ).portForward( port, local, 0 );
 
-        LocalConnection connection = new LocalConnection( portForward );
-        connections.add( connection );
+            LocalConnection connection = new LocalConnection( portForward );
+            connections.add( connection );
 
-        return connection;
+            return connection;
+        }
+        return null;
     }
 }
