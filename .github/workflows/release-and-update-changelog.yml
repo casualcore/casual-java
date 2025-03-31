@@ -3,7 +3,7 @@ name: Release and Update Changelog
 on:
   push:
     branches:
-      - dev
+      - feature/not-dev
 
 jobs:
   release-and-update:
@@ -38,7 +38,7 @@ jobs:
             git config user.email "action@github.com"
             git add CHANGELOG.md
             git commit --amend --no-edit
-            git push --force-with-lease origin dev
+            git push --force-with-lease origin feature/not-dev
           else
             echo "Changelog already up to date"
           fi
