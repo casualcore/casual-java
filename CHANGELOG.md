@@ -1,6 +1,11 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.3.2-test-gh-action-28] - 2025-03-31
+
+### feat: vs prot ([#181](https://github.com/casualcore/casual-java/issues/181))
+yep
+
 ## [3.3.2-test-gh-action-27] - 2025-03-31
 
 ### feat: prot ([#180](https://github.com/casualcore/casual-java/issues/180))
