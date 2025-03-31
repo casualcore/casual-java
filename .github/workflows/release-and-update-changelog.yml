@@ -34,8 +34,8 @@ jobs:
       - name: Commit and push changelog changes
         run: |
           if ! git diff --quiet CHANGELOG.md; then
-            git config --local user.email "github-actions[bot]@users.noreply.github.com"
-            git config --local user.name "github-actions[bot]"
+            git config --local user.name "GitHub Action"
+            git config --local user.email "action@github.com"
             git add CHANGELOG.md
             git commit --amend --no-edit
             git push --force-with-lease origin feature/not-dev
