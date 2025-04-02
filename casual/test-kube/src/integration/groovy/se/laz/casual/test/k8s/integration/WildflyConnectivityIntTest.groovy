@@ -18,12 +18,12 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-class ConnectivityIntTest extends Specification
+class WildflyConnectivityIntTest extends Specification
 {
     @Shared
     KubernetesClient client = new KubernetesClientBuilder().build()
     @Shared
-    String id = ConnectivityIntTest.class.getSimpleName(  )
+    String id = WildflyConnectivityIntTest.class.getSimpleName(  )
     @Shared
     TestKube instance
     @Shared

@@ -98,7 +98,7 @@ public class ConnectionController
             }
 
             log.warning( ()-> "Creating a port forward connection for service: "+ resource + ", to allow seamless connectivity during development. " +
-                    "LoadBalancing will not work. Do NOT use during for performance testing." );
+                    "Load Balancing will not work. Do NOT use for performance testing." );
             return getPortForwardConnection( resource, targetPort );
         }
 

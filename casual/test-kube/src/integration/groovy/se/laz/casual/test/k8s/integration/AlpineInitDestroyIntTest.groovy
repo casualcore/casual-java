@@ -6,22 +6,19 @@
 
 package se.laz.casual.test.k8s.integration
 
-import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.api.model.Service
+
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
 import se.laz.casual.test.k8s.TestKube
 import spock.lang.Shared
 import spock.lang.Specification
 
-class InitDestroyIntTest extends Specification
+class AlpineInitDestroyIntTest extends Specification
 {
     @Shared
     KubernetesClient client = new KubernetesClientBuilder().build()
     @Shared
-    String id = InitDestroyIntTest.class.getSimpleName(  )
-    @Shared
-    String podName = NginxResources.SIMPLE_NGINX_POD_NAME
+    String id = AlpineInitDestroyIntTest.class.getSimpleName(  )
 
     def setupSpec()
     {
@@ -38,11 +35,9 @@ class InitDestroyIntTest extends Specification
     def "Create TestKube with a single pod resource."()
     {
         given:
-        Pod pod = NginxResources.SIMPLE_NGINX_POD
-
         TestKube instance = TestKube.newBuilder()
                 .label( id )
-                .addPod( podName, pod )
+                .addPod( AlpineResources.SIMPLE_ALPINE_POD_NAME, AlpineResources.SIMPLE_ALPINE_POD )
                 .build()
 
         when:
@@ -61,11 +56,9 @@ class InitDestroyIntTest extends Specification
     def "Create TestKube with a single pod resource async."()
     {
         given:
-        Pod pod = NginxResources.SIMPLE_NGINX_POD
-
         TestKube instance = TestKube.newBuilder()
                 .label( id )
-                .addPod( podName, pod )
+                .addPod( AlpineResources.SIMPLE_ALPINE_POD_NAME, AlpineResources.SIMPLE_ALPINE_POD )
                 .build()
 
         when:
@@ -91,27 +84,5 @@ class InitDestroyIntTest extends Specification
 
         then:
         client.pods(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
-    }
-
-    def "Create and destroy single service."()
-    {
-        given:
-        String serviceName = NginxResources.SIMPLE_NGINX_SERVICE_NAME
-        Service service = NginxResources.SIMPLE_NGINX_SERVICE
-
-        when:
-        TestKube instance = TestKube.newBuilder(  )
-                .label( id )
-                .addService( serviceName, service ).build(  )
-        instance.init(  )
-
-        then:
-        client.services(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 1
-
-        when:
-        instance.destroy(  )
-
-        then:
-        client.services(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
     }
 }

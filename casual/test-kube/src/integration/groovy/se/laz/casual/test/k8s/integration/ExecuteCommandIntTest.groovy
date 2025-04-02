@@ -32,7 +32,7 @@ class ExecuteCommandIntTest extends Specification
 
         instance = TestKube.newBuilder()
                 .label( id )
-                .addPod( WildflyResources.SIMPLE_WILDFLY_POD_NAME, WildflyResources.SIMPLE_WILDFLY_POD )
+                .addPod( NginxResources.SIMPLE_NGINX_POD_NAME, NginxResources.SIMPLE_NGINX_POD )
                 .build()
 
         instance.init(  )
@@ -54,7 +54,7 @@ class ExecuteCommandIntTest extends Specification
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         when:
-        ExecWatch watch = client.pods().withName( "wildfly-test" )
+        ExecWatch watch = client.pods().withName( NginxResources.SIMPLE_NGINX_POD_NAME )
                 .writingOutput( out )
                 .exec( "sh", "-c", "ls -l" )
 
@@ -64,7 +64,7 @@ class ExecuteCommandIntTest extends Specification
         then:
         exitCode == 0
         actual != ""
-        actual.containsIgnoreCase( "wildfly" )
+        actual.containsIgnoreCase( "docker-entrypoint.sh" )
 
         cleanup:
         watch.close(  )

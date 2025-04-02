@@ -31,7 +31,7 @@ class LoggingIntTest extends Specification
 
         instance = TestKube.newBuilder()
                 .label( id )
-                .addPod( WildflyResources.SIMPLE_WILDFLY_POD_NAME, WildflyResources.SIMPLE_WILDFLY_POD )
+                .addPod( NginxResources.SIMPLE_NGINX_POD_NAME, NginxResources.SIMPLE_NGINX_POD )
                 .build()
 
         instance.init(  )
@@ -50,23 +50,23 @@ class LoggingIntTest extends Specification
     def "Retrieve log from a pod."()
     {
         when:
-        String log = client.pods().withName( "wildfly-test" )
+        String log = client.pods().withName( NginxResources.SIMPLE_NGINX_POD_NAME )
                 .getLog()
 
         then:
         log != ""
-        log.containsIgnoreCase( "wildfly" )
+        log.containsIgnoreCase( "nginx" )
     }
 
     def "Retrieve log from a pod, tailing."()
     {
         when:
-        String log = client.pods().withName( "wildfly-test" )
+        String log = client.pods().withName( NginxResources.SIMPLE_NGINX_POD_NAME )
                 .tailingLines( 10 )
                 .getLog()
 
         then:
         log != ""
-        log.containsIgnoreCase( "wildfly" )
+        log.containsIgnoreCase( "start worker process" )
     }
 }
