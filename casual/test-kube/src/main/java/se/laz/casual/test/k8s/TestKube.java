@@ -7,12 +7,15 @@
 package se.laz.casual.test.k8s;
 
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import se.laz.casual.test.k8s.connection.KubeConnection;
+import se.laz.casual.test.k8s.controller.KubeController;
+import se.laz.casual.test.k8s.store.ResourcesStore;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -45,7 +48,7 @@ public class TestKube
 {
     private final KubernetesClient client;
     private final String label;
-    private final List<Pod> pods;
+    private final ResourcesStore resourcesStore;
 
     private final KubeController kubeController;
 
@@ -53,7 +56,10 @@ public class TestKube
     {
         this.client = builder.client;
         this.label = builder.label;
-        this.pods = builder.pods;
+
+        this.resourcesStore = new ResourcesStore();
+        this.resourcesStore.putPods( builder.pods );
+        this.resourcesStore.putServices( builder.services );
 
         this.kubeController = new KubeController( this );
     }
@@ -68,9 +74,19 @@ public class TestKube
         return label;
     }
 
-    public List<Pod> getPods()
+    public Map<String,Pod> getPods()
     {
-        return new ArrayList<>( pods );
+        return this.resourcesStore.getPods();
+    }
+
+    public Map<String, Service> getServices()
+    {
+        return this.resourcesStore.getServices();
+    }
+
+    public ResourcesStore getResourcesStore( )
+    {
+        return this.resourcesStore;
     }
 
     /**
@@ -90,33 +106,13 @@ public class TestKube
     }
 
     @Override
-    public boolean equals( Object o )
-    {
-        if( this == o )
-        {
-            return true;
-        }
-        if( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-        TestKube testKube = (TestKube) o;
-        return Objects.equals( client, testKube.client ) && Objects.equals( label, testKube.label ) && Objects.equals( pods, testKube.pods );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( client, label, pods );
-    }
-
-    @Override
     public String toString()
     {
         return "TestKube{" +
                 "client=" + client +
                 ", label='" + label + '\'' +
-                ", pods=" + pods +
+                ", resourcesStore=" + resourcesStore +
+                ", kubeController=" + kubeController +
                 '}';
     }
 
@@ -135,16 +131,22 @@ public class TestKube
         return new Builder();
     }
 
-    public KubeConnection getConnection( String resource, int port )
+    public KubeConnection getConnection( String resource, int targetPort )
     {
-        return this.kubeController.getConnection( resource, port );
+        return this.kubeController.getConnection( resource, targetPort );
+    }
+
+    public KubeConnection getPortForwardConnection( String resource, int port )
+    {
+        return this.kubeController.getPortForwardConnection( resource, port );
     }
 
     public static final class Builder
     {
         private KubernetesClient client;
         private String label = UUID.randomUUID().toString();
-        private List<Pod> pods = new ArrayList<>();
+        private Map<String,Pod> pods = new HashMap<>();
+        private Map<String,Service> services = new HashMap<>();
 
         public Builder client( KubernetesClient client )
         {
@@ -158,9 +160,15 @@ public class TestKube
             return this;
         }
 
-        public Builder addPod( Pod pod )
+        public Builder addPod( String alias, Pod pod )
         {
-            this.pods.add( pod );
+            this.pods.put( alias, pod );
+            return this;
+        }
+
+        public Builder addService( String alias, Service service )
+        {
+            this.services.put( alias, service );
             return this;
         }
 
@@ -172,7 +180,5 @@ public class TestKube
             }
             return new TestKube( this );
         }
-
-
     }
 }

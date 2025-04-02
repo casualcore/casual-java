@@ -4,7 +4,7 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.test.k8s
+package se.laz.casual.test.k8s.connection
 
 import io.fabric8.kubernetes.client.LocalPortForward
 import spock.lang.Specification
@@ -12,19 +12,19 @@ import spock.lang.Specification
 class LocalConnectionTest extends Specification
 {
 
-    LocalConnection instance
+    PortForwardedConnection instance
 
     LocalPortForward portForward = Mock()
 
     def setup()
     {
-        instance = new LocalConnection( portForward )
+        instance = new PortForwardedConnection( portForward )
     }
 
     def "Get Type"()
     {
         expect:
-        instance.getType() == KubeConnectionType.LOCAL_PORT_FORWARD
+        instance.getType() == KubeConnectionType.PORT_FORWARDED
     }
 
     def "Get host name"()
@@ -74,6 +74,6 @@ class LocalConnectionTest extends Specification
         instance.close(  )
 
         then:
-        thrown RuntimeException
+        thrown ConnectionCloseException
     }
 }

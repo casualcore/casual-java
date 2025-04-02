@@ -4,13 +4,10 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.test.k8s;
+package se.laz.casual.test.k8s.store;
 
-/**
- * Type of connection.
- */
-public enum KubeConnectionType
+import io.fabric8.kubernetes.api.model.Service;
+
+public class ServiceStore extends AbstractResourceStore<Service>
 {
-    LOCAL_PORT_FORWARD,
-    SERVICE
 }

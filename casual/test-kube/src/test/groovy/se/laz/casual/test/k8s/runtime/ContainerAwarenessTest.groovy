@@ -4,7 +4,7 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.test.k8s
+package se.laz.casual.test.k8s.runtime
 
 import com.github.stefanbirkner.systemlambda.SystemLambda
 import spock.lang.Specification

@@ -6,12 +6,11 @@
 
 package se.laz.casual.test.k8s.integration
 
-import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.api.model.PodBuilder
+
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
-import se.laz.casual.test.k8s.KubeConnection
 import se.laz.casual.test.k8s.TestKube
+import se.laz.casual.test.k8s.connection.KubeConnection
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -27,55 +26,25 @@ class ConnectivityIntTest extends Specification
     String id = ConnectivityIntTest.class.getSimpleName(  )
     @Shared
     TestKube instance
+    @Shared
+    String podName = WildflyResources.SIMPLE_WILDFLY_POD_NAME
+    @Shared
+    String serviceName = WildflyResources.SIMPLE_WILDFLY_SERVICE_NAME
 
     def setupSpec()
     {
 
-        List<Pod> pods = client.pods(  ).withLabel( "TestKube", id ).list().getItems(  )
-
-        assert pods.size(  ) == 0
-
-        Pod pod = new PodBuilder()
-                .withNewMetadata()
-                .withName( "wildfly-test" )
-                .addToLabels( "app", "wildfly" )
-                .endMetadata()
-                .withNewSpec()
-                .addNewContainer()
-                .withName( "wildfly" )
-                .withImage( "quay.io/wildfly/wildfly:32.0.1.Final-jdk21" )
-                .addNewPort().withContainerPort( 8080 ).endPort()
-                .addNewPort().withContainerPort( 9990 ).endPort(  )
-                .withNewReadinessProbe()
-                .withNewTcpSocket()
-                .withNewPort()
-                .withValue( 8080 )
-                .endPort()
-                .endTcpSocket()
-                .endReadinessProbe()
-                .endContainer()
-                .endSpec()
-                .build()
-
-//        Service service = new ServiceBuilder(  )
-//                .withNewMetadata(  )
-//                    .withName( "wildfly-service" )
-//                    .addToLabels( "TestKube", id )
-//                .endMetadata(  )
-//                .withNewSpec(  )
-//                    .addToSelector( "app","wildfly" )
-//                    .addNewPort(  ).withPort( 9990 ).endPort(  )
-//                .endSpec(  )
-//                .build(  )
+        assert client.pods(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
+        assert client.services(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
 
         instance = TestKube.newBuilder()
                 .label( id )
-                .addPod( pod )
+                .addPod( WildflyResources.SIMPLE_WILDFLY_POD_NAME, WildflyResources.SIMPLE_WILDFLY_POD )
+                .addService( WildflyResources.SIMPLE_WILDFLY_SERVICE_NAME, WildflyResources.SIMPLE_WILDFLY_SERVICE )
+                .addService( WildflyResources.EXTERNAL_WILDFLY_SERVICE_NAME, WildflyResources.EXTERNAL_WILDFLY_SERVICE )
                 .build()
 
         instance.init(  )
-
-        //client.services(  ).resource( service ).serverSideApply(  )
 
     }
 
@@ -83,31 +52,22 @@ class ConnectivityIntTest extends Specification
     {
         instance.destroy(  )
 
-        List<Pod> pods = client.pods(  ).withLabel( "TestKube", id ).list().getItems(  )
-
-        assert pods.size(  ) == 0
+        assert client.pods(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
+        assert client.services(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
     }
 
     def "Connection to pod, port 9990 using port forward."()
     {
+        given:
+        int status
+        String body
+
         when:
-        int status = 0
-        String body = null
-
-        try( KubeConnection connection = instance.getConnection( "wildfly-test", 9990 ) )
+        try( KubeConnection connection = instance.getPortForwardConnection( podName, 9990 ) )
         {
-            String host = connection.getHostName()
-            int port = connection.getPort()
-
-            HttpClient httpClient = HttpClient.newBuilder(  ).build(  )
-            HttpRequest request = HttpRequest.newBuilder( )
-                    .uri( URI.create( "http://" + host + ":" + port +"/" ) )
-                    .GET( )
-                    .build(  )
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = httpGet( connection )
             status = response.statusCode(  )
-            body = response.body(  )
+            body = response.body()
         }
 
         then:
@@ -117,24 +77,16 @@ class ConnectivityIntTest extends Specification
 
     def "Connect to pod, port 8080, using port forward."()
     {
+        given:
+        int status
+        String body
+
         when:
-        int status = 0
-        String body = null
-
-        try( KubeConnection connection = instance.getConnection( "wildfly-test", 8080 ) )
+        try( KubeConnection connection = instance.getPortForwardConnection( podName, 8080 ) )
         {
-            String host = connection.getHostName()
-            int port = connection.getPort()
-
-            HttpClient httpClient = HttpClient.newBuilder(  ).build(  )
-            HttpRequest request = HttpRequest.newBuilder( )
-                    .uri( URI.create( "http://" + host + ":" + port +"/" ) )
-                    .GET( )
-                    .build(  )
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = httpGet( connection )
             status = response.statusCode(  )
-            body = response.body(  )
+            body = response.body()
         }
 
         then:
@@ -146,11 +98,80 @@ class ConnectivityIntTest extends Specification
     def "Connect to pod, port 8080, using port forward, not using try with resources."()
     {
         when:
-        int status = 0
-        String body = null
+        KubeConnection connection = instance.getPortForwardConnection( podName, 8080 )
 
-        KubeConnection connection = instance.getConnection( "wildfly-test", 8080 )
+        HttpResponse<String> response = httpGet( connection )
+        int status = response.statusCode(  )
+        String body = response.body()
 
+        then:
+        status == 200
+        body != ""
+        body.containsIgnoreCase( "wildfly" )
+    }
+
+    def "Connect to service, port 8080, using port forward."()
+    {
+        given:
+        int status
+        String body
+
+        when:
+        try( KubeConnection connection = instance.getPortForwardConnection( serviceName, 8080 ) )
+        {
+            HttpResponse<String> response = httpGet( connection )
+            status = response.statusCode(  )
+            body = response.body()
+        }
+
+        then:
+        status == 200
+        body != ""
+        body.containsIgnoreCase( "wildfly" )
+    }
+
+    def "Connect to service, port 8080."()
+    {
+        given:
+        int status
+        String body
+
+        when:
+        try( KubeConnection connection = instance.getConnection( serviceName, 8080 ) )
+        {
+            HttpResponse<String> response = httpGet( connection )
+            status = response.statusCode(  )
+            body = response.body()
+        }
+
+        then:
+        status == 200
+        body != ""
+        body.containsIgnoreCase( "wildfly" )
+    }
+
+    def "Connect to external service, with internal port 8080."()
+    {
+        given:
+        int status
+        String body
+
+        when:
+        try( KubeConnection connection = instance.getConnection( WildflyResources.EXTERNAL_WILDFLY_SERVICE_NAME, 8080 ) )
+        {
+            HttpResponse<String> response = httpGet( connection )
+            status = response.statusCode(  )
+            body = response.body()
+        }
+
+        then:
+        status == 200
+        body != ""
+        body.containsIgnoreCase( "wildfly" )
+    }
+
+    HttpResponse<String> httpGet( KubeConnection connection )
+    {
         String host = connection.getHostName()
         int port = connection.getPort()
 
@@ -160,14 +181,6 @@ class ConnectivityIntTest extends Specification
                 .GET( )
                 .build(  )
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        status = response.statusCode(  )
-        body = response.body(  )
-
-
-        then:
-        status == 200
-        body != ""
-        body.containsIgnoreCase( "wildfly" )
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 }

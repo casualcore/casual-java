@@ -4,23 +4,24 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.test.k8s
+package se.laz.casual.test.k8s.watcher
 
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.client.Watcher
+import se.laz.casual.test.k8s.watchers.DeleteWatcher
 import spock.lang.Specification
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-class PodWatcherTest extends Specification
+class DeleteWatcherTest extends Specification
 {
-    PodWatcher instance
+    DeleteWatcher<Pod> instance
 
     def setup()
     {
-        instance = new PodWatcher()
+        instance = new DeleteWatcher<>()
     }
 
     def "Wait for delete."()

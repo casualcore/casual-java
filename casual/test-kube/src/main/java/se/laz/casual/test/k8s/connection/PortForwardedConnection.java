@@ -4,17 +4,20 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.test.k8s;
+package se.laz.casual.test.k8s.connection;
 
 import io.fabric8.kubernetes.client.LocalPortForward;
 
 import java.io.IOException;
 
-public class LocalConnection implements KubeConnection
+/**
+ * Port forwarded connection.
+ */
+public class PortForwardedConnection implements KubeConnection
 {
     private LocalPortForward localPortForward;
 
-    public LocalConnection( LocalPortForward localPortForward )
+    public PortForwardedConnection( LocalPortForward localPortForward )
     {
         this.localPortForward = localPortForward;
     }
@@ -22,7 +25,7 @@ public class LocalConnection implements KubeConnection
     @Override
     public KubeConnectionType getType()
     {
-        return KubeConnectionType.LOCAL_PORT_FORWARD;
+        return KubeConnectionType.PORT_FORWARDED;
     }
 
     @Override
@@ -46,7 +49,7 @@ public class LocalConnection implements KubeConnection
         }
         catch ( IOException e )
         {
-            throw new RuntimeException( "Close failed.", e );
+            throw new ConnectionCloseException( "Close failed.", e );
         }
     }
 }

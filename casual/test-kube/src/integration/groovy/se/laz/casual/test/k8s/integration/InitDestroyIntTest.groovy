@@ -8,6 +8,8 @@ package se.laz.casual.test.k8s.integration
 
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodBuilder
+import io.fabric8.kubernetes.api.model.Service
+import io.fabric8.kubernetes.api.model.ServiceBuilder
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
 import se.laz.casual.test.k8s.TestKube
@@ -20,20 +22,19 @@ class InitDestroyIntTest extends Specification
     KubernetesClient client = new KubernetesClientBuilder().build()
     @Shared
     String id = InitDestroyIntTest.class.getSimpleName(  )
+    @Shared
+    String podName = "wildfly-test"
 
     def setupSpec()
     {
-
-        List<Pod> pods = client.pods(  ).withLabel( "TestKube", id ).list().getItems(  )
-
-        assert pods.size(  ) == 0
+        assert client.pods(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
+        assert client.services(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
     }
 
     def cleanupSpec()
     {
-        List<Pod> pods = client.pods(  ).withLabel( "TestKube", id ).list().getItems(  )
-
-        assert pods.size(  ) == 0
+        assert client.pods(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
+        assert client.services(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
     }
 
     def "Create TestKube with a single pod resource."()
@@ -41,7 +42,7 @@ class InitDestroyIntTest extends Specification
         given:
         Pod pod = new PodBuilder(  )
                 .withNewMetadata( )
-                    .withName( "wildfly-test" )
+                    .withName( podName )
                 .endMetadata(  )
                 .withNewSpec( )
                     .addNewContainer( )
@@ -54,7 +55,7 @@ class InitDestroyIntTest extends Specification
 
         TestKube instance = TestKube.newBuilder()
                 .label( id )
-                .addPod( pod )
+                .addPod( podName, pod )
                 .build()
 
         when:
@@ -75,7 +76,7 @@ class InitDestroyIntTest extends Specification
         given:
         Pod pod = new PodBuilder()
                 .withNewMetadata()
-                    .withName( "wildfly-test" )
+                    .withName( podName )
                 .endMetadata()
                 .withNewSpec()
                     .addNewContainer()
@@ -95,7 +96,7 @@ class InitDestroyIntTest extends Specification
 
         TestKube instance = TestKube.newBuilder()
                 .label( id )
-                .addPod( pod )
+                .addPod( podName, pod )
                 .build()
 
         when:
@@ -121,5 +122,36 @@ class InitDestroyIntTest extends Specification
 
         then:
         client.pods(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
+    }
+
+    def "Create and destroy single service."()
+    {
+        given:
+        String serviceName = "serviceName"
+
+        Service service = new ServiceBuilder(  )
+                .withNewMetadata(  )
+                .withName( "wildfly-service" )
+                .endMetadata(  )
+                .withNewSpec(  )
+                .addToSelector( "app","wildfly" )
+                .addNewPort(  ).withPort( 9990 ).endPort(  )
+                .endSpec(  )
+                .build(  )
+
+        when:
+        TestKube instance = TestKube.newBuilder(  )
+                .label( id )
+                .addService( serviceName, service ).build(  )
+        instance.init(  )
+
+        then:
+        client.services(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 1
+
+        when:
+        instance.destroy(  )
+
+        then:
+        client.services(  ).withLabel( "TestKube", id ).list().getItems(  ).size(  ) == 0
     }
 }

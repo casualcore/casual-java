@@ -4,9 +4,8 @@
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.test.k8s;
+package se.laz.casual.test.k8s.watchers;
 
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 
@@ -14,14 +13,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-public class PodWatcher implements Watcher<Pod>
+public class DeleteWatcher<T> implements Watcher<T>
 {
-    Logger log = Logger.getLogger(PodWatcher.class.getName());
+    Logger log = Logger.getLogger(DeleteWatcher.class.getName());
 
     private final CountDownLatch deleteLatch = new CountDownLatch( 1 );
 
     @Override
-    public void eventReceived( Action action, Pod resource )
+    public void eventReceived( Action action, T resource )
     {
         switch( action )
         {

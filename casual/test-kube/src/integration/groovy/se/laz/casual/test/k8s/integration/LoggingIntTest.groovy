@@ -7,7 +7,6 @@
 package se.laz.casual.test.k8s.integration
 
 import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.api.model.PodBuilder
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
 import se.laz.casual.test.k8s.TestKube
@@ -30,30 +29,9 @@ class LoggingIntTest extends Specification
 
         assert pods.size(  ) == 0
 
-        Pod pod = new PodBuilder()
-                .withNewMetadata()
-                .withName( "wildfly-test" )
-                .endMetadata()
-                .withNewSpec()
-                .addNewContainer()
-                .withName( "wildfly" )
-                .withImage( "quay.io/wildfly/wildfly:32.0.1.Final-jdk21" )
-                .addNewPort().withContainerPort( 8080 ).endPort()
-                .addNewPort().withContainerPort( 9990 ).endPort(  )
-                .withNewReadinessProbe()
-                .withNewTcpSocket()
-                .withNewPort()
-                .withValue( 8080 )
-                .endPort()
-                .endTcpSocket()
-                .endReadinessProbe()
-                .endContainer()
-                .endSpec()
-                .build()
-
         instance = TestKube.newBuilder()
                 .label( id )
-                .addPod( pod )
+                .addPod( WildflyResources.SIMPLE_WILDFLY_POD_NAME, WildflyResources.SIMPLE_WILDFLY_POD )
                 .build()
 
         instance.init(  )
