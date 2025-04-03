@@ -9,10 +9,12 @@ package se.laz.casual.test.k8s.integration
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
-import io.fabric8.kubernetes.client.dsl.ExecWatch
 import se.laz.casual.test.k8s.TestKube
+import se.laz.casual.test.k8s.exec.ExecResult
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.util.concurrent.CompletableFuture
 
 class ExecuteCommandIntTest extends Specification
 {
@@ -22,6 +24,10 @@ class ExecuteCommandIntTest extends Specification
     String id = ExecuteCommandIntTest.class.getSimpleName(  )
     @Shared
     TestKube instance
+    @Shared
+    String podName = NginxResources.SIMPLE_NGINX_POD_NAME
+    @Shared
+    Pod pod = NginxResources.SIMPLE_NGINX_POD
 
     def setupSpec()
     {
@@ -32,7 +38,7 @@ class ExecuteCommandIntTest extends Specification
 
         instance = TestKube.newBuilder()
                 .label( id )
-                .addPod( NginxResources.SIMPLE_NGINX_POD_NAME, NginxResources.SIMPLE_NGINX_POD )
+                .addPod( podName, pod )
                 .build()
 
         instance.init(  )
@@ -48,25 +54,45 @@ class ExecuteCommandIntTest extends Specification
         assert pods.size(  ) == 0
     }
 
-    def "Execute a command on a pod."()
+    def "Execute a command on a pod, sync."()
     {
         given:
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        String out = "hello exec world."
+        String[] command = ["sh", "-c", "echo -n "+ out ]
+        ExecResult expected = ExecResult.newBuilder().output( out ).build()
 
         when:
-        ExecWatch watch = client.pods().withName( NginxResources.SIMPLE_NGINX_POD_NAME )
-                .writingOutput( out )
-                .exec( "sh", "-c", "ls -l" )
-
-        int exitCode = watch.exitCode(  ).join(  )
-        String actual = out.toString()
+        ExecResult actual = instance.getController().executeCommand( podName, command )
 
         then:
-        exitCode == 0
-        actual != ""
-        actual.containsIgnoreCase( "docker-entrypoint.sh" )
+        actual == expected
+    }
 
-        cleanup:
-        watch.close(  )
+    def "Execute a command on a pod, async."()
+    {
+        given:
+        String out = "hello exec world."
+        String[] command = ["sh", "-c", "sleep 0.01; echo -n " + out ]
+        ExecResult expected = ExecResult.newBuilder().output( out ).build()
+
+        when:
+        CompletableFuture<ExecResult> execFuture = instance.getController().executeCommandAsync( podName, command )
+        ExecResult actual = execFuture.join(  )
+
+        then:
+        actual == expected
+    }
+
+    def "Execute a command on a pod, errors."()
+    {
+        given:
+        String[] command = ["sh", "-c", "blah" ]
+
+        when:
+        ExecResult actual = instance.getController().executeCommand( podName, command )
+
+        then:
+        actual.getExitCode(  ) == 127
+        actual.getOutput(  ).contains( "blah: not found" )
     }
 }
