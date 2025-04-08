@@ -95,4 +95,22 @@ class ExecuteCommandIntTest extends Specification
         actual.getExitCode(  ) == 127
         actual.getOutput(  ).contains( "blah: not found" )
     }
+
+    def "Execute a command on a pod, returns correct exitCode."()
+    {
+        given:
+        String[] command = ["sh", "-c", "exit " + exitCode ]
+        ExecResult expected = ExecResult.newBuilder().exitCode( exitCode ).build(  )
+
+        when:
+        ExecResult actual = instance.getController().executeCommand( podName, command )
+
+        then:
+        actual == expected
+
+        where:
+        exitCode << [
+                1, 2, 3, 4, 0
+        ]
+    }
 }

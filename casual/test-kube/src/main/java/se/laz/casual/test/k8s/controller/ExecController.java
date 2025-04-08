@@ -6,6 +6,7 @@
 
 package se.laz.casual.test.k8s.controller;
 
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import se.laz.casual.test.k8s.TestKube;
@@ -27,9 +28,20 @@ public class ExecController
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        PodResource p = testKube.getClient().pods().withName( pod );
+        PodResource podResource = null;
 
-        try( ExecWatch watch = p.writingOutput( out ).writingError( out )
+        if( this.testKube.getResourcesStore().getPods().containsKey( pod ) )
+        {
+            Pod p = this.testKube.getResourcesStore().getPod( pod );
+            podResource = this.testKube.getClient().pods().resource( p );
+        }
+
+        if( podResource == null )
+        {
+            podResource = testKube.getClient().pods().withName( pod );
+        }
+
+        try( ExecWatch watch = podResource.writingOutput( out ).writingError( out )
                 .exec( command ) )
         {
             Integer exitCode = watch.exitCode().join();
