@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -20,6 +20,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
+import se.laz.casual.network.InboundCleaner;
 import se.laz.casual.network.LogLevelProvider;
 
 import java.net.InetSocketAddress;
@@ -86,4 +87,8 @@ public final class CasualServer
         log.info(() -> "server closed");
     }
 
+    public void prepareShutdown()
+    {
+        InboundCleaner.sendDomainDisconnect(channel);
+    }
 }

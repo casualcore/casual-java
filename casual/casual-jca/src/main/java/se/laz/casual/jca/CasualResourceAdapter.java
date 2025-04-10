@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -239,6 +239,11 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     public void stop()
     {
         log.finest(()->"stop()");
+        reverseInbounds.forEach(s -> s.prepareShutdown());
+        if(null != server)
+        {
+            server.prepareShutdown();
+        }
     }
 
     //Return empty array not null. But specification says to return null if we don't support this feature, so ignoring.

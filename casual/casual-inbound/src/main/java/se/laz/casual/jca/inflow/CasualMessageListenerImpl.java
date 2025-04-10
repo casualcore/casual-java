@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -29,6 +29,9 @@ import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
+import se.laz.casual.network.ProtocolMatcher;
+import se.laz.casual.network.ProtocolVersion;
+import se.laz.casual.network.ShouldBeNotifiedWhenShutdown;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
@@ -65,20 +68,22 @@ import java.util.logging.Logger;
 public class CasualMessageListenerImpl implements CasualMessageListener
 {
     private static Logger log = Logger.getLogger(CasualMessageListenerImpl.class.getName());
-    private static final Long CASUAL_PROTOCOL_VERSION = 1000L;
-
     @Override
-    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel)
+    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel, ShouldBeNotifiedWhenShutdown whenShutdown)
     {
         log.finest(() -> "domainConnectRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
-
+        Long matchedProtocolVersion = ProtocolMatcher.match(message.getMessage().getProtocols());
+        if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_1.getVersion())
+        {
+            whenShutdown.shouldBeNotifiedWhenShutdown();
+        }
         String domainName = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME );
         UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId();
         CasualDomainConnectReplyMessage reply = CasualDomainConnectReplyMessage.createBuilder()
                                                                                .withDomainId( domainId )
                                                                                .withDomainName( domainName )
                                                                                .withExecution( message.getMessage().getExecution() )
-                                                                               .withProtocolVersion(CASUAL_PROTOCOL_VERSION)
+                                                                               .withProtocolVersion(matchedProtocolVersion)
                                                                                .build();
         CasualNWMessage<CasualDomainConnectReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
         channel.writeAndFlush(replyMessage);

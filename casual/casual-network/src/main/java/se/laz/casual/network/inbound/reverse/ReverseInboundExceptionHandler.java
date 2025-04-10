@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,6 +8,7 @@ package se.laz.casual.network.inbound.reverse;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import se.laz.casual.network.InboundShutdownContext;
 
 import java.util.logging.Logger;
 
@@ -23,6 +24,7 @@ public final class ReverseInboundExceptionHandler extends ChannelInboundHandlerA
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
     {
         log.warning(() -> "casual reverse inbound exception caught: " + cause + " closing channel");
+        InboundShutdownContext.remove(ctx.channel());
         ctx.close();
     }
 }

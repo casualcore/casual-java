@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -18,6 +18,7 @@ import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.EventLoopClient;
 import se.laz.casual.network.EventLoopFactory;
+import se.laz.casual.network.InboundCleaner;
 import se.laz.casual.network.LogLevelProvider;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
@@ -95,6 +96,12 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     }
 
     @Override
+    public void prepareShutdown()
+    {
+        InboundCleaner.sendDomainDisconnect(channel);
+    }
+
+    @Override
     public boolean equals(Object o)
     {
         if (this == o)
@@ -124,4 +131,5 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
                 ", workManagerSupplier=" + workManagerSupplier +
                 '}';
     }
+
 }

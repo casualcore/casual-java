@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,16 +7,16 @@ package se.laz.casual.jca.inflow;
 
 
 import io.netty.channel.Channel;
+import jakarta.resource.spi.XATerminator;
+import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.network.ShouldBeNotifiedWhenShutdown;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
-
-import jakarta.resource.spi.XATerminator;
-import jakarta.resource.spi.work.WorkManager;
 
 /**
  * CasualMessageListener Inbound Message Listener.
@@ -32,7 +32,7 @@ public interface CasualMessageListener
     * @param message received.
     * @param channel for response.
     */
-   void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel );
+   void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel, ShouldBeNotifiedWhenShutdown whenShutdown);
 
    /**
     * Process the Domain Discovery request and write the resulting response to the {@link Channel}.
