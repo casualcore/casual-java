@@ -18,6 +18,7 @@ public class KubeController
     private final ProvisioningController provisioningController;
     private final ConnectionController connectionController;
     private final ExecController execController;
+    private final LogController logController;
 
     public KubeController( TestKube testKube )
     {
@@ -25,6 +26,7 @@ public class KubeController
         this.provisioningController = new ProvisioningController( testKube );
         this.connectionController = new ConnectionController( testKube );
         this.execController = new ExecController( testKube );
+        this.logController = new LogController( testKube );
     }
 
     // Provisioning Controller
@@ -81,5 +83,22 @@ public class KubeController
     public CompletableFuture<ExecResult> executeCommandAsync( String pod, String... command )
     {
         return this.execController.executeCommandAsync( pod, command );
+    }
+
+    // Log Controller
+
+    public String getLog( String pod )
+    {
+        return this.logController.getLog( pod );
+    }
+
+    public String getLogTail( String pod, int lines )
+    {
+        return this.logController.getLogTail( pod, lines );
+    }
+
+    public String getLogSince( String pod, String sinceTime )
+    {
+        return this.logController.getLogSince( pod, sinceTime );
     }
 }

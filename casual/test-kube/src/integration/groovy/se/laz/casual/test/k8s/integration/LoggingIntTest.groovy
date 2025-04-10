@@ -13,6 +13,9 @@ import se.laz.casual.test.k8s.TestKube
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
 class LoggingIntTest extends Specification
 {
     @Shared
@@ -21,6 +24,13 @@ class LoggingIntTest extends Specification
     String id = LoggingIntTest.class.getSimpleName(  )
     @Shared
     TestKube instance
+    @Shared
+    String podName = NginxResources.SIMPLE_NGINX_POD_NAME
+
+    @Shared
+    ZonedDateTime now = ZonedDateTime.now()
+    @Shared
+    ZonedDateTime afterInit
 
     def setupSpec()
     {
@@ -31,10 +41,11 @@ class LoggingIntTest extends Specification
 
         instance = TestKube.newBuilder()
                 .label( id )
-                .addPod( NginxResources.SIMPLE_NGINX_POD_NAME, NginxResources.SIMPLE_NGINX_POD )
+                .addPod( podName, NginxResources.SIMPLE_NGINX_POD )
                 .build()
 
         instance.init(  )
+        afterInit = ZonedDateTime.now()
 
     }
 
@@ -47,26 +58,40 @@ class LoggingIntTest extends Specification
         assert pods.size(  ) == 0
     }
 
-    def "Retrieve log from a pod."()
+    def "Retrieve full log from a pod."()
     {
         when:
-        String log = client.pods().withName( NginxResources.SIMPLE_NGINX_POD_NAME )
-                .getLog()
+        String actual = instance.getController().getLog( podName )
 
         then:
-        log != ""
-        log.containsIgnoreCase( "nginx" )
+        actual != ""
+        actual.containsIgnoreCase( "nginx" )
     }
 
-    def "Retrieve log from a pod, tailing."()
+    def "Retrieve last 10 lines of a pod."()
     {
         when:
-        String log = client.pods().withName( NginxResources.SIMPLE_NGINX_POD_NAME )
-                .tailingLines( 10 )
-                .getLog()
+        String fullLog = instance.getController().getLog( podName )
+        String actual = instance.getController().getLogTail( podName, 10 )
 
         then:
-        log != ""
-        log.containsIgnoreCase( "start worker process" )
+        actual != ""
+        actual.containsIgnoreCase( "start worker process" )
+        actual.split( "\n" ).size(  ) == 10
+        fullLog.endsWith( actual )
+    }
+
+    def "Retreive logs since date."()
+    {
+        when:
+        String fullLog = instance.getController().getLog( podName )
+        String fromNowLog = instance.getController().getLogSince( podName, now.format( DateTimeFormatter.ISO_OFFSET_DATE_TIME ) )
+        String afterInitLog = instance.getController().getLogSince( podName, afterInit.format( DateTimeFormatter.ISO_OFFSET_DATE_TIME ))
+
+        then:
+        fullLog != ""
+        fullLog.containsIgnoreCase( "nginx" )
+        fullLog == fromNowLog
+        afterInitLog != fromNowLog
     }
 }
