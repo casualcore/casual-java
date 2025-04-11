@@ -77,7 +77,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         log.finest(()-> "domainConnectRequest(). asking for protocol version(s)" + message.getMessage().getProtocols());
         log.finest(()-> "domainConnectRequest(). supported protocols: " + ProtocolVersion.supportedVersions());
         Long matchedProtocolVersion = ProtocolMatcher.match(message.getMessage().getProtocols());
-        log.info("domainConnectRequest(). matchedProtocolVersion: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
+        log.finest(() -> "domainConnectRequest(). matchedProtocolVersion: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
         if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_1.getVersion())
         {
             // should be notified when RA is stopped

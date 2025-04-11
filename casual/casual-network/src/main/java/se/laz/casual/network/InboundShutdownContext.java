@@ -17,7 +17,8 @@ public class InboundShutdownContext
 {
     private static final Logger log = Logger.getLogger(InboundShutdownContext.class.getName());
     private static final ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-
+    private InboundShutdownContext()
+    {}
     public static synchronized void add(Channel channel)
     {
         connectedClients.add(channel);

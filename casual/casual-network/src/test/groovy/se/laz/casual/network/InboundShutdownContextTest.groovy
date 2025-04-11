@@ -51,6 +51,9 @@ class InboundShutdownContextTest extends Specification
       InboundShutdownContext.remove(channelOne)
       // this time we only write to channelTwo since channelOne was removed
       InboundShutdownContext.domainDisconnect()
+      InboundShutdownContext.clear()
+      // results in zero writes since there are no channels left
+      InboundShutdownContext.domainDisconnect()
       then:
       noExceptionThrown()
    }

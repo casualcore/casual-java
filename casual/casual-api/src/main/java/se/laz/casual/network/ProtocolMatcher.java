@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 public class ProtocolMatcher
 {
+    private ProtocolMatcher()
+    {}
     public static Long match(List<Long> protocolVersions)
     {
         List<Long> supportedVersions = ProtocolVersion.supportedVersionNumbers();

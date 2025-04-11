@@ -18,7 +18,8 @@ public class InboundTopologyUpdateContext
 {
     private static final Logger log = Logger.getLogger(InboundTopologyUpdateContext.class.getName());
     private static final ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-
+    private InboundTopologyUpdateContext()
+    {}
     public static synchronized void add(Channel channel)
     {
         connectedClients.add(channel);

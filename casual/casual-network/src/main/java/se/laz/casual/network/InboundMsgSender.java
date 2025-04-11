@@ -21,10 +21,12 @@ import java.util.logging.Logger;
 public class InboundMsgSender
 {
     private static final Logger log = Logger.getLogger(InboundMsgSender.class.getName());
+    private InboundMsgSender()
+    {}
     public static void sendDomainDisconnect(Channel channel)
     {
         Objects.requireNonNull(channel,"channel can not be null" );
-        log.info("sending domain disconnect request to " + channel);
+        log.info(() -> "sending domain disconnect request to " + channel);
         channel.writeAndFlush(createDomainDisconnectMessage());
         log.info("domain disconnect request sent");
         // we do not care about the reply, appserver is going down
@@ -34,7 +36,7 @@ public class InboundMsgSender
     {
         Objects.requireNonNull(channel,"channel can not be null" );
         Objects.requireNonNull(executionId,"executionId can not be null" );
-        log.info("sending domain discovery topology update message to " + channel + " with executionId " + executionId);
+        log.info(() -> "sending domain discovery topology update message to " + channel + " with executionId " + executionId);
         channel.writeAndFlush(createDomainTopologyUpdateMessage(executionId));
     }
 
