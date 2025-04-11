@@ -24,6 +24,7 @@ import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -39,6 +40,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     private final Channel channel;
     private final InetSocketAddress address;
     private final Supplier<WorkManager> workManagerSupplier;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     private ReverseInboundServerImpl(Channel channel, InetSocketAddress address, Supplier<WorkManager> workManagerSupplier)
     {
@@ -60,8 +62,11 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
 
     private void onClose(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener)
     {
-        eventListener.disconnected(this);
-        AutoReconnect.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
+        if(!closed.get())
+        {
+            eventListener.disconnected(this);
+            AutoReconnect.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
+        }
     }
 
     private static Channel init(final InetSocketAddress address, final ReverseInboundMessageHandler messageHandler, ReverseInboundExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass)
@@ -97,6 +102,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     @Override
     public void close()
     {
+        closed.set(true);
         channel.close();
     }
 
