@@ -11,11 +11,12 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
+import java.util.UUID;
 import java.util.logging.Logger;
 
-public class InboundShutdownContext
+public class InboundTopologyUpdateContext
 {
-    private static final Logger log = Logger.getLogger(InboundShutdownContext.class.getName());
+    private static final Logger log = Logger.getLogger(InboundTopologyUpdateContext.class.getName());
     private static final ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     public static synchronized void add(Channel channel)
@@ -28,14 +29,14 @@ public class InboundShutdownContext
         connectedClients.remove(channel);
     }
 
-    public static void domainDisconnect()
+    public static void sendTopologyUpdate(UUID executionId)
     {
-        for(Channel channel : connectedClients)
+        for (Channel channel : connectedClients)
         {
-            if(channel.isWritable())
+            if (channel.isWritable())
             {
-                log.info(() -> "server going down, sending domain disconnect message to " + channel);
-                InboundMsgSender.sendDomainDisconnect(channel);
+                log.info(() -> "sending domain topology update message to " + channel);
+                InboundMsgSender.sendDomainDiscoveryImplicitUpdate(channel,executionId);
             }
         }
     }

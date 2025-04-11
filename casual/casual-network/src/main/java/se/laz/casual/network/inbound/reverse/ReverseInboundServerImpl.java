@@ -18,7 +18,6 @@ import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.EventLoopClient;
 import se.laz.casual.network.EventLoopFactory;
-import se.laz.casual.network.InboundCleaner;
 import se.laz.casual.network.LogLevelProvider;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
@@ -96,9 +95,9 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     }
 
     @Override
-    public void prepareShutdown()
+    public void close()
     {
-        InboundCleaner.sendDomainDisconnect(channel);
+        channel.close();
     }
 
     @Override

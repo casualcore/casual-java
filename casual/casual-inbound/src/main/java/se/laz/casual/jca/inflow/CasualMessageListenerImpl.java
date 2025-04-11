@@ -29,14 +29,16 @@ import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
+import se.laz.casual.network.InboundShutdownContext;
+import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.ProtocolMatcher;
 import se.laz.casual.network.ProtocolVersion;
-import se.laz.casual.network.ShouldBeNotifiedWhenShutdown;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.Service;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage;
@@ -69,13 +71,23 @@ public class CasualMessageListenerImpl implements CasualMessageListener
 {
     private static Logger log = Logger.getLogger(CasualMessageListenerImpl.class.getName());
     @Override
-    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel, ShouldBeNotifiedWhenShutdown whenShutdown)
+    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel)
     {
         log.finest(() -> "domainConnectRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
+        log.finest(()-> "domainConnectRequest(). asking for protocol version(s)" + message.getMessage().getProtocols());
+        log.finest(()-> "domainConnectRequest(). supported protocols: " + ProtocolVersion.supportedVersions());
         Long matchedProtocolVersion = ProtocolMatcher.match(message.getMessage().getProtocols());
+        log.info("domainConnectRequest(). matchedProtocolVersion: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
         if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_1.getVersion())
         {
-            whenShutdown.shouldBeNotifiedWhenShutdown();
+            // should be notified when RA is stopped
+            InboundShutdownContext.add(channel);
+        }
+        if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_2.getVersion())
+        {
+            // should be notified whenever a domain connects
+            InboundTopologyUpdateContext.add(channel);
+            InboundTopologyUpdateContext.sendTopologyUpdate(message.getMessage().getExecution());
         }
         String domainName = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME );
         UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId();
@@ -89,6 +101,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         channel.writeAndFlush(replyMessage);
     }
 
+    @Override
+    public void domainDisconnectReply(CasualNWMessage<DomainDisconnectReplyMessage> message)
+    {
+        log.finest(() -> "domainDisconnectReply(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
+    }
 
     @Override
     public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel)

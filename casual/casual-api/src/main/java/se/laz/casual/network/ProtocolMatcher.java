@@ -8,13 +8,14 @@ package se.laz.casual.network;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ProtocolMatcher
 {
     public static Long match(List<Long> protocolVersions)
     {
         List<Long> supportedVersions = ProtocolVersion.supportedVersionNumbers();
-        List<Long> matchedVersions = protocolVersions.stream().filter(supportedVersions::contains).toList();
+        List<Long> matchedVersions = protocolVersions.stream().filter(supportedVersions::contains).sorted().collect(Collectors.toList());
         Collections.sort(matchedVersions);
         return matchedVersions.get(matchedVersions.size() - 1);
     }

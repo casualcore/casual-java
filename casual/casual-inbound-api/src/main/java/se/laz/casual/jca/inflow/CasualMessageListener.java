@@ -10,9 +10,9 @@ import io.netty.channel.Channel;
 import jakarta.resource.spi.XATerminator;
 import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.network.ShouldBeNotifiedWhenShutdown;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
@@ -32,7 +32,14 @@ public interface CasualMessageListener
     * @param message received.
     * @param channel for response.
     */
-   void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel, ShouldBeNotifiedWhenShutdown whenShutdown);
+   void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel);
+
+    /**
+     * Notification that end point received domain disconnect request
+     *
+     * @param message received.
+     */
+   void domainDisconnectReply(CasualNWMessage<DomainDisconnectReplyMessage> message);
 
    /**
     * Process the Domain Discovery request and write the resulting response to the {@link Channel}.

@@ -11,5 +11,5 @@ import java.net.InetSocketAddress;
 public interface ReverseInboundServer
 {
     InetSocketAddress getAddress();
-    void prepareShutdown();
+    void close();
 }

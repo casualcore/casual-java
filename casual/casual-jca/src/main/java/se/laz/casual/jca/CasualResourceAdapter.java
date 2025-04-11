@@ -30,6 +30,8 @@ import se.laz.casual.jca.jmx.JMXStartup;
 import se.laz.casual.jca.work.StartInboundServerListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
 import se.laz.casual.jca.work.StartReverseInboundServerListener;
+import se.laz.casual.network.InboundShutdownContext;
+import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.inbound.CasualServer;
 import se.laz.casual.network.inbound.ConnectionInformation;
@@ -217,12 +219,17 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     public void endpointDeactivation(MessageEndpointFactory endpointFactory,
                                      ActivationSpec spec)
     {
+        log.finest(()->"endpointDeactivation()");
+        InboundShutdownContext.domainDisconnect();
+        InboundShutdownContext.clear();
+        InboundTopologyUpdateContext.clear();
         if( server != null )
         {
             server.close();
         }
+        reverseInbounds.forEach(ReverseInboundServer::close);
+        reverseInbounds.clear();
         activations.remove(((CasualActivationSpec)spec).getPort() );
-        log.finest(()->"endpointDeactivation()");
     }
 
     @Override
@@ -239,11 +246,6 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     public void stop()
     {
         log.finest(()->"stop()");
-        reverseInbounds.forEach(s -> s.prepareShutdown());
-        if(null != server)
-        {
-            server.prepareShutdown();
-        }
     }
 
     //Return empty array not null. But specification says to return null if we don't support this feature, so ignoring.
