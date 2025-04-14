@@ -11,8 +11,13 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
+import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Contains the currently connected clients, inbound or reverse inbound,
+ * that should be informed of topology update events
+ */
 public class InboundTopologyUpdateContext
 {
     private static final ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -20,11 +25,13 @@ public class InboundTopologyUpdateContext
     {}
     public static synchronized void add(Channel channel)
     {
+        Objects.requireNonNull(channel, "channel cannot be null");
         connectedClients.add(channel);
     }
 
     public static synchronized void remove(Channel channel)
     {
+        Objects.requireNonNull(channel, "channel cannot be null");
         connectedClients.remove(channel);
     }
 
