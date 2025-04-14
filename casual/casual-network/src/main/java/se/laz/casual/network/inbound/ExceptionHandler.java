@@ -9,7 +9,7 @@ package se.laz.casual.network.inbound;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import se.laz.casual.network.InboundShutdownContext;
+import se.laz.casual.network.InboundDeactivatedContext;
 import se.laz.casual.network.InboundTopologyUpdateContext;
 
 import java.util.logging.Logger;
@@ -27,7 +27,7 @@ public final class ExceptionHandler extends ChannelInboundHandlerAdapter
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
     {
         log.warning(() -> "casual inbound exception caught: " + cause + " closing channel");
-        InboundShutdownContext.remove(ctx.channel());
+        InboundDeactivatedContext.remove(ctx.channel());
         InboundTopologyUpdateContext.remove(ctx.channel());
         ctx.close();
     }

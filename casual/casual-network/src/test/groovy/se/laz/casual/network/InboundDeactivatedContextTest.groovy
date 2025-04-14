@@ -13,7 +13,7 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage
 import spock.lang.Specification
 
-class InboundShutdownContextTest extends Specification
+class InboundDeactivatedContextTest extends Specification
 {
    def 'sending messages'()
    {
@@ -44,16 +44,16 @@ class InboundShutdownContextTest extends Specification
             }
          })
       }
-      InboundShutdownContext.add(channelOne)
-      InboundShutdownContext.add(channelTwo)
+      InboundDeactivatedContext.add(channelOne)
+      InboundDeactivatedContext.add(channelTwo)
       when:
-      InboundShutdownContext.domainDisconnect()
-      InboundShutdownContext.remove(channelOne)
+      InboundDeactivatedContext.domainDisconnect()
+      InboundDeactivatedContext.remove(channelOne)
       // this time we only write to channelTwo since channelOne was removed
-      InboundShutdownContext.domainDisconnect()
-      InboundShutdownContext.clear()
+      InboundDeactivatedContext.domainDisconnect()
+      InboundDeactivatedContext.clear()
       // results in zero writes since there are no channels left
-      InboundShutdownContext.domainDisconnect()
+      InboundDeactivatedContext.domainDisconnect()
       then:
       noExceptionThrown()
    }

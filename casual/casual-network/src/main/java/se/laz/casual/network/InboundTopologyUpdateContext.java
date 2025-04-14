@@ -12,11 +12,9 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
 public class InboundTopologyUpdateContext
 {
-    private static final Logger log = Logger.getLogger(InboundTopologyUpdateContext.class.getName());
     private static final ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     private InboundTopologyUpdateContext()
     {}
@@ -36,7 +34,6 @@ public class InboundTopologyUpdateContext
         {
             if (channel.isWritable())
             {
-                log.info(() -> "sending domain topology update message to " + channel);
                 InboundMsgSender.sendDomainDiscoveryImplicitUpdate(channel,executionId);
             }
         }

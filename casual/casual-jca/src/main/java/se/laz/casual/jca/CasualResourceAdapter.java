@@ -30,7 +30,7 @@ import se.laz.casual.jca.jmx.JMXStartup;
 import se.laz.casual.jca.work.StartInboundServerListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
 import se.laz.casual.jca.work.StartReverseInboundServerListener;
-import se.laz.casual.network.InboundShutdownContext;
+import se.laz.casual.network.InboundDeactivatedContext;
 import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.inbound.CasualServer;
@@ -220,8 +220,8 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                                      ActivationSpec spec)
     {
         log.finest(()->"endpointDeactivation()");
-        InboundShutdownContext.domainDisconnect();
-        InboundShutdownContext.clear();
+        InboundDeactivatedContext.domainDisconnect();
+        InboundDeactivatedContext.clear();
         InboundTopologyUpdateContext.clear();
         if( server != null )
         {

@@ -11,13 +11,10 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
-import java.util.logging.Logger;
-
-public class InboundShutdownContext
+public class InboundDeactivatedContext
 {
-    private static final Logger log = Logger.getLogger(InboundShutdownContext.class.getName());
     private static final ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-    private InboundShutdownContext()
+    private InboundDeactivatedContext()
     {}
     public static synchronized void add(Channel channel)
     {
@@ -35,7 +32,6 @@ public class InboundShutdownContext
         {
             if(channel.isWritable())
             {
-                log.info(() -> "server going down, sending domain disconnect message to " + channel);
                 InboundMsgSender.sendDomainDisconnect(channel);
             }
         }

@@ -26,18 +26,16 @@ public class InboundMsgSender
     public static void sendDomainDisconnect(Channel channel)
     {
         Objects.requireNonNull(channel,"channel can not be null" );
-        log.info(() -> "sending domain disconnect request to " + channel);
         channel.writeAndFlush(createDomainDisconnectMessage());
-        log.info("domain disconnect request sent");
-        // we do not care about the reply, appserver is going down
+        log.finest(() -> "domain disconnect request sent to " + channel);
     }
 
     public static void sendDomainDiscoveryImplicitUpdate(Channel channel, UUID executionId)
     {
         Objects.requireNonNull(channel,"channel can not be null" );
         Objects.requireNonNull(executionId,"executionId can not be null" );
-        log.info(() -> "sending domain discovery topology update message to " + channel + " with executionId " + executionId);
         channel.writeAndFlush(createDomainTopologyUpdateMessage(executionId));
+        log.finest(() -> "sent domain discovery topology update message to " + channel + " with executionId " + executionId);
     }
 
     private static CasualNWMessage<DomainDisconnectRequestMessage> createDomainDisconnectMessage()

@@ -29,7 +29,7 @@ import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
-import se.laz.casual.network.InboundShutdownContext;
+import se.laz.casual.network.InboundDeactivatedContext;
 import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.ProtocolMatcher;
 import se.laz.casual.network.ProtocolVersion;
@@ -80,14 +80,16 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         log.finest(() -> "domainConnectRequest(). matchedProtocolVersion: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
         if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_1.getVersion())
         {
-            // should be notified when RA is stopped
-            InboundShutdownContext.add(channel);
+            // should be notified when RA is deactivated
+            InboundDeactivatedContext.add(channel);
         }
         if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_2.getVersion())
         {
             // should be notified whenever a domain connects
-            InboundTopologyUpdateContext.add(channel);
+            // we send to all previously connected clients and add the new one after as not to send
+            // the notification to the new client connecting
             InboundTopologyUpdateContext.sendTopologyUpdate(message.getMessage().getExecution());
+            InboundTopologyUpdateContext.add(channel);
         }
         String domainName = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME );
         UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId();
