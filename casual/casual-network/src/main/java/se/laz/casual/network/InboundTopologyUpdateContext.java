@@ -23,13 +23,13 @@ public class InboundTopologyUpdateContext
     private static final ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     private InboundTopologyUpdateContext()
     {}
-    public static synchronized void add(Channel channel)
+    public static void add(Channel channel)
     {
         Objects.requireNonNull(channel, "channel cannot be null");
         connectedClients.add(channel);
     }
 
-    public static synchronized void remove(Channel channel)
+    public static void remove(Channel channel)
     {
         Objects.requireNonNull(channel, "channel cannot be null");
         connectedClients.remove(channel);
