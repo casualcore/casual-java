@@ -8,6 +8,7 @@ package se.laz.casual.network;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ProtocolMatcher
@@ -16,6 +17,7 @@ public class ProtocolMatcher
     {}
     public static Long match(List<Long> protocolVersions)
     {
+        Objects.requireNonNull(protocolVersions,"protocolVersions can not be null" );
         List<Long> supportedVersions = ProtocolVersion.supportedVersionNumbers();
         List<Long> matchedVersions = protocolVersions.stream().filter(supportedVersions::contains).sorted().collect(Collectors.toList());
         Collections.sort(matchedVersions);
