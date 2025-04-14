@@ -18,6 +18,8 @@ import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.EventLoopClient;
 import se.laz.casual.network.EventLoopFactory;
+import se.laz.casual.network.InboundDeactivatedContext;
+import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.LogLevelProvider;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
@@ -40,7 +42,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     private final Channel channel;
     private final InetSocketAddress address;
     private final Supplier<WorkManager> workManagerSupplier;
-    private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final AtomicBoolean deactivated = new AtomicBoolean(false);
 
     private ReverseInboundServerImpl(Channel channel, InetSocketAddress address, Supplier<WorkManager> workManagerSupplier)
     {
@@ -62,8 +64,10 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
 
     private void onClose(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener)
     {
-        if(!closed.get())
+        if(!deactivated.get())
         {
+            InboundDeactivatedContext.remove(channel);
+            InboundTopologyUpdateContext.remove(channel);
             eventListener.disconnected(this);
             AutoReconnect.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
         }
@@ -100,9 +104,9 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     }
 
     @Override
-    public void close()
+    public void deactivate()
     {
-        closed.set(true);
+        deactivated.set(true);
         channel.close();
     }
 

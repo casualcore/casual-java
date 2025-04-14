@@ -20,7 +20,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
-import se.laz.casual.network.InboundMsgSender;
 import se.laz.casual.network.LogLevelProvider;
 
 import java.net.InetSocketAddress;
@@ -85,10 +84,5 @@ public final class CasualServer
         channel.close().syncUninterruptibly();
         channel.eventLoop().shutdownGracefully().syncUninterruptibly();
         log.info(() -> "server closed");
-    }
-
-    public void prepareShutdown()
-    {
-        InboundMsgSender.sendDomainDisconnect(channel);
     }
 }

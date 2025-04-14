@@ -227,7 +227,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         {
             server.close();
         }
-        reverseInbounds.forEach(ReverseInboundServer::close);
+        reverseInbounds.forEach(ReverseInboundServer::deactivate);
         reverseInbounds.clear();
         activations.remove(((CasualActivationSpec)spec).getPort() );
     }
