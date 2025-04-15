@@ -19,6 +19,7 @@ import java.util.Objects;
  */
 public class InboundDeactivatedContext
 {
+    // note: DefaultChannelGroup is backed by ConcurrentMap
     private static final ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     private InboundDeactivatedContext()
     {}

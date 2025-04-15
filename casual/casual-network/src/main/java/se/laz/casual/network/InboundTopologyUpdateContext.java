@@ -20,6 +20,7 @@ import java.util.UUID;
  */
 public class InboundTopologyUpdateContext
 {
+    // note: DefaultChannelGroup is backed by ConcurrentMap
     private static final ChannelGroup connectedClients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     private InboundTopologyUpdateContext()
     {}
