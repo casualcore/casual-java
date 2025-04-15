@@ -74,10 +74,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel)
     {
         log.finest(() -> "domainConnectRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
-        log.finest(()-> "domainConnectRequest(). asking for protocol version(s)" + message.getMessage().getProtocols());
-        log.finest(()-> "domainConnectRequest(). supported protocols: " + ProtocolVersion.supportedVersions());
+        log.info(()-> "domainConnectRequest(). client" + channel + " asking for protocol version(s)" + message.getMessage().getProtocols());
+        log.info(()-> "domainConnectRequest(). supported protocols: " + ProtocolVersion.supportedVersions());
         Long matchedProtocolVersion = ProtocolMatcher.match(message.getMessage().getProtocols());
-        log.finest(() -> "domainConnectRequest(). matchedProtocolVersion: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
+        log.info(() -> "domainConnectRequest(). matched protocol version: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
+
         if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_1.getVersion())
         {
             // should be notified when RA is deactivated
