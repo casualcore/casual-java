@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -85,4 +85,5 @@ public final class CasualServer
         channel.eventLoop().shutdownGracefully().syncUninterruptibly();
         log.info(() -> "server closed");
     }
+
 }
