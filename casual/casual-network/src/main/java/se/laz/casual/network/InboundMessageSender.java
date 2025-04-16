@@ -18,10 +18,10 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-public class InboundMsgSender
+public class InboundMessageSender
 {
-    private static final Logger log = Logger.getLogger(InboundMsgSender.class.getName());
-    private InboundMsgSender()
+    private static final Logger log = Logger.getLogger(InboundMessageSender.class.getName());
+    private InboundMessageSender()
     {}
     public static void sendDomainDisconnect(Channel channel)
     {

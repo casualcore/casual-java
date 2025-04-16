@@ -6,11 +6,11 @@
 
 package se.laz.casual.network;
 
-import se.laz.casual.api.CasualRuntimeException;
+import se.laz.casual.network.connection.CasualConnectionException;
 
 import java.util.function.Supplier;
 
-public class ProtocolVersionException extends CasualRuntimeException
+public class ProtocolVersionException extends CasualConnectionException
 {
     private static final long serialVersionUID = 1L;
     public ProtocolVersionException(Supplier<String> message)

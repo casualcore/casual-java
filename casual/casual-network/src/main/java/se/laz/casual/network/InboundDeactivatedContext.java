@@ -41,7 +41,7 @@ public class InboundDeactivatedContext
         {
             if(channel.isWritable())
             {
-                InboundMsgSender.sendDomainDisconnect(channel);
+                InboundMessageSender.sendDomainDisconnect(channel);
             }
         }
     }

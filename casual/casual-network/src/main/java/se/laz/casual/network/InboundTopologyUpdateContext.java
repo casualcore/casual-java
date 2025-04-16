@@ -42,7 +42,7 @@ public class InboundTopologyUpdateContext
         {
             if (channel.isWritable())
             {
-                InboundMsgSender.sendDomainDiscoveryImplicitUpdate(channel,executionId);
+                InboundMessageSender.sendDomainDiscoveryImplicitUpdate(channel,executionId);
             }
         }
     }
