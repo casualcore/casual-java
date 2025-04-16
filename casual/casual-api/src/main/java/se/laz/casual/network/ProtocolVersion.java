@@ -8,7 +8,6 @@ package se.laz.casual.network;
 import se.laz.casual.network.connection.CasualConnectionException;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,22 +34,18 @@ public enum ProtocolVersion
         stringVersions = createMarshallingMap( p->p.versionString );
     }
 
-    static <T>List<T> createSupportedList( Function<ProtocolVersion,T> function )
+    static <T>List<T> createSupportedList( Function<ProtocolVersion,T> valueFunction )
     {
         return Arrays.stream( ProtocolVersion.values() )
                 .filter( p -> p.supported )
-                .map( function )
-                .collect( Collectors.toList());
+                .map( valueFunction )
+                .toList();
     }
 
-    static <T>Map<T,ProtocolVersion> createMarshallingMap( Function<ProtocolVersion,T> function )
+    static <T>Map<T,ProtocolVersion> createMarshallingMap( Function<ProtocolVersion,T> identityFunction )
     {
-        Map<T,ProtocolVersion> map = new HashMap<>();
-        for( ProtocolVersion v : ProtocolVersion.values() )
-        {
-            map.put( function.apply( v ), v );
-        }
-        return map;
+        return Arrays.stream( ProtocolVersion.values() )
+                .collect( Collectors.toMap( identityFunction, p -> p ));
     }
 
     private final long version;
