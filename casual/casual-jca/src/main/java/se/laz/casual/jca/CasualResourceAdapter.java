@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -30,6 +30,8 @@ import se.laz.casual.jca.jmx.JMXStartup;
 import se.laz.casual.jca.work.StartInboundServerListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
 import se.laz.casual.jca.work.StartReverseInboundServerListener;
+import se.laz.casual.network.InboundDeactivatedContext;
+import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.inbound.CasualServer;
 import se.laz.casual.network.inbound.ConnectionInformation;
@@ -217,12 +219,17 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     public void endpointDeactivation(MessageEndpointFactory endpointFactory,
                                      ActivationSpec spec)
     {
+        log.finest(()->"endpointDeactivation()");
+        InboundDeactivatedContext.domainDisconnect();
+        InboundDeactivatedContext.clear();
+        InboundTopologyUpdateContext.clear();
         if( server != null )
         {
             server.close();
         }
+        reverseInbounds.forEach(ReverseInboundServer::deactivate);
+        reverseInbounds.clear();
         activations.remove(((CasualActivationSpec)spec).getPort() );
-        log.finest(()->"endpointDeactivation()");
     }
 
     @Override

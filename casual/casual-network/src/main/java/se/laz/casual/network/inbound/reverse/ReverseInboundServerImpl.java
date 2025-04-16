@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -18,12 +18,15 @@ import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
 import se.laz.casual.network.EventLoopClient;
 import se.laz.casual.network.EventLoopFactory;
+import se.laz.casual.network.InboundDeactivatedContext;
+import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.LogLevelProvider;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -39,6 +42,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     private final Channel channel;
     private final InetSocketAddress address;
     private final Supplier<WorkManager> workManagerSupplier;
+    private final AtomicBoolean deactivated = new AtomicBoolean(false);
 
     private ReverseInboundServerImpl(Channel channel, InetSocketAddress address, Supplier<WorkManager> workManagerSupplier)
     {
@@ -60,8 +64,13 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
 
     private void onClose(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener)
     {
-        eventListener.disconnected(this);
-        AutoReconnect.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
+        if(!deactivated.get())
+        {
+            InboundDeactivatedContext.remove(channel);
+            InboundTopologyUpdateContext.remove(channel);
+            eventListener.disconnected(this);
+            AutoReconnect.of(reverseInboundConnectionInformation, eventListener, workManagerSupplier);
+        }
     }
 
     private static Channel init(final InetSocketAddress address, final ReverseInboundMessageHandler messageHandler, ReverseInboundExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass)
@@ -95,6 +104,13 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     }
 
     @Override
+    public void deactivate()
+    {
+        deactivated.set(true);
+        channel.close();
+    }
+
+    @Override
     public boolean equals(Object o)
     {
         if (this == o)
@@ -124,4 +140,5 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
                 ", workManagerSupplier=" + workManagerSupplier +
                 '}';
     }
+
 }

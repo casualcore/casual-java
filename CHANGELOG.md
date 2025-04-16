@@ -1,6 +1,14 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.3.4] - 2025-04-16
+
+### feat: inbound gw protocol bumps casual 1.6 ([#183](https://github.com/casualcore/casual-java/issues/183))
+casual-jca now supports protocol version 1.0, 1.1, 1.2 on both outbound,
+inbound and reverse inbound connections.
+
+Previously inbound and reverse inbound were locked to 1.0.
+
 ## [3.3.3] - 2025-03-31
 
 ### chore: missing changelog entry ([#182](https://github.com/casualcore/casual-java/issues/182))
