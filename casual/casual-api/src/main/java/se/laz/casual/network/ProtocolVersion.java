@@ -5,8 +5,6 @@
  */
 package se.laz.casual.network;
 
-import se.laz.casual.network.connection.CasualConnectionException;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -77,13 +75,13 @@ public enum ProtocolVersion
     public static ProtocolVersion unmarshall(long version)
     {
         return Optional.ofNullable( longVersions.get( version ) )
-                     .orElseThrow(() -> new CasualConnectionException("Version: " + version + " is not supported"));
+                     .orElseThrow(() -> new ProtocolVersionException(() -> "Version: " + version + " is not supported"));
     }
 
     public static ProtocolVersion unmarshall(String version)
     {
         return Optional.ofNullable( stringVersions.get( version ) )
-                .orElseThrow(() -> new CasualConnectionException("Unknown protocol version: " + version) );
+                .orElseThrow(() -> new ProtocolVersionException(() -> "Unknown protocol version: " + version) );
     }
 
     public static List<Long> supportedVersionNumbers()

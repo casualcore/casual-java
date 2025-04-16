@@ -5,7 +5,7 @@
  */
 package se.laz.casual.network
 
-import se.laz.casual.network.connection.CasualConnectionException
+
 import spock.lang.Specification
 
 class ProtocolVersionTest extends Specification
@@ -26,7 +26,7 @@ class ProtocolVersionTest extends Specification
       ProtocolVersion.unmarshall( value )
 
       then:
-      thrown CasualConnectionException
+      thrown ProtocolVersionException
 
       where:
       value << [
@@ -41,7 +41,7 @@ class ProtocolVersionTest extends Specification
       ProtocolVersion.unmarshall( value )
 
       then:
-      thrown CasualConnectionException
+      thrown ProtocolVersionException
 
       where:
       value << [
