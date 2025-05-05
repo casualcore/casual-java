@@ -52,36 +52,40 @@ public interface CasualMessageListener
     * Process the Service Call request making use of the provided {@link WorkManager} to handle long running executions.
     * Write the resulting response to the provided {@link Channel}.
     *
-    * @param message received.
-    * @param channel for the response.
-    * @param workManager for managing long running execution.
+    * @param message                    received.
+    * @param channel                    for the response.
+    * @param workManager                for managing long running execution.
+    * @param inboundTransactionRegistry
     */
-   void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager );
+   void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry);
 
    /**
     * Process the transaction Prepare request utilising the provided {@link XATerminator}.
     *
-    * @param message received.
-    * @param channel for the response.
-    * @param xaTerminator for controlling transaction.
+    * @param message                    received.
+    * @param channel                    for the response.
+    * @param xaTerminator               for controlling transaction.
+    * @param inboundTransactionRegistry
     */
-   void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator);
+   void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry);
 
    /**
     * Process the transaction Commit request utilising the provided {@link XATerminator}.
     *
-    * @param message received.
-    * @param channel for the response.
-    * @param xaTerminator for controlling transaction.
+    * @param message                    received.
+    * @param channel                    for the response.
+    * @param xaTerminator               for controlling transaction.
+    * @param inboundTransactionRegistry
     */
-   void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator);
+   void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry);
 
    /**
     * Process the transaction Rollbacak request utilising the providded {@link XATerminator}.
     *
-    * @param message received.
-    * @param channel for the response.
-    * @param xaTerminator for controlling transaction.
+    * @param message                    received.
+    * @param channel                    for the response.
+    * @param xaTerminator               for controlling transaction.
+    * @param inboundTransactionRegistry
     */
-   void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator);
+   void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry);
 }

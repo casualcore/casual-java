@@ -26,6 +26,7 @@ import se.laz.casual.config.ReverseInbound;
 import se.laz.casual.event.server.EventServer;
 import se.laz.casual.event.server.EventServerConnectionInformation;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
+import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 import se.laz.casual.jca.jmx.JMXStartup;
 import se.laz.casual.jca.work.StartInboundServerListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
@@ -68,6 +69,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
     private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
     private List<ReverseInboundServer> reverseInbounds = new ArrayList<>();
+    private CasualInboundTransactionRegistry inboundTransactionRegistry;
     // it is not really unused, it should never ever be gc:ed, thus it is part of this class
     @SuppressWarnings("java:S1068")
     private EventServer eventServer;
@@ -133,6 +135,8 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                                    ActivationSpec spec) throws ResourceException
     {
         log.info(()->"start endpointActivation() ");
+        inboundTransactionRegistry = new CasualInboundTransactionRegistry();
+        RuntimeInformation.setDomainIsBeingShutdown(false);
         CasualActivationSpec as = (CasualActivationSpec) spec;
         as.setPort( getInboundServerPort() );
         ConnectionInformation ci = ConnectionInformation.createBuilder()
@@ -141,6 +145,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                 .withWorkManager(workManager)
                 .withXaTerminator(xaTerminator)
                 .withUseEpoll( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_USE_EPOLL ) )
+                .withInboundTransactionRegistry(inboundTransactionRegistry)
                 .build();
         activations.put(as.getPort(), as);
         log.info(() -> "start casual inbound server" );
@@ -164,6 +169,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                                                                    .withXaTerminator(xaTerminator)
                                                                    .withProtocolVersion(ProtocolVersion.VERSION_1_0)
                                                                    .withMaxBackoffMillils(instance.getMaxConnectionBackoffMillis())
+                                                                   .withInboundTransactionRegistry(inboundTransactionRegistry)
                                                                    .build(), instance.getSize());
         }
     }
@@ -219,10 +225,17 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     public void endpointDeactivation(MessageEndpointFactory endpointFactory,
                                      ActivationSpec spec)
     {
-        log.finest(()->"endpointDeactivation()");
+        log.info(()->"endpointDeactivation() - sending domain disconnect messages");
+        RuntimeInformation.setDomainIsBeingShutdown(true);
         InboundDeactivatedContext.domainDisconnect();
         InboundDeactivatedContext.clear();
         InboundTopologyUpdateContext.clear();
+        Predicate predicate = () -> inboundTransactionRegistry.hasPending() || CasualResourceManager.getInstance().hasPending();
+        long sleepTime = 20;
+        // TODO: should the timeout be configurable with a default value?
+        long timeout = 15 * 1000; // 15s
+        ShutdownBarrier shutdownBarrier = ShutdownBarrier.of(sleepTime, timeout, predicate);
+        shutdownBarrier.intermittentSleep();
         if( server != null )
         {
             server.close();
@@ -236,7 +249,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     public void start(BootstrapContext ctx)
             throws ResourceAdapterInternalException
     {
-        log.finest(()->"start()");
+        log.info(()->"start()");
         workManager = ctx.getWorkManager();
         xaTerminator = ctx.getXATerminator();
         JMXStartup.getInstance().initJMX();
@@ -245,7 +258,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     @Override
     public void stop()
     {
-        log.finest(()->"stop()");
+        log.info(()->"stop()");
     }
 
     //Return empty array not null. But specification says to return null if we don't support this feature, so ignoring.

@@ -14,6 +14,7 @@ import jakarta.resource.spi.endpoint.MessageEndpoint;
 import jakarta.resource.spi.endpoint.MessageEndpointFactory;
 import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 import se.laz.casual.jca.inflow.CasualMessageListener;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
@@ -33,20 +34,23 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
     private final MessageEndpointFactory factory;
     private final XATerminator xaTerminator;
     private final WorkManager workManager;
+    private final CasualInboundTransactionRegistry inboundTransactionRegistry;
 
-    private CasualMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager)
+    private CasualMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry)
     {
         this.factory = factory;
         this.xaTerminator = xaTerminator;
         this.workManager = workManager;
+        this.inboundTransactionRegistry = inboundTransactionRegistry;
     }
 
-    public static CasualMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager)
+    public static CasualMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry)
     {
         Objects.requireNonNull(factory, "factory can not be null");
         Objects.requireNonNull(xaTerminator, "xaTerminator can not be null");
         Objects.requireNonNull(workManager, "workManager can not be null");
-        return new CasualMessageHandler(factory, xaTerminator, workManager);
+        Objects.requireNonNull(inboundTransactionRegistry, "inboundTransactionRegistry can not be null");
+        return new CasualMessageHandler(factory, xaTerminator, workManager, inboundTransactionRegistry);
     }
 
     @SuppressWarnings("unchecked")
@@ -55,19 +59,20 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
     {
         MessageEndpoint endpoint = factory.createEndpoint(null);
         CasualMessageListener listener = (CasualMessageListener) endpoint;
+        log.info(() -> "inbound msg: " + message);
         switch ( message.getType() )
         {
             case COMMIT_REQUEST:
-                listener.commitRequest((CasualNWMessage<CasualTransactionResourceCommitRequestMessage>)message, ctx.channel(), xaTerminator);
+                listener.commitRequest((CasualNWMessage<CasualTransactionResourceCommitRequestMessage>)message, ctx.channel(), xaTerminator, inboundTransactionRegistry);
                 break;
             case PREPARE_REQUEST:
-                listener.prepareRequest((CasualNWMessage<CasualTransactionResourcePrepareRequestMessage>)message, ctx.channel(), xaTerminator);
+                listener.prepareRequest((CasualNWMessage<CasualTransactionResourcePrepareRequestMessage>)message, ctx.channel(), xaTerminator, inboundTransactionRegistry);
                 break;
             case REQUEST_ROLLBACK:
-                listener.requestRollback((CasualNWMessage<CasualTransactionResourceRollbackRequestMessage>)message, ctx.channel(), xaTerminator);
+                listener.requestRollback((CasualNWMessage<CasualTransactionResourceRollbackRequestMessage>)message, ctx.channel(), xaTerminator, inboundTransactionRegistry);
                 break;
             case SERVICE_CALL_REQUEST:
-                listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager);
+                listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry);
                 break;
             case DOMAIN_CONNECT_REQUEST:
                 listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, ctx.channel());

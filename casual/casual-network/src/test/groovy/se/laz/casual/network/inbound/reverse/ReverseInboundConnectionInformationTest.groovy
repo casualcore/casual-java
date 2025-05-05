@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -14,6 +14,7 @@ import jakarta.resource.spi.endpoint.MessageEndpointFactory
 import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.config.ConfigurationOptions
 import se.laz.casual.config.ConfigurationService
+import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.outbound.Correlator
 import spock.lang.Specification
@@ -41,6 +42,7 @@ class ReverseInboundConnectionInformationTest extends Specification
       long maxBackoffMillis = 12345
       boolean isLogHandlerEnabled = true
 
+      CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
       ReverseInboundConnectionInformation connectionInfo
 
       ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER, isLogHandlerEnabled )
@@ -56,6 +58,7 @@ class ReverseInboundConnectionInformationTest extends Specification
               .withDomainName(domainName)
               .withUseEpoll(useEpoll)
               .withMaxBackoffMillils(maxBackoffMillis)
+              .withInboundTransactionRegistry(inboundTransactionRegistry)
               .build()
 
       expect:
@@ -88,6 +91,7 @@ class ReverseInboundConnectionInformationTest extends Specification
       boolean useEpoll = false
       long maxBackoffMillis = 12345
       boolean isLogHandlerEnabled = false
+      CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
 
       ReverseInboundConnectionInformation connectionInfo
 
@@ -104,6 +108,7 @@ class ReverseInboundConnectionInformationTest extends Specification
               .withDomainName(domainName)
               .withUseEpoll(useEpoll)
               .withMaxBackoffMillils(maxBackoffMillis)
+              .withInboundTransactionRegistry(inboundTransactionRegistry)
               .build()
 
       expect:

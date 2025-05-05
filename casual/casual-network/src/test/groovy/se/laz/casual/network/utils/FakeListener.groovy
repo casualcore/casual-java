@@ -11,6 +11,7 @@ import jakarta.resource.spi.XATerminator
 import jakarta.resource.spi.endpoint.MessageEndpoint
 import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
+import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry
 import se.laz.casual.jca.inflow.CasualMessageListener
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
@@ -56,22 +57,22 @@ class FakeListener implements MessageEndpoint, CasualMessageListener
     }
 
     @Override
-    void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager) {
+    void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry) {
 
     }
 
     @Override
-    void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator) {
+    void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry) {
 
     }
 
     @Override
-    void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator) {
+    void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry) {
 
     }
 
     @Override
-    void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator) {
+    void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry) {
 
     }
 }

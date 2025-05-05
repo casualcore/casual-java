@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -14,6 +14,7 @@ import jakarta.resource.spi.endpoint.MessageEndpointFactory;
 import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
+import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.outbound.Correlator;
 import se.laz.casual.network.outbound.CorrelatorImpl;
@@ -34,6 +35,7 @@ public class ReverseInboundConnectionInformation
     private final UUID domainId;
     private final String domainName;
     private final Class<? extends Channel> channelClass;
+    private final CasualInboundTransactionRegistry inboundTransactionRegistry;
     private boolean useEpoll;
     private final long maxBackoffMillis;
 
@@ -51,6 +53,7 @@ public class ReverseInboundConnectionInformation
         this.channelClass = builder.channelClass;
         this.useEpoll = builder.useEpoll;
         this.maxBackoffMillis = builder.maxBackoffMillis;
+        this.inboundTransactionRegistry = builder.inboundTransactionRegistry;
     }
 
     public InetSocketAddress getAddress()
@@ -118,6 +121,11 @@ public class ReverseInboundConnectionInformation
         return maxBackoffMillis;
     }
 
+    public CasualInboundTransactionRegistry getInboundTransactionRegistry()
+    {
+        return inboundTransactionRegistry;
+    }
+
     public static final class Builder
     {
         private InetSocketAddress address;
@@ -132,6 +140,7 @@ public class ReverseInboundConnectionInformation
         private boolean logHandlerEnabled;
         private boolean useEpoll;
         private long maxBackoffMillis;
+        private CasualInboundTransactionRegistry inboundTransactionRegistry;
 
         public Builder withAddress(InetSocketAddress address)
         {
@@ -193,6 +202,12 @@ public class ReverseInboundConnectionInformation
             return this;
         }
 
+        public Builder withInboundTransactionRegistry(CasualInboundTransactionRegistry inboundTransactionRegistry)
+        {
+            this.inboundTransactionRegistry = inboundTransactionRegistry;
+            return this;
+        }
+
         public ReverseInboundConnectionInformation build()
         {
             Objects.requireNonNull(address, "address can not be null");
@@ -202,10 +217,13 @@ public class ReverseInboundConnectionInformation
             Objects.requireNonNull(workManager, "workManager can not be null");
             Objects.requireNonNull(domainId, "domainId can not be null");
             Objects.requireNonNull(domainName, "domainName can not be null");
+            Objects.requireNonNull(inboundTransactionRegistry, "inboundTransactionRegistry can not be null");
             correlator = null == correlator ? CorrelatorImpl.of() : correlator;
             channelClass = useEpoll ? EpollSocketChannel.class : NioSocketChannel.class;
             logHandlerEnabled = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER );
             return new ReverseInboundConnectionInformation(this);
         }
+
+
     }
 }

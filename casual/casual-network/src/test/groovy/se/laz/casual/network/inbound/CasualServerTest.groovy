@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,6 +10,10 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.EventLoop
 import io.netty.channel.epoll.EpollServerSocketChannel
+import jakarta.resource.spi.XATerminator
+import jakarta.resource.spi.endpoint.MessageEndpointFactory
+import jakarta.resource.spi.work.WorkManager
+import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
@@ -18,9 +22,6 @@ import spock.lang.Requires
 import spock.lang.Shared
 import spock.lang.Specification
 
-import jakarta.resource.spi.XATerminator
-import jakarta.resource.spi.endpoint.MessageEndpointFactory
-import jakarta.resource.spi.work.WorkManager
 import java.nio.channels.SocketChannel
 
 class CasualServerTest extends Specification
@@ -32,9 +33,11 @@ class CasualServerTest extends Specification
     @Shared String domainName = "java"
     @Shared UUID execution = UUID.randomUUID()
     @Shared long protocolVersion = 1000L
+    @Shared CasualInboundTransactionRegistry inboundTransactionRegistry
 
     def setup()
     {
+        inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         channel = Mock(Channel)
         channel.close () >> {
             def f = Mock(ChannelFuture)
@@ -89,6 +92,7 @@ class CasualServerTest extends Specification
                                                                   .withXaTerminator(xaTerminator)
                                                                   .withFactory(factory)
                                                                   .withWorkManager(workManager)
+                                                                  .withInboundTransactionRegistry(inboundTransactionRegistry)
                                                                   .build())
         InetSocketAddress address = (InetSocketAddress) server.channel.localAddress()
 
@@ -133,6 +137,7 @@ class CasualServerTest extends Specification
                 .withFactory(factory)
                 .withWorkManager(workManager)
                 .withUseEpoll( true )
+                .withInboundTransactionRegistry(inboundTransactionRegistry)
                 .build())
         InetSocketAddress address = (InetSocketAddress) server.channel.localAddress()
 
@@ -171,6 +176,7 @@ class CasualServerTest extends Specification
                 .withFactory(factory)
                 .withWorkManager(workManager)
                 .withUseEpoll( true )
+                .withInboundTransactionRegistry(inboundTransactionRegistry)
                 .build())
         Channel channel = server.channel
 

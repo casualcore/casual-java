@@ -27,7 +27,7 @@ public class InboundMessageSender
     {
         Objects.requireNonNull(channel,"channel can not be null" );
         channel.writeAndFlush(createDomainDisconnectMessage());
-        log.finest(() -> "domain disconnect request sent to " + channel);
+        log.info(() -> "domain disconnect request sent to " + channel);
     }
 
     public static void sendDomainDiscoveryImplicitUpdate(Channel channel, UUID executionId)

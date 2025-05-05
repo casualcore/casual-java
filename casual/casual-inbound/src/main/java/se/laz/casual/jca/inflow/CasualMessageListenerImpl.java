@@ -107,7 +107,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void domainDisconnectReply(CasualNWMessage<DomainDisconnectReplyMessage> message)
     {
-        log.finest(() -> "domainDisconnectReply(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
+        log.info(() -> "domainDisconnectReply(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
     }
 
     @Override
@@ -142,9 +142,9 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager )
+    public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry)
     {
-        log.finest(() -> "serviceCallRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
+        log.info(() -> "serviceCallRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
 
         Xid xid = message.getMessage().getXid();
         if(tpNoReplyOutOfProtocol( message, isServiceCallTransactional( xid )))
@@ -162,6 +162,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         {
             if(!isTpNoReply && isServiceCallTransactional( xid ) )
             {
+                inboundTransactionRegistry.add(channel.id(), XidKey.of(xid));
                 workManager.scheduleWork(work, WorkManager.INDEFINITE, createTransactionContext(xid, message.getMessage().getTimeout()), new ServiceCallWorkListener(channel, message.getMessage()));
             }
             else
@@ -171,6 +172,10 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         }
         catch (WorkException e)
         {
+            if(!isTpNoReply && isServiceCallTransactional( xid ) )
+            {
+                inboundTransactionRegistry.remove(channel.id(), XidKey.of(xid));
+            }
             throw new CasualResourceAdapterException( "Error starting work.", e );
         }
     }
@@ -206,11 +211,10 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator)
+    public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry)
     {
-        log.finest(() ->  "prepareRequest(). " + PrettyPrinter.format(message.getCorrelationId(),
+        log.info(() ->  "prepareRequest(). " + PrettyPrinter.format(message.getCorrelationId(),
                 message.getMessage().getExecution(), message.getMessage().getXid()) + "flags:" + message.getMessage().getFlags() + " " + message);
-
         Xid xid = message.getMessage().getXid();
         int status = -1;
         try
@@ -225,7 +229,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         }
         finally
         {
-
+            if(status == XAReturnCode.XA_RDONLY.getId())
+            {
+                // XA_RDONLY, no commit/rollback will be called
+                inboundTransactionRegistry.remove(channel.id(), XidKey.of(xid));
+            }
             CasualTransactionResourcePrepareReplyMessage reply =
                     CasualTransactionResourcePrepareReplyMessage.of(
                             message.getMessage().getExecution(),
@@ -239,11 +247,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator)
+    public void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry)
     {
-        log.finest(() -> "commitRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
-
+        log.info(() -> "commitRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
         Xid xid = message.getMessage().getXid();
+        inboundTransactionRegistry.remove(channel.id(), XidKey.of(xid));
         boolean onePhase = message.getMessage().getFlags().isSet( XAFlags.TMONEPHASE );
 
         int status = -1;
@@ -271,12 +279,12 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator)
+    public void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry)
     {
-        log.finest(() -> "requestRollback(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
+        log.info(() -> "requestRollback(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
 
         Xid xid = message.getMessage().getXid();
-
+        inboundTransactionRegistry.remove(channel.id(), XidKey.of(xid));
         int status = -1;
         try
         {

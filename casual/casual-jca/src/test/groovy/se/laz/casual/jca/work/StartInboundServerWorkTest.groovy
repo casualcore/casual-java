@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -14,6 +14,7 @@ import se.laz.casual.config.Mode
 import se.laz.casual.jca.InboundStartupException
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory
 import se.laz.casual.jca.inbound.handler.test.TestServiceHandler
+import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry
 import se.laz.casual.network.inbound.CasualServer
 import se.laz.casual.network.inbound.ConnectionInformation
 import spock.lang.Shared
@@ -44,8 +45,11 @@ class StartInboundServerWorkTest extends Specification
 
     CasualServer server
 
+    CasualInboundTransactionRegistry inboundTransactionRegistry
+
     def setup()
     {
+        inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         MessageEndpointFactory endpointFactory = Mock( MessageEndpointFactory )
         WorkManager workManager = Mock( WorkManager)
         XATerminator xaTerminator = Mock( XATerminator )
@@ -54,6 +58,7 @@ class StartInboundServerWorkTest extends Specification
                 .withPort( port )
                 .withWorkManager(workManager)
                 .withXaTerminator(xaTerminator)
+                .withInboundTransactionRegistry(inboundTransactionRegistry)
                 .build()
     }
 

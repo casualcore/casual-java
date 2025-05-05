@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -15,6 +15,7 @@ import jakarta.resource.spi.endpoint.MessageEndpointFactory
 import jakarta.resource.spi.work.WorkException
 import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.jca.inflow.CasualActivationSpec
+import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry
 import se.laz.casual.network.inbound.CasualServer
 import spock.lang.Shared
 import spock.lang.Specification
@@ -27,6 +28,11 @@ class CasualResourceAdapterTest extends Specification
     def setup()
     {
         instance = new CasualResourceAdapter()
+    }
+
+    def cleanup()
+    {
+       RuntimeInformation.setDomainIsBeingShutdown(false)
     }
 
     def "GetXAResources"()
@@ -152,6 +158,9 @@ class CasualResourceAdapterTest extends Specification
         def server = new CasualServer(channel)
         instance.server = server
 
+        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
+        instance.inboundTransactionRegistry = inboundTransactionRegistry
+
         MessageEndpointFactory factory = Mock(MessageEndpointFactory)
         CasualActivationSpec spec = new CasualActivationSpec()
         spec.setPort(okAddress.getPort())
@@ -161,5 +170,6 @@ class CasualResourceAdapterTest extends Specification
 
         then:
         !channel.isOpen()
+        RuntimeInformation.isDomainBeingShutdown()
     }
 }
