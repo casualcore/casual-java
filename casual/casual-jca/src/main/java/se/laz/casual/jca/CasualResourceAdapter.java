@@ -258,7 +258,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     @Override
     public void stop()
     {
-        log.info(()->"stop()");
+        log.finest(()->"stop()");
     }
 
     //Return empty array not null. But specification says to return null if we don't support this feature, so ignoring.

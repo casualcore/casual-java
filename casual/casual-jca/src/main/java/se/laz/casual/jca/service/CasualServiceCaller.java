@@ -9,7 +9,6 @@ package se.laz.casual.jca.service;
 import se.laz.casual.api.CasualServiceApi;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
-import se.laz.casual.api.buffer.type.CStringBuffer;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.ErrorState;
@@ -263,8 +262,7 @@ public class CasualServiceCaller implements CasualServiceApi
 
     private ServiceReturn<CasualBuffer> tpenoent()
     {
-        CasualBuffer buffer = CStringBuffer.of("domain is going down");
-        return new ServiceReturn<>(buffer, ServiceReturnState.TPFAIL, ErrorState.TPENOENT, 0);
+        return new ServiceReturn<>(ServiceBuffer.empty(), ServiceReturnState.TPFAIL, ErrorState.TPENOENT, 0L);
     }
 
     ServiceCallEventPublisher getEventPublisher()
