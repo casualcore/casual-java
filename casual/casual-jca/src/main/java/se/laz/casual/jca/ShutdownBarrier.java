@@ -17,7 +17,7 @@ public class ShutdownBarrier
     private long timeout;
     private final Predicate predicate;
 
-    public ShutdownBarrier(long sleepTime, long timeout, Predicate predicate)
+    private ShutdownBarrier(long sleepTime, long timeout, Predicate predicate)
     {
         this.sleepTime = sleepTime;
         this.timeout = timeout;
@@ -39,7 +39,6 @@ public class ShutdownBarrier
 
     public static ShutdownBarrier of(long sleepTime, Predicate predicate)
     {
-        Objects.requireNonNull(predicate, "predicate must not be null");
         return new ShutdownBarrier(sleepTime, NO_TIMEOUT, predicate);
     }
 

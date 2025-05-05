@@ -16,7 +16,7 @@ public class XidKey
     private final byte[] bqual;
     private final int formatId;
 
-    public XidKey(byte[] gtrid, byte[] bqual, int formatId)
+    private XidKey(byte[] gtrid, byte[] bqual, int formatId)
     {
         this.gtrid = gtrid;
         this.bqual = bqual;
