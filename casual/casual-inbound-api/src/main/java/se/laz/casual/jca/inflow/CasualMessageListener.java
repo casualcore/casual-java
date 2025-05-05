@@ -55,7 +55,7 @@ public interface CasualMessageListener
     * @param message                    received.
     * @param channel                    for the response.
     * @param workManager                for managing long running execution.
-    * @param inboundTransactionRegistry
+    * @param inboundTransactionRegistry the inbound transaction registry
     */
    void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry);
 
@@ -65,7 +65,7 @@ public interface CasualMessageListener
     * @param message                    received.
     * @param channel                    for the response.
     * @param xaTerminator               for controlling transaction.
-    * @param inboundTransactionRegistry
+    * @param inboundTransactionRegistry the inbound transaction registry
     */
    void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry);
 
@@ -75,7 +75,7 @@ public interface CasualMessageListener
     * @param message                    received.
     * @param channel                    for the response.
     * @param xaTerminator               for controlling transaction.
-    * @param inboundTransactionRegistry
+    * @param inboundTransactionRegistry the inbound transaction registry
     */
    void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry);
 
@@ -85,7 +85,7 @@ public interface CasualMessageListener
     * @param message                    received.
     * @param channel                    for the response.
     * @param xaTerminator               for controlling transaction.
-    * @param inboundTransactionRegistry
+    * @param inboundTransactionRegistry the inbound transaction registry
     */
    void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry);
 }

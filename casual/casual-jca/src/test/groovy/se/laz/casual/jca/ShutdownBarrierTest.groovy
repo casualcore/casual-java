@@ -10,7 +10,7 @@ import spock.lang.Specification
 
 class ShutdownBarrierTest extends Specification
 {
-   def 'should only continue when predicate is true'()
+   def 'should only continue when predicate is true - no timeout'()
    {
       given:
       Predicate predicate = Mock(Predicate){

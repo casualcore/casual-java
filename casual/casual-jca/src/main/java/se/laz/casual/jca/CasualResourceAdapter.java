@@ -225,15 +225,15 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     public void endpointDeactivation(MessageEndpointFactory endpointFactory,
                                      ActivationSpec spec)
     {
-        log.info(()->"endpointDeactivation() - sending domain disconnect messages");
+        log.info(()->"endpointDeactivation() ");
         RuntimeInformation.setDomainIsBeingShutdown(true);
         InboundDeactivatedContext.domainDisconnect();
         InboundDeactivatedContext.clear();
         InboundTopologyUpdateContext.clear();
         Predicate predicate = () -> inboundTransactionRegistry.hasPending() || CasualResourceManager.getInstance().hasPending();
-        long sleepTime = 20;
+        long sleepTime = 20L;
         // TODO: should the timeout be configurable with a default value?
-        long timeout = 15 * 1000; // 15s
+        long timeout = 15L * 1000L; // 15s
         ShutdownBarrier shutdownBarrier = ShutdownBarrier.of(sleepTime, timeout, predicate);
         shutdownBarrier.intermittentSleep();
         if( server != null )
@@ -249,7 +249,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
     public void start(BootstrapContext ctx)
             throws ResourceAdapterInternalException
     {
-        log.info(()->"start()");
+        log.finest(()->"start()");
         workManager = ctx.getWorkManager();
         xaTerminator = ctx.getXATerminator();
         JMXStartup.getInstance().initJMX();

@@ -28,7 +28,7 @@ public class ShutdownBarrier
      * @param sleepTime How long current thread should sleep, in milliseconds
      * @param timeout Timeout, in milliseconds - if accumulated sleep > timeout, the spin lock returns
      * @param predicate Predicate, intermittent wait will happen until predicate returns true or, if timeout is set and triggered
-     * @return
+     * @return the shutdown barrier
      */
     public static ShutdownBarrier of(long sleepTime, long timeout, Predicate predicate)
     {

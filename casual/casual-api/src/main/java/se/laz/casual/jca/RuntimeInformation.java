@@ -8,7 +8,6 @@ package se.laz.casual.jca;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 public class RuntimeInformation
 {
@@ -47,7 +46,6 @@ public class RuntimeInformation
 
     public static boolean isDomainBeingShutdown()
     {
-        Logger.getLogger(RuntimeInformation.class.getName()).info(() -> "isDomainBeingShutdown?" + Optional.ofNullable(CACHE.get(DOMAIN_IS_BEING_SHUTDOWN)).orElse(false));
         return Optional.ofNullable(CACHE.get(DOMAIN_IS_BEING_SHUTDOWN)).orElse(false);
     }
 }
