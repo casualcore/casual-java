@@ -30,12 +30,10 @@ public class CasualInboundTransactionRegistry
         Objects.requireNonNull(key, "key can not be null");
         Objects.requireNonNull(channelId, "channelId can not be null");
         log.finest(() -> "Removing transaction " + key + " from transaction registry");
-        Set<XidKey> ids = transactions.get(channelId);
-        ids.remove(key);
-        if(ids.isEmpty())
-        {
-            transactions.remove(channelId);
-        }
+        transactions.computeIfPresent(channelId, (id, set) ->{
+           set.remove(key);
+           return set.isEmpty() ? null : set;
+        });
     }
 
     public void remove(ChannelId channelId)
