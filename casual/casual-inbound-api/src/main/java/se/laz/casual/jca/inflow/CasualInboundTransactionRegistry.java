@@ -24,14 +24,14 @@ public class CasualInboundTransactionRegistry
     {
         Objects.requireNonNull(channelId, CHANNEL_ID_CAN_NOT_BE_NULL);
         Objects.requireNonNull(key, "key can not be null");
-        log.finest(() -> "Adding transaction " + key + " to inbound transaction registry");
+        log.finest(() -> "adding transaction " + key + " for channel id: " + channelId + " to inbound transaction registry");
         transactions.computeIfAbsent(channelId, id -> ConcurrentHashMap.newKeySet()).add(key);
     }
     public void remove(ChannelId channelId, XidKey key)
     {
         Objects.requireNonNull(channelId, CHANNEL_ID_CAN_NOT_BE_NULL);
         Objects.requireNonNull(key, "key can not be null");
-        log.finest(() -> "Removing transaction " + key + " from transaction registry");
+        log.finest(() -> "removing transaction " + key + "for channel id: " + channelId +" from transaction registry");
         transactions.computeIfPresent(channelId, (id, set) ->{
            set.remove(key);
            return set.isEmpty() ? null : set;

@@ -1,20 +1,21 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca
 
+import jakarta.resource.NotSupportedException
+import jakarta.resource.ResourceException
+import jakarta.resource.spi.ConnectionEvent
+import jakarta.resource.spi.ConnectionEventListener
+import se.laz.casual.api.flags.XAFlags
 import se.laz.casual.api.xa.XID
 import se.laz.casual.internal.network.NetworkConnection
 import spock.lang.Shared
 import spock.lang.Specification
 
-import jakarta.resource.NotSupportedException
-import jakarta.resource.ResourceException
-import jakarta.resource.spi.ConnectionEvent
-import jakarta.resource.spi.ConnectionEventListener
 import javax.transaction.xa.XAResource
 import javax.transaction.xa.Xid
 
@@ -183,10 +184,15 @@ class CasualManagedConnectionTest extends Specification
         setup:
         Xid xid = XID.NULL_XID
         CasualXAResource resource = instance.getXAResource()
+        when:
         resource.start( xid, 0 )
-
-        expect:
+        then:
         instance.getCurrentXid() == xid
+        CasualResourceManager.getInstance().hasPending()
+        when:
+        resource.end(xid, XAFlags.TMSUCCESS.value)
+        then:
+        !CasualResourceManager.getInstance().hasPending()
     }
 
     def "GetMetaData returns an object."()

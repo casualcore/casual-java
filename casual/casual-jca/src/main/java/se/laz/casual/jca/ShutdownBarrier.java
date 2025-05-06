@@ -12,48 +12,34 @@ import java.util.logging.Logger;
 public class ShutdownBarrier
 {
     private static final Logger log = Logger.getLogger(ShutdownBarrier.class.getName());
-    private static final long NO_TIMEOUT = -1;
     private final long sleepTime;
-    private long timeout;
     private final Predicate predicate;
 
-    private ShutdownBarrier(long sleepTime, long timeout, Predicate predicate)
+    private ShutdownBarrier(long sleepTime, Predicate predicate)
     {
         this.sleepTime = sleepTime;
-        this.timeout = timeout;
         this.predicate = predicate;
     }
 
     /**
      * Note: Shutdown barrier is not allowed to throw
      * @param sleepTime How long current thread should sleep, in milliseconds
-     * @param timeout Timeout, in milliseconds - if accumulated sleep > timeout, the spin lock returns
-     * @param predicate Predicate, intermittent wait will happen until predicate returns true or, if timeout is set and triggered
+     * @param predicate Predicate, intermittent sleep will happen until predicate returns true
      * @return the shutdown barrier
      */
-    public static ShutdownBarrier of(long sleepTime, long timeout, Predicate predicate)
-    {
-        Objects.requireNonNull(predicate, "predicate must not be null");
-        return new ShutdownBarrier(sleepTime, timeout, predicate);
-    }
-
     public static ShutdownBarrier of(long sleepTime, Predicate predicate)
     {
-        return new ShutdownBarrier(sleepTime, NO_TIMEOUT, predicate);
+        Objects.requireNonNull(predicate, "predicate must not be null");
+        return new ShutdownBarrier(sleepTime, predicate);
     }
 
     public void intermittentSleep()
     {
-        boolean doCheckTimeout = timeout != NO_TIMEOUT;
-        while (predicate.eval() && !hasTimedOut(doCheckTimeout))
+        while (predicate.eval())
         {
             try
             {
                 Thread.sleep(sleepTime);
-                if(doCheckTimeout)
-                {
-                    timeout -= sleepTime;
-                }
             }
             catch (InterruptedException e)
             {
@@ -63,10 +49,4 @@ public class ShutdownBarrier
             }
         }
     }
-
-    private boolean hasTimedOut(boolean doCheckTimeout)
-    {
-        return doCheckTimeout && timeout < 0;
-    }
-
 }

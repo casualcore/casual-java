@@ -231,10 +231,8 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         InboundDeactivatedContext.clear();
         InboundTopologyUpdateContext.clear();
         Predicate predicate = () -> inboundTransactionRegistry.hasPending() || CasualResourceManager.getInstance().hasPending();
-        long sleepTime = 20L;
-        // TODO: should the timeout be configurable with a default value?
-        long timeout = 15L * 1000L; // 15s
-        ShutdownBarrier shutdownBarrier = ShutdownBarrier.of(sleepTime, timeout, predicate);
+        long sleepTimeMilliseconds = 20L;
+        ShutdownBarrier shutdownBarrier = ShutdownBarrier.of(sleepTimeMilliseconds, predicate);
         shutdownBarrier.intermittentSleep();
         if( server != null )
         {
