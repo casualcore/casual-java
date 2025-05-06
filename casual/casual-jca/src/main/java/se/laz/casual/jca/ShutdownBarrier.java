@@ -45,7 +45,7 @@ public class ShutdownBarrier
             {
                 Thread.currentThread().interrupt();
                 // we are not allowed to throw here, so we log it
-                log.warning(() -> "thread interrupted during spinlock");
+                log.warning(() -> "shutdown barrier thread interrupted during sleep");
             }
         }
     }
