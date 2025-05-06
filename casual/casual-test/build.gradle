@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -32,4 +32,6 @@ dependencies {
     testImplementation libs.spock_core
     testImplementation libs.byte_buddy
     testImplementation libs.objenesis
+
+    integrationImplementation 'se.laz.casual:test-kube:0.0.1-beta-SNAPSHOT'
 }

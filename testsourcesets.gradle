@@ -1,29 +1,36 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 allprojects {
     plugins.withType(JavaPlugin) {
-        configurations{
-           integration        
-        }        
-        sourceSets{
-           integration{
-              compileClasspath += main.output + test.output
-              runtimeClasspath += main.output + test.output
-              compileClasspath += configurations.testCompileClasspath
-              runtimeClasspath += configurations.testRuntimeClasspath
-           }
-        }      
-        
-        task intTest( type: Test){
-           testClassesDirs = sourceSets.integration.output.classesDirs
-           classpath += sourceSets.integration.compileClasspath
-           classpath += sourceSets.integration.runtimeClasspath           
-           reports.html.outputLocation = file("$reports.html.outputLocation/../integration")
-           reports.junitXml.outputLocation = file("$reports.junitXml.outputLocation/../integration")
+        sourceSets {
+            integration {
+                compileClasspath += sourceSets.main.output
+                runtimeClasspath += sourceSets.main.output
+            }
+        }
+        configurations {
+            integrationImplementation.extendsFrom testImplementation
+            integrationRuntimeOnly.extendsFrom testRuntime
+        }
+
+        task intTest(type: Test) {
+            description = 'Run integration tests'
+            group = 'verification'
+            testClassesDirs = sourceSets.integration.output.classesDirs
+            classpath = sourceSets.integration.runtimeClasspath
+            reports.html.outputLocation = file("$reports.html.outputLocation/../build/integration")
+            reports.junitXml.outputLocation = file("$reports.junitXml.outputLocation/../build/integration")
+        }
+
+        test {
+            useJUnitPlatform()
+        }
+        intTest{
+            useJUnitPlatform()
         }
         
     }
