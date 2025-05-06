@@ -59,7 +59,7 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
     {
         MessageEndpoint endpoint = factory.createEndpoint(null);
         CasualMessageListener listener = (CasualMessageListener) endpoint;
-        log.info(() -> "inbound msg: " + message);
+        log.finest(() -> "inbound msg: " + message);
         switch ( message.getType() )
         {
             case COMMIT_REQUEST:

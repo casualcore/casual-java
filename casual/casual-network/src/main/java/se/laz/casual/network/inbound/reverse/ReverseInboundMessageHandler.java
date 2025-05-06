@@ -60,6 +60,7 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
     {
         MessageEndpoint endpoint = factory.createEndpoint(null);
         CasualMessageListener listener = (CasualMessageListener) endpoint;
+        log.finest(() -> "reverse inbound msg: " + message);
         switch ( message.getType() )
         {
             case COMMIT_REQUEST:
