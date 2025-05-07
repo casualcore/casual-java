@@ -11,10 +11,12 @@ version = '3.3.9'
 
 def netty_version = '4.1.121.Final'
 def gson_version = '2.11.0'
+def otel_version = '1.48.0'
 
 ext.libs = [
   netty : "io.netty:netty-all:${netty_version}",
   netty_epoll: "io.netty:netty-transport-native-epoll:${netty_version}",
+  otel_api: "io.opentelemetry:opentelemetry-api:${otel_version}",
   javaee_api: 'jakarta.platform:jakarta.jakartaee-api:10.0.0',
   gson: "com.google.code.gson:gson:${gson_version}",
   objenesis: 'org.objenesis:objenesis:3.4',
