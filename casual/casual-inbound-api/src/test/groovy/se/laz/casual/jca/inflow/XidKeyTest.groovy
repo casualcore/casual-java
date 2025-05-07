@@ -23,11 +23,14 @@ class XidKeyTest extends Specification
       when:
       Xid xidOne = XID.of(gtridData, bqualData, formatTypeOne)
       XidKey keyOne = XidKey.of(xidOne)
+      XidKey equalToKeyOne = XidKey.of(xidOne)
       Xid xidTwo = XID.of(gtridData, bqualData, formatTypeTwo)
       XidKey keyTwo = XidKey.of(xidTwo)
       then:
       keyOne == keyOne
       keyOne.hashCode() == keyOne.hashCode()
+      keyOne == equalToKeyOne
+      keyOne.hashCode() == equalToKeyOne.hashCode()
       keyTwo == keyTwo
       keyTwo.hashCode() == keyTwo.hashCode()
       keyOne != keyTwo
