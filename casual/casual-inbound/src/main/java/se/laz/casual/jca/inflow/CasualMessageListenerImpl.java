@@ -251,7 +251,6 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     {
         log.finest(() -> "commitRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
         Xid xid = message.getMessage().getXid();
-        inboundTransactionRegistry.remove(channel.id(), XidKey.of(xid));
         boolean onePhase = message.getMessage().getFlags().isSet( XAFlags.TMONEPHASE );
 
         int status = -1;
@@ -266,6 +265,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         }
         finally
         {
+            inboundTransactionRegistry.remove(channel.id(), XidKey.of(xid));
             CasualTransactionResourceCommitReplyMessage reply =
                     CasualTransactionResourceCommitReplyMessage.of(
                             message.getMessage().getExecution(),
@@ -284,7 +284,6 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         log.finest(() -> "requestRollback(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
 
         Xid xid = message.getMessage().getXid();
-        inboundTransactionRegistry.remove(channel.id(), XidKey.of(xid));
         int status = -1;
         try
         {
@@ -297,6 +296,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         }
         finally
         {
+            inboundTransactionRegistry.remove(channel.id(), XidKey.of(xid));
             CasualTransactionResourceRollbackReplyMessage reply =
                     CasualTransactionResourceRollbackReplyMessage.of(
                             message.getMessage().getExecution(),
