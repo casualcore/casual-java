@@ -54,8 +54,8 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
     public static ReverseInboundServer of(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener, Supplier<WorkManager> workManagerSupplier)
     {
         Objects.requireNonNull(reverseInboundConnectionInformation, "connectionInformation can not be null");
-        ReverseInboundMessageHandler messageHandler = ReverseInboundMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager());
-        Channel ch = init(reverseInboundConnectionInformation.getAddress(), messageHandler, ReverseInboundExceptionHandler.of(), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
+        ReverseInboundMessageHandler messageHandler = ReverseInboundMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager(), reverseInboundConnectionInformation.getInboundTransactionRegistry());
+        Channel ch = init(reverseInboundConnectionInformation.getAddress(), messageHandler, ReverseInboundExceptionHandler.of(reverseInboundConnectionInformation.getInboundTransactionRegistry()), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
         ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress(), workManagerSupplier);
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
         LOG.info(() -> "reverse inbound connected to: " + server.getAddress());

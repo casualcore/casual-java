@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.inflow
+
 
 import io.netty.channel.embedded.EmbeddedChannel
 import jakarta.resource.spi.XATerminator
@@ -180,10 +181,9 @@ class CasualMessageListenerImplTest extends Specification
                         .setTimeout( timeoutDuration.toNanos() )
                         .build()
         )
-
+        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest( message, channel, workManager )
-
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
         then:
         1 * workManager.scheduleWork( _,_,_,_ ) >> {
             CasualServiceCallWork work, long startTimeout, ExecutionContext executionContext, WorkListener workListener ->
@@ -202,6 +202,8 @@ class CasualMessageListenerImplTest extends Specification
         actualExecutionContext.getXid() == xid
         actualExecutionContext.getTransactionTimeout() == timeout
         actualWorkListener != null
+
+        inboundTransactionRegistry.hasPending()
     }
 
     def "ServiceCallRequest with null xid calls service work without transaction context."()
@@ -220,9 +222,9 @@ class CasualMessageListenerImplTest extends Specification
                         .setXatmiFlags( Flag.of())
                         .build()
         )
-
+        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest( message, channel, workManager )
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
 
         then:
         1 * workManager.scheduleWork(_, _, _, _) >> {
@@ -235,6 +237,7 @@ class CasualMessageListenerImplTest extends Specification
 
         actualWork != null
         actualWork.getCorrelationId() == correlationId
+        !inboundTransactionRegistry.hasPending()
     }
 
     def "ServiceCallRequest TPNOREPLY, non transactional"()
@@ -257,9 +260,9 @@ class CasualMessageListenerImplTest extends Specification
                       .setTimeout( timeoutDuration.toNanos() )
                       .build()
        )
-
+       CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
        when:
-       instance.serviceCallRequest( message, channel, workManager )
+       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
 
        then:
        1 * workManager.scheduleWork( _,_,_,_ ) >> {
@@ -277,6 +280,7 @@ class CasualMessageListenerImplTest extends Specification
        actualStartTimeout == WorkManager.INDEFINITE
        actualExecutionContext == null
        actualWorkListener != null
+       !inboundTransactionRegistry.hasPending()
     }
 
     def "ServiceCallRequest TPNOREPLY, transactional - out of protocol, call will be issued but non transactional"()
@@ -299,9 +303,9 @@ class CasualMessageListenerImplTest extends Specification
                        .setTimeout( timeoutDuration.toNanos() )
                        .build()
        )
-
+       CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
        when:
-       instance.serviceCallRequest( message, channel, workManager )
+       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
 
        then:
        1 * workManager.scheduleWork( _,_,_,_ ) >> {
@@ -319,6 +323,7 @@ class CasualMessageListenerImplTest extends Specification
        actualStartTimeout == WorkManager.INDEFINITE
        actualExecutionContext == null
        actualWorkListener != null
+       !inboundTransactionRegistry.hasPending()
     }
 
     def "ServiceCallRequest startWork throws exception, wrapped and thrown."()
@@ -334,9 +339,9 @@ class CasualMessageListenerImplTest extends Specification
                         .setXatmiFlags( Flag.of())
                         .build()
         )
-
+        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest( message, channel, workManager )
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
 
         then:
         1 * workManager.scheduleWork( _,_,_,_ ) >> {
@@ -344,6 +349,7 @@ class CasualMessageListenerImplTest extends Specification
         }
 
         thrown CasualResourceAdapterException
+        !inboundTransactionRegistry.hasPending()
     }
 
     def "PrepareRequest"()
@@ -359,9 +365,10 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-
+        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
+        inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
-        instance.prepareRequest( message, channel, xaTerminator )
+        instance.prepareRequest(message, channel, xaTerminator, inboundTransactionRegistry)
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
 
@@ -375,38 +382,74 @@ class CasualMessageListenerImplTest extends Specification
         reply.getCorrelationId() == correlationId
         reply.getMessage().getExecution() == execution
         reply.getMessage().getTransactionReturnCode() == XAReturnCode.XA_OK
+        inboundTransactionRegistry.hasPending()
     }
 
-    def "PrepareRequest return code failure."()
+    def "PrepareRequest XA_RDONLY"()
     {
-        given:
-        int resource = 1
-        Flag<XAFlags> flag = Flag.of()
-        CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessageImpl.of(correlationId,
-                CasualTransactionResourcePrepareRequestMessage.of(
-                        execution,
-                        xid,
-                        resource,
-                        flag
-                )
-        )
+       given:
+       int resource = 1
+       Flag<XAFlags> flag = Flag.of()
+       CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessageImpl.of(correlationId,
+               CasualTransactionResourcePrepareRequestMessage.of(
+                       execution,
+                       xid,
+                       resource,
+                       flag
+               )
+       )
+       CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
+       inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
+       when:
+       instance.prepareRequest(message, channel, xaTerminator, inboundTransactionRegistry)
+       channel.writeInbound(channel.outboundMessages().element())
+       CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
 
-        when:
-        instance.prepareRequest( message, channel, xaTerminator )
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
+       then:
+       1 * xaTerminator.prepare( xid ) >> {
+          return XAReturnCode.XA_RDONLY.getId()
+       }
 
-        then:
-        1 * xaTerminator.prepare( xid ) >> {
-            return XAReturnCode.XAER_RMERR.getId()
-        }
-
-        reply != null
-        reply.getType() == CasualNWMessageType.PREPARE_REQUEST_REPLY
-        reply.getCorrelationId() == correlationId
-        reply.getMessage().getExecution() == execution
-        reply.getMessage().getTransactionReturnCode() == XAReturnCode.XAER_RMERR
+       reply != null
+       reply.getType() == CasualNWMessageType.PREPARE_REQUEST_REPLY
+       reply.getCorrelationId() == correlationId
+       reply.getMessage().getExecution() == execution
+       reply.getMessage().getTransactionReturnCode() == XAReturnCode.XA_RDONLY
+       !inboundTransactionRegistry.hasPending()
     }
+
+   def "PrepareRequest return code failure."()
+   {
+      given:
+      int resource = 1
+      Flag<XAFlags> flag = Flag.of()
+      CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> message = CasualNWMessageImpl.of(correlationId,
+              CasualTransactionResourcePrepareRequestMessage.of(
+                      execution,
+                      xid,
+                      resource,
+                      flag
+              )
+      )
+      CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
+      inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
+      when:
+      instance.prepareRequest(message, channel, xaTerminator, inboundTransactionRegistry)
+      channel.writeInbound(channel.outboundMessages().element())
+      CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
+
+      then:
+      1 * xaTerminator.prepare( xid ) >> {
+         return XAReturnCode.XAER_RMERR.getId()
+      }
+
+      reply != null
+      reply.getType() == CasualNWMessageType.PREPARE_REQUEST_REPLY
+      reply.getCorrelationId() == correlationId
+      reply.getMessage().getExecution() == execution
+      reply.getMessage().getTransactionReturnCode() == XAReturnCode.XAER_RMERR
+      inboundTransactionRegistry.hasPending()
+   }
 
     def "PrepareRequest prepare throws exception, returns exception error code."()
     {
@@ -421,9 +464,10 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-
+        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
+        inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
-        instance.prepareRequest( message, channel, xaTerminator )
+        instance.prepareRequest(message, channel, xaTerminator, inboundTransactionRegistry)
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
 
@@ -437,6 +481,7 @@ class CasualMessageListenerImplTest extends Specification
         reply.getCorrelationId() == correlationId
         reply.getMessage().getExecution() == execution
         reply.getMessage().getTransactionReturnCode() == XAReturnCode.XAER_RMERR
+        inboundTransactionRegistry.hasPending()
     }
 
     def "CommitRequest"()
@@ -452,9 +497,10 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-
+        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
+        inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
-        instance.commitRequest( message, channel, xaTerminator )
+        instance.commitRequest(message, channel, xaTerminator, inboundTransactionRegistry)
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
 
@@ -466,6 +512,7 @@ class CasualMessageListenerImplTest extends Specification
         reply.getCorrelationId() == correlationId
         reply.getMessage().getExecution() == execution
         reply.getMessage().getTransactionReturnCode() == XAReturnCode.XA_OK
+        !inboundTransactionRegistry.hasPending()
     }
 
     def "CommitRequest one phase true"()
@@ -481,9 +528,10 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-
+        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
+        inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
-        instance.commitRequest( message, channel, xaTerminator )
+        instance.commitRequest(message, channel, xaTerminator, inboundTransactionRegistry)
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
 
@@ -495,6 +543,7 @@ class CasualMessageListenerImplTest extends Specification
         reply.getCorrelationId() == correlationId
         reply.getMessage().getExecution() == execution
         reply.getMessage().getTransactionReturnCode() == XAReturnCode.XA_OK
+        !inboundTransactionRegistry.hasPending()
     }
 
     def "CommitRequest commit throws exception, returns exception error code."()
@@ -510,9 +559,10 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-
+        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
+        inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
-        instance.commitRequest( message, channel, xaTerminator )
+        instance.commitRequest(message, channel, xaTerminator, inboundTransactionRegistry)
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
 
@@ -526,6 +576,7 @@ class CasualMessageListenerImplTest extends Specification
         reply.getCorrelationId() == correlationId
         reply.getMessage().getExecution() == execution
         reply.getMessage().getTransactionReturnCode() == XAReturnCode.XAER_RMERR
+        !inboundTransactionRegistry.hasPending()
     }
 
     def "RollbackRequest"()
@@ -541,9 +592,10 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-
+        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
+        inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
-        instance.requestRollback( message, channel, xaTerminator )
+        instance.requestRollback(message, channel, xaTerminator, inboundTransactionRegistry)
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = inboundHandler.getMsg()
 
@@ -555,6 +607,7 @@ class CasualMessageListenerImplTest extends Specification
         reply.getCorrelationId() == correlationId
         reply.getMessage().getExecution() == execution
         reply.getMessage().getTransactionReturnCode() == XAReturnCode.XA_OK
+        !inboundTransactionRegistry.hasPending()
     }
 
     def "RollbackRequest rollback throws exception, returns exception error code."()
@@ -570,9 +623,10 @@ class CasualMessageListenerImplTest extends Specification
                         flag
                 )
         )
-
+        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
+        inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
-        instance.requestRollback( message, channel, xaTerminator )
+        instance.requestRollback(message, channel, xaTerminator, inboundTransactionRegistry)
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = inboundHandler.getMsg()
 
@@ -586,6 +640,7 @@ class CasualMessageListenerImplTest extends Specification
         reply.getCorrelationId() == correlationId
         reply.getMessage().getExecution() == execution
         reply.getMessage().getTransactionReturnCode() == XAReturnCode.XAER_RMERR
+        !inboundTransactionRegistry.hasPending()
     }
 
     class TestCasualService implements CasualService{

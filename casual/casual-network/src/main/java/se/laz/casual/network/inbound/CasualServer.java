@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -41,8 +41,8 @@ public final class CasualServer
 
     public static CasualServer of(final ConnectionInformation ci)
     {
-        CasualMessageHandler mh = CasualMessageHandler.of(ci.getFactory(), ci.getXaTerminator(), ci.getWorkManager());
-        Channel c = init(mh, ExceptionHandler.of(), ci.getPort(), ci.isLogHandlerEnabled(), ci.isUseEpoll() );
+        CasualMessageHandler mh = CasualMessageHandler.of(ci.getFactory(), ci.getXaTerminator(), ci.getWorkManager(), ci.getInboundTransactionRegistry());
+        Channel c = init(mh, ExceptionHandler.of(ci.getInboundTransactionRegistry()), ci.getPort(), ci.isLogHandlerEnabled(), ci.isUseEpoll() );
         return new CasualServer(c);
     }
 

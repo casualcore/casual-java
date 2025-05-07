@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -25,6 +25,7 @@ import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.event.ServiceCallEventStoreFactory;
 import se.laz.casual.jca.CasualManagedConnection;
+import se.laz.casual.jca.RuntimeInformation;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
@@ -73,6 +74,10 @@ public class CasualServiceCaller implements CasualServiceApi
         try
         {
             throwIfTpCallFlagsInvalid(serviceName, flags);
+            if(RuntimeInformation.isDomainBeingShutdown())
+            {
+                return tpenoent();
+            }
             return issueAsyncCall(serviceName, data, flags, execution).join().orElseThrow(() -> new CasualConnectionException("result is missing, it should always be returned"));
         }
         catch (Exception e)
@@ -91,6 +96,13 @@ public class CasualServiceCaller implements CasualServiceApi
     public CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> tpacall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, UUID execution)
     {
         throwIfTpacallFlagsInvalid(serviceName, flags);
+        if(RuntimeInformation.isDomainBeingShutdown())
+        {
+            CompletableFuture<Optional<ServiceReturn<CasualBuffer>>> future = new CompletableFuture<>();
+            Optional<ServiceReturn<CasualBuffer>> noentry = Optional.of(tpenoent());
+            future.complete(noentry);
+            return future;
+        }
         return issueAsyncCall(serviceName, data, flags, execution);
     }
 
@@ -246,6 +258,11 @@ public class CasualServiceCaller implements CasualServiceApi
     {
         CasualServiceCallReplyMessage serviceReplyMessage = v.getMessage();
         return new ServiceReturn<>(serviceReplyMessage.getServiceBuffer(), (serviceReplyMessage.getError() == ErrorState.OK) ? ServiceReturnState.TPSUCCESS : ServiceReturnState.TPFAIL, serviceReplyMessage.getError(), serviceReplyMessage.getUserDefinedCode());
+    }
+
+    private ServiceReturn<CasualBuffer> tpenoent()
+    {
+        return new ServiceReturn<>(ServiceBuffer.empty(), ServiceReturnState.TPFAIL, ErrorState.TPENOENT, 0L);
     }
 
     ServiceCallEventPublisher getEventPublisher()

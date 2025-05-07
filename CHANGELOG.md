@@ -1,6 +1,13 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.3.5] - 2025-05-07
+
+### feat: handle graceful shutdown ([#185](https://github.com/casualcore/casual-java/issues/185))
+When there is a graceful shutdown we:
+* drain the current in flight transactions
+* return TPENOENT for new outbound requests
+
 ## [3.3.4] - 2025-04-16
 
 ### feat: inbound gw protocol bumps casual 1.6 ([#183](https://github.com/casualcore/casual-java/issues/183))

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,15 +7,15 @@
 package se.laz.casual.network.inbound
 
 import io.netty.channel.ChannelHandlerContext
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage
-import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
-import se.laz.casual.network.utils.FakeListener
-import spock.lang.Shared
-import spock.lang.Specification
-
 import jakarta.resource.spi.XATerminator
 import jakarta.resource.spi.endpoint.MessageEndpointFactory
 import jakarta.resource.spi.work.WorkManager
+import se.laz.casual.api.network.protocol.messages.CasualNWMessage
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
+import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry
+import se.laz.casual.network.utils.FakeListener
+import spock.lang.Shared
+import spock.lang.Specification
 
 class CasualMessageHandlerTest extends Specification
 {
@@ -25,6 +25,13 @@ class CasualMessageHandlerTest extends Specification
     def mockXATerminator = Mock(XATerminator)
     @Shared
     def mockWorkManager = Mock(WorkManager)
+    @Shared
+    CasualInboundTransactionRegistry inboundTransactionRegistry
+
+    def setup()
+    {
+       inboundTransactionRegistry = new CasualInboundTransactionRegistry()
+    }
 
     def 'test message routing'()
     {
@@ -40,7 +47,7 @@ class CasualMessageHandlerTest extends Specification
         }
         def xaTerminator = Mock(XATerminator)
         def workManager = Mock(WorkManager)
-        def instance = CasualMessageHandler.of(factory, xaTerminator, workManager)
+        def instance = CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry)
         def ctx = Mock(ChannelHandlerContext)
         when:
         instance.channelRead0(ctx, msg)
@@ -59,7 +66,7 @@ class CasualMessageHandlerTest extends Specification
     def 'test failed construction'()
     {
         when:
-        CasualMessageHandler.of(factory, xaTerminator, workManager)
+        CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry)
         then:
         thrown(NullPointerException)
         where:

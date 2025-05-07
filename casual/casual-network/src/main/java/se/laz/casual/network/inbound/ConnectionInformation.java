@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,6 +11,7 @@ import jakarta.resource.spi.endpoint.MessageEndpointFactory;
 import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
+import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 
 import java.util.Objects;
 
@@ -22,6 +23,7 @@ public final class ConnectionInformation
     private final WorkManager workManager;
     private final boolean logHandlerEnabled;
     private final boolean useEpoll;
+    private final CasualInboundTransactionRegistry inboundTransactionRegistry;
 
     private ConnectionInformation( Builder builder )
     {
@@ -31,6 +33,7 @@ public final class ConnectionInformation
         this.workManager = builder.workManager;
         this.logHandlerEnabled = builder.logHandlerEnabled;
         this.useEpoll = builder.useEpoll;
+        this.inboundTransactionRegistry = builder.inboundTransactionRegistry;
     }
 
     public int getPort()
@@ -63,6 +66,11 @@ public final class ConnectionInformation
         return useEpoll;
     }
 
+    public CasualInboundTransactionRegistry getInboundTransactionRegistry()
+    {
+        return inboundTransactionRegistry;
+    }
+
     public static Builder createBuilder()
     {
         return new Builder();
@@ -76,6 +84,7 @@ public final class ConnectionInformation
         private WorkManager workManager;
         private boolean useEpoll;
         private Boolean logHandlerEnabled;
+        private CasualInboundTransactionRegistry inboundTransactionRegistry;
 
         public Builder withPort(int port)
         {
@@ -110,6 +119,12 @@ public final class ConnectionInformation
         public Builder withEnabledLogHandler( boolean enabled )
         {
             this.logHandlerEnabled = enabled;
+            return this;
+        }
+
+        public Builder withInboundTransactionRegistry(CasualInboundTransactionRegistry inboundTransactionRegistry)
+        {
+            this.inboundTransactionRegistry = inboundTransactionRegistry;
             return this;
         }
 

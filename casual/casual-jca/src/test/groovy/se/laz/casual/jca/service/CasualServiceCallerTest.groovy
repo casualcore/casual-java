@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -28,6 +28,7 @@ import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceAdapter
 import se.laz.casual.jca.CasualResourceManager
 import se.laz.casual.jca.DomainId
+import se.laz.casual.jca.RuntimeInformation
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -69,6 +70,7 @@ class CasualServiceCallerTest extends Specification
 
     def setup()
     {
+        RuntimeInformation.setDomainIsBeingShutdown(false)
         ra = new CasualResourceAdapter()
         workManager = Mock(WorkManager)
         ra.workManager = workManager
@@ -375,6 +377,32 @@ class CasualServiceCallerTest extends Specification
         0 * serviceCallEventPublisher.post(_ as ServiceCallEvent)
     }
 
+    def 'domain is being shutdown, expecting TPENOENT'()
+    {
+       when:
+       RuntimeInformation.setDomainIsBeingShutdown(true)
+       Optional<ServiceReturn<CasualBuffer>> result = instance.tpacall( serviceName, message, Flag.of( AtmiFlags.NOFLAG)).get()
+
+       then:
+       noExceptionThrown()
+       result != null
+       result.isPresent()
+       result.get().getServiceReturnState() == ServiceReturnState.TPFAIL
+       result.get().errorState == ErrorState.TPENOENT
+
+       0 * networkConnection.request( _ ) >> {
+          CasualNWMessageImpl<CasualServiceCallRequestMessage> input ->
+             actualServiceRequest = input
+             return CompletableFuture.completedFuture(serviceReply)
+       }
+
+       0 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent event ->
+          event.getService() == serviceName
+          event.getCode() == ErrorState.TPESVCFAIL.name()
+          event.getOrder() == Order.CONCURRENT.value
+       }
+
+    }
 
     def "toString test."()
     {
