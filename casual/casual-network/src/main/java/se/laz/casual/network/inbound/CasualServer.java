@@ -41,12 +41,13 @@ public final class CasualServer
 
     public static CasualServer of(final ConnectionInformation ci)
     {
-        CasualMessageHandler mh = CasualMessageHandler.of(ci.getFactory(), ci.getXaTerminator(), ci.getWorkManager(), ci.getInboundTransactionRegistry());
-        Channel c = init(mh, ExceptionHandler.of(ci.getInboundTransactionRegistry()), ci.getPort(), ci.isLogHandlerEnabled(), ci.isUseEpoll() );
+        ValueHolder valueHolder = ValueHolder.of();
+        CasualMessageHandler mh = CasualMessageHandler.of(ci.getFactory(), ci.getXaTerminator(), ci.getWorkManager(), ci.getInboundTransactionRegistry(), valueHolder);
+        Channel c = init(mh, ExceptionHandler.of(ci.getInboundTransactionRegistry()), ci.getPort(), ci.isLogHandlerEnabled(), ci.isUseEpoll(), valueHolder);
         return new CasualServer(c);
     }
 
-    private static Channel init(CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, int port, boolean enableLogHandler, boolean useEpoll)
+    private static Channel init(CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, int port, boolean enableLogHandler, boolean useEpoll, ValueHolder valueHolder)
     {
         EventLoopGroup workerGroup = useEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
         Class<? extends ServerChannel> channelClass = useEpoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
@@ -58,7 +59,7 @@ public final class CasualServer
                 @Override
                 protected void initChannel(SocketChannel ch)
                 {
-                    ch.pipeline().addLast(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), messageHandler, exceptionHandler);
+                    ch.pipeline().addLast(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), messageHandler, exceptionHandler);
                     if(enableLogHandler)
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.INBOUND_LOGGING_LEVEL));

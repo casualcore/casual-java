@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -29,7 +29,6 @@ import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.conversation.Request
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
-
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
@@ -71,7 +70,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
                                                             .withCorrelator(correlator)
                                                             .build()
         def conversationMessageHandler = ConversationMessageHandler.of(conversationMessageStorage)
-        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, Mock(OnNetworkError)))
+        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(protocolVersionThing), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, Mock(OnNetworkError)))
         instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, {testExecutorService}, Mock(ErrorInformer))
         instance.setDomainId(casualDomainId)
     }
@@ -182,7 +181,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'casual disconnected'()
     {
         given:
-        def channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator, Mock(OnNetworkError)))
+        def channel = new EmbeddedChannel(CasualNWMessageDecoder.of(protocolVersionThing), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator, Mock(OnNetworkError)))
         instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, {Mock(ManagedExecutorService)}, Mock(ErrorInformer))
         instance.setDomainId(casualDomainId)
         ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException("connection gone"))
@@ -226,7 +225,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
             }
         }
         def onNetworkError = Mock(OnNetworkError)
-        def channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), messageEncoder, CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator, onNetworkError))
+        def channel = new EmbeddedChannel(CasualNWMessageDecoder.of(protocolVersionThing), messageEncoder, CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator, onNetworkError))
         def networkError = false
         onNetworkError.notifyListenerIfNotConnected(channel) >> {
             networkError = true

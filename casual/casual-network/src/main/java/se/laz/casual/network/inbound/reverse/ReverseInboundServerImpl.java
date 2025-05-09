@@ -21,6 +21,7 @@ import se.laz.casual.network.EventLoopFactory;
 import se.laz.casual.network.InboundDeactivatedContext;
 import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.LogLevelProvider;
+import se.laz.casual.network.inbound.ValueHolder;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
 
@@ -53,9 +54,10 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
 
     public static ReverseInboundServer of(ReverseInboundConnectionInformation reverseInboundConnectionInformation, ReverseInboundListener eventListener, Supplier<WorkManager> workManagerSupplier)
     {
+        ValueHolder valueHolder = ValueHolder.of();
         Objects.requireNonNull(reverseInboundConnectionInformation, "connectionInformation can not be null");
-        ReverseInboundMessageHandler messageHandler = ReverseInboundMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager(), reverseInboundConnectionInformation.getInboundTransactionRegistry());
-        Channel ch = init(reverseInboundConnectionInformation.getAddress(), messageHandler, ReverseInboundExceptionHandler.of(reverseInboundConnectionInformation.getInboundTransactionRegistry()), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
+        ReverseInboundMessageHandler messageHandler = ReverseInboundMessageHandler.of(reverseInboundConnectionInformation.getFactory(), reverseInboundConnectionInformation.getXaTerminator(), reverseInboundConnectionInformation.getWorkManager(), reverseInboundConnectionInformation.getInboundTransactionRegistry(), valueHolder);
+        Channel ch = init(reverseInboundConnectionInformation.getAddress(), messageHandler, ReverseInboundExceptionHandler.of(reverseInboundConnectionInformation.getInboundTransactionRegistry()), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass(), valueHolder);
         ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress(), workManagerSupplier);
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
         LOG.info(() -> "reverse inbound connected to: " + server.getAddress());
@@ -73,7 +75,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         }
     }
 
-    private static Channel init(final InetSocketAddress address, final ReverseInboundMessageHandler messageHandler, ReverseInboundExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass)
+    private static Channel init(final InetSocketAddress address, final ReverseInboundMessageHandler messageHandler, ReverseInboundExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass, ValueHolder valueHolder)
     {
         EventLoopGroup workerGroup = EventLoopFactory.getInstance(EventLoopClient.REVERSE);
         Bootstrap b = new Bootstrap()
@@ -85,7 +87,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
                     @Override
                     protected void initChannel(SocketChannel ch)
                     {
-                        ch.pipeline().addLast(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), messageHandler, exceptionHandler);
+                        ch.pipeline().addLast(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), messageHandler, exceptionHandler);
                         if(enableLogHandler)
                         {
                             ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.REVERSE_LOGGING_LEVEL));

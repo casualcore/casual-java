@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -28,7 +28,7 @@ class CasualNetworkTestReader
 
     static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel, CasualNWMessageHeader header )
     {
-        NetworkDecoder<T> networkReader = CasualMessageDecoder.getDecoder( header )
+        NetworkDecoder<T> networkReader = CasualMessageDecoder.getDecoder(header, maybeProtocolVersion)
         return readMessage( channel, header, networkReader )
     }
 

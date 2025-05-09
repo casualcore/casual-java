@@ -15,6 +15,7 @@ import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 import se.laz.casual.jca.inflow.CasualMessageListener;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage;
@@ -26,6 +27,7 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public final class ReverseInboundMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
@@ -36,22 +38,25 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
     private final XATerminator xaTerminator;
     private final WorkManager workManager;
     private final CasualInboundTransactionRegistry inboundTransactionRegistry;
+    private final Supplier<ProtocolVersion> protocolVersionSupplier;
 
-    private ReverseInboundMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry)
+    private ReverseInboundMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, Supplier<ProtocolVersion> protocolVersionSupplier)
     {
         this.factory = factory;
         this.xaTerminator = xaTerminator;
         this.workManager = workManager;
         this.inboundTransactionRegistry = inboundTransactionRegistry;
+        this.protocolVersionSupplier = protocolVersionSupplier;
     }
 
-    public static ReverseInboundMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry)
+    public static ReverseInboundMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, Supplier<ProtocolVersion> protocolVersionSupplier)
     {
         Objects.requireNonNull(factory, "factory can not be null");
         Objects.requireNonNull(xaTerminator, "xaTerminator can not be null");
         Objects.requireNonNull(workManager, "workManager can not be null");
         Objects.requireNonNull(inboundTransactionRegistry, "inboundTransactionRegistry can not be null");
-        return new ReverseInboundMessageHandler(factory, xaTerminator, workManager, inboundTransactionRegistry);
+        Objects.requireNonNull(protocolVersionSupplier, "protocolVersionSupplier can not be null");
+        return new ReverseInboundMessageHandler(factory, xaTerminator, workManager, inboundTransactionRegistry, protocolVersionSupplier);
     }
 
     @SuppressWarnings("unchecked")
@@ -73,7 +78,7 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
                 executor.execute(() -> listener.requestRollback((CasualNWMessage<CasualTransactionResourceRollbackRequestMessage>)message, ctx.channel(), xaTerminator, inboundTransactionRegistry));
                 break;
             case SERVICE_CALL_REQUEST:
-                listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry);
+                listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry, protocolVersionSupplier.get());
                 break;
             case DOMAIN_CONNECT_REQUEST:
                 listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, ctx.channel());

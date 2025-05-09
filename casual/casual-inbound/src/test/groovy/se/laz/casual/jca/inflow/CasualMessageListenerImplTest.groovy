@@ -78,7 +78,7 @@ class CasualMessageListenerImplTest extends Specification
         ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME, domainName )
         instance = new CasualMessageListenerImpl()
         inboundHandler = TestInboundHandler.of()
-        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), inboundHandler)
+        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(protocolVersionThing), CasualNWMessageEncoder.of(), inboundHandler)
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )
 
@@ -183,7 +183,7 @@ class CasualMessageListenerImplTest extends Specification
         )
         CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, protocolVersionThing.get())
         then:
         1 * workManager.scheduleWork( _,_,_,_ ) >> {
             CasualServiceCallWork work, long startTimeout, ExecutionContext executionContext, WorkListener workListener ->
@@ -224,7 +224,7 @@ class CasualMessageListenerImplTest extends Specification
         )
         CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, protocolVersionThing.get())
 
         then:
         1 * workManager.scheduleWork(_, _, _, _) >> {
@@ -262,7 +262,7 @@ class CasualMessageListenerImplTest extends Specification
        )
        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
        when:
-       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
+       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, protocolVersionThing.get())
 
        then:
        1 * workManager.scheduleWork( _,_,_,_ ) >> {
@@ -305,7 +305,7 @@ class CasualMessageListenerImplTest extends Specification
        )
        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
        when:
-       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
+       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, protocolVersionThing.get())
 
        then:
        1 * workManager.scheduleWork( _,_,_,_ ) >> {
@@ -341,7 +341,7 @@ class CasualMessageListenerImplTest extends Specification
         )
         CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, protocolVersionThing.get())
 
         then:
         1 * workManager.scheduleWork( _,_,_,_ ) >> {
