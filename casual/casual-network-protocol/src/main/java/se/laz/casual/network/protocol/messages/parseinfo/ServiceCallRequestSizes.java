@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -15,7 +15,11 @@ public enum ServiceCallRequestSizes
     CALL_DESCRIPTOR(4, 8),
     SERVICE_NAME_SIZE(8, 8),
     SERVICE_NAME_DATA(128, 128),
+    // v1.3, 1.4 only
+    HAS_VALUE(1,1),
     SERVICE_TIMEOUT(8, 8),
+    // v1.3, 1.4 only
+    PARENT_SPAN(1,1),
     PARENT_NAME_SIZE(8, 8),
     PARENT_NAME_DATA(128, 128),
     XID_FORMAT(8, 8),

@@ -16,7 +16,9 @@ public enum ProtocolVersion
 {
     VERSION_1_0(1000, "1.0", true),
     VERSION_1_1(1001, "1.1", true),
-    VERSION_1_2(1002, "1.2", true);
+    VERSION_1_2(1002, "1.2", true),
+    VERSION_1_3(1003, "1.3", true),
+    VERSION_1_4(1004, "1.4", true);
 
     private static final List<Long> supportedVersions;
     private static final List<String> supportedVersionsString;
@@ -94,4 +96,8 @@ public enum ProtocolVersion
         return supportedVersionsString;
     }
 
+    public static boolean isProtocolVersionOneThreeOrOneFour(ProtocolVersion protocolVersion)
+    {
+        return protocolVersion == ProtocolVersion.VERSION_1_3 || protocolVersion == ProtocolVersion.VERSION_1_4;
+    }
 }
