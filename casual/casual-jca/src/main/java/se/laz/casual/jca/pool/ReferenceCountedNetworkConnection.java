@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,6 +11,7 @@ import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.ConnectionObserver;
 import se.laz.casual.jca.DomainId;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
 import se.laz.casual.network.protocol.messages.conversation.Request;
@@ -109,6 +110,12 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
     public void addConnectionObserver(ConnectionObserver observer)
     {
         networkConnection.addConnectionObserver(observer);
+    }
+
+    @Override
+    public ProtocolVersion getProtocolVersion()
+    {
+        return networkConnection.getProtocolVersion();
     }
 
     @Override

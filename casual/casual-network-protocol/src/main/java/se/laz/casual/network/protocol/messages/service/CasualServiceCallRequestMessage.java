@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -12,6 +12,7 @@ import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.api.xa.XID;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
@@ -33,10 +34,12 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     private UUID execution;
     private String serviceName;
     private long timeout;
+    private byte parentSpan;
     private String parentName;
     private Xid xid;
     private Flag<AtmiFlags> xatmiFlags;
     private ServiceBuffer serviceBuffer;
+    private ProtocolVersion protocolVersion;
 
     // not part of the message
     // used for testing
@@ -59,14 +62,27 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         final byte[] serviceNameBytes = serviceName.getBytes(StandardCharsets.UTF_8);
         final byte[] parentNameBytes = parentName.getBytes(StandardCharsets.UTF_8);
         final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
-        final long messageSize = ServiceCallRequestSizes.EXECUTION.getNetworkSize() +
-                                 ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize() +
-                                 ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize() + serviceNameBytes.length +
-                                 ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize() +
-                                 ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize() + parentNameBytes.length +
-                                 XIDUtils.getXIDNetworkSize(xid) +
-                                 ServiceCallRequestSizes.FLAGS.getNetworkSize() +
-                                 ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
+        long messageSize = ServiceCallRequestSizes.EXECUTION.getNetworkSize() +
+                           ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize() +
+                           ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize() + serviceNameBytes.length +
+                           ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize() + parentNameBytes.length +
+                           XIDUtils.getXIDNetworkSize(xid) +
+                           ServiceCallRequestSizes.FLAGS.getNetworkSize() +
+                           ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
+        if(ProtocolVersion.isProtocolVersionOneThreeOrOneFour(protocolVersion))
+        {
+            if(timeout > 0)
+            {
+                messageSize += ServiceCallRequestSizes.HAS_VALUE.getNetworkSize() +
+                               ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize() +
+                               ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize();
+
+            }
+        }
+        else
+        {
+            messageSize += ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
+        }
         return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceNameBytes, parentNameBytes, serviceBytes)
                                                     : toNetworkBytesMultipleBuffers(serviceNameBytes, parentNameBytes, serviceBuffer);
     }
@@ -118,17 +134,6 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     }
 
     /**
-     * Use in testing to force chunking of message
-     * @param maxMessageSize max message size.
-     * @return this object with updated max message size.
-     */
-    public CasualServiceCallRequestMessage setMaxMessageSize(int maxMessageSize)
-    {
-        this.maxMessageSize = maxMessageSize;
-        return this;
-    }
-
-    /**
      * Note, not immutable
      * @return the service buffer.
      */
@@ -177,16 +182,23 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         return sb.toString();
     }
 
+    public int getParentSpan()
+    {
+        return parentSpan;
+    }
+
     public static class Builder
     {
         private UUID execution;
         private String serviceName;
         private long timeout;
         // optional
+        private byte parentSpan;
         private String parentName = "";
         private Xid xid;
         private Flag<AtmiFlags> xatmiFlags;
         private ServiceBuffer serviceBuffer;
+        private ProtocolVersion protocolVersion;
 
         public Builder setExecution(UUID execution)
         {
@@ -203,6 +215,12 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         public Builder setTimeout(long timeout)
         {
             this.timeout = timeout;
+            return this;
+        }
+
+        public Builder setParentSpan(int parentSpan)
+        {
+            this.parentSpan = (byte)(parentSpan & 0xFF);
             return this;
         }
 
@@ -229,16 +247,25 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
             this.serviceBuffer = serviceBuffer;
             return this;
         }
+
+        public Builder setProtocolVersion(ProtocolVersion protocolVersion)
+        {
+            this.protocolVersion = protocolVersion;
+            return this;
+        }
+
         public CasualServiceCallRequestMessage build()
         {
             CasualServiceCallRequestMessage r = new CasualServiceCallRequestMessage();
             r.execution = execution;
             r.serviceName = serviceName;
             r.timeout = timeout;
+            r.parentSpan = parentSpan;
             r.parentName = parentName;
             r.xid = XID.of(xid);
             r.xatmiFlags = xatmiFlags;
             r.serviceBuffer = serviceBuffer;
+            r.protocolVersion = protocolVersion;
             return r;
         }
     }
@@ -251,10 +278,23 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         ByteBuffer b = ByteBuffer.allocate(messageSize);
         CasualEncoderUtils.writeUUID(execution, b);
         b.putLong(serviceNameBytes.length)
-         .put(serviceNameBytes)
-         .putLong(timeout)
-         .putLong(parentNameBytes.length)
-         .put(parentNameBytes);
+         .put(serviceNameBytes);
+        if(ProtocolVersion.isProtocolVersionOneThreeOrOneFour(protocolVersion))
+        {
+            if(timeout > 0)
+            {
+                byte hasValue = 1;
+                b.put(hasValue);
+                b.putLong(timeout);
+            }
+            b.put(parentSpan);
+        }
+        else
+        {
+            b.putLong(timeout);
+        }
+         b.putLong(parentNameBytes.length)
+          .put(parentNameBytes);
         CasualEncoderUtils.writeXID(xid, b);
         b.putLong(xatmiFlags.getFlagValue())
          .putLong(serviceBytes.get(0).length)
@@ -275,7 +315,20 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         l.add(executionBuffer.array());
         l.add(CasualEncoderUtils.writeLong(serviceNameBytes.length));
         l.add(serviceNameBytes);
-        l.add(CasualEncoderUtils.writeLong(timeout));
+        if(ProtocolVersion.isProtocolVersionOneThreeOrOneFour(protocolVersion))
+        {
+            if(timeout > 0)
+            {
+                byte hasValue = 1;
+                l.add(CasualEncoderUtils.writeByte(hasValue));
+                l.add(CasualEncoderUtils.writeLong(timeout));
+            }
+            l.add(CasualEncoderUtils.writeByte(parentSpan));
+        }
+        else
+        {
+            l.add(CasualEncoderUtils.writeLong(timeout));
+        }
         l.add(CasualEncoderUtils.writeLong(parentNameBytes.length));
         l.add(parentNameBytes);
         final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid));

@@ -26,6 +26,7 @@ import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.event.ServiceCallEventStoreFactory;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.jca.RuntimeInformation;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
@@ -210,13 +211,15 @@ public class CasualServiceCaller implements CasualServiceApi
     private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, Xid transactionId, UUID execution, boolean noReply)
     {
         Duration timeout = Duration.of(connection.getTransactionTimeout(), ChronoUnit.SECONDS);
+        ProtocolVersion protocolVersion = connection.getNetworkConnection().getProtocolVersion();
         CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
                 .setExecution(execution)
                 .setServiceBuffer(ServiceBuffer.of(data))
                 .setServiceName(serviceName)
                 .setXid(transactionId)
                 .setTimeout(timeout.toNanos())
-                .setXatmiFlags(flags).build();
+                .setXatmiFlags(flags)
+                .setProtocolVersion(protocolVersion).build();
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
         LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
 
