@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -76,8 +76,8 @@ class ServiceCallWorkListenerTest extends Specification
 
 
         inboundHandler = TestInboundHandler.of()
-        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), inboundHandler)
-        work = new CasualServiceCallWork(correlationId, null)
+        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(protocolVersionThing), CasualNWMessageEncoder.of(), inboundHandler)
+        work = new CasualServiceCallWork(correlationId, null, isTpNoReply, protocolVersion)
         work.response = response
 
         request = CasualServiceCallRequestMessage.createBuilder()

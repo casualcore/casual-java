@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,6 +9,7 @@ package se.laz.casual.network.protocol.decoding;
 
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.MessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
@@ -38,6 +39,8 @@ import se.laz.casual.network.protocol.decoding.decoders.transaction.CasualTransa
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 
+import java.util.function.Supplier;
+
 public final class CasualMessageDecoder
 {
     private static int maxSingleBufferByteSize = Integer.MAX_VALUE;
@@ -59,14 +62,14 @@ public final class CasualMessageDecoder
         return CasualNWMessageHeaderDecoder.fromNetworkBytes(message);
     }
 
-    public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final byte[] data, CasualNWMessageHeader header)
+    public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final byte[] data, CasualNWMessageHeader header, Supplier<ProtocolVersion> protocolVersionSupplier)
     {
-        NetworkDecoder<T> networkReader = getDecoder( header );
+        NetworkDecoder<T> networkReader = getDecoder( header, protocolVersionSupplier );
         return readMessage( data, header, networkReader );
     }
 
     @SuppressWarnings({"unchecked", "squid:MethodCyclomaticComplexity"})
-    static <T extends CasualNetworkTransmittable> NetworkDecoder<T> getDecoder(CasualNWMessageHeader header )
+    static <T extends CasualNetworkTransmittable> NetworkDecoder<T> getDecoder(CasualNWMessageHeader header, Supplier<ProtocolVersion> protocolVersionSupplier)
     {
         switch(header.getType())
         {
@@ -87,7 +90,7 @@ public final class CasualMessageDecoder
             case SERVICE_CALL_REQUEST:
                 // We may want to use some other size for chunking of service payload
                 CasualServiceCallRequestMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
-                return (NetworkDecoder<T>) CasualServiceCallRequestMessageDecoder.of();
+                return (NetworkDecoder<T>) CasualServiceCallRequestMessageDecoder.of(protocolVersionSupplier.get());
             case SERVICE_CALL_REPLY:
                 // We may want to use some other size for chunking of service payload
                 CasualServiceCallReplyMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
@@ -125,7 +128,7 @@ public final class CasualMessageDecoder
         }
     }
 
-    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readMessage(final byte[] data, final CasualNWMessageHeader header, NetworkDecoder<T> nr )
+    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readMessage(final byte[] data, final CasualNWMessageHeader header, NetworkDecoder<T> nr)
     {
         final MessageDecoder<T> reader = MessageDecoder.of(nr, getMaxSingleBufferByteSize() );
         final T msg = reader.read(data);

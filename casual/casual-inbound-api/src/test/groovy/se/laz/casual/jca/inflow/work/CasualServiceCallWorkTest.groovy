@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -73,7 +73,7 @@ class CasualServiceCallWorkTest extends Specification
                         .build()
 
         correlationId = UUID.randomUUID()
-        instance = new CasualServiceCallWork(correlationId, message)
+        instance = new CasualServiceCallWork(correlationId, message, isTpNoReply, protocolVersion)
         instance.setHandler( handler )
 
         instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true)
@@ -243,7 +243,7 @@ class CasualServiceCallWorkTest extends Specification
     def "Call Service which does not exist or is not available, returns result with TPNOENT status."()
     {
         given:
-        instance = new CasualServiceCallWork(correlationId, message)
+        instance = new CasualServiceCallWork(correlationId, message, isTpNoReply, protocolVersion)
         when:
         instance.run()
         CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()

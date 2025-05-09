@@ -47,7 +47,7 @@ class CasualMessageHandlerTest extends Specification
         }
         def xaTerminator = Mock(XATerminator)
         def workManager = Mock(WorkManager)
-        def instance = CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry)
+        def instance = CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry, protocolVersionThing)
         def ctx = Mock(ChannelHandlerContext)
         when:
         instance.channelRead0(ctx, msg)
@@ -66,7 +66,7 @@ class CasualMessageHandlerTest extends Specification
     def 'test failed construction'()
     {
         when:
-        CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry)
+        CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry, protocolVersionThing)
         then:
         thrown(NullPointerException)
         where:

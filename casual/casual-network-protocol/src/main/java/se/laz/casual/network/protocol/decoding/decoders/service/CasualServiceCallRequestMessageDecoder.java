@@ -1,19 +1,20 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.protocol.decoding.decoders.service;
 
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.util.Pair;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallRequestSizes;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 import se.laz.casual.network.protocol.utils.XIDUtils;
 
@@ -23,20 +24,23 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Created by aleph on 2017-03-16.
- */
 public final class CasualServiceCallRequestMessageDecoder implements NetworkDecoder<CasualServiceCallRequestMessage>
 {
     private static int maxPayloadSingleBufferByteSize = Integer.MAX_VALUE;
-    private CasualServiceCallRequestMessageDecoder()
-    {}
+    private final ProtocolVersion protocolVersion;
 
-    public static NetworkDecoder<CasualServiceCallRequestMessage> of()
+    private CasualServiceCallRequestMessageDecoder(ProtocolVersion protocolVersion)
     {
-        return new CasualServiceCallRequestMessageDecoder();
+        this.protocolVersion = protocolVersion;
+    }
+
+    public static NetworkDecoder<CasualServiceCallRequestMessage> of(ProtocolVersion protocolVersion)
+    {
+        Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
+        return new CasualServiceCallRequestMessageDecoder(protocolVersion);
     }
 
     /**
