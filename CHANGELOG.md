@@ -1,6 +1,11 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.3.6] - 2025-05-12
+
+### chore: bumping netty to latest version ([#186](https://github.com/casualcore/casual-java/issues/186))
+netty bumped to version 4.1.121.Final
+
 ## [3.3.5] - 2025-05-07
 
 ### feat: handle graceful shutdown ([#185](https://github.com/casualcore/casual-java/issues/185))
