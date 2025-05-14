@@ -48,7 +48,7 @@ class CasualMessageHandlerTest extends Specification
         }
         def xaTerminator = Mock(XATerminator)
         def workManager = Mock(WorkManager)
-        ValueHolder valueHolder = ValueHolder.of()
+        ProtocolVersionValueHolder valueHolder = ProtocolVersionValueHolder.of()
         valueHolder.accept(ProtocolVersion.VERSION_1_2)
         def instance = CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry, valueHolder)
         def ctx = Mock(ChannelHandlerContext)
@@ -69,7 +69,7 @@ class CasualMessageHandlerTest extends Specification
     def 'test failed construction'()
     {
         when:
-        ValueHolder valueHolder = ValueHolder.of()
+        ProtocolVersionValueHolder valueHolder = ProtocolVersionValueHolder.of()
         valueHolder.accept(ProtocolVersion.VERSION_1_2)
         CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry, valueHolder)
         then:

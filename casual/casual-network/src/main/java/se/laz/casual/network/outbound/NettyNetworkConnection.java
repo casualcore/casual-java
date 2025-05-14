@@ -30,7 +30,7 @@ import se.laz.casual.network.LogLevelProvider;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.connection.DomainDisconnectedException;
-import se.laz.casual.network.inbound.ValueHolder;
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
@@ -123,7 +123,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 
     private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)
     {
-        ValueHolder valueHolder =  ValueHolder.of();
+        ProtocolVersionValueHolder protocolVersionValueHolder =  ProtocolVersionValueHolder.of();
         Bootstrap b = new Bootstrap()
             .group(workerGroup)
             .channel(channelClass)
@@ -133,7 +133,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                 @Override
                 protected void initChannel(SocketChannel ch)
                 {
-                    ch.pipeline().addLast(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), messageHandler, conversationMessageHandler, exceptionHandler);
+                    ch.pipeline().addLast(CasualNWMessageDecoder.of(protocolVersionValueHolder), CasualNWMessageEncoder.of(), messageHandler, conversationMessageHandler, exceptionHandler);
                     if(enableLogHandler)
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.OUTBOUND_LOGGING_LEVEL));

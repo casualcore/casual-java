@@ -25,7 +25,7 @@ import se.laz.casual.jca.inflow.work.CasualServiceCallWork
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.ProtocolVersion
-import se.laz.casual.network.inbound.ValueHolder
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
@@ -56,7 +56,7 @@ class ServiceCallWorkListenerTest extends Specification
     @Shared UUID execution = UUID.randomUUID()
     @Shared Xid transactionId = createXid()
     @Shared CasualServiceCallRequestMessage request
-    ValueHolder valueHolder
+    ProtocolVersionValueHolder valueHolder
 
     def setup()
     {
@@ -77,7 +77,7 @@ class ServiceCallWorkListenerTest extends Specification
                 .build()
         response = CasualNWMessageImpl.of( correlationId, message )
 
-        valueHolder = ValueHolder.of()
+        valueHolder = ProtocolVersionValueHolder.of()
         valueHolder.accept(ProtocolVersion.VERSION_1_2)
         inboundHandler = TestInboundHandler.of()
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), inboundHandler)

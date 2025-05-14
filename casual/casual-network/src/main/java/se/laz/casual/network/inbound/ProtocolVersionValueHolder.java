@@ -13,16 +13,16 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class ValueHolder implements Supplier<ProtocolVersion>, Consumer<ProtocolVersion>
+public class ProtocolVersionValueHolder implements Supplier<ProtocolVersion>, Consumer<ProtocolVersion>
 {
     private ProtocolVersion protocolVersion;
 
-    private ValueHolder()
+    private ProtocolVersionValueHolder()
     {}
 
-    public static ValueHolder of()
+    public static ProtocolVersionValueHolder of()
     {
-        return new ValueHolder();
+        return new ProtocolVersionValueHolder();
     }
 
     @Override
