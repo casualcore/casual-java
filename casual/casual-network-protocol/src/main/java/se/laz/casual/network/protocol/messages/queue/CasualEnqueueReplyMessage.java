@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.queue;
 
+import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
@@ -25,9 +26,9 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
     private final UUID id;
     private final ProtocolVersion protocolVersion;
     // from 1.3
-    private final int code;
+    private final ErrorState code;
 
-    private CasualEnqueueReplyMessage(final UUID execution, final UUID id, ProtocolVersion protocolVersion, int code)
+    private CasualEnqueueReplyMessage(final UUID execution, final UUID id, ProtocolVersion protocolVersion, ErrorState code)
     {
         this.execution = execution;
         this.id = id;
@@ -46,6 +47,10 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         ByteBuffer b = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize() +  CommonSizes.UUID_ID.getNetworkSize());
         CasualEncoderUtils.writeUUID(execution, b);
         CasualEncoderUtils.writeUUID(id, b);
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            CasualEncoderUtils.writeInt(code.getValue());
+        }
         List<byte[]> l = new ArrayList<>();
         l.add(b.array());
         return l;
@@ -101,7 +106,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         return id;
     }
 
-    public long code()
+    public ErrorState code()
     {
         if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
         {
@@ -114,7 +119,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
     {
         private UUID execution;
         private UUID id;
-        private int code;
+        private ErrorState code;
         private ProtocolVersion protocolVersion;
 
         public Builder withExecution(final UUID execution)
@@ -129,7 +134,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
             return this;
         }
 
-        public Builder withCode(int code)
+        public Builder withCode(ErrorState code)
         {
             this.code = code;
             return this;
