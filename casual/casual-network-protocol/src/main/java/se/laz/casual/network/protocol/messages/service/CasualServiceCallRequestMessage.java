@@ -69,7 +69,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
                            XIDUtils.getXIDNetworkSize(xid) +
                            ServiceCallRequestSizes.FLAGS.getNetworkSize() +
                            ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
-        if(ProtocolVersion.isProtocolVersionOneThreeOrOneFour(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
         {
             if(timeout > 0)
             {
@@ -279,7 +279,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         CasualEncoderUtils.writeUUID(execution, b);
         b.putLong(serviceNameBytes.length)
          .put(serviceNameBytes);
-        if(ProtocolVersion.isProtocolVersionOneThreeOrOneFour(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
         {
             if(timeout > 0)
             {
@@ -315,7 +315,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         l.add(executionBuffer.array());
         l.add(CasualEncoderUtils.writeLong(serviceNameBytes.length));
         l.add(serviceNameBytes);
-        if(ProtocolVersion.isProtocolVersionOneThreeOrOneFour(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
         {
             if(timeout > 0)
             {

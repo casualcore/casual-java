@@ -96,8 +96,14 @@ public enum ProtocolVersion
         return supportedVersionsString;
     }
 
-    public static boolean isProtocolVersionOneThreeOrOneFour(ProtocolVersion protocolVersion)
+    public static boolean isProtocolVersionOneGreaterOrEqualToOneThree(ProtocolVersion protocolVersion)
     {
         return protocolVersion == ProtocolVersion.VERSION_1_3 || protocolVersion == ProtocolVersion.VERSION_1_4;
     }
+
+    public static boolean isProtocolVersionOneGreaterOrEqualToOneFour(ProtocolVersion protocolVersion)
+    {
+        return protocolVersion == ProtocolVersion.VERSION_1_4;
+    }
+
 }
