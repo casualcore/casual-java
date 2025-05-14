@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -19,6 +19,7 @@ import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceManager
 import se.laz.casual.jca.DomainId
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
@@ -160,6 +161,7 @@ class CasualQueueCallerTest extends Specification
     {
         CasualNWMessageImpl.of(executionId,
                 CasualDequeueReplyMessage.createBuilder()
+                                         .withProtocolVersion(ProtocolVersion.VERSION_1_2)
                                          .withExecution(executionId)
                                          .withMessages(Arrays.asList(DequeueMessage.of(QueueMessage.of(message))))
                                          .build()

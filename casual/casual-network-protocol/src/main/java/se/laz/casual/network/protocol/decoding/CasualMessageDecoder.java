@@ -102,7 +102,7 @@ public final class CasualMessageDecoder
             case DEQUEUE_REQUEST:
                 return (NetworkDecoder<T>) CasualDequeueRequestMessageDecoder.of();
             case DEQUEUE_REPLY:
-                return (NetworkDecoder<T>) CasualDequeueReplyMessageDecoder.of();
+                return (NetworkDecoder<T>) CasualDequeueReplyMessageDecoder.of(protocolVersionSupplier.get());
             case PREPARE_REQUEST:
                 return (NetworkDecoder<T>) CasualTransactionResourcePrepareRequestMessageDecoder.of();
             case PREPARE_REQUEST_REPLY:

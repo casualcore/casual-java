@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,8 +7,10 @@
 package se.laz.casual.network.protocol.decoding.decoders.queue;
 
 import se.laz.casual.api.buffer.type.ServiceBuffer;
+import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.api.util.Pair;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
@@ -26,24 +28,34 @@ import java.util.UUID;
 
 public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<CasualDequeueReplyMessage>
 {
-    private CasualDequeueReplyMessageDecoder()
-    {}
+    private final ProtocolVersion protocolVersion;
 
-    public static CasualDequeueReplyMessageDecoder of()
+    private CasualDequeueReplyMessageDecoder(ProtocolVersion protocolVersion)
     {
-        return new CasualDequeueReplyMessageDecoder();
+        this.protocolVersion = protocolVersion;
+    }
+
+    public static CasualDequeueReplyMessageDecoder of(ProtocolVersion protocolVersion)
+    {
+        return new CasualDequeueReplyMessageDecoder(protocolVersion);
     }
 
     @Override
     public CasualDequeueReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
+        return ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion)
+        ? getMessageProtocolVersionEqualOrGreaterToOneThree(b.array())
+        : getMessage(b.array());
     }
 
     @Override
     public CasualDequeueReplyMessage readChunked(final ReadableByteChannel channel)
     {
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            return readChunkedProtocolVersionGreaterThanOneTwo(channel);
+        }
         UUID execution = CasualMessageDecoderUtils.readUUID(channel);
         int numberOfMessages = (int) ByteUtils.readFully(channel, DequeueReplySizes.NUMBER_OF_MESSAGES.getNetworkSize()).getLong();
         List<DequeueMessage> l = new ArrayList<>();
@@ -52,15 +64,37 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
             l.add(readDequeueMessage(channel));
         }
         return CasualDequeueReplyMessage.createBuilder()
+                                        .withProtocolVersion(protocolVersion)
                                         .withExecution(execution)
                                         .withMessages(l)
+                                        .build();
+    }
+
+    private CasualDequeueReplyMessage readChunkedProtocolVersionGreaterThanOneTwo(final ReadableByteChannel channel)
+    {
+        UUID execution = CasualMessageDecoderUtils.readUUID(channel);
+        boolean has_value = CasualMessageDecoderUtils.readByte(channel) > 0;
+        List<DequeueMessage> l = new ArrayList<>();
+        if(has_value)
+        {
+            // There's only ever 1 message in v >= 1.3
+            l.add(readDequeueMessage(channel));
+        }
+        int code = ByteUtils.readFully(channel, CommonSizes.CALL_ERROR.getNetworkSize()).getInt();
+        return CasualDequeueReplyMessage.createBuilder()
+                                        .withProtocolVersion(protocolVersion)
+                                        .withExecution(execution)
+                                        .withMessages(l)
+                                        .withCode(ErrorState.unmarshal(code))
                                         .build();
     }
 
     @Override
     public CasualDequeueReplyMessage readSingleBuffer(byte[] data)
     {
-        return getMessage(data);
+        return ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion) ?
+                getMessageProtocolVersionEqualOrGreaterToOneThree(data)
+                : getMessage(data);
     }
 
     private static DequeueMessage readDequeueMessage(final ReadableByteChannel channel)
@@ -122,7 +156,7 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
         return Pair.of(currentOffset, msg);
     }
 
-    private static CasualDequeueReplyMessage getMessage(byte[] bytes)
+    private CasualDequeueReplyMessage getMessage(byte[] bytes)
     {
         int currentOffset = 0;
         UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
@@ -137,8 +171,31 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
             l.add(p.second());
         }
         return CasualDequeueReplyMessage.createBuilder()
+                                        .withProtocolVersion(protocolVersion)
                                         .withExecution(execution)
                                         .withMessages(l)
+                                        .build();
+    }
+
+    private CasualDequeueReplyMessage getMessageProtocolVersionEqualOrGreaterToOneThree(byte[] bytes)
+    {
+        int currentOffset = 0;
+        UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
+        currentOffset += CommonSizes.EXECUTION.getNetworkSize();
+
+        List<DequeueMessage> l = new ArrayList<>();
+        Pair<Integer, DequeueMessage> p = readDequeueMessage(bytes, currentOffset);
+        currentOffset = p.first();
+        l.add(p.second());
+
+        final ByteBuffer callErrorBuffer = ByteBuffer.wrap(bytes, currentOffset, CommonSizes.CALL_ERROR.getNetworkSize());
+        int callError = callErrorBuffer.getInt();
+
+        return CasualDequeueReplyMessage.createBuilder()
+                                        .withProtocolVersion(protocolVersion)
+                                        .withExecution(execution)
+                                        .withMessages(l)
+                                        .withCode(ErrorState.unmarshal(callError))
                                         .build();
     }
 }
