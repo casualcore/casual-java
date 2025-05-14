@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.queue;
 
+import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
@@ -36,7 +37,7 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
     public CasualEnqueueReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
+        return getMessage(b.array(), protocolVersion);
     }
 
     @Override
@@ -45,11 +46,12 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
         UUID execution = CasualMessageDecoderUtils.readUUID(channel);
         UUID id = CasualMessageDecoderUtils.readUUID(channel);
         CasualEnqueueReplyMessage.Builder builder = CasualEnqueueReplyMessage.createBuilder()
-                                        .withExecution(execution)
-                                        .withId(id);
+                                                                             .withExecution(execution)
+                                                                             .withId(id);
         if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
         {
-
+            final int callError = ByteUtils.readFully(channel, CommonSizes.CALL_ERROR.getNetworkSize()).getInt();
+            builder.withCode(ErrorState.unmarshal(callError));
         }
         return builder.build();
     }
@@ -57,19 +59,26 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
     @Override
     public CasualEnqueueReplyMessage readSingleBuffer(byte[] data)
     {
-        return getMessage(data);
+        return getMessage(data, protocolVersion);
     }
 
-    private static CasualEnqueueReplyMessage getMessage(final byte[] bytes)
+    private static CasualEnqueueReplyMessage getMessage(final byte[] bytes, ProtocolVersion protocolVersion)
     {
         int currentOffset = 0;
         UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
         currentOffset += CommonSizes.EXECUTION.getNetworkSize();
         UUID id = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, currentOffset + CommonSizes.EXECUTION.getNetworkSize()));
-        return CasualEnqueueReplyMessage.createBuilder()
-                                        .withExecution(execution)
-                                        .withId(id)
-                                        .build();
+        currentOffset += CommonSizes.UUID_ID.getNetworkSize();
+        CasualEnqueueReplyMessage.Builder builder = CasualEnqueueReplyMessage.createBuilder()
+                                                                             .withExecution(execution)
+                                                                             .withId(id);
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            final ByteBuffer callErrorBuffer = ByteBuffer.wrap(bytes, currentOffset, CommonSizes.CALL_ERROR.getNetworkSize());
+            int callError = callErrorBuffer.getInt();
+            builder.withCode(ErrorState.unmarshal(callError));
+        }
+        return builder.build();
     }
 
 }
