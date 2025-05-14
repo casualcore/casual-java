@@ -1,13 +1,16 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.protocol.messages.queue;
 
+import se.laz.casual.api.CasualRuntimeException;
+import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.DequeueReplySizes;
 
@@ -21,11 +24,15 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
 {
     private final UUID execution;
     private final List<DequeueMessage> messages;
+    private final ProtocolVersion protocolVersion;
+    private final ErrorState code;
 
-    private CasualDequeueReplyMessage(final UUID execution, final List<DequeueMessage> messages)
+    private CasualDequeueReplyMessage(final UUID execution, final List<DequeueMessage> messages, ProtocolVersion protocolVersion, ErrorState code)
     {
         this.execution = execution;
         this.messages = messages;
+        this.protocolVersion = protocolVersion;
+        this.code = code;
     }
 
     @Override
@@ -56,18 +63,17 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         {
             return true;
         }
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof CasualDequeueReplyMessage that))
         {
             return false;
         }
-        CasualDequeueReplyMessage that = (CasualDequeueReplyMessage) o;
-        return Objects.equals(execution, that.execution) && Objects.equals(messages, that.messages);
+        return Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getMessages(), that.getMessages()) && protocolVersion == that.protocolVersion && code == that.code;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(execution, messages);
+        return Objects.hash(getExecution(), getMessages(), protocolVersion, code);
     }
 
     @Override
@@ -76,6 +82,10 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         final StringBuilder sb = new StringBuilder("CasualDequeueReplyMessage{");
         sb.append("execution=").append(execution);
         sb.append(", messages=").append(messages);
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            sb.append(", code=").append(code);
+        }
         sb.append('}');
         return sb.toString();
     }
@@ -95,14 +105,21 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         return messages.stream().toList();
     }
 
+    public ErrorState getCode()
+    {
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            return code;
+        }
+        throw new CasualRuntimeException("code is not available in protocol version: " + protocolVersion);
+    }
+
     public static final class Builder
     {
         private UUID execution;
         private List<DequeueMessage> messages;
-
-        private Builder()
-        {
-        }
+        private ProtocolVersion protocolVersion;
+        private ErrorState code;
 
         public Builder withExecution(final UUID execution)
         {
@@ -116,11 +133,24 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
             return this;
         }
 
+        public Builder withProtocolVersion(final ProtocolVersion protocolVersion)
+        {
+            this.protocolVersion = protocolVersion;
+            return this;
+        }
+
+        public Builder withCode(final ErrorState code)
+        {
+            this.code = code;
+            return this;
+        }
+
         public CasualDequeueReplyMessage build()
         {
             Objects.requireNonNull(execution, "execution is not allowed to be null");
             Objects.requireNonNull(messages, "messages is not allowed to be null, can be empty though");
-            return new CasualDequeueReplyMessage(execution, new ArrayList<>(messages));
+            Objects.requireNonNull(protocolVersion, "protocolVersion is not allowed to be null");
+            return new CasualDequeueReplyMessage(execution, new ArrayList<>(messages), protocolVersion, code);
         }
     }
 }
