@@ -22,6 +22,7 @@ import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler
 import se.laz.casual.jca.inflow.handler.test.TestHandler
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
 import spock.lang.Shared
@@ -73,10 +74,10 @@ class CasualServiceCallWorkTest extends Specification
                         .build()
 
         correlationId = UUID.randomUUID()
-        instance = new CasualServiceCallWork(correlationId, message, isTpNoReply, protocolVersion)
+        instance = new CasualServiceCallWork(correlationId, message, false, ProtocolVersion.VERSION_1_2)
         instance.setHandler( handler )
 
-        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true)
+        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true, ProtocolVersion.VERSION_1_2)
         instanceTPNOREPLY.setHandler( handler )
     }
 
@@ -243,7 +244,7 @@ class CasualServiceCallWorkTest extends Specification
     def "Call Service which does not exist or is not available, returns result with TPNOENT status."()
     {
         given:
-        instance = new CasualServiceCallWork(correlationId, message, isTpNoReply, protocolVersion)
+        instance = new CasualServiceCallWork(correlationId, message, false, ProtocolVersion.VERSION_1_2)
         when:
         instance.run()
         CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()

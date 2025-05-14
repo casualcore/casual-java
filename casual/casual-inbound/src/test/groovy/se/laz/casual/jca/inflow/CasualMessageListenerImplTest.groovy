@@ -32,6 +32,8 @@ import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
+import se.laz.casual.network.ProtocolVersion
+import se.laz.casual.network.inbound.ValueHolder
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
@@ -71,6 +73,7 @@ class CasualMessageListenerImplTest extends Specification
     @Shared Xid xid
     @Shared String serviceName = "echo"
     @Shared TestInboundHandler inboundHandler
+    ValueHolder valueHolder
 
     def setup()
     {
@@ -78,7 +81,8 @@ class CasualMessageListenerImplTest extends Specification
         ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME, domainName )
         instance = new CasualMessageListenerImpl()
         inboundHandler = TestInboundHandler.of()
-        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(protocolVersionThing), CasualNWMessageEncoder.of(), inboundHandler)
+        valueHolder = ValueHolder.of()
+        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), inboundHandler)
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )
 
@@ -164,6 +168,7 @@ class CasualMessageListenerImplTest extends Specification
     def "ServiceCallRequest"()
     {
         given:
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         CasualServiceCallWork actualWork
         long actualStartTimeout
         ExecutionContext actualExecutionContext
@@ -183,7 +188,7 @@ class CasualMessageListenerImplTest extends Specification
         )
         CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, protocolVersionThing.get())
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, valueHolder.get())
         then:
         1 * workManager.scheduleWork( _,_,_,_ ) >> {
             CasualServiceCallWork work, long startTimeout, ExecutionContext executionContext, WorkListener workListener ->
@@ -209,6 +214,7 @@ class CasualMessageListenerImplTest extends Specification
     def "ServiceCallRequest with null xid calls service work without transaction context."()
     {
         given:
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         xid = XID.NULL_XID
         CasualServiceCallWork actualWork
 
@@ -224,7 +230,7 @@ class CasualMessageListenerImplTest extends Specification
         )
         CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, protocolVersionThing.get())
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, valueHolder.get())
 
         then:
         1 * workManager.scheduleWork(_, _, _, _) >> {
@@ -243,6 +249,7 @@ class CasualMessageListenerImplTest extends Specification
     def "ServiceCallRequest TPNOREPLY, non transactional"()
     {
        given:
+       valueHolder.accept(ProtocolVersion.VERSION_1_2)
        CasualServiceCallWork actualWork
        long actualStartTimeout
        ExecutionContext actualExecutionContext
@@ -262,7 +269,7 @@ class CasualMessageListenerImplTest extends Specification
        )
        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
        when:
-       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, protocolVersionThing.get())
+       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, valueHolder.get())
 
        then:
        1 * workManager.scheduleWork( _,_,_,_ ) >> {
@@ -286,6 +293,7 @@ class CasualMessageListenerImplTest extends Specification
     def "ServiceCallRequest TPNOREPLY, transactional - out of protocol, call will be issued but non transactional"()
     {
        given:
+       valueHolder.accept(ProtocolVersion.VERSION_1_2)
        CasualServiceCallWork actualWork
        long actualStartTimeout
        ExecutionContext actualExecutionContext
@@ -305,7 +313,7 @@ class CasualMessageListenerImplTest extends Specification
        )
        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
        when:
-       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, protocolVersionThing.get())
+       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, valueHolder.get())
 
        then:
        1 * workManager.scheduleWork( _,_,_,_ ) >> {
@@ -329,6 +337,7 @@ class CasualMessageListenerImplTest extends Specification
     def "ServiceCallRequest startWork throws exception, wrapped and thrown."()
     {
         given:
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         String serviceName = "echo"
         CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of( correlationId,
                 CasualServiceCallRequestMessage.createBuilder()
@@ -341,7 +350,7 @@ class CasualMessageListenerImplTest extends Specification
         )
         CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, protocolVersionThing.get())
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, valueHolder.get())
 
         then:
         1 * workManager.scheduleWork( _,_,_,_ ) >> {
