@@ -15,6 +15,7 @@ import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
+import se.laz.casual.network.inbound.ValueHolder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import spock.lang.Shared
@@ -28,13 +29,15 @@ class CasualNWMessageDecoderTest extends Specification
     def 'ok msg'()
     {
         setup:
+        ValueHolder valueHolder = ValueHolder.of()
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         CasualNWMessage<CasualServiceCallReplyMessage> msg = createReplyMessage()
         ByteBuf buf = Unpooled.buffer()
         for(byte[] b : msg.toNetworkBytes())
         {
             buf.writeBytes(b)
         }
-        def decoder = CasualNWMessageDecoder.of(protocolVersionThing)
+        def decoder = CasualNWMessageDecoder.of(valueHolder)
         List<Object> out = new ArrayList<>()
         when:
         decoder.decode(null, buf, out)
@@ -48,13 +51,15 @@ class CasualNWMessageDecoderTest extends Specification
     def 'crap body'()
     {
         setup:
+        ValueHolder valueHolder = ValueHolder.of()
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         CasualNWMessage<CasualServiceCallReplyMessage> msg = createReplyMessage()
         ByteBuf buf = Unpooled.buffer()
         for(byte[] b : msg.toNetworkBytes())
         {
             buf.writeBytes(b)
         }
-        def decoder = CasualNWMessageDecoder.of(protocolVersionThing)
+        def decoder = CasualNWMessageDecoder.of(valueHolder)
         List<Object> out = new ArrayList<>()
         ByteBuf crapBody = Unpooled.buffer()
         when:

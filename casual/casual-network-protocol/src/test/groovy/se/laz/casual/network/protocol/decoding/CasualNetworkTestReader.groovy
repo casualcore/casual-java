@@ -8,6 +8,7 @@ package se.laz.casual.network.protocol.decoding
 
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.decoders.MessageDecoder
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader
@@ -17,6 +18,7 @@ import se.laz.casual.network.protocol.utils.ByteUtils
 
 import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
+import java.util.function.Supplier;
 
 class CasualNetworkTestReader
 {
@@ -28,7 +30,8 @@ class CasualNetworkTestReader
 
     static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel, CasualNWMessageHeader header )
     {
-        NetworkDecoder<T> networkReader = CasualMessageDecoder.getDecoder(header, maybeProtocolVersion)
+        Supplier<ProtocolVersion> protocolVersionSupplier = {ProtocolVersion.VERSION_1_2}
+        NetworkDecoder<T> networkReader = CasualMessageDecoder.getDecoder(header, protocolVersionSupplier)
         return readMessage( channel, header, networkReader )
     }
 

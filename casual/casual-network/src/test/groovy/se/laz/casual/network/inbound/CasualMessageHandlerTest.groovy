@@ -13,6 +13,7 @@ import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.utils.FakeListener
 import spock.lang.Shared
 import spock.lang.Specification
@@ -47,7 +48,9 @@ class CasualMessageHandlerTest extends Specification
         }
         def xaTerminator = Mock(XATerminator)
         def workManager = Mock(WorkManager)
-        def instance = CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry, protocolVersionThing)
+        ValueHolder valueHolder = ValueHolder.of()
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
+        def instance = CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry, valueHolder)
         def ctx = Mock(ChannelHandlerContext)
         when:
         instance.channelRead0(ctx, msg)
@@ -66,7 +69,9 @@ class CasualMessageHandlerTest extends Specification
     def 'test failed construction'()
     {
         when:
-        CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry, protocolVersionThing)
+        ValueHolder valueHolder = ValueHolder.of()
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
+        CasualMessageHandler.of(factory, xaTerminator, workManager, inboundTransactionRegistry, valueHolder)
         then:
         thrown(NullPointerException)
         where:
