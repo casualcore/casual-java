@@ -33,7 +33,7 @@ import se.laz.casual.jca.inflow.work.CasualServiceCallWork
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.ProtocolVersion
-import se.laz.casual.network.inbound.ValueHolder
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
@@ -73,7 +73,7 @@ class CasualMessageListenerImplTest extends Specification
     @Shared Xid xid
     @Shared String serviceName = "echo"
     @Shared TestInboundHandler inboundHandler
-    ValueHolder valueHolder
+    ProtocolVersionValueHolder valueHolder
 
     def setup()
     {
@@ -81,7 +81,7 @@ class CasualMessageListenerImplTest extends Specification
         ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME, domainName )
         instance = new CasualMessageListenerImpl()
         inboundHandler = TestInboundHandler.of()
-        valueHolder = ValueHolder.of()
+        valueHolder = ProtocolVersionValueHolder.of()
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), inboundHandler)
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )

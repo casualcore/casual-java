@@ -15,7 +15,7 @@ import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
-import se.laz.casual.network.inbound.ValueHolder
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import spock.lang.Shared
@@ -29,7 +29,7 @@ class CasualNWMessageDecoderTest extends Specification
     def 'ok msg'()
     {
         setup:
-        ValueHolder valueHolder = ValueHolder.of()
+        ProtocolVersionValueHolder valueHolder = ProtocolVersionValueHolder.of()
         valueHolder.accept(ProtocolVersion.VERSION_1_2)
         CasualNWMessage<CasualServiceCallReplyMessage> msg = createReplyMessage()
         ByteBuf buf = Unpooled.buffer()
@@ -51,7 +51,7 @@ class CasualNWMessageDecoderTest extends Specification
     def 'crap body'()
     {
         setup:
-        ValueHolder valueHolder = ValueHolder.of()
+        ProtocolVersionValueHolder valueHolder = ProtocolVersionValueHolder.of()
         valueHolder.accept(ProtocolVersion.VERSION_1_2)
         CasualNWMessage<CasualServiceCallReplyMessage> msg = createReplyMessage()
         ByteBuf buf = Unpooled.buffer()

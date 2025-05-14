@@ -11,7 +11,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
-import se.laz.casual.network.inbound.ValueHolder;
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder;
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
@@ -23,19 +23,19 @@ import java.util.Optional;
 
 public class CasualNWMessageDecoder extends ByteToMessageDecoder
 {
-    private final ValueHolder valueHolder;
+    private final ProtocolVersionValueHolder protocolVersionValueHolder;
     private enum State{
         READ_HEADER, READ_PAYLOAD
     }
     private CasualNWMessageHeader header;
     private State state = State.READ_HEADER;
-    private CasualNWMessageDecoder(ValueHolder valueHolder)
+    private CasualNWMessageDecoder(ProtocolVersionValueHolder protocolVersionValueHolder)
     {
-        this.valueHolder = valueHolder;
+        this.protocolVersionValueHolder = protocolVersionValueHolder;
     }
-    public static CasualNWMessageDecoder of(ValueHolder valueHolder)
+    public static CasualNWMessageDecoder of(ProtocolVersionValueHolder protocolVersionValueHolder)
     {
-        return new CasualNWMessageDecoder(valueHolder);
+        return new CasualNWMessageDecoder(protocolVersionValueHolder);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class CasualNWMessageDecoder extends ByteToMessageDecoder
         {
             byte[] messageBytes = new byte[(int)header.getPayloadSize()];
             in.readBytes(messageBytes);
-            Optional<CasualNWMessage<?>> maybeMessage = Optional.of( CasualMessageDecoder.read(messageBytes, header, valueHolder) );
+            Optional<CasualNWMessage<?>> maybeMessage = Optional.of( CasualMessageDecoder.read(messageBytes, header, protocolVersionValueHolder) );
             maybeMessage.ifPresent(msg -> {
                 if(msg.getType() == CasualNWMessageType.DOMAIN_CONNECT_REQUEST)
                 {
@@ -86,7 +86,7 @@ public class CasualNWMessageDecoder extends ByteToMessageDecoder
                     if(msg.getMessage() instanceof  CasualDomainConnectRequestMessage connectReqMsg)
                     {
                         ProtocolVersion protocolVersion = ProtocolVersion.unmarshall(ProtocolMatcher.match(connectReqMsg.getProtocols()));
-                        valueHolder.accept(protocolVersion);
+                        protocolVersionValueHolder.accept(protocolVersion);
                     }
                 }
             });
