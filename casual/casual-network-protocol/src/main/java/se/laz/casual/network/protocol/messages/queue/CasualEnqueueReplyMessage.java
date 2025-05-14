@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,6 +8,8 @@ package se.laz.casual.network.protocol.messages.queue;
 
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 
@@ -21,10 +23,16 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
 {
     private final UUID execution;
     private final UUID id;
-    private CasualEnqueueReplyMessage(final UUID execution, final UUID id)
+    private final ProtocolVersion protocolVersion;
+    // from 1.3
+    private final int code;
+
+    private CasualEnqueueReplyMessage(final UUID execution, final UUID id, ProtocolVersion protocolVersion, int code)
     {
         this.execution = execution;
         this.id = id;
+        this.code = code;
+        this.protocolVersion = protocolVersion;
     }
     @Override
     public CasualNWMessageType getType()
@@ -50,19 +58,17 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         {
             return true;
         }
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof CasualEnqueueReplyMessage that))
         {
             return false;
         }
-        CasualEnqueueReplyMessage that = (CasualEnqueueReplyMessage) o;
-        return Objects.equals(execution, that.execution) &&
-            Objects.equals(id, that.id);
+        return code == that.code && Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getId(), that.getId()) && protocolVersion == that.protocolVersion;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(execution, id);
+        return Objects.hash(getExecution(), getId(), protocolVersion, code);
     }
 
     @Override
@@ -71,6 +77,11 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         final StringBuilder sb = new StringBuilder("CasualEnqueueReplyMessage{");
         sb.append("execution=").append(execution);
         sb.append(", id=").append(id);
+        sb.append(", protocolVersion=").append(protocolVersion);
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            sb.append(", code=").append(code);
+        }
         sb.append('}');
         return sb.toString();
     }
@@ -90,14 +101,21 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         return id;
     }
 
+    public long code()
+    {
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            return code;
+        }
+        throw new CasualProtocolException("code is not available in protocol version " + protocolVersion);
+    }
+
     public static final class Builder
     {
         private UUID execution;
         private UUID id;
-
-        private Builder()
-        {
-        }
+        private int code;
+        private ProtocolVersion protocolVersion;
 
         public Builder withExecution(final UUID execution)
         {
@@ -111,11 +129,23 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
             return this;
         }
 
+        public Builder withCode(int code)
+        {
+            this.code = code;
+            return this;
+        }
+
+        public Builder setProtocolVersion(ProtocolVersion protocolVersion)
+        {
+            this.protocolVersion = protocolVersion;
+            return this;
+        }
+
         public CasualEnqueueReplyMessage build()
         {
             Objects.requireNonNull(execution, "execution is not allowed to be null");
             Objects.requireNonNull(id, "id is not allowed to be null");
-            return new CasualEnqueueReplyMessage(execution, id);
+            return new CasualEnqueueReplyMessage(execution, id, protocolVersion, code);
         }
     }
 }

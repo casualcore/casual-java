@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.protocol.decoding.decoders.queue;
 
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
@@ -19,12 +20,16 @@ import java.util.UUID;
 
 public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEnqueueReplyMessage>
 {
-    private CasualEnqueueReplyMessageDecoder()
-    {}
+    private final ProtocolVersion protocolVersion;
 
-    public static CasualEnqueueReplyMessageDecoder of()
+    private CasualEnqueueReplyMessageDecoder(ProtocolVersion protocolVersion)
     {
-        return new CasualEnqueueReplyMessageDecoder();
+        this.protocolVersion = protocolVersion;
+    }
+
+    public static CasualEnqueueReplyMessageDecoder of(ProtocolVersion protocolVersion)
+    {
+        return new CasualEnqueueReplyMessageDecoder(protocolVersion);
     }
 
     @Override
@@ -39,10 +44,14 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
     {
         UUID execution = CasualMessageDecoderUtils.readUUID(channel);
         UUID id = CasualMessageDecoderUtils.readUUID(channel);
-        return CasualEnqueueReplyMessage.createBuilder()
+        CasualEnqueueReplyMessage.Builder builder = CasualEnqueueReplyMessage.createBuilder()
                                         .withExecution(execution)
-                                        .withId(id)
-                                        .build();
+                                        .withId(id);
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+
+        }
+        return builder.build();
     }
 
     @Override
