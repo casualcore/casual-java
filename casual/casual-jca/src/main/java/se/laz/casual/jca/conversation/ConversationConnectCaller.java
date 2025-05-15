@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -62,6 +62,7 @@ public class ConversationConnectCaller implements CasualConversationApi
         ConnectRequest.ConnectRequestBuilder connectRequestBuilder = ConnectRequest.createBuilder()
                 .setExecution(conversationExecution)
                 .setServiceName(serviceName)
+                .setProtocolVersion(managedConnection.getNetworkConnection().getProtocolVersion())
                 .setTimeout(timeout.toNanos())
                 .setXid(managedConnection.getCurrentXid()).setDuplex(conversationDirection.isReceive() ? Duplex.SEND : Duplex.RECEIVE);
         if(null != data)
