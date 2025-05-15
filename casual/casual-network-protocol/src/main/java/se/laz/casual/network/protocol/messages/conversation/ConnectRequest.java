@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,7 +10,9 @@ import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.api.xa.XID;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationConnectRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
@@ -28,6 +30,8 @@ public class ConnectRequest implements CasualNetworkTransmittable
 {
     private final UUID execution;
     private final String serviceName;
+    private final byte parentSpan;
+    private final ProtocolVersion protocolVersion;
     private long timeout;
     private final String parentName;
     private final Xid xid;
@@ -36,15 +40,17 @@ public class ConnectRequest implements CasualNetworkTransmittable
 
     // private constructor, only used by the builder of this class
     @SuppressWarnings("squid:S00107")
-    private ConnectRequest(UUID execution, String serviceName, long timeout, String parentName, Xid xid, Duplex duplex, ServiceBuffer serviceBuffer)
+    private ConnectRequest(UUID execution, String serviceName, long timeout, byte parentSpan, String parentName, Xid xid, Duplex duplex, ServiceBuffer serviceBuffer, ProtocolVersion protocolVersion)
     {
         this.execution = execution;
         this.serviceName = serviceName;
         this.timeout = timeout;
+        this.parentSpan = parentSpan;
         this.parentName = parentName;
         this.xid = xid;
         this.duplex = duplex;
         this.serviceBuffer = serviceBuffer;
+        this.protocolVersion = protocolVersion;
     }
     @Override
     public CasualNWMessageType getType()
@@ -72,6 +78,15 @@ public class ConnectRequest implements CasualNetworkTransmittable
     public static ConnectRequestBuilder createBuilder()
     {
         return new ConnectRequestBuilder();
+    }
+
+    public byte getParentSpan()
+    {
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            return parentSpan;
+        }
+        throw new CasualProtocolException("parent span is not available in protocol version: " + protocolVersion);
     }
 
     public String getParentName()
@@ -109,10 +124,12 @@ public class ConnectRequest implements CasualNetworkTransmittable
         private UUID execution;
         private String serviceName;
         private long timeout;
+        private byte parentSpan;
         private String parentName = "";
         private Xid xid;
         private Duplex duplex;
         private ServiceBuffer serviceBuffer;
+        private ProtocolVersion protocolVersion;
 
         private ConnectRequestBuilder()
         {}
@@ -132,6 +149,12 @@ public class ConnectRequest implements CasualNetworkTransmittable
         public ConnectRequestBuilder setTimeout(long timeout)
         {
             this.timeout = timeout;
+            return this;
+        }
+
+        public ConnectRequestBuilder setParentSpan(int parentSpan)
+        {
+            this.parentSpan = (byte)(parentSpan & 0xFF);
             return this;
         }
 
@@ -159,13 +182,19 @@ public class ConnectRequest implements CasualNetworkTransmittable
             return this;
         }
 
+        public ConnectRequestBuilder setProtocolVersion(ProtocolVersion protocolVersion)
+        {
+            this.protocolVersion = protocolVersion;
+            return this;
+        }
+
         public ConnectRequest build()
         {
             if(null == serviceBuffer)
             {
                 serviceBuffer = ServiceBuffer.nullBuffer();
             }
-            return new ConnectRequest(execution, serviceName, timeout, parentName,xid, duplex, serviceBuffer);
+            return new ConnectRequest(execution, serviceName, timeout, parentSpan, parentName,xid, duplex, serviceBuffer, protocolVersion);
         }
     }
 

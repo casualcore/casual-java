@@ -6,7 +6,7 @@
 
 package se.laz.casual.network.inbound;
 
-import se.laz.casual.api.CasualRuntimeException;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.ProtocolVersion;
 
 import java.util.Objects;
@@ -30,7 +30,7 @@ public class ProtocolVersionValueHolder implements Supplier<ProtocolVersion>, Co
     {
         if(null == protocolVersion)
         {
-            throw new CasualRuntimeException("protocol version not set - should never be used in a context where it has not already been set");
+            throw new CasualProtocolException("protocol version not set - should never be used in a context where it has not already been set");
         }
         return protocolVersion;
     }

@@ -6,10 +6,10 @@
 
 package se.laz.casual.network.protocol.messages.queue;
 
-import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.DequeueReplySizes;
@@ -111,7 +111,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         {
             return code;
         }
-        throw new CasualRuntimeException("code is not available in protocol version: " + protocolVersion);
+        throw new CasualProtocolException("code is not available in protocol version: " + protocolVersion);
     }
 
     public static final class Builder
