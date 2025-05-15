@@ -76,7 +76,7 @@ public final class CasualMessageDecoder
             case DOMAIN_DISCOVERY_REQUEST:
                 return (NetworkDecoder<T>) CasualDomainDiscoveryRequestMessageDecoder.of();
             case DOMAIN_DISCOVERY_REPLY:
-                return (NetworkDecoder<T>) CasualDomainDiscoveryReplyMessageDecoder.of();
+                return (NetworkDecoder<T>) CasualDomainDiscoveryReplyMessageDecoder.of(protocolVersionSupplier.get());
             case DOMAIN_DISCONNECT_REQUEST:
                 return (NetworkDecoder<T>) DomainDisconnectRequestMessageDecoder.of();
             case DOMAIN_DISCONNECT_REPLY:
