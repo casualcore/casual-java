@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -14,14 +14,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 
-/**
- * Created by aleph on 2017-03-07.
- */
 public final class Queue
 {
     private final String name;
     private long retries;
+    // these are only available in protocol version >= 1.4
+    private long retryDelay;
+    private boolean enqueueEnabled;
+    private boolean dequeueEnabled;
     private Queue(String name)
     {
         this.name = name;
@@ -45,6 +47,39 @@ public final class Queue
     public Queue setRetries(long retries)
     {
         this.retries = retries;
+        return this;
+    }
+
+    public long getRetryDelay()
+    {
+        return retryDelay;
+    }
+
+    public Queue setRetryDelay(long retryDelay)
+    {
+        this.retryDelay = retryDelay;
+        return this;
+    }
+
+    public boolean isEnqueueEnabled()
+    {
+        return enqueueEnabled;
+    }
+
+    public Queue setEnqueueEnabled(boolean enqueueEnabled)
+    {
+        this.enqueueEnabled = enqueueEnabled;
+        return this;
+    }
+
+    public boolean isDequeueEnabled()
+    {
+        return dequeueEnabled;
+    }
+
+    public Queue setDequeueEnabled(boolean dequeueEnabled)
+    {
+        this.dequeueEnabled = dequeueEnabled;
         return this;
     }
 
@@ -77,28 +112,28 @@ public final class Queue
         {
             return true;
         }
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof Queue queue))
         {
             return false;
         }
-        Queue queue = (Queue) o;
-        return retries == queue.retries &&
-            Objects.equals(name, queue.name);
+        return getRetries() == queue.getRetries() && getRetryDelay() == queue.getRetryDelay() && isEnqueueEnabled() == queue.isEnqueueEnabled() && isDequeueEnabled() == queue.isDequeueEnabled() && Objects.equals(getName(), queue.getName());
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(name, retries);
+        return Objects.hash(getName(), getRetries(), getRetryDelay(), isEnqueueEnabled(), isDequeueEnabled());
     }
 
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder("Queue{");
-        sb.append("name='").append(name).append('\'');
-        sb.append(", retries=").append(retries);
-        sb.append('}');
-        return sb.toString();
+        return new StringJoiner(", ", Queue.class.getSimpleName() + "[", "]")
+                .add("name='" + name + "'")
+                .add("retries=" + retries)
+                .add("retryDelay=" + retryDelay)
+                .add("enqueueEnabled=" + enqueueEnabled)
+                .add("dequeueEnabled=" + dequeueEnabled)
+                .toString();
     }
 }

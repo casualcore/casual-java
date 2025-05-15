@@ -82,6 +82,7 @@ class CasualMessageListenerImplTest extends Specification
         instance = new CasualMessageListenerImpl()
         inboundHandler = TestInboundHandler.of()
         valueHolder = ProtocolVersionValueHolder.of()
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), inboundHandler)
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )

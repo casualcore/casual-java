@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -14,6 +14,7 @@ import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.CasualManagedConnection;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
@@ -60,15 +61,15 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
 
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
         LOG.finest(() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + "reply -> service names: " + serviceNames + " queue names: " + queueNames);
-        return toDiscoveryReturn(replyMsg.getMessage());
+        return toDiscoveryReturn(replyMsg.getMessage(), connection.getNetworkConnection().getProtocolVersion());
     }
 
-    private DiscoveryReturn toDiscoveryReturn(CasualDomainDiscoveryReplyMessage message)
+    private DiscoveryReturn toDiscoveryReturn(CasualDomainDiscoveryReplyMessage message, ProtocolVersion protocolVersion)
     {
         DiscoveryReturn.Builder builder = DiscoveryReturn.createBuilder();
         message.getQueues()
                .stream()
-               .map(this::toQueueDetails)
+               .map((Queue queue) -> toQueueDetails(queue, protocolVersion))
                .forEach(builder::addQueueDetails);
         message.getServices()
                .stream()
@@ -77,9 +78,12 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
         return builder.build();
     }
 
-    private QueueDetails toQueueDetails(Queue queue)
+    private QueueDetails toQueueDetails(Queue queue, ProtocolVersion protocolVersion)
     {
-        return QueueDetails.of(queue.getName(), queue.getRetries());
+        return ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion)
+                ? QueueDetails.of(queue.getName(), queue.getRetries(), protocolVersion, queue.getRetryDelay(), queue.isEnqueueEnabled(), queue.isDequeueEnabled())
+                : QueueDetails.of(queue.getName(), queue.getRetries(), protocolVersion);
+
     }
 
     private ServiceDetails toServiceDetails(Service service)
