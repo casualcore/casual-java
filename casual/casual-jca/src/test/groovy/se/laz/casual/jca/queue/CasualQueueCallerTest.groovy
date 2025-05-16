@@ -136,7 +136,7 @@ class CasualQueueCallerTest extends Specification
         List<Queue> l = new ArrayList<>()
         for(String qname : queuenames)
         {
-            l.add(Queue.of(qname))
+            l.add(Queue.of(qname, ProtocolVersion.VERSION_1_2))
         }
         return l
     }
