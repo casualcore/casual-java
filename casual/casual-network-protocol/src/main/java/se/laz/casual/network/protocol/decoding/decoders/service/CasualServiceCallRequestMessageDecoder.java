@@ -77,21 +77,44 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         final UUID execution = CasualMessageDecoderUtils.readUUID(channel);
         final int serviceNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).getLong();
         final String serviceName = CasualMessageDecoderUtils.readString(channel, serviceNameSize);
-        final long serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
+
+        long serviceTimeout = 0;
+        boolean hasTimeout = true;
+        if (ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            byte value = ByteUtils.readFully(channel, ServiceCallRequestSizes.HAS_VALUE.getNetworkSize()).get();
+            hasTimeout = (value > 0);
+        }
+        if (hasTimeout)
+        {
+            serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
+        }
+        int parentSpan = 0;
+        if (ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            parentSpan = ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()).get();
+        }
         final int parentNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).getLong();
         final String parentName = CasualMessageDecoderUtils.readString(channel, parentNameSize);
         final Xid xid = XIDUtils.readXid(channel);
         final int flags = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.FLAGS.getNetworkSize()).getLong();
         final ServiceBuffer buffer = CasualMessageDecoderUtils.readServiceBuffer(channel, getMaxPayloadSingleBufferByteSize());
-        return CasualServiceCallRequestMessage.createBuilder()
-                                              .setExecution(execution)
-                                              .setServiceName(serviceName)
-                                              .setTimeout(serviceTimeout)
-                                              .setParentName(parentName)
-                                              .setXid(xid)
-                                              .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
-                                              .setServiceBuffer(buffer)
-                                              .build();
+        CasualServiceCallRequestMessage.Builder builder = CasualServiceCallRequestMessage.createBuilder()
+                                                                                         .setExecution(execution)
+                                                                                         .setServiceName(serviceName)
+                                                                                         .setParentName(parentName)
+                                                                                         .setXid(xid)
+                                                                                         .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
+                                                                                         .setServiceBuffer(buffer);
+        if(hasTimeout)
+        {
+            builder.setTimeout(serviceTimeout);
+        }
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            builder.setParentSpan(parentSpan);
+        }
+        return builder.build();
     }
 
     @Override
@@ -100,7 +123,7 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         return createMessage(data);
     }
 
-    private static CasualServiceCallRequestMessage createMessage(final byte[] data)
+    private CasualServiceCallRequestMessage createMessage(final byte[] data)
     {
         int currentOffset = 0;
         final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ServiceCallRequestSizes.EXECUTION.getNetworkSize()));
@@ -111,9 +134,24 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         final String serviceName = CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceNameLen);
         currentOffset += serviceNameLen;
 
-        long timeout  = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
-        currentOffset += ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
-
+        boolean hasTimeout = true;
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            byte value = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.HAS_VALUE.getNetworkSize()).get();
+            currentOffset += ServiceCallRequestSizes.HAS_VALUE.getNetworkSize();
+            hasTimeout = (value > 0);
+        }
+        long timeout = 0;
+        if(hasTimeout)
+        {
+            timeout = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
+            currentOffset += ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
+        }
+        int parentSpan = 0;
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            parentSpan = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()).get();
+        }
         final int parentNameSize = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).getLong();
         currentOffset += ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize();
         final String parentName = CasualMessageDecoderUtils.getAsString(data, currentOffset, parentNameSize);
@@ -137,15 +175,22 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
         serviceBufferPayload.add(payloadData);
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
-        return CasualServiceCallRequestMessage.createBuilder()
-                                              .setExecution(execution)
-                                              .setServiceName(serviceName)
-                                              .setTimeout(timeout)
-                                              .setParentName(parentName)
-                                              .setXid(xid)
-                                              .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
-                                              .setServiceBuffer(serviceBuffer)
-                                              .build();
+        CasualServiceCallRequestMessage.Builder builder = CasualServiceCallRequestMessage.createBuilder()
+                                                                                 .setExecution(execution)
+                                                                                 .setServiceName(serviceName)
+                                                                                 .setParentName(parentName)
+                                                                                 .setXid(xid)
+                                                                                 .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
+                                                                                 .setServiceBuffer(serviceBuffer);
+        if(hasTimeout)
+        {
+            builder.setTimeout(timeout);
+        }
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            builder.setParentSpan(parentSpan);
+        }
+        return builder.build();
     }
 
 }
