@@ -7,6 +7,7 @@
 package se.laz.casual.network.protocol.messages.domain;
 
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryReplySizes;
 
 import java.nio.ByteBuffer;
@@ -19,19 +20,23 @@ import java.util.StringJoiner;
 public final class Queue
 {
     private final String name;
+    private final ProtocolVersion protocolVersion;
     private long retries;
     // these are only available in protocol version >= 1.4
     private long retryDelay;
     private boolean enqueueEnabled;
     private boolean dequeueEnabled;
-    private Queue(String name)
+    private Queue(String name, ProtocolVersion protocolVersion)
     {
         this.name = name;
+        this.protocolVersion = protocolVersion;
     }
 
-    public static Queue of(String name)
+    public static Queue of(String name, ProtocolVersion protocolVersion)
     {
-        return new Queue(name);
+        Objects.requireNonNull(name, "name can not be null");
+        Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
+        return new Queue(name, protocolVersion);
     }
 
     public String getName()
@@ -92,7 +97,11 @@ public final class Queue
     {
         final List<byte[]> l = new ArrayList<>();
         final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
-        final long networkSize = DiscoveryReplySizes.QUEUES_ELEMENT_SIZE.getNetworkSize() + nameBytes.length + (long)DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize();
+        final long networkSize = ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion)
+                ? DiscoveryReplySizes.QUEUES_ELEMENT_SIZE.getNetworkSize() + nameBytes.length + (long)DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize()
+                + DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize() + DiscoveryReplySizes.QUEUES_ELEMENT_ENQUEUE_ENABLED.getNetworkSize()
+                + DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize()
+                : DiscoveryReplySizes.QUEUES_ELEMENT_SIZE.getNetworkSize() + nameBytes.length + (long)DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize();
         if(networkSize > Integer.MAX_VALUE)
         {
             throw new CasualProtocolException("Queue byte size is larger than Integer.MAX_VALUE: " + networkSize);
@@ -101,6 +110,12 @@ public final class Queue
         b.putLong(nameBytes.length)
          .put(nameBytes)
          .putLong(retries);
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion))
+        {
+            b.putLong(retryDelay)
+             .put(((enqueueEnabled) ? (byte)(1) : (byte)(0)))
+             .put(((dequeueEnabled) ? (byte)(1) : (byte)(0)));
+        }
         l.add(b.array());
         return l;
     }

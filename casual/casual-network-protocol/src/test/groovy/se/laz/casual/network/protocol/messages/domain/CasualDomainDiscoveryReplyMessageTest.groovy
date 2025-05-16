@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.protocol.messages.domain
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -168,7 +169,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
     {
         def queues = []
         names.each{
-            queues << Queue.of(it.toString())
+            queues << Queue.of(it.toString(), ProtocolVersion.VERSION_1_2)
                     .setRetries(retries)
         }
         return queues

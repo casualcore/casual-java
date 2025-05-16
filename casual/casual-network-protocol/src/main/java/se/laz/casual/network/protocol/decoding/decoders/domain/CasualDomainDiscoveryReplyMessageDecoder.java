@@ -219,7 +219,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         offset += nameSize;
         final long retries = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize()).getLong();
         offset += DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize();
-        final Queue q = Queue.of(name)
+        final Queue q = Queue.of(name, protocolVersion)
                              .setRetries(retries);
         if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion))
         {
