@@ -83,6 +83,7 @@ class CasualNWMessageDecoderTest extends Specification
                                                                              .setXid(XID.NULL_XID)
                                                                              .setExecution(UUID.randomUUID())
                                                                              .setServiceBuffer(ServiceBuffer.of(msg))
+                                                                             .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                                                                              .build()
 
         return CasualNWMessageImpl.of(corrid, message)

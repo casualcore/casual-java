@@ -8,6 +8,7 @@ package se.laz.casual.network.protocol.decoding;
 
 
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
@@ -64,14 +65,14 @@ public final class CasualMessageDecoder
 
     public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final byte[] data, CasualNWMessageHeader header, Supplier<ProtocolVersion> protocolVersionSupplier)
     {
-        NetworkDecoder<T> networkReader = getDecoder( header, protocolVersionSupplier );
+        NetworkDecoder<T> networkReader = getDecoder( header.getType(), protocolVersionSupplier );
         return readMessage( data, header, networkReader );
     }
 
     @SuppressWarnings({"unchecked", "squid:MethodCyclomaticComplexity"})
-    static <T extends CasualNetworkTransmittable> NetworkDecoder<T> getDecoder(CasualNWMessageHeader header, Supplier<ProtocolVersion> protocolVersionSupplier)
+    static <T extends CasualNetworkTransmittable> NetworkDecoder<T> getDecoder(CasualNWMessageType type, Supplier<ProtocolVersion> protocolVersionSupplier)
     {
-        switch(header.getType())
+        switch(type)
         {
             case DOMAIN_DISCOVERY_REQUEST:
                 return (NetworkDecoder<T>) CasualDomainDiscoveryRequestMessageDecoder.of();
@@ -94,7 +95,7 @@ public final class CasualMessageDecoder
             case SERVICE_CALL_REPLY:
                 // We may want to use some other size for chunking of service payload
                 CasualServiceCallReplyMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
-                return (NetworkDecoder<T>) CasualServiceCallReplyMessageDecoder.of();
+                return (NetworkDecoder<T>) CasualServiceCallReplyMessageDecoder.of(protocolVersionSupplier.get());
             case ENQUEUE_REQUEST:
                 return (NetworkDecoder<T>) CasualEnqueueRequestMessageDecoder.of();
             case ENQUEUE_REPLY:
@@ -124,7 +125,7 @@ public final class CasualMessageDecoder
             case CONVERSATION_DISCONNECT:
                 return (NetworkDecoder<T>) DisconnectMessageDecoder.of();
             default:
-                throw new UnsupportedOperationException("Unknown messagetype: " + header.getType());
+                throw new UnsupportedOperationException("Unknown messagetype: " + type);
         }
     }
 

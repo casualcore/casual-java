@@ -105,7 +105,8 @@ public final class CasualServiceCallWork implements Work
     private void issueCall()
     {
         CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
-                                                                                          .setExecution( message.getExecution() );
+                                                                                          .setExecution( message.getExecution() )
+                                                                                          .setProtocolVersion(protocolVersion);
         if(!ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
         {
             replyBuilder.setXid( message.getXid() );

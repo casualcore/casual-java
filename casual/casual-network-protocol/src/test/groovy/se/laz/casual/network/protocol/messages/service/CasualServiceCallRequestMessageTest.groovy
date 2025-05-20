@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,6 +10,7 @@ import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.xa.XID
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -20,9 +21,6 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
-/**
- * Created by aleph on 2017-03-16.
- */
 class CasualServiceCallRequestMessageTest extends Specification
 {
     @Shared
@@ -64,6 +62,7 @@ class CasualServiceCallRequestMessageTest extends Specification
                                           .setXid(nullXID)
                                           .setXatmiFlags(xatmiFlags)
                                           .setServiceBuffer(serviceBuffer)
+                                          .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                                           .build()
         then:
         msg.execution == execution
@@ -86,6 +85,7 @@ class CasualServiceCallRequestMessageTest extends Specification
                 .setXid(nullXID)
                 .setXatmiFlags(xatmiFlags)
                 .setServiceBuffer(serviceBuffer)
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                 .build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()

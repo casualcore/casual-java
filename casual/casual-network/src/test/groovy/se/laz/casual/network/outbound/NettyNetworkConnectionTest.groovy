@@ -269,6 +269,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
                 .setExecution(UUID.randomUUID())
                 .setServiceName('test-service')
                 .setServiceBuffer(buffer)
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
        if(tpnoreply)
        {
           builder.setXatmiFlags(Flag.of(AtmiFlags.TPNOREPLY))

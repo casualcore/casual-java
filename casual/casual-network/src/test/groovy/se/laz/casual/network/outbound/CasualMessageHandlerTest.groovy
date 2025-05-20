@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,13 +8,14 @@ package se.laz.casual.network.outbound
 
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.JsonBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
-import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -61,6 +62,7 @@ class CasualMessageHandlerTest extends Specification
                 .setXid(XID.NULL_XID)
                 .setExecution(UUID.randomUUID())
                 .setServiceBuffer(ServiceBuffer.of(msg))
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                 .build()
 
         return CasualNWMessageImpl.of(corrid, message)
