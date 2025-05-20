@@ -11,6 +11,7 @@ import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.api.xa.XID;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
@@ -34,7 +35,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     private UUID execution;
     private String serviceName;
     private long timeout;
-    private byte parentSpan;
+    private long parentSpan;
     private String parentName;
     private Xid xid;
     private Flag<AtmiFlags> xatmiFlags;
@@ -87,8 +88,6 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
                                                     : toNetworkBytesMultipleBuffers(serviceNameBytes, parentNameBytes, serviceBuffer);
     }
 
-
-
     public static Builder createBuilder()
     {
         return new Builder();
@@ -107,6 +106,15 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     public long getTimeout()
     {
         return timeout;
+    }
+
+    public long getParentSpan()
+    {
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            return parentSpan;
+        }
+        throw new CasualProtocolException("parentSpan is not supported in protocol version: " + protocolVersion);
     }
 
     public String getParentName()
@@ -174,6 +182,10 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         sb.append("execution=").append(execution);
         sb.append(", serviceName='").append(serviceName).append('\'');
         sb.append(", timeout=").append(timeout);
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            sb.append(", parentSpan='").append(Long.toUnsignedString(parentSpan)).append('\'');
+        }
         sb.append(", parentName='").append(parentName).append('\'');
         sb.append(", xid=").append(xid);
         sb.append(", xatmiFlags=").append(xatmiFlags.getFlagValue());
@@ -182,18 +194,13 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         return sb.toString();
     }
 
-    public int getParentSpan()
-    {
-        return parentSpan;
-    }
-
     public static class Builder
     {
         private UUID execution;
         private String serviceName;
         private long timeout;
         // optional
-        private byte parentSpan;
+        private long parentSpan;
         private String parentName = "";
         private Xid xid;
         private Flag<AtmiFlags> xatmiFlags;
@@ -218,9 +225,9 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
             return this;
         }
 
-        public Builder setParentSpan(int parentSpan)
+        public Builder setParentSpan(long parentSpan)
         {
-            this.parentSpan = (byte)(parentSpan & 0xFF);
+            this.parentSpan = parentSpan;
             return this;
         }
 
@@ -256,6 +263,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
 
         public CasualServiceCallRequestMessage build()
         {
+            Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
             CasualServiceCallRequestMessage r = new CasualServiceCallRequestMessage();
             r.execution = execution;
             r.serviceName = serviceName;
@@ -269,8 +277,6 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
             return r;
         }
     }
-
-
 
     private List<byte[]> toNetworkBytesFitsInOneBuffer(int messageSize, final byte[] serviceNameBytes, final byte[] parentNameBytes, final List<byte[]> serviceBytes)
     {
@@ -287,7 +293,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
                 b.put(hasValue);
                 b.putLong(timeout);
             }
-            b.put(parentSpan);
+            b.putLong(parentSpan);
         }
         else
         {
@@ -323,7 +329,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
                 l.add(CasualEncoderUtils.writeByte(hasValue));
                 l.add(CasualEncoderUtils.writeLong(timeout));
             }
-            l.add(CasualEncoderUtils.writeByte(parentSpan));
+            l.add(CasualEncoderUtils.writeLong(parentSpan));
         }
         else
         {

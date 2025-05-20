@@ -7,6 +7,7 @@
 package se.laz.casual.network.protocol.decoding
 
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.decoders.MessageDecoder
@@ -31,7 +32,7 @@ class CasualNetworkTestReader
     static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel, CasualNWMessageHeader header )
     {
         Supplier<ProtocolVersion> protocolVersionSupplier = {ProtocolVersion.VERSION_1_2}
-        NetworkDecoder<T> networkReader = CasualMessageDecoder.getDecoder(header, protocolVersionSupplier)
+        NetworkDecoder<T> networkReader = CasualMessageDecoder.getDecoder(header.getType(), protocolVersionSupplier)
         return readMessage( channel, header, networkReader )
     }
 
@@ -46,6 +47,13 @@ class CasualNetworkTestReader
         final MessageDecoder<T> reader = MessageDecoder.of(nr, CasualMessageDecoder.getMaxSingleBufferByteSize() )
         final T msg = reader.read(channel, header.getPayloadSize())
         return CasualNWMessageImpl.of(header.getCorrelationId(), msg)
+    }
+
+    static <T extends CasualNetworkTransmittable> T readMessage(CasualNWMessageType type, ReadableByteChannel channel, long messageSize, ProtocolVersion protocolVersion)
+    {
+       NetworkDecoder<T> networkReader = CasualMessageDecoder.getDecoder(type, () -> protocolVersion)
+       final MessageDecoder<T> reader = MessageDecoder.of(networkReader, CasualMessageDecoder.getMaxSingleBufferByteSize() )
+       return reader.read(channel, messageSize)
     }
 
 }

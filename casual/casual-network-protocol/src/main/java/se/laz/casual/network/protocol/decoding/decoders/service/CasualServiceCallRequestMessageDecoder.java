@@ -103,6 +103,7 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
                                                                                          .setExecution(execution)
                                                                                          .setServiceName(serviceName)
                                                                                          .setParentName(parentName)
+                                                                                         .setProtocolVersion(protocolVersion)
                                                                                          .setXid(xid)
                                                                                          .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
                                                                                          .setServiceBuffer(buffer);
@@ -147,10 +148,11 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
             timeout = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
             currentOffset += ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
         }
-        int parentSpan = 0;
+        long parentSpan = 0;
         if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
         {
-            parentSpan = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()).get();
+            parentSpan = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()).getLong();
+            currentOffset += ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize();
         }
         final int parentNameSize = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).getLong();
         currentOffset += ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize();
@@ -176,12 +178,13 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         serviceBufferPayload.add(payloadData);
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
         CasualServiceCallRequestMessage.Builder builder = CasualServiceCallRequestMessage.createBuilder()
-                                                                                 .setExecution(execution)
-                                                                                 .setServiceName(serviceName)
-                                                                                 .setParentName(parentName)
-                                                                                 .setXid(xid)
-                                                                                 .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
-                                                                                 .setServiceBuffer(serviceBuffer);
+                                                                                         .setExecution(execution)
+                                                                                         .setServiceName(serviceName)
+                                                                                         .setParentName(parentName)
+                                                                                         .setProtocolVersion(protocolVersion)
+                                                                                         .setXid(xid)
+                                                                                         .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
+                                                                                         .setServiceBuffer(serviceBuffer);
         if(hasTimeout)
         {
             builder.setTimeout(timeout);

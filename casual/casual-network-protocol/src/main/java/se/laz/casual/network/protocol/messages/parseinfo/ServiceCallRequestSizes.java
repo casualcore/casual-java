@@ -19,7 +19,7 @@ public enum ServiceCallRequestSizes
     HAS_VALUE(1,1),
     SERVICE_TIMEOUT(8, 8),
     // v1.3, 1.4 only
-    PARENT_SPAN(1,1),
+    PARENT_SPAN(8,8),
     PARENT_NAME_SIZE(8, 8),
     PARENT_NAME_DATA(128, 128),
     XID_FORMAT(8, 8),

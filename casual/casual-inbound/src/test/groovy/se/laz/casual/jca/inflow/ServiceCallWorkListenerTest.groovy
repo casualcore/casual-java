@@ -74,6 +74,7 @@ class ServiceCallWorkListenerTest extends Specification
                 .setTransactionState( TransactionState.TX_ACTIVE )
                 .setExecution( correlationId )
                 .setServiceBuffer( ServiceBuffer.of( buffer ) )
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                 .build()
         response = CasualNWMessageImpl.of( correlationId, message )
 
@@ -89,6 +90,7 @@ class ServiceCallWorkListenerTest extends Specification
                .setParentName("")
                .setServiceName(serviceName)
                .setXid(transactionId)
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                .build()
         instance = new ServiceCallWorkListener(channel, request)
         serviceCallEventPublisher = Mock(ServiceCallEventPublisher)

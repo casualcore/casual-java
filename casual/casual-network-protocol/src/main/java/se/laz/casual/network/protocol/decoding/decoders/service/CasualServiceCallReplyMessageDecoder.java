@@ -1,19 +1,20 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.protocol.decoding.decoders.service;
 
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.util.Pair;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallReplySizes;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 import se.laz.casual.network.protocol.utils.XIDUtils;
 
@@ -23,6 +24,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -31,12 +33,16 @@ import java.util.UUID;
 public final class CasualServiceCallReplyMessageDecoder implements NetworkDecoder<CasualServiceCallReplyMessage>
 {
     private static int maxPayloadSingleBufferByteSize = Integer.MAX_VALUE;
-    private CasualServiceCallReplyMessageDecoder()
-    {}
-
-    public static NetworkDecoder<CasualServiceCallReplyMessage> of()
+    private final ProtocolVersion protocolVersion;
+    private CasualServiceCallReplyMessageDecoder(ProtocolVersion protocolVersion)
     {
-        return new CasualServiceCallReplyMessageDecoder();
+        this.protocolVersion = protocolVersion;
+    }
+
+    public static NetworkDecoder<CasualServiceCallReplyMessage> of(ProtocolVersion protocolVersion)
+    {
+        Objects.requireNonNull(protocolVersion, "protocol version can not be null");
+        return new CasualServiceCallReplyMessageDecoder(protocolVersion);
     }
 
     /**
@@ -141,6 +147,7 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
                                             .setXid(xid)
                                             .setTransactionState(TransactionState.unmarshal(transactionState))
                                             .setServiceBuffer(serviceBuffer)
+                                            .setProtocolVersion(protocolVersion)
                                             .build();
     }
 }

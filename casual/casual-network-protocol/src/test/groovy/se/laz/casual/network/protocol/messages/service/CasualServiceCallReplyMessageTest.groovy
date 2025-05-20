@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,6 +10,7 @@ import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.xa.XID
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -20,9 +21,6 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
-/**
- * Created by aleph on 2017-03-28.
- */
 class CasualServiceCallReplyMessageTest extends Specification
 {
     @Shared
@@ -64,6 +62,7 @@ class CasualServiceCallReplyMessageTest extends Specification
                                                .setXid(nullXID)
                                                .setTransactionState(transactionState)
                                                .setServiceBuffer(serviceBuffer)
+                                               .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                                                .build()
         then:
         msg.getExecution() == execution
@@ -85,6 +84,7 @@ class CasualServiceCallReplyMessageTest extends Specification
                 .setXid(nullXID)
                 .setTransactionState(transactionState)
                 .setServiceBuffer(serviceBuffer)
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                 .build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
@@ -112,6 +112,7 @@ class CasualServiceCallReplyMessageTest extends Specification
                 .setXid(nullXID)
                 .setTransactionState(TransactionState.ROLLBACK_ONLY)
                 .setServiceBuffer(emptyServiceBuffer)
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                 .build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()

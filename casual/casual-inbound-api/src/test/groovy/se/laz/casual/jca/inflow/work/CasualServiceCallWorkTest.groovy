@@ -71,6 +71,7 @@ class CasualServiceCallWorkTest extends Specification
                                                         json )
                                                         .getBytes() ) )
                         .setXatmiFlags( Flag.of())
+                        .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                         .build()
 
         correlationId = UUID.randomUUID()
