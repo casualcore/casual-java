@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.inflow.work;
 
+import io.opentelemetry.context.Scope;
 import jakarta.resource.spi.work.Work;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
@@ -17,6 +18,7 @@ import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
+import se.laz.casual.jca.otel.LegacyTraceContext;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
@@ -36,20 +38,27 @@ public final class CasualServiceCallWork implements Work
     private final UUID correlationId;
     private final boolean isTpNoReply;
     private final ProtocolVersion protocolVersion;
+    private final LegacyTraceContext legacyTraceContext;
     private CasualNWMessage<CasualServiceCallReplyMessage> response;
     private ServiceHandler handler = null;
 
-    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, ProtocolVersion protocolVersion)
+    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, ProtocolVersion protocolVersion, LegacyTraceContext legacyTraceContext)
     {
-        this(correlationId, message, false, protocolVersion);
+        this(correlationId, message, false, protocolVersion, legacyTraceContext);
     }
 
     public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply, ProtocolVersion protocolVersion)
+    {
+        this(correlationId, message, isTpNoReply, protocolVersion, null);
+    }
+
+    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply, ProtocolVersion protocolVersion, LegacyTraceContext legacyTraceContext)
     {
         this.correlationId = correlationId;
         this.message = message;
         this.isTpNoReply = isTpNoReply;
         this.protocolVersion = protocolVersion;
+        this.legacyTraceContext = legacyTraceContext;
     }
 
     public CasualServiceCallRequestMessage getMessage()
@@ -102,6 +111,7 @@ public final class CasualServiceCallWork implements Work
         }
     }
 
+    @SuppressWarnings("try")
     private void issueCall()
     {
         CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
@@ -114,7 +124,18 @@ public final class CasualServiceCallWork implements Work
         CasualBuffer serviceResult = ServiceBuffer.empty();
         try
         {
-            InboundResponse reply = callService();
+            InboundResponse reply;
+            if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+            {
+                try(Scope scope =  legacyTraceContext.toOtelContext().makeCurrent())
+                {
+                    reply = callService();
+                }
+            }
+            else
+            {
+                reply = callService();
+            }
             serviceResult = reply.getBuffer();
 
             replyBuilder

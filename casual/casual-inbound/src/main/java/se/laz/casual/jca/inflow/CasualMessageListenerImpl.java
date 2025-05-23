@@ -29,6 +29,7 @@ import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
+import se.laz.casual.jca.otel.LegacyTraceContext;
 import se.laz.casual.network.InboundDeactivatedContext;
 import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.ProtocolMatcher;
@@ -156,8 +157,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
             });
         }
         boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
-        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply, protocolVersion);
-
+        CasualServiceCallWork work = createCasualServiceCallWork(message, protocolVersion, isTpNoReply);
         try
         {
             if(!isTpNoReply && isServiceCallTransactional( xid ) )
@@ -178,6 +178,21 @@ public class CasualMessageListenerImpl implements CasualMessageListener
             }
             throw new CasualResourceAdapterException( "Error starting work.", e );
         }
+    }
+
+    private static CasualServiceCallWork createCasualServiceCallWork(CasualNWMessage<CasualServiceCallRequestMessage> message, ProtocolVersion protocolVersion, boolean isTpNoReply)
+    {
+        CasualServiceCallWork work;
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        {
+            LegacyTraceContext legacyTraceContext = new LegacyTraceContext(message.getMessage().getExecution(), message.getMessage().getParentSpan());
+            work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply, protocolVersion, legacyTraceContext);
+        }
+        else
+        {
+            work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply, protocolVersion);
+        }
+        return work;
     }
 
     private boolean tpNoReplyOutOfProtocol(CasualNWMessage<CasualServiceCallRequestMessage> message, boolean serviceCallTransactional)
