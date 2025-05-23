@@ -58,7 +58,6 @@ public class OutboundTracing
                 TraceState.getDefault()
         );
 
-        // Wrap the new SpanContext in a Span and bind it to the current context.
         Span outboundParentSpan = Span.wrap(outboundSpanContext);
         return new OutboundContext(Context.current().with(outboundParentSpan), traceId, randomParentSpan);
     }

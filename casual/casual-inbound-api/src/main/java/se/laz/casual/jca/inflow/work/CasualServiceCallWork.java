@@ -6,6 +6,8 @@
 
 package se.laz.casual.jca.inflow.work;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Scope;
 import jakarta.resource.spi.work.Work;
 import se.laz.casual.api.buffer.CasualBuffer;
@@ -127,9 +129,17 @@ public final class CasualServiceCallWork implements Work
             InboundResponse reply;
             if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
             {
+                Span inboundSpan = GlobalOpenTelemetry.getTracer(LegacyTraceContext.TRACER_NAME)
+                                                      .spanBuilder("inboundCall")
+                                                      .startSpan();
                 try(Scope scope =  legacyTraceContext.toOtelContext().makeCurrent())
                 {
+                    inboundSpan.setAttribute("service.name", message.getServiceName());
                     reply = callService();
+                }
+                finally
+                {
+                    inboundSpan.end();
                 }
             }
             else
