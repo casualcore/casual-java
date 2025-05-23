@@ -6,6 +6,7 @@
 
 package se.laz.casual.jca.service;
 
+import io.opentelemetry.context.Scope;
 import se.laz.casual.api.CasualServiceApi;
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.ServiceReturn;
@@ -26,6 +27,8 @@ import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.event.ServiceCallEventStoreFactory;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.jca.RuntimeInformation;
+import se.laz.casual.jca.otel.OutboundContext;
+import se.laz.casual.jca.otel.OutboundTracing;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
@@ -208,27 +211,48 @@ public class CasualServiceCaller implements CasualServiceApi
                 '}';
     }
 
+    @SuppressWarnings("try")
     private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, Xid transactionId, UUID execution, boolean noReply)
     {
         Duration timeout = Duration.of(connection.getTransactionTimeout(), ChronoUnit.SECONDS);
         ProtocolVersion protocolVersion = connection.getNetworkConnection().getProtocolVersion();
-        CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
-                .setExecution(execution)
+        CasualServiceCallRequestMessage.Builder builder = CasualServiceCallRequestMessage.createBuilder()
                 .setServiceBuffer(ServiceBuffer.of(data))
                 .setServiceName(serviceName)
                 .setXid(transactionId)
                 .setTimeout(timeout.toNanos())
                 .setXatmiFlags(flags)
-                .setProtocolVersion(protocolVersion).build();
-        CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
-        LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
+                .setProtocolVersion(protocolVersion);
 
-        if(noReply)
+        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
         {
-            connection.getNetworkConnection().requestNoReply(serviceRequestNetworkMessage);
-            return Optional.empty();
+            OutboundContext outboundContext = OutboundTracing.createNewOutboundContext(execution);
+            try(Scope scope = outboundContext.context().makeCurrent())
+            {
+                builder.setParentSpan(outboundContext.span());
+                builder.setExecution(outboundContext.traceId());
+                CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, builder.build());
+                LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
+                if (noReply)
+                {
+                    connection.getNetworkConnection().requestNoReply(serviceRequestNetworkMessage);
+                    return Optional.empty();
+                }
+                return Optional.of(connection.getNetworkConnection().request(serviceRequestNetworkMessage));
+            }
         }
-        return Optional.of(connection.getNetworkConnection().request(serviceRequestNetworkMessage));
+        else
+        {
+            builder.setExecution(execution);
+            CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, builder.build());
+            LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
+            if (noReply)
+            {
+                connection.getNetworkConnection().requestNoReply(serviceRequestNetworkMessage);
+                return Optional.empty();
+            }
+            return Optional.of(connection.getNetworkConnection().request(serviceRequestNetworkMessage));
+        }
     }
 
     private CasualNWMessage<CasualDomainDiscoveryReplyMessage> serviceDiscovery(UUID corrid, String serviceName)

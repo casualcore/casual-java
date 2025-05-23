@@ -12,6 +12,7 @@ import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Context;
 
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class OutboundTracing
@@ -20,32 +21,45 @@ public class OutboundTracing
     {}
     /**
      * Creates a new outbound context with a fresh parent span that uses:
-     * - The same global trace id (from the inbound context).
-     * - A new parent span id generated randomly as a 64-bit number, formatted as 16 hex digits.
+     * - the same global trace id (from the inbound context, if it exists)
+     * - a new parent span id generated randomly as a 64-bit number, formatted as 16 hex digits.
+     * @param execution - the execution, will be used in case there is not execution from previous inbound call
      */
-    public static Context createNewOutboundContext()
+    public static OutboundContext createNewOutboundContext(UUID execution)
     {
-        // Get the current active span from the inbound context.
-        Span inboundSpan = Span.current();
-        SpanContext inboundSpanContext = inboundSpan.getSpanContext();
-        // Extract the trace id (32-character hex string).
-        String traceIdHex = inboundSpanContext.getTraceId();
+        Span currentSpan = Span.current();
+        SpanContext currentSpanContext = currentSpan.getSpanContext();
+        String traceIdHex;
 
-        // Generate a new parent span id as a random 64-bit number.
+        UUID traceId = null;
+        if (currentSpanContext.isValid()) {
+            // there is an inbound call: reuse its trace ID (which should be a 32-character hex string).
+            traceIdHex = currentSpanContext.getTraceId();
+        } else {
+            // no inbound context exists: generate a new trace ID based on a newly generated UUID.
+            traceId = execution;
+            traceIdHex = traceId.toString().replace("-", "");
+        }
+
+        if(null == traceId)
+        {
+            traceId = UUIDConverter.convertTraceIdHexToUUID(traceIdHex);
+        }
+
+        // generate a new parent's span id as a random 64-bit number formatted as 16 hex digits.
         long randomParentSpan = ThreadLocalRandom.current().nextLong();
-        // Convert to a 16-digit hexadecimal string.
         String newParentSpanId = String.format("%016x", randomParentSpan);
 
-        // Build a new SpanContext for the outbound request, preserving the trace id.
+        // create a new SpanContext with the determined trace id and new parent span id.
         SpanContext outboundSpanContext = SpanContext.create(
-                traceIdHex,       // global trace id remains the same.
-                newParentSpanId,  // new random parent's span id.
+                traceIdHex,
+                newParentSpanId,
                 TraceFlags.getDefault(),
                 TraceState.getDefault()
         );
 
-        // Wrap this SpanContext as a Span and add it to a new Context.
+        // Wrap the new SpanContext in a Span and bind it to the current context.
         Span outboundParentSpan = Span.wrap(outboundSpanContext);
-        return Context.current().with(outboundParentSpan);
+        return new OutboundContext(Context.current().with(outboundParentSpan), traceId, randomParentSpan);
     }
 }
