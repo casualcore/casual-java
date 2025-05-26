@@ -185,7 +185,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         CasualServiceCallWork work;
         if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
         {
-            LegacyTraceContext legacyTraceContext = new LegacyTraceContext(message.getMessage().getExecution(), message.getMessage().getParentSpan());
+            LegacyTraceContext legacyTraceContext = new LegacyTraceContext(message.getMessage().getExecution(), message.getMessage().getParentSpan(), message.getMessage().getParentName());
             work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply, protocolVersion, legacyTraceContext);
         }
         else

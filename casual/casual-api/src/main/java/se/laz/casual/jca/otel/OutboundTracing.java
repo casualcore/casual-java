@@ -30,11 +30,13 @@ public class OutboundTracing
         Span currentSpan = Span.current();
         SpanContext currentSpanContext = currentSpan.getSpanContext();
         String traceIdHex;
+        String parentName = "";
 
         UUID traceId = null;
         if (currentSpanContext.isValid()) {
             // there is an inbound call: reuse its trace ID (which should be a 32-character hex string).
             traceIdHex = currentSpanContext.getTraceId();
+            parentName = currentSpanContext.getTraceState().get("parentName");
         } else {
             // no inbound context exists: generate a new trace ID based on a newly generated UUID.
             traceId = execution;
@@ -59,6 +61,6 @@ public class OutboundTracing
         );
 
         Span outboundParentSpan = Span.wrap(outboundSpanContext);
-        return new OutboundContext(Context.current().with(outboundParentSpan), traceId, randomParentSpan);
+        return new OutboundContext(Context.current().with(outboundParentSpan), traceId, randomParentSpan, parentName);
     }
 }

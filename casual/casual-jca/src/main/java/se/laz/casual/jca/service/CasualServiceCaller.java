@@ -241,6 +241,7 @@ public class CasualServiceCaller implements CasualServiceApi
                 {
                     outboundSpan.setAttribute("peer.service", serviceName);
                     builder.setParentSpan(outboundContext.span());
+                    builder.setParentName(outboundContext.parentName());
                     builder.setExecution(outboundContext.traceId());
                     return getCasualNWMessageCompletableFuture(corrid, serviceName, noReply, builder.build());
                 }

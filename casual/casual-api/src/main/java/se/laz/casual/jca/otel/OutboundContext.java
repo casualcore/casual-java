@@ -11,11 +11,12 @@ import io.opentelemetry.context.Context;
 import java.util.Objects;
 import java.util.UUID;
 
-public record OutboundContext(Context context, UUID traceId, long span)
+public record OutboundContext(Context context, UUID traceId, long span, String parentName)
 {
     public OutboundContext
     {
         Objects.requireNonNull(context, "context can not be null");
         Objects.requireNonNull(traceId, "traceId can not be null");
+        Objects.requireNonNull(parentName, "parentName can not be null");
     }
 }
