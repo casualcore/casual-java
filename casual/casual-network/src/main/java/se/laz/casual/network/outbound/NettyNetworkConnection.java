@@ -24,6 +24,7 @@ import se.laz.casual.jca.ConnectionObserver;
 import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.CasualNWMessageDecoder;
 import se.laz.casual.network.CasualNWMessageEncoder;
+import se.laz.casual.network.DebuggingHandler;
 import se.laz.casual.network.EventLoopClient;
 import se.laz.casual.network.EventLoopFactory;
 import se.laz.casual.network.LogLevelProvider;
@@ -38,6 +39,8 @@ import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequest
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpdateMessage;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +98,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
         LOG.finest(() -> networkConnection + " connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()));
-        ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
+        ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer, ch));
         DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
         networkConnection.setDomainId(id);
         if(networkConnection.protocolSupportsDomainDisconnect())
@@ -133,7 +136,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                 @Override
                 protected void initChannel(SocketChannel ch)
                 {
-                    ch.pipeline().addLast(CasualNWMessageDecoder.of(protocolVersionValueHolder), CasualNWMessageEncoder.of(), messageHandler, conversationMessageHandler, exceptionHandler);
+                    ch.pipeline().addLast(CasualNWMessageDecoder.of(protocolVersionValueHolder), CasualNWMessageEncoder.of(), new DebuggingHandler() ,messageHandler, conversationMessageHandler, exceptionHandler);
                     if(enableLogHandler)
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.OUTBOUND_LOGGING_LEVEL));
@@ -157,11 +160,16 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         this.domainDiscoveryTopologyChangedHandler = domainDiscoveryTopologyChangedHandler;
     }
 
-    private static void handleClose(final NettyNetworkConnection connection, ErrorInformer errorInformer)
+    private static void handleClose(final NettyNetworkConnection connection, ErrorInformer errorInformer, Channel ch)
     {
         // always complete any outstanding requests exceptionally
         // both when the casual domain goes away or when the owner of the network connection
         // closes us, the client, directly
+        Exception closureTrace = new Exception("channel close triggered");
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        closureTrace.printStackTrace(pw);
+        LOG.warning(() -> "channel close detected: \n" + sw);
         connection.correlator.completeAllExceptionally(new CasualConnectionException("network connection is gone"));
         if(connection.connected.get())
         {
@@ -237,7 +245,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
             // new service calls are not ok when domain has been disconnected
             throw new DomainDisconnectedException("Domain: " + domainId + " has disconnected, no service or queue calls allowed");
         }
-        LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
+        LOG.info(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
     }
 
     private <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> Optional<CompletableFuture<CasualNWMessage<T>>> issueRequest(CasualNWMessage<X> message, boolean noReply)
@@ -260,7 +268,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
             if(!v.isSuccess()){
                 List<UUID> l = new ArrayList<>();
                 l.add(message.getCorrelationId());
-                LOG.finest(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
+                LOG.info(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
                 // This since all outstanding requests may already have been completed exceptionally
                 // when no reply - nobody is listening Dave
                 if(!f.isCompletedExceptionally() && !noReply) {

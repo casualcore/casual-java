@@ -7,5 +7,4 @@
 
 <jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.2">
     <ear-subdeployments-isolated>false</ear-subdeployments-isolated>
-
 </jboss-deployment-structure>

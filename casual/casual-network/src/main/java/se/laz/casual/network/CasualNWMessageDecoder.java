@@ -15,6 +15,7 @@ import se.laz.casual.network.inbound.ProtocolVersionValueHolder;
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
 
@@ -23,6 +24,7 @@ import java.util.Optional;
 
 public class CasualNWMessageDecoder extends ByteToMessageDecoder
 {
+    private static ProtocolVersion storedProtocolVersion;
     private final ProtocolVersionValueHolder protocolVersionValueHolder;
     private enum State{
         READ_HEADER, READ_PAYLOAD
@@ -77,6 +79,10 @@ public class CasualNWMessageDecoder extends ByteToMessageDecoder
         {
             byte[] messageBytes = new byte[(int)header.getPayloadSize()];
             in.readBytes(messageBytes);
+            if(storedProtocolVersion != null)
+            {
+                protocolVersionValueHolder.accept(storedProtocolVersion);
+            }
             Optional<CasualNWMessage<?>> maybeMessage = Optional.of( CasualMessageDecoder.read(messageBytes, header, protocolVersionValueHolder) );
             maybeMessage.ifPresent(msg -> {
                 if(msg.getType() == CasualNWMessageType.DOMAIN_CONNECT_REQUEST)
@@ -87,6 +93,24 @@ public class CasualNWMessageDecoder extends ByteToMessageDecoder
                     {
                         ProtocolVersion protocolVersion = ProtocolVersion.unmarshall(ProtocolMatcher.match(connectReqMsg.getProtocols()));
                         protocolVersionValueHolder.accept(protocolVersion);
+                        if(protocolVersion == null)
+                        {
+                            storedProtocolVersion = protocolVersion;
+                        }
+                    }
+                }
+                else if(msg.getType() == CasualNWMessageType.DOMAIN_CONNECT_REPLY)
+                {
+                    // resolve the protocol version here and now
+                    // for usage with some network messages that differ depending on protocol version
+                    if(msg.getMessage() instanceof  CasualDomainConnectReplyMessage connectReplyMsg)
+                    {
+                        ProtocolVersion protocolVersion = ProtocolVersion.unmarshall(connectReplyMsg.getProtocolVersion());
+                        protocolVersionValueHolder.accept(protocolVersion);
+                        if(storedProtocolVersion == null)
+                        {
+                            storedProtocolVersion = protocolVersion;
+                        }
                     }
                 }
             });

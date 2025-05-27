@@ -78,6 +78,7 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
                 executor.execute(() -> listener.requestRollback((CasualNWMessage<CasualTransactionResourceRollbackRequestMessage>)message, ctx.channel(), xaTerminator, inboundTransactionRegistry));
                 break;
             case SERVICE_CALL_REQUEST:
+            case SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry, protocolVersionSupplier.get());
                 break;
             case DOMAIN_CONNECT_REQUEST:
@@ -87,7 +88,7 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
                 listener.domainDisconnectReply((CasualNWMessage<DomainDisconnectReplyMessage>)message);
                 break;
             case DOMAIN_DISCOVERY_REQUEST:
-                listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel());
+                listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel(), protocolVersionSupplier.get());
                 break;
             default:
                 log.warning("Message type not supported: " + message.getType());

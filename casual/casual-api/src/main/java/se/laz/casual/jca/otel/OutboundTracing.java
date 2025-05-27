@@ -37,6 +37,10 @@ public class OutboundTracing
             // there is an inbound call: reuse its trace ID (which should be a 32-character hex string).
             traceIdHex = currentSpanContext.getTraceId();
             parentName = currentSpanContext.getTraceState().get("parentName");
+            if(null == parentName)
+            {
+                parentName = "";
+            }
         } else {
             // no inbound context exists: generate a new trace ID based on a newly generated UUID.
             traceId = execution;

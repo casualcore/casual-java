@@ -54,12 +54,15 @@ public final class LogTool
                 execution = ((CasualDomainDiscoveryRequestMessage)message.getMessage()).getExecution();
                 break;
             case DOMAIN_DISCOVERY_REPLY:
+            case DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR:
                 execution = ((CasualDomainDiscoveryReplyMessage)message.getMessage()).getExecution();
                 break;
             case SERVICE_CALL_REQUEST:
+            case SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 execution = ((CasualServiceCallRequestMessage)message.getMessage()).getExecution();
                 break;
             case SERVICE_CALL_REPLY:
+            case SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 execution = ((CasualServiceCallReplyMessage)message.getMessage()).getExecution();
                 break;
             case ENQUEUE_REQUEST:

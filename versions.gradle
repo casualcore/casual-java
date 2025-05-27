@@ -9,14 +9,15 @@
 group = 'se.laz.casual'
 version = '3.4.0'
 
-def netty_version = '4.1.114.Final'
+def netty_version = '4.1.121.Final'
 def gson_version = '2.11.0'
-def otel_version = '1.48.0'
+def otel_version = '1.50.0'
 
 ext.libs = [
   netty : "io.netty:netty-all:${netty_version}",
   netty_epoll: "io.netty:netty-transport-native-epoll:${netty_version}",
   otel_api: "io.opentelemetry:opentelemetry-api:${otel_version}",
+  otel_context: "io.opentelemetry:opentelemetry-context:${otel_version}",
   javaee_api: 'jakarta.platform:jakarta.jakartaee-api:10.0.0',
   gson: "com.google.code.gson:gson:${gson_version}",
   objenesis: 'org.objenesis:objenesis:3.4',

@@ -258,7 +258,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
 
     def createDomainDiscoveryReplyMessage()
     {
-       CasualDomainDiscoveryReplyMessage message = CasualDomainDiscoveryReplyMessage.of(UUID.randomUUID(), UUID.randomUUID(), 'test-domain')
+       CasualDomainDiscoveryReplyMessage message = CasualDomainDiscoveryReplyMessage.of(UUID.randomUUID(), UUID.randomUUID(), 'test-domain', protocolVersion)
        return CasualNWMessageImpl.of(corrid, message)
    }
 
@@ -287,7 +287,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
 
     def createReplyMessage()
     {
-        CasualDomainDiscoveryReplyMessage message = CasualDomainDiscoveryReplyMessage.of(UUID.randomUUID(), UUID.randomUUID(), 'test-domain')
+        CasualDomainDiscoveryReplyMessage message = CasualDomainDiscoveryReplyMessage.of(UUID.randomUUID(), UUID.randomUUID(), 'test-domain', protocolVersion)
         return CasualNWMessageImpl.of(corrid, message)
     }
 

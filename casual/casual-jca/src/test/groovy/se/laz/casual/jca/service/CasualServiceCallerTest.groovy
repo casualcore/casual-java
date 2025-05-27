@@ -139,7 +139,7 @@ class CasualServiceCallerTest extends Specification
     CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Service> services)
     {
         CasualNWMessageImpl.of(executionId,
-                CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
+                CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName, protocolVersion)
                                                  .setServices(services))
     }
 

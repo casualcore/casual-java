@@ -86,7 +86,7 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
                 listener.domainDisconnectReply((CasualNWMessage<DomainDisconnectReplyMessage>)message);
                 break;
             case DOMAIN_DISCOVERY_REQUEST:
-                listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel());
+                listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel(), valueHolder.get());
                 break;
             default:
                 log.warning("Message type not supported: " + message.getType());

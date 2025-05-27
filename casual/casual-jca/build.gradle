@@ -51,6 +51,8 @@ dependencies {
     resourceAdapter (project(':casual:casual-event-server')){ transitive = false }
     resourceAdapterLib libs.netty
     resourceAdapterLib libs.netty_epoll
+    resourceAdapterLib libs.otel_api
+    resourceAdapterLib libs.otel_context
     resourceAdapterLib project(':casual:casual-api-spi-impl')
 
     testImplementation libs.javaee_api

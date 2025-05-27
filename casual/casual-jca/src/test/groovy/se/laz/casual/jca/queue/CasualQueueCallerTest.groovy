@@ -144,7 +144,7 @@ class CasualQueueCallerTest extends Specification
     CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Queue> queues)
     {
         CasualNWMessageImpl.of(executionId,
-                           CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
+                           CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName, protocolVersion)
                                                             .setQueues(queues))
     }
 

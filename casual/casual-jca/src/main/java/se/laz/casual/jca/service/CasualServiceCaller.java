@@ -135,11 +135,11 @@ public class CasualServiceCaller implements CasualServiceApi
                 casualNWMessageCompletableFuture.whenComplete((v, e) -> {
                             if (null != e)
                             {
-                                LOG.finest(() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
+                                LOG.info(() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
                                 f.completeExceptionally(e);
                                 return;
                             }
-                            LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
+                            LOG.info(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
                     eventBuilder.withCode(v.getMessage().getError())
                             .end();
                             getEventPublisher().post(eventBuilder.build());

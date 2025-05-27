@@ -54,7 +54,9 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     @Override
     public CasualNWMessageType getType()
     {
-        return CasualNWMessageType.SERVICE_CALL_REQUEST;
+        return ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion)
+                ? CasualNWMessageType.SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE
+                : CasualNWMessageType.SERVICE_CALL_REQUEST;
     }
 
     @Override
@@ -72,13 +74,12 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
                            ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
         if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
         {
+            messageSize += ServiceCallRequestSizes.HAS_VALUE.getNetworkSize();
             if(timeout > 0)
             {
-                messageSize += ServiceCallRequestSizes.HAS_VALUE.getNetworkSize() +
-                               ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize() +
-                               ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize();
-
+                messageSize += ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
             }
+            messageSize += ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize();
         }
         else
         {
@@ -287,10 +288,10 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
          .put(serviceNameBytes);
         if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
         {
+            byte hasValue = (byte)((timeout > 0) ? 1: 0);
+            b.put(hasValue);
             if(timeout > 0)
             {
-                byte hasValue = 1;
-                b.put(hasValue);
                 b.putLong(timeout);
             }
             b.putLong(parentSpan);

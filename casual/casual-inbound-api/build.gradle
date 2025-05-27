@@ -12,7 +12,7 @@ plugins {
 
 dependencies {
   api project(':casual:casual-api')
-   api libs.otel_api
+  api libs.otel_api
   implementation project(':casual:casual-inbound-handler-api')
   api project(":casual:casual-network-protocol")
   api (project(":casual:casual-event-api") ) { transitive = false } 

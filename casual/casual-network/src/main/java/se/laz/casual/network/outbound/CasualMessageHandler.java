@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -41,7 +41,7 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final CasualNWMessage<?> msg)
     {
-        LOG.finest(() -> String.format("reply: %s", LogTool.asLogEntry(msg)));
+        LOG.info(() -> String.format("reply: %s", LogTool.asLogEntry(msg)));
         if(isConversationalMessage(msg.getType()))
         {
             // pass along the pipeline to the next handler

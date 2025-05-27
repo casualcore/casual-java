@@ -29,17 +29,17 @@ class CasualNetworkTestReader
         return CasualMessageDecoder.networkHeaderToCasualHeader(headerBuffer.array())
     }
 
-    static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel, CasualNWMessageHeader header )
+    static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel, CasualNWMessageHeader header, ProtocolVersion protocolVersion )
     {
-        Supplier<ProtocolVersion> protocolVersionSupplier = {ProtocolVersion.VERSION_1_2}
+        Supplier<ProtocolVersion> protocolVersionSupplier = {protocolVersion}
         NetworkDecoder<T> networkReader = CasualMessageDecoder.getDecoder(header.getType(), protocolVersionSupplier)
         return readMessage( channel, header, networkReader )
     }
 
-    static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel)
+    static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel, ProtocolVersion protocolVersion)
     {
         final CasualNWMessageHeader header = networkHeaderToCasualHeader( channel )
-        return read( channel, header )
+        return read( channel, header, protocolVersion)
     }
 
     static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readMessage(final ReadableByteChannel channel, final CasualNWMessageHeader header, NetworkDecoder<T> nr )
