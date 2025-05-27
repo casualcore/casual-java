@@ -24,7 +24,7 @@ import java.util.Optional;
 
 public class CasualNWMessageDecoder extends ByteToMessageDecoder
 {
-    private static ProtocolVersion storedProtocolVersion;
+    private ProtocolVersion storedProtocolVersion;
     private final ProtocolVersionValueHolder protocolVersionValueHolder;
     private enum State{
         READ_HEADER, READ_PAYLOAD
