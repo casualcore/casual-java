@@ -8,12 +8,14 @@ package se.laz.casual.test.integration
 
 import se.laz.casual.test.tdk8s.TestKube
 import se.laz.casual.test.tdk8s.connection.KubeConnection
+import se.laz.casual.test.tdk8s.exec.ExecResult
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.util.concurrent.TimeUnit
 
 class CasualTest extends Specification
 {
@@ -27,6 +29,16 @@ class CasualTest extends Specification
                 .addService( Casual.SIMPLE_CASUAL_SERVICE_NAME, Casual.SIMPLE_CASUAL_SERVICE )
                 .addPod( CasualJava.SIMPLE_CASUAL_JAVA_POD_NAME, CasualJava.SIMPLE_CASUAL_JAVA_POD )
                 .addService( CasualJava.SIMPLE_CASUAL_JAVA_SERVICE_NAME, CasualJava.SIMPLE_CASUAL_JAVA_SERVICE )
+                .addProvisioningProbe( "casual connection.", (t)->{
+                    String body = "{\"hello\":\"there\"}"
+                    String[] command = ["sh", "-c",
+                                        "curl -s http://localhost:8080/casual/casual%2Fexample%2Fecho " +
+                                                "-H 'Content-Type: application/casual-x-octet' " +
+                                                "-d '" + body + "'"]
+                    ExecResult result = t.getController(  ).executeCommandAsync( CasualJava.SIMPLE_CASUAL_JAVA_POD_NAME, command )
+                            .get( 5, TimeUnit.SECONDS )
+                    return result.getExitCode(  ) == 0 && result.getOutput() == body
+                } )
                 .build(  )
         testKube.init(  )
     }
