@@ -20,9 +20,9 @@ You then need to create:
 
 Once you have done this, provide these details to an existing publisher, who will then:
 
-Associate your sonartype account with permissions to publish casual java to maven central.
-Use your personal gpg key to securely send you the casual software signing key and passphrase.
-Add your details to the `publish.gradle` `developer` list.
+* Associate your sonartype account with permissions to publish to maven central.
+* Use your personal gpg key to securely send you the casual software signing key and passphrase.
+* Add your details to the `publish.gradle` `developer` list.
 
 ## Publishing 
 
@@ -30,6 +30,9 @@ Add your details to the `publish.gradle` `developer` list.
 
 In order to be able to publish to maven central, you must configure secret details related to
 the casual software signing key and your sonartype account.
+
+If you have not already, Generate a User Token for your account, as detailed here:
+https://central.sonatype.org/publish/generate-portal-token/
 
 **NB - these details must never be commited back to the repository!**
 
@@ -50,8 +53,8 @@ signing.keyId=3E05B561
 signing.password=<casualsoftwarepassphrase>
 signing.secretKeyRingFile=<absolute path to binary secret>
 
-ossrhUsername=<sonartypeuser>
-ossrhPassword=<sonartypepass>
+mavenCentralTokenUsername=<mavenCentralTokenUsername>
+mavenCentralTokenPassword=<mavenCentralTokenPassword>
 ```
 
 **NB - `gradle.properties` and `secret.gpg` on the root folder have been added to `.gitignore`, but still be careful 
@@ -79,17 +82,25 @@ If you find a mistake you can drop the staging repository, preventing the releas
 #### SNAPSHOT publish
 
 A `SNAPSHOT` version, when published, is placed into the maven central snapshot repository, it is not available
-in the normal maven central, but can be access adding the following maven repository to your build.gradle.
+in the normal maven central, but can be access adding the following maven repository to your `build.gradle`.
 
 ```groovy
 repositories {
-    maven {url 'https://s01.oss.sonatype.org/content/repositories/snapshots' }
+    maven {
+        name = 'Central Portal Snapshots'
+        url = 'https://central.sonatype.com/repository/maven-snapshots/'
+
+        // Only search this repository for the specific dependency group
+        content {
+            includeGroup("se.laz.casual")
+        }
+    }
   }
 ```
 
 #### Local publish
 
-If you want to test publishing locally you can update the publish.gradle lines 67-72 with the following:
+If you want to test publishing locally you can update the `publish.gradle` lines with the following:
 
 ```groovy
             def releasesRepoUrl = layout.buildDirectory.dir('repo/releases')
@@ -97,25 +108,51 @@ If you want to test publishing locally you can update the publish.gradle lines 6
 ```
 This is not the same as command `publishToMavenLocal` as the above allows you to publish signed artifacts locally. 
 
-### Release Staging
+### Manual Repository Upload
 
-In order to release from the staging repository:
+After the [sunsetting of OSSRH for maven central publishing](https://central.sonatype.org/news/20250326_ossrh_sunset/) 
+and in the interim prior to a stable gradle plugin we have decided to utilise the existing OSSRH API that also
+available on the new central portal for maven:
 
-Login to the sonartype ui: [https://s01.oss.sonatype.org](https://s01.oss.sonatype.org)
+https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/
 
-Find the staging repository.
+As we use the gradle `maven-publish` plugin for publishing, there is an additional manual step required to upload
+the repository from the staging area after publishing, into the new Central Portal to make it available for releasing.
+
+This requires an authenticated POST request to be sent to the following URL, with your token as authentication:
+https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/{namespace}
+
+One option is to perform the following:
+Create a base64 encoded string of your : seperated token e.g. "<mavenCentralTokenUser>:<mavenCentralTokenPassword>"
+```shell
+echo user:password | base64 -
+```
+Save the value from that to use as the Authorization Header Bearer in the POST request:
+
+```shell
+curl -iv -X POST https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/se.laz.casual -H "Authorization: Bearer <base64 token>"
+```
+
+### Finalise Release
+
+In order to finalise the release / publish:
+
+Login to https://central.sonatype.com/publishing
+
+Select deployments.
+
+NB: If none are present check that you have performed the [manual repository upload](#manual-repository-upload) steps, as these are required to 
+move the uploaded staged artifacts to central portal and make them available as a deployment to be published.
 
 Check the details.
 
-If you find a mistake you can `drop` the staging repository, preventing the release.
+If you find a mistake you can `Drop` the staging repository, preventing the release.
 
 **NB- you can never delete a published artifact, only publish again with a new version.**
 
-Select `Close`.
+Select `Publish`.
 
-This will run validation checks, which once passed will allow a release.
-
-Select `Release`.
+This will then show the deployment as "Publishing".
 
 It should be available on maven central after around 30minutes - 8 hours.
 

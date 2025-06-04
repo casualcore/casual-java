@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2020, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -64,11 +64,11 @@ publishing {
     }
     repositories{
         maven {
-            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            def releasesRepoUrl = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://central.sonatype.com/repository/maven-snapshots/"
             credentials {
-                username = project.hasProperty('ossrhUsername') ? ossrhUsername : null
-                password = project.hasProperty('ossrhPassword') ? ossrhPassword : null
+                username = project.hasProperty('mavenCentralTokenUsername') ? mavenCentralTokenUsername : null
+                password = project.hasProperty('mavenCentralTokenPassword') ? mavenCentralTokenPassword : null
             }
 
 

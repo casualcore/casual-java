@@ -1,6 +1,13 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.3.7] - 2025-06-04
+
+### chore: update maven central publishing ([#187](https://github.com/casualcore/casual-java/issues/187))
+Changes required for publishing to maven central after the sunsetting of
+OSSRH.
+https://central.sonatype.org/news/20250326_ossrh_sunset/
+
 ## [3.3.6] - 2025-05-12
 
 ### chore: bumping netty to latest version ([#186](https://github.com/casualcore/casual-java/issues/186))

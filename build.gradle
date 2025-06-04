@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2020, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -27,7 +27,17 @@ allprojects{
     options.compilerArgs << "-Xlint:all" << "-Werror"
   }
   repositories {
-    mavenCentral()
+      maven {
+          name = 'Central Portal Snapshots'
+          url = 'https://central.sonatype.com/repository/maven-snapshots/'
+
+          // Only search this repository for the specific dependency group
+          content {
+              includeGroup("se.laz.casual")
+          }
+      }
+      mavenCentral()
+
   } 
 }
 
