@@ -14,11 +14,10 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.logging.Logger;
 
 public class JEEConcurrencyFactory
 {
-    private static final Logger LOG = Logger.getLogger(JEEConcurrencyFactory.class.getName());
+    private static final System.Logger LOG = System.getLogger(JEEConcurrencyFactory.class.getName());
     // An indirect, via java:comp, JNDI lookup can only be done from an application within a J2EE container (Web module, EJB module, or application client module).
     // Hence, we need to issue direct JNDI lookup since that is not true for us - yet, due to the packaging of casual-jca
 
@@ -59,14 +58,14 @@ public class JEEConcurrencyFactory
         String name = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME );
         try
         {
-            LOG.info(() -> "using ManagedExecutorService: " + name);
+            LOG.log(System.Logger.Level.INFO,() -> "using ManagedExecutorService: " + name);
             return InitialContext.doLookup(name);
         }
         catch (NamingException e)
         {
             try
             {
-                LOG.warning(() -> "failed using ManagedExecutorService: " + name + " will try with: " + DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT);
+                LOG.log(System.Logger.Level.WARNING,() -> "failed using ManagedExecutorService: " + name + " will try with: " + DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT);
                 return InitialContext.doLookup(DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT);
             }
             catch (NamingException ee)
@@ -96,7 +95,7 @@ public class JEEConcurrencyFactory
         }
         catch (NamingException e)
         {
-            LOG.info("Failed lookup for " + DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT + ", will retry indirect jndi name (may exist in this context on some non-standard application servers)");
+            LOG.log(System.Logger.Level.INFO,"Failed lookup for " + DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT + ", will retry indirect jndi name (may exist in this context on some non-standard application servers)");
             try
             {
                 // Second try non-standard use of indirect jndi name defined in JSR-236
@@ -104,7 +103,7 @@ public class JEEConcurrencyFactory
             }
             catch (NamingException ex)
             {
-                LOG.info("Failed lookup for " + DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_INDIRECT + ", will use scheduled executor from java.util.concurrent.Executors");
+                LOG.log(System.Logger.Level.INFO,"Failed lookup for " + DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_INDIRECT + ", will use scheduled executor from java.util.concurrent.Executors");
                 // If all else fails, use java.util.concurrent variant as scheduler
                 return getSharedJavaUtilScheduledExecutor();
             }

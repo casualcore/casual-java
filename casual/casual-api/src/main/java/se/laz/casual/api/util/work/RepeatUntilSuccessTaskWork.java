@@ -14,11 +14,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 
 public class RepeatUntilSuccessTaskWork<T> implements Work
 {
-    private static final Logger LOG = Logger.getLogger(RepeatUntilSuccessTaskWork.class.getName());
+    private static final System.Logger LOG = System.getLogger(RepeatUntilSuccessTaskWork.class.getName());
     private final Supplier<T> supplier;
     private final Consumer<T> consumer;
     private final Supplier<WorkManager> workManagerSupplier;
@@ -60,7 +59,7 @@ public class RepeatUntilSuccessTaskWork<T> implements Work
         catch(Exception e)
         {
             long currentBackoff = backoffHelper.registerFailure();
-            LOG.warning(() -> "task failed: failure #" + backoffHelper.getFailures() + ", retrying in " + currentBackoff + " " + e);
+            LOG.log(System.Logger.Level.WARNING,() -> "task failed: failure #" + backoffHelper.getFailures() + ", retrying in " + currentBackoff + " " + e);
             backoffScheduler.schedule(this::scheduleWork, currentBackoff, TimeUnit.MILLISECONDS);
         }
     }
@@ -90,7 +89,7 @@ public class RepeatUntilSuccessTaskWork<T> implements Work
         }
         catch (WorkException e)
         {
-            LOG.warning(() -> "failed to schedule work, will retry once: " + e);
+            LOG.log(System.Logger.Level.WARNING,() -> "failed to schedule work, will retry once: " + e);
             try
             {
                 workManagerSupplier.get().scheduleWork(this, WorkManager.INDEFINITE, null, RepeatUntilSuccessTaskWorkListener.of());

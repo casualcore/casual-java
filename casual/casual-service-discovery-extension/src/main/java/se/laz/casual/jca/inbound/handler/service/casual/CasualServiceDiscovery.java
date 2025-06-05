@@ -22,8 +22,6 @@ import jakarta.inject.Named;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * CDI extension for discovering services to export to
@@ -31,18 +29,18 @@ import java.util.logging.Logger;
  */
 public class CasualServiceDiscovery implements Extension
 {
-    private static final Logger LOG = Logger.getLogger(CasualServiceDiscovery.class.getName());
+    private static final System.Logger LOG = System.getLogger(CasualServiceDiscovery.class.getName());
 
     private static final CasualServiceRegistry serviceRegistry = CasualServiceRegistry.getInstance();
 
     public void beforeBeanDiscovery(@Observes BeforeBeanDiscovery beforeBeanDiscovery)
     {
-        LOG.info(()->"Initializing service Discovery");
+        LOG.log(System.Logger.Level.INFO,()->"Initializing service Discovery");
     }
 
     public <T> void processAnnotatedType(@Observes @WithAnnotations({CasualService.class}) ProcessAnnotatedType<T> processAnnotatedType )
     {
-        LOG.info("processAnnotatedType() start.");
+        LOG.log(System.Logger.Level.INFO,"processAnnotatedType() start.");
 
         AnnotatedType<T> type = processAnnotatedType.getAnnotatedType();
 
@@ -63,7 +61,7 @@ public class CasualServiceDiscovery implements Extension
         }
         catch( NamingException e )
         {
-            LOG.log(Level.FINEST, e, ()-> "Error retrieving app name." );
+            LOG.log(System.Logger.Level.TRACE, ()-> "Error retrieving app name." );
         }
 
         try
@@ -72,7 +70,7 @@ public class CasualServiceDiscovery implements Extension
         }
         catch( NamingException e )
         {
-            LOG.log(Level.FINEST, e, ()-> "Error retrieving module name." );
+            LOG.log(System.Logger.Level.TRACE, ()-> "Error retrieving module name." );
         }
 
         CasualServiceMetaData.CasualServiceMetaDataBuilder b = CasualServiceMetaData.newBuilder()
@@ -93,13 +91,13 @@ public class CasualServiceDiscovery implements Extension
                 serviceRegistry.register(b.build());
             }
         }
-        LOG.info(()->"processAnnotatedType() end.");
+        LOG.log(System.Logger.Level.INFO,()->"processAnnotatedType() end.");
     }
 
     public void afterBeanDiscovery(@Observes AfterBeanDiscovery abd)
     {
-        LOG.info(()->"Services found: " + serviceRegistry.serviceMetaDataSize() );
-        LOG.info(()->"Service Discovery Done");
+        LOG.log(System.Logger.Level.INFO,()->"Services found: " + serviceRegistry.serviceMetaDataSize() );
+        LOG.log(System.Logger.Level.INFO,()->"Service Discovery Done");
     }
 
 }

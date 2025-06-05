@@ -18,11 +18,10 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 public class EventServer
 {
-    private static final Logger log = Logger.getLogger(EventServer.class.getName());
+    private static final System.Logger log = System.getLogger(EventServer.class.getName());
     private final Channel channel;
     private final long shutdownQuietPeriod;
     private final long shutdownTimeout;
@@ -74,10 +73,10 @@ public class EventServer
 
     public void close()
     {
-        log.info(() -> "closing event server");
+        log.log(System.Logger.Level.INFO,() -> "closing event server");
         bossGroup.shutdownGracefully( shutdownQuietPeriod, shutdownTimeout, TimeUnit.MILLISECONDS ).syncUninterruptibly();
         workerGroup.shutdownGracefully( shutdownQuietPeriod, shutdownTimeout, TimeUnit.MILLISECONDS ).syncUninterruptibly();
-        log.info(() -> "event server closed");
+        log.log(System.Logger.Level.INFO,() -> "event server closed");
     }
 
 }

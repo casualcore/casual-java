@@ -14,12 +14,10 @@ import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessa
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DomainDisconnectHandler
 {
-    private static final Logger LOG = Logger.getLogger(DomainDisconnectHandler.class.getName());
+    private static final System.Logger LOG = System.getLogger(DomainDisconnectHandler.class.getName());
     private final AtomicBoolean domainDisconnected = new AtomicBoolean(false);
     private final Channel channel;
     private final DomainId domainId;
@@ -67,7 +65,7 @@ public class DomainDisconnectHandler
             ChannelFuture cf = channel.writeAndFlush(CasualNWMessageImpl.of(domainDisconnectReplyInfo.getCorrid(), replyMessage));
             cf.addListener(v -> {
                 if(!v.isSuccess()){
-                    LOG.log(Level.INFO, v.cause(),
+                    LOG.log(System.Logger.Level.INFO,
                             () -> "failed sending domain disconnect reply to domain: " + domainId + " , this means that casual sent domain disconnect and then went away before we could send domain disconnect reply - this is ok");
                 }
             });
@@ -76,7 +74,7 @@ public class DomainDisconnectHandler
         {
             // if we did not manage to send the domain disconnect message it is due to the connection being gone
             // which is fine
-            LOG.log(Level.INFO, e,
+            LOG.log(System.Logger.Level.INFO,
                     () -> "could not send domain disconnect reply to domain: " + domainId + " , this means that casual sent domain disconnect and then went away before we could send domain disconnect reply - this is ok" );
         }
     }

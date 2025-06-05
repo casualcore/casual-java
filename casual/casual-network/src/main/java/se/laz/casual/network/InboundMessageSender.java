@@ -16,18 +16,17 @@ import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpd
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 public class InboundMessageSender
 {
-    private static final Logger log = Logger.getLogger(InboundMessageSender.class.getName());
+    private static final System.Logger log = System.getLogger(InboundMessageSender.class.getName());
     private InboundMessageSender()
     {}
     public static void sendDomainDisconnect(Channel channel)
     {
         Objects.requireNonNull(channel,"channel can not be null" );
         channel.writeAndFlush(createDomainDisconnectMessage());
-        log.finest(() -> "domain disconnect request sent to " + channel);
+        log.log(System.Logger.Level.TRACE,() -> "domain disconnect request sent to " + channel);
     }
 
     public static void sendDomainDiscoveryImplicitUpdate(Channel channel, UUID executionId)
@@ -35,7 +34,7 @@ public class InboundMessageSender
         Objects.requireNonNull(channel,"channel can not be null" );
         Objects.requireNonNull(executionId,"executionId can not be null" );
         channel.writeAndFlush(createDomainTopologyUpdateMessage(executionId));
-        log.finest(() -> "sent domain discovery topology update message to " + channel + " with executionId " + executionId);
+        log.log(System.Logger.Level.TRACE,() -> "sent domain discovery topology update message to " + channel + " with executionId " + executionId);
     }
 
     private static CasualNWMessage<DomainDisconnectRequestMessage> createDomainDisconnectMessage()

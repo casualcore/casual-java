@@ -28,7 +28,6 @@ import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 
 /**
  * Inbound "server" that connects and then acts exactly like {@link  se.laz.casual.network.inbound.CasualServer}
@@ -37,7 +36,7 @@ import java.util.logging.Logger;
  */
 public class ReverseInboundServerImpl implements ReverseInboundServer
 {
-    private static final Logger LOG = Logger.getLogger(ReverseInboundServerImpl.class.getName());
+    private static final System.Logger LOG = System.getLogger(ReverseInboundServerImpl.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
     private final Channel channel;
     private final InetSocketAddress address;
@@ -58,7 +57,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         Channel ch = init(reverseInboundConnectionInformation.getAddress(), messageHandler, ReverseInboundExceptionHandler.of(reverseInboundConnectionInformation.getInboundTransactionRegistry()), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
         ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress(), workManagerSupplier);
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
-        LOG.info(() -> "reverse inbound connected to: " + server.getAddress());
+        LOG.log(System.Logger.Level.INFO,() -> "reverse inbound connected to: " + server.getAddress());
         return server;
     }
 
@@ -89,11 +88,11 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
                         if(enableLogHandler)
                         {
                             ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.REVERSE_LOGGING_LEVEL));
-                            LOG.info(() -> "reverse inbound log handler enabled, using netty logging level: " + LogLevelProvider.REVERSE_LOGGING_LEVEL);
+                            LOG.log(System.Logger.Level.INFO,() -> "reverse inbound log handler enabled, using netty logging level: " + LogLevelProvider.REVERSE_LOGGING_LEVEL);
                         }
                     }
                 });
-        LOG.info(() -> "reverse inbound about to connect to: " + address);
+        LOG.log(System.Logger.Level.INFO,() -> "reverse inbound about to connect to: " + address);
         return b.connect(address).syncUninterruptibly().channel();
     }
 

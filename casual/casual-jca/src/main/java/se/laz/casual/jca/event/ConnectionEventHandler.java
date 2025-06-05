@@ -14,11 +14,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 public class ConnectionEventHandler
 {
-    private static final Logger logger = Logger.getLogger(ConnectionEventHandler.class.getName());
+    private static final System.Logger logger = System.getLogger(ConnectionEventHandler.class.getName());
 
     private final List<jakarta.resource.spi.ConnectionEventListener> listeners;
 
@@ -34,7 +33,7 @@ public class ConnectionEventHandler
      */
     public void addConnectionEventListener(ConnectionEventListener listener)
     {
-        logger.finest("addConnectionEventListener()");
+        logger.log(System.Logger.Level.TRACE,"addConnectionEventListener()");
         Objects.requireNonNull( listener, "Listener is null" );
         listeners.add(listener);
     }
@@ -56,7 +55,7 @@ public class ConnectionEventHandler
      */
     public void removeConnectionEventListener(ConnectionEventListener listener)
     {
-        logger.finest("removeConnectionEventListener()");
+        logger.log(System.Logger.Level.TRACE,"removeConnectionEventListener()");
         Objects.requireNonNull( listener, "Listener is null" );
         listeners.remove(listener);
     }

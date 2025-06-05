@@ -12,7 +12,6 @@ import jakarta.resource.ResourceException;
 import jakarta.resource.spi.ConnectionManager;
 import jakarta.resource.spi.ConnectionRequestInfo;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 /**
  * CasualConnectionFactoryImpl
@@ -23,7 +22,7 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
 {
 
     private static final long serialVersionUID = 1L;
-    private static Logger log = Logger.getLogger(CasualConnectionFactoryImpl.class.getName());
+    private static System.Logger log = System.getLogger(CasualConnectionFactoryImpl.class.getName());
     private Reference reference;
     private CasualManagedConnectionFactory managedConnectionFactory;
     private ConnectionManager connectionManager;
@@ -47,28 +46,28 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     @Override
     public CasualConnection getConnection() throws ResourceException
     {
-        log.finest("getConnection()");
+        log.log(System.Logger.Level.TRACE,"getConnection()");
         return getConnection(null);
     }
 
     @Override
     public CasualConnection getConnection(ConnectionRequestInfo connectionRequestInfo) throws ResourceException
     {
-        log.finest("getConnection()");
+        log.log(System.Logger.Level.TRACE,"getConnection()");
         return (CasualConnection) connectionManager.allocateConnection(managedConnectionFactory, connectionRequestInfo);
     }
 
     @Override
     public Reference getReference() throws NamingException
     {
-        log.finest("getReference()");
+        log.log(System.Logger.Level.TRACE,"getReference()");
         return reference;
     }
 
     @Override
     public void setReference(Reference reference)
     {
-        log.finest("setReference()");
+        log.log(System.Logger.Level.TRACE,"setReference()");
         this.reference = reference;
     }
 

@@ -9,7 +9,6 @@ package se.laz.casual.config;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 
 /**
  * Read system environment variables to populate the configuration store appropriately.
@@ -19,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class ConfigurationEnvsReader
 {
-    private static final Logger logger = Logger.getLogger( ConfigurationEnvsReader.class.getName() );
+    private static final System.Logger logger = System.getLogger( ConfigurationEnvsReader.class.getName() );
 
     private final ConfigurationStore store;
 
@@ -180,7 +179,7 @@ public class ConfigurationEnvsReader
         {
             Supplier<String> message =
                     () -> "Invalid environment variable data: " + name + " has value: '" + value + "'.";
-            logger.severe( message );
+            logger.log(System.Logger.Level.ERROR, message );
             throw new ConfigurationException( message.get(), e );
         }
     }

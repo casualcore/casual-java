@@ -24,12 +24,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
 
 public class CasualDiscoveryCaller implements CasualDiscoveryApi
 {
 
-    private static final Logger LOG = Logger.getLogger(CasualDiscoveryCaller.class.getName());
+    private static final System.Logger LOG = System.getLogger(CasualDiscoveryCaller.class.getName());
     private CasualManagedConnection connection;
 
     private CasualDiscoveryCaller(CasualManagedConnection connection)
@@ -46,7 +45,7 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
     @Override
     public DiscoveryReturn discover(UUID corrid, List<String> serviceNames, List<String> queueNames)
     {
-        LOG.finest(() -> "issuing domain discovery, corrid: " + PrettyPrinter.casualStringify(corrid) + " service names: " + serviceNames + " queue names: " + queueNames);
+        LOG.log(System.Logger.Level.TRACE,() -> "issuing domain discovery, corrid: " + PrettyPrinter.casualStringify(corrid) + " service names: " + serviceNames + " queue names: " + queueNames);
 
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
                                                                                             .setExecution(UUID.randomUUID())
@@ -59,7 +58,7 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
         CompletableFuture<CasualNWMessage<CasualDomainDiscoveryReplyMessage>> replyMsgFuture = connection.getNetworkConnection().request(msg);
 
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
-        LOG.finest(() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + "reply -> service names: " + serviceNames + " queue names: " + queueNames);
+        LOG.log(System.Logger.Level.TRACE,() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + "reply -> service names: " + serviceNames + " queue names: " + queueNames);
         return toDiscoveryReturn(replyMsg.getMessage());
     }
 

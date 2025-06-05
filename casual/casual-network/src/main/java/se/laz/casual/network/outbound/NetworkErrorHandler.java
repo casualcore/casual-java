@@ -8,11 +8,10 @@ package se.laz.casual.network.outbound;
 
 import io.netty.channel.Channel;
 
-import java.util.logging.Logger;
 
 public final class NetworkErrorHandler
 {
-    private static final Logger LOG = Logger.getLogger(NetworkErrorHandler.class.getName());
+    private static final System.Logger LOG = System.getLogger(NetworkErrorHandler.class.getName());
     private NetworkErrorHandler()
     {}
 
@@ -20,7 +19,7 @@ public final class NetworkErrorHandler
     {
         if(!channel.isActive())
         {
-            LOG.finest("network connection gone, informing listeners");
+            LOG.log(System.Logger.Level.TRACE,"network connection gone, informing listeners");
             errorInformer.inform();
         }
     }

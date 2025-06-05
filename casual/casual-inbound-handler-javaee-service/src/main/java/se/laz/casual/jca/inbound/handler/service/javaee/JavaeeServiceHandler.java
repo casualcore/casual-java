@@ -29,13 +29,11 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Stateless
 public class JavaeeServiceHandler implements ServiceHandler
 {
-    private static final Logger LOG = Logger.getLogger(JavaeeServiceHandler.class.getName());
+    private static final System.Logger LOG = System.getLogger(JavaeeServiceHandler.class.getName());
 
     private Context context;
 
@@ -62,7 +60,7 @@ public class JavaeeServiceHandler implements ServiceHandler
     @Override
     public InboundResponse invokeService(InboundRequest request)
     {
-        LOG.finest( ()->"Request received: " + request );
+        LOG.log(System.Logger.Level.TRACE, ()->"Request received: " + request );
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
         ServiceHandlerExtension serviceHandlerExtension = ServiceHandlerExtensionFactory.getExtension( Remote.class.getName() );
         ServiceHandlerExtensionContext extensionContext = null;
@@ -77,7 +75,7 @@ public class JavaeeServiceHandler implements ServiceHandler
         }
         catch( Throwable e )
         {
-            LOG.log( Level.WARNING, e, ()-> "Error invoking service: " + e.getMessage() );
+            LOG.log(System.Logger.Level.WARNING, ()-> "Error invoking service: " + e.getMessage() );
             InboundResponse response = InboundResponse.createBuilder()
                     .errorState( ErrorState.TPESVCERR )
                     .transactionState( TransactionState.ROLLBACK_ONLY )
@@ -106,7 +104,7 @@ public class JavaeeServiceHandler implements ServiceHandler
     {
         Context c = getContext();
         Object r = c.lookup( jndiName );
-        LOG.finest( ()->"Found " + r.getClass() + " : " + r );
+        LOG.log(System.Logger.Level.TRACE, ()->"Found " + r.getClass() + " : " + r );
         return r;
     }
 
@@ -127,7 +125,7 @@ public class JavaeeServiceHandler implements ServiceHandler
 
         Object result = method.invoke( p, params );
 
-        LOG.finest( ()-> "Result: " + result );
+        LOG.log(System.Logger.Level.TRACE, ()-> "Result: " + result );
         return bufferHandler.toResponse( serviceCallInfo, result );
     }
 

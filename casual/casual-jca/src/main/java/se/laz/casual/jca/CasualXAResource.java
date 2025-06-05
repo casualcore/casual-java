@@ -25,14 +25,13 @@ import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
 
 /**
  * @author jone
  */
 public class CasualXAResource implements XAResource
 {
-    private static final Logger LOG = Logger.getLogger(CasualXAResource.class.getName());
+    private static final System.Logger LOG = System.getLogger(CasualXAResource.class.getName());
     private static final Xid[] NO_XIDS = {};
     private final CasualManagedConnection casualManagedConnection;
     private final int resourceManagerId;
@@ -58,7 +57,7 @@ public class CasualXAResource implements XAResource
         {
             flags = Flag.of(XAFlags.TMONEPHASE);
         }
-        LOG.finest(() -> String.format("trying to commit, xid: %s ( %s ) onePhase?%b", PrettyPrinter.casualStringify(xid), xid, onePhaseCommit));
+        LOG.log(System.Logger.Level.TRACE,() -> String.format("trying to commit, xid: %s ( %s ) onePhase?%b", PrettyPrinter.casualStringify(xid), xid, onePhaseCommit));
         CasualTransactionResourceCommitRequestMessage commitRequest =
             CasualTransactionResourceCommitRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourceCommitRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), commitRequest);
@@ -67,7 +66,7 @@ public class CasualXAResource implements XAResource
         CasualNWMessage<CasualTransactionResourceCommitReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
         CasualTransactionResourceCommitReplyMessage replyMsg = replyEnvelope.getMessage();
         throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
-        LOG.finest(() -> String.format("commited, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
+        LOG.log(System.Logger.Level.TRACE,() -> String.format("commited, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
     }
 
     /**
@@ -82,7 +81,7 @@ public class CasualXAResource implements XAResource
     @SuppressWarnings("java:S1301")
     public void end(Xid xid, int flag) throws XAException
     {
-        LOG.finest(()-> String.format("end, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, flag, XAFlags.unmarshall(flag)));
+        LOG.log(System.Logger.Level.TRACE,()-> String.format("end, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, flag, XAFlags.unmarshall(flag)));
         CasualResourceManager.getInstance().remove(domainId(), xid);
         disassociate();
         XAFlags f = XAFlags.unmarshall(flag);
@@ -91,7 +90,7 @@ public class CasualXAResource implements XAResource
             case TMSUCCESS, TMFAIL, TMSUSPEND:
                 break;
             default:
-                LOG.finest(()->"throwing XAException.XAER_RMFAIL");
+                LOG.log(System.Logger.Level.TRACE,()->"throwing XAException.XAER_RMFAIL");
                 throw new XAException(XAException.XAER_RMFAIL);
         }
     }
@@ -133,7 +132,7 @@ public class CasualXAResource implements XAResource
             return XAResource.XA_RDONLY;
         }
 
-        LOG.finest(() -> String.format("trying to prepare, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
+        LOG.log(System.Logger.Level.TRACE,() -> String.format("trying to prepare, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
         CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
         CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> requestEnvelope = CasualNWMessageImpl.of(UUID.randomUUID(), prepareRequest);
@@ -142,7 +141,7 @@ public class CasualXAResource implements XAResource
         CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
         CasualTransactionResourcePrepareReplyMessage replyMsg = replyEnvelope.getMessage();
         throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
-        LOG.finest(() -> String.format("prepared, xid: %s ( %s ), XA_RDONLY: %b", PrettyPrinter.casualStringify(xid), xid, XAReturnCode.XA_RDONLY == replyMsg.getTransactionReturnCode()));
+        LOG.log(System.Logger.Level.TRACE,() -> String.format("prepared, xid: %s ( %s ), XA_RDONLY: %b", PrettyPrinter.casualStringify(xid), xid, XAReturnCode.XA_RDONLY == replyMsg.getTransactionReturnCode()));
         return replyMsg.getTransactionReturnCode().getId();
     }
 
@@ -155,7 +154,7 @@ public class CasualXAResource implements XAResource
     @Override
     public void rollback(Xid xid) throws XAException
     {
-        LOG.finest(() -> String.format("trying to rollback, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
+        LOG.log(System.Logger.Level.TRACE,() -> String.format("trying to rollback, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
         CasualTransactionResourceRollbackRequestMessage request =
                 CasualTransactionResourceRollbackRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
@@ -165,7 +164,7 @@ public class CasualXAResource implements XAResource
         CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
         CasualTransactionResourceRollbackReplyMessage replyMsg = replyEnvelope.getMessage();
         throwWhenTransactionErrorCode(replyMsg.getTransactionReturnCode());
-        LOG.finest(() ->  String.format("rolled, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
+        LOG.log(System.Logger.Level.TRACE,() ->  String.format("rolled, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
     }
 
     @Override
@@ -178,12 +177,12 @@ public class CasualXAResource implements XAResource
     @Override
     public void start(Xid xid, int i) throws XAException
     {
-        LOG.finest(()-> String.format("start, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, i, XAFlags.unmarshall(i)));
+        LOG.log(System.Logger.Level.TRACE,()-> String.format("start, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, i, XAFlags.unmarshall(i)));
         readOnly = false;
         if(!(XAFlags.TMJOIN.getValue() == i || XAFlags.TMRESUME.getValue() == i) &&
             CasualResourceManager.getInstance().isPending(domainId(), xid))
         {
-            LOG.finest(()->"throwing XAException.XAER_DUPID");
+            LOG.log(System.Logger.Level.TRACE,()->"throwing XAException.XAER_DUPID");
             throw new XAException(XAException.XAER_DUPID);
         }
         associate(xid);
@@ -235,7 +234,7 @@ public class CasualXAResource implements XAResource
             case XA_OK, XA_RDONLY:
                 break;
             default:
-                LOG.finest(()->"throwing XAException for XAReturnCode: " + transactionReturnCode);
+                LOG.log(System.Logger.Level.TRACE,()->"throwing XAException for XAReturnCode: " + transactionReturnCode);
                 throw new XAException( transactionReturnCode.getId());
         }
     }

@@ -22,11 +22,10 @@ import se.laz.casual.event.server.handlers.FromJSONConnectDecoder;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 public class DefaultServerInitialization implements ServerInitialization
 {
-    private static final Logger log = Logger.getLogger(DefaultServerInitialization.class.getName());
+    private static final System.Logger log = System.getLogger(DefaultServerInitialization.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
 
     private DefaultServerInitialization()
@@ -55,7 +54,7 @@ public class DefaultServerInitialization implements ServerInitialization
                         if (connectionInformation.isLogHandlerEnabled())
                         {
                             ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler());
-                            log.info(() -> "EventServer network log handler enabled");
+                            log.log(System.Logger.Level.INFO,() -> "EventServer network log handler enabled");
                         }
                     }
                 }).childOption(ChannelOption.SO_KEEPALIVE, true);

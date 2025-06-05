@@ -14,13 +14,12 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
-import java.util.logging.Logger;
 
 // yes it is intentional
 @SuppressWarnings("java:S6548")
 public class JMXStartup
 {
-   private static final Logger LOG = Logger.getLogger(JMXStartup.class.getName());
+   private static final System.Logger LOG = System.getLogger(JMXStartup.class.getName());
    private static final String NAME = "se.laz.casual.jca:type=Casual";
    private static final JMXStartup instance = new JMXStartup();
 
@@ -41,7 +40,7 @@ public class JMXStartup
       }
       catch (MalformedObjectNameException | NotCompliantMBeanException | InstanceAlreadyExistsException | MBeanRegistrationException e)
       {
-         LOG.warning(() -> "CasualMBean initiation failed, JMX entry will not exist: " + e);
+         LOG.log(System.Logger.Level.WARNING,() -> "CasualMBean initiation failed, JMX entry will not exist: " + e);
       }
    }
 

@@ -22,7 +22,6 @@ import se.laz.casual.event.client.messages.ConnectionMessage;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
 
 /**
  * Can be used to consume events from casuals EventServer
@@ -37,7 +36,7 @@ import java.util.logging.Logger;
  */
 public class EventClient
 {
-    private static final Logger LOG = Logger.getLogger(EventClient.class.getName());
+    private static final System.Logger LOG = System.getLogger(EventClient.class.getName());
     private final Channel channel;
     private final CompletableFuture<Boolean> connectFuture;
     private final AtomicBoolean connected = new AtomicBoolean(true);
@@ -109,7 +108,7 @@ public class EventClient
                         }
                     }
                 });
-        LOG.finest(() -> "about to connect to: " + clientInformation.getConnectionInformation().getAddress());
+        LOG.log(System.Logger.Level.TRACE,() -> "about to connect to: " + clientInformation.getConnectionInformation().getAddress());
         return b.connect(clientInformation.getConnectionInformation().getAddress()).syncUninterruptibly().channel();
     }
 }

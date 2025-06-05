@@ -9,8 +9,6 @@ package se.laz.casual.jca.work;
 import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
@@ -18,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class StartInboundServerListener implements WorkListener
 {
-    private static Logger log = Logger.getLogger( StartInboundServerListener.class.getName());
+    private static System.Logger log = System.getLogger( StartInboundServerListener.class.getName());
     private StartInboundServerListener()
     {
     }
@@ -31,33 +29,33 @@ public class StartInboundServerListener implements WorkListener
     @Override
     public void workAccepted(WorkEvent e)
     {
-        logWorkEvent( e, Level.FINEST, ()->"Casual inbound start, work accepted." );
+        logWorkEvent( e, System.Logger.Level.TRACE, ()->"Casual inbound start, work accepted." );
     }
 
     @Override
     public void workRejected(WorkEvent e)
     {
-        logWorkEvent( e, Level.WARNING, ()-> "Casual inbound start, work rejected, inbound will not be started!!!"  );
+        logWorkEvent( e, System.Logger.Level.WARNING, ()-> "Casual inbound start, work rejected, inbound will not be started!!!"  );
     }
 
     @Override
     public void workStarted(WorkEvent e)
     {
-        logWorkEvent( e, Level.FINEST, ()-> "Casual inbound start, work started." );
+        logWorkEvent( e, System.Logger.Level.TRACE, ()-> "Casual inbound start, work started." );
     }
 
     @Override
     public void workCompleted(WorkEvent e)
     {
-        logWorkEvent( e, Level.FINEST, ()-> "Casual inbound start, work completed." );
+        logWorkEvent( e, System.Logger.Level.TRACE, ()-> "Casual inbound start, work completed." );
     }
 
-    private void logWorkEvent( WorkEvent e, Level level, Supplier<String> supplier )
+    private void logWorkEvent( WorkEvent e, System.Logger.Level level, Supplier<String> supplier )
     {
         log.log( level, supplier );
         if( e.getException() != null )
         {
-            log.log(Level.SEVERE, e.getException(), () -> "Casual inbound start WorkEvent contained an exception: ");
+            log.log(System.Logger.Level.ERROR, () -> "Casual inbound start WorkEvent contained an exception: ");
         }
     }
 }

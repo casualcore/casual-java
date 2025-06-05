@@ -17,12 +17,11 @@ import se.laz.casual.event.server.messages.ConnectRequestMessage;
 import se.laz.casual.event.server.messages.ConnectRequestMessageTypeAdapter;
 
 import java.util.Objects;
-import java.util.logging.Logger;
 
 @ChannelHandler.Sharable
 public class FromJSONConnectDecoder extends SimpleChannelInboundHandler<Object>
 {
-    private static final Logger log = Logger.getLogger(FromJSONConnectDecoder.class.getName());
+    private static final System.Logger log = System.getLogger(FromJSONConnectDecoder.class.getName());
     private static final ConnectionReplier CONNECTION_REPLIER = ConnectionReplier.of();
     private final ChannelGroup connectedClients;
 
@@ -48,6 +47,6 @@ public class FromJSONConnectDecoder extends SimpleChannelInboundHandler<Object>
         CONNECTION_REPLIER.clientConnected(ctx.channel()).join();
         connectedClients.add(ctx.channel());
         ctx.fireChannelRead(requestMessage);
-        log.finest(() -> "EventServer, client logged on: " + requestMessage + " channel: " + ctx.channel());
+        log.log(System.Logger.Level.TRACE,() -> "EventServer, client logged on: " + requestMessage + " channel: " + ctx.channel());
     }
 }
