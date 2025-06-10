@@ -16,6 +16,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.lang.System.Logger.Level.*;
+
 public final class CorrelatorImpl implements Correlator
 {
     private static final System.Logger log = System.getLogger(CorrelatorImpl.class.getName());
@@ -40,7 +42,7 @@ public final class CorrelatorImpl implements Correlator
         if(null == f)
         {
             // log failure, this is an inconsistency that should not occur
-            log.log(System.Logger.Level.WARNING,() -> "Can not find a future for correlation id: " + msg.getCorrelationId() + " this should NEVER happen!");
+            log.log(WARNING,() -> "Can not find a future for correlation id: " + msg.getCorrelationId() + " this should NEVER happen!");
             return;
         }
         if(!f.isCancelled())

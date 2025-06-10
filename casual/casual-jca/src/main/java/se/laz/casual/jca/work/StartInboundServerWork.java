@@ -22,6 +22,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * Work instance for delaying start of inbound server until all startup services have been registered
  */
@@ -94,20 +96,20 @@ public final class StartInboundServerWork<T> implements Work
                 throw new InboundStartupException( "Interrupted waiting for inbound startup services registration.", e );
             }
         }
-        log.log(System.Logger.Level.INFO,() -> "All startup services registered.");
+        log.log(INFO,() -> "All startup services registered.");
     }
 
     private void logInitialStartupServices(List<String> startupServices)
     {
-        log.log(System.Logger.Level.INFO,() -> "Inbound startup mode: " + ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE ) );
-        log.log(System.Logger.Level.INFO,() -> "Waiting for " + startupServices.size() + " services to be registered before inbound starts.");
-        log.log(System.Logger.Level.INFO,() -> "Initial services list: " + startupServices.stream()
+        log.log(INFO,() -> "Inbound startup mode: " + ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_STARTUP_MODE ) );
+        log.log(INFO,() -> "Waiting for " + startupServices.size() + " services to be registered before inbound starts.");
+        log.log(INFO,() -> "Initial services list: " + startupServices.stream()
                                                                   .collect(Collectors.joining()));
     }
 
     private void logWaitingForStartupServices(Set<String> remaining)
     {
-        log.log(System.Logger.Level.INFO,() -> "Waiting for registration of the following services: " + remaining.stream()
+        log.log(INFO,() -> "Waiting for registration of the following services: " + remaining.stream()
                                                                                          .collect(Collectors.joining()));
     }
 
@@ -122,7 +124,7 @@ public final class StartInboundServerWork<T> implements Work
                 if( handler.isServiceAvailable( find ) )
                 {
                     notFound.remove( find );
-                    log.log(System.Logger.Level.INFO, () -> "Startup service registered: " + find );
+                    log.log(INFO, () -> "Startup service registered: " + find );
                 }
 
             }
@@ -144,17 +146,17 @@ public final class StartInboundServerWork<T> implements Work
         // Never seen on wildfly
         if(delay <= 0L)
         {
-            log.log(System.Logger.Level.INFO,() -> "no inbound startup delay");
+            log.log(INFO,() -> "no inbound startup delay");
             return;
         }
         Delayer.delay(delay);
-        log.log(System.Logger.Level.INFO,() -> "inbound startup, delay of " + delay + " seconds - done");
+        log.log(INFO,() -> "inbound startup, delay of " + delay + " seconds - done");
     }
 
     private void startInboundServer()
     {
         consumer.accept(supplier.get());
-        log.log(System.Logger.Level.INFO,logMessage::get);
+        log.log(INFO,logMessage::get);
     }
 
 }

@@ -25,6 +25,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static java.lang.System.Logger.Level.*;
+
 public class CasualDiscoveryCaller implements CasualDiscoveryApi
 {
 
@@ -45,7 +47,7 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
     @Override
     public DiscoveryReturn discover(UUID corrid, List<String> serviceNames, List<String> queueNames)
     {
-        LOG.log(System.Logger.Level.TRACE,() -> "issuing domain discovery, corrid: " + PrettyPrinter.casualStringify(corrid) + " service names: " + serviceNames + " queue names: " + queueNames);
+        LOG.log(DEBUG,() -> "issuing domain discovery, corrid: " + PrettyPrinter.casualStringify(corrid) + " service names: " + serviceNames + " queue names: " + queueNames);
 
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
                                                                                             .setExecution(UUID.randomUUID())
@@ -58,7 +60,7 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
         CompletableFuture<CasualNWMessage<CasualDomainDiscoveryReplyMessage>> replyMsgFuture = connection.getNetworkConnection().request(msg);
 
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
-        LOG.log(System.Logger.Level.TRACE,() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + "reply -> service names: " + serviceNames + " queue names: " + queueNames);
+        LOG.log(DEBUG,() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + "reply -> service names: " + serviceNames + " queue names: " + queueNames);
         return toDiscoveryReturn(replyMsg.getMessage());
     }
 

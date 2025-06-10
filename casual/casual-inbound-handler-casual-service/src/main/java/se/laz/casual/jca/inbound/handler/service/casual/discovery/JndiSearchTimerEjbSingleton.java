@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodMatcher.matches;
-
+import static java.lang.System.Logger.Level.*;
 /**
  * Periodically check to find any newly deployed {@link CasualService} annotated EJBs.
  *
@@ -43,20 +43,20 @@ public class JndiSearchTimerEjbSingleton
     {
         if(stopCondition.stop())
         {
-            logger.log(System.Logger.Level.TRACE,() -> "Inbound startup mode is Trigger and inbound server has started, cancelling JndiSearchTimerEjbSingleton timer");
+            logger.log(DEBUG,() -> "Inbound startup mode is Trigger and inbound server has started, cancelling JndiSearchTimerEjbSingleton timer");
             timer.cancel();
             return;
         }
         try
         {
-            logger.log(System.Logger.Level.TRACE, ()-> "Fetch all unresolved casual services." );
+            logger.log(DEBUG, ()-> "Fetch all unresolved casual services." );
             List<CasualServiceMetaData> toFind = CasualServiceRegistry.getInstance().getUnresolvedServices();
-            logger.log(System.Logger.Level.TRACE, ()-> "Unresolved: " + toFind.size() );
+            logger.log(DEBUG, ()-> "Unresolved: " + toFind.size() );
             if( toFind.isEmpty() )
             {
                 return;
             }
-            logger.log(System.Logger.Level.TRACE, ()-> "Fetch all global apps." );
+            logger.log(DEBUG, ()-> "Fetch all global apps." );
             Map<String,Map<String,Proxy>> apps = JndiUtil.findAllGlobalJndiProxies( new InitialContext() );
 
             resolveAll( toFind, apps );
@@ -65,7 +65,7 @@ public class JndiSearchTimerEjbSingleton
         catch (Exception e)
         {
             // since method with @Timeout annotation are not allowed to throw
-            logger.log( System.Logger.Level.WARNING, ()-> "Error with jndi lookup." );
+            logger.log( WARNING, ()-> "Error with jndi lookup.",e );
         }
     }
 

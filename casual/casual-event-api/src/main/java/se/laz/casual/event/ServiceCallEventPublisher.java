@@ -9,6 +9,8 @@ import se.laz.casual.jca.RuntimeInformation;
 
 import java.util.Objects;
 
+import static java.lang.System.Logger.Level.*;
+
 public class ServiceCallEventPublisher
 {
     private static final System.Logger log = System.getLogger(ServiceCallEventPublisher.class.getName());
@@ -45,7 +47,7 @@ public class ServiceCallEventPublisher
         catch(Exception ee)
         {
             // catch,almost all, since failure to post should not impact any service call flow
-            log.log(System.Logger.Level.WARNING, () -> "Failed to post service call event - metrics will not be available for " + event);
+            log.log(WARNING, () -> "Failed to post service call event - metrics will not be available for " + event,ee);
         }
     }
 

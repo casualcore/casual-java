@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * CasualManagedConnection
  * The application server pools these objects
@@ -84,7 +86,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
             {
                 if(null != mcf.getNetworkConnectionPoolName() && null == mcf.getNetworkConnectionPoolSize())
                 {
-                    log.log(System.Logger.Level.WARNING,() -> "networkPoolName set to: " + mcf.getNetworkConnectionPoolName() + " but missing networkPoolSize!");
+                    log.log(WARNING,() -> "networkPoolName set to: " + mcf.getNetworkConnectionPoolName() + " but missing networkPoolSize!");
                 }
                 networkConnection = networkPoolNameAndNetworkPoolSizeSet() ? getOrCreateFromPool() : createOneToOneManagedConnection();
             }
@@ -114,7 +116,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     {
         try
         {
-            log.log(System.Logger.Level.TRACE,"getConnection()");
+            log.log(DEBUG,"getConnection()");
             if (!getNetworkConnection().isActive())
             {
                 closeNetworkConnection();
@@ -136,7 +138,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     @Override
     public void associateConnection(Object connection) throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"associateConnection()");
+        log.log(DEBUG,"associateConnection()");
         Objects.requireNonNull( connection, "Null connection handle." );
 
         if (!(connection instanceof CasualConnectionImpl))
@@ -152,7 +154,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     @Override
     public void cleanup() throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"cleanup()");
+        log.log(DEBUG,"cleanup()");
         for(CasualConnectionImpl c : connectionHandles)
         {
             c.invalidate();
@@ -163,7 +165,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     @Override
     public void destroy() throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,() -> "destroy()" + this);
+        log.log(DEBUG,() -> "destroy()" + this);
         closeNetworkConnection();
         connectionHandles.clear();
     }
@@ -171,41 +173,41 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     @Override
     public void addConnectionEventListener(ConnectionEventListener listener)
     {
-        log.log(System.Logger.Level.TRACE,"addConnectionEventListener()");
+        log.log(DEBUG,"addConnectionEventListener()");
         connectionEventHandler.addConnectionEventListener( listener );
     }
 
     @Override
     public void removeConnectionEventListener(ConnectionEventListener listener) {
-        log.log(System.Logger.Level.TRACE,"removeConnectionEventListener()");
+        log.log(DEBUG,"removeConnectionEventListener()");
         connectionEventHandler.removeConnectionEventListener(listener);
     }
 
     @Override
     public PrintWriter getLogWriter() throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"getLogWriter()");
+        log.log(DEBUG,"getLogWriter()");
         return logwriter;
     }
 
     @Override
     public void setLogWriter(PrintWriter out) throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"setLogWriter()");
+        log.log(DEBUG,"setLogWriter()");
         logwriter = out;
     }
 
     @Override
     public LocalTransaction getLocalTransaction() throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"getLocalTransaction(), this is not supported.");
+        log.log(DEBUG,"getLocalTransaction(), this is not supported.");
         throw new NotSupportedException( "LocalTransactions are not supported." );
     }
 
     @Override
     public synchronized XAResource getXAResource() throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"getXAResource()");
+        log.log(DEBUG,"getXAResource()");
         return this.xaResource;
     }
 
@@ -222,7 +224,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     @Override
     public ManagedConnectionMetaData getMetaData() throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"getMetaData()");
+        log.log(DEBUG,"getMetaData()");
         return new CasualManagedConnectionMetaData();
     }
 
@@ -294,7 +296,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     @Override
     public void disconnected(Exception reason)
     {
-        log.log(System.Logger.Level.TRACE,() -> "disconnected: " + this);
+        log.log(DEBUG,() -> "disconnected: " + this);
         ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED, reason);
         connectionEventHandler.sendEvent(event);
     }
@@ -322,7 +324,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     {
         NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(mcf.getHostName(), mcf.getPortNumber()), mcf.getCasualProtocolVersion());
         NetworkConnection newNetworkConnection = NettyNetworkConnection.of(ci, this);
-        log.log(System.Logger.Level.TRACE,() -> "created new nw connection " + this);
+        log.log(DEBUG,() -> "created new nw connection " + this);
         return newNetworkConnection;
     }
 }

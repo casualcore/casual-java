@@ -19,6 +19,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.System.Logger.Level.*;
+
 public class EventServer
 {
     private static final System.Logger log = System.getLogger(EventServer.class.getName());
@@ -73,10 +75,10 @@ public class EventServer
 
     public void close()
     {
-        log.log(System.Logger.Level.INFO,() -> "closing event server");
+        log.log(INFO,() -> "closing event server");
         bossGroup.shutdownGracefully( shutdownQuietPeriod, shutdownTimeout, TimeUnit.MILLISECONDS ).syncUninterruptibly();
         workerGroup.shutdownGracefully( shutdownQuietPeriod, shutdownTimeout, TimeUnit.MILLISECONDS ).syncUninterruptibly();
-        log.log(System.Logger.Level.INFO,() -> "event server closed");
+        log.log(INFO,() -> "event server closed");
     }
 
 }

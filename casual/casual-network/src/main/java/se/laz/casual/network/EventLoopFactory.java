@@ -15,6 +15,8 @@ import se.laz.casual.network.outbound.JEEConcurrencyFactory;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.lang.System.Logger.Level.*;
+
 public final class EventLoopFactory
 {
     private static final System.Logger LOG = System.getLogger(EventLoopFactory.class.getName());
@@ -45,13 +47,13 @@ public final class EventLoopFactory
 
     private static EventLoopGroup getUnmanagedEventLoopGroup(boolean useEpoll, int numberOfThreads)
     {
-        LOG.log(System.Logger.Level.INFO,() -> "event loop group not using any ManagedExecutorService, running unmanaged");
+        LOG.log(INFO,() -> "event loop group not using any ManagedExecutorService, running unmanaged");
         if(useEpoll)
         {
-            LOG.log(System.Logger.Level.INFO,() -> "using EpollEventLoopGroup");
+            LOG.log(INFO,() -> "using EpollEventLoopGroup");
             return new EpollEventLoopGroup(numberOfThreads);
         }
-        LOG.log(System.Logger.Level.INFO,() -> "using NioEventLoopGroup");
+        LOG.log(INFO,() -> "using NioEventLoopGroup");
         return new NioEventLoopGroup(numberOfThreads);
     }
 
@@ -59,10 +61,10 @@ public final class EventLoopFactory
     {
         if (useEpoll)
         {
-            LOG.log(System.Logger.Level.INFO,() -> "using EpollEventLoopGroup");
+            LOG.log(INFO,() -> "using EpollEventLoopGroup");
             return new EpollEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService());
         }
-        LOG.log(System.Logger.Level.INFO,() -> "using NioEventLoopGroup");
+        LOG.log(INFO,() -> "using NioEventLoopGroup");
         return new NioEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService());
     }
 

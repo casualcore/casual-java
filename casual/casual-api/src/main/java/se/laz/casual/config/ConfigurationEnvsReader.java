@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * Read system environment variables to populate the configuration store appropriately.
  * <br/>
@@ -179,7 +181,7 @@ public class ConfigurationEnvsReader
         {
             Supplier<String> message =
                     () -> "Invalid environment variable data: " + name + " has value: '" + value + "'.";
-            logger.log(System.Logger.Level.ERROR, message );
+            logger.log(ERROR, message );
             throw new ConfigurationException( message.get(), e );
         }
     }

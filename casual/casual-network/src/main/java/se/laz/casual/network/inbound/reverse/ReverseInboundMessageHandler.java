@@ -27,6 +27,8 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static java.lang.System.Logger.Level.*;
+
 public final class ReverseInboundMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
 {
     private static System.Logger log = System.getLogger(ReverseInboundMessageHandler.class.getName());
@@ -59,7 +61,7 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
     {
         MessageEndpoint endpoint = factory.createEndpoint(null);
         CasualMessageListener listener = (CasualMessageListener) endpoint;
-        log.log(System.Logger.Level.TRACE,() -> "reverse inbound msg: " + message);
+        log.log(DEBUG,() -> "reverse inbound msg: " + message);
         switch ( message.getType() )
         {
             case COMMIT_REQUEST:
@@ -84,7 +86,7 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
                 listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel());
                 break;
             default:
-                log.log(System.Logger.Level.WARNING,"Message type not supported: " + message.getType());
+                log.log(WARNING,"Message type not supported: " + message.getType());
         }
     }
 

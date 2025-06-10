@@ -12,6 +12,8 @@ import se.laz.casual.config.ConfigurationService;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * Provides the encoding information for encoding/decoding strings
  * Value determined by the {@link ConfigurationService}.
@@ -43,7 +45,7 @@ public class EncodingInfoProvider
         }
         catch(IllegalArgumentException e)
         {
-            log.log(System.Logger.Level.WARNING, () -> "could not find charset by name: " + name + " falling back to utf-8");
+            log.log(WARNING, () -> "could not find charset by name: " + name + " falling back to utf-8",e);
             c = StandardCharsets.UTF_8;
         }
         return c;

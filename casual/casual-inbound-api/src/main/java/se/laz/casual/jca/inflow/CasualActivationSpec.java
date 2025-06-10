@@ -10,6 +10,8 @@ import jakarta.resource.spi.ActivationSpec;
 import jakarta.resource.spi.InvalidPropertyException;
 import jakarta.resource.spi.ResourceAdapter;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * Activation Specification for Inbound Message Listener.
  */
@@ -34,21 +36,21 @@ public class CasualActivationSpec implements ActivationSpec
    @Override
    public void validate() throws InvalidPropertyException
    {
-      logger.log(System.Logger.Level.TRACE,"validate()");
+      logger.log(DEBUG,"validate()");
 
    }
 
    @Override
    public ResourceAdapter getResourceAdapter()
    {
-      logger.log(System.Logger.Level.TRACE,"getResourceAdapter()");
+      logger.log(DEBUG,"getResourceAdapter()");
       return ra;
    }
 
    @Override
    public void setResourceAdapter(ResourceAdapter ra)
    {
-      logger.log(System.Logger.Level.TRACE,"setResourceAdapter()");
+      logger.log(DEBUG,"setResourceAdapter()");
       this.ra = ra;
    }
 

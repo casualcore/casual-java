@@ -15,6 +15,8 @@ import javax.naming.NamingException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static java.lang.System.Logger.Level.*;
+
 public class JEEConcurrencyFactory
 {
     private static final System.Logger LOG = System.getLogger(JEEConcurrencyFactory.class.getName());
@@ -58,14 +60,14 @@ public class JEEConcurrencyFactory
         String name = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME );
         try
         {
-            LOG.log(System.Logger.Level.INFO,() -> "using ManagedExecutorService: " + name);
+            LOG.log(INFO,() -> "using ManagedExecutorService: " + name);
             return InitialContext.doLookup(name);
         }
         catch (NamingException e)
         {
             try
             {
-                LOG.log(System.Logger.Level.WARNING,() -> "failed using ManagedExecutorService: " + name + " will try with: " + DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT);
+                LOG.log(WARNING,() -> "failed using ManagedExecutorService: " + name + " will try with: " + DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT,e);
                 return InitialContext.doLookup(DEFAULT_MANAGED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT);
             }
             catch (NamingException ee)
@@ -95,7 +97,7 @@ public class JEEConcurrencyFactory
         }
         catch (NamingException e)
         {
-            LOG.log(System.Logger.Level.INFO,"Failed lookup for " + DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT + ", will retry indirect jndi name (may exist in this context on some non-standard application servers)");
+            LOG.log(INFO,"Failed lookup for " + DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_JBOSS_DIRECT + ", will retry indirect jndi name (may exist in this context on some non-standard application servers)");
             try
             {
                 // Second try non-standard use of indirect jndi name defined in JSR-236
@@ -103,7 +105,7 @@ public class JEEConcurrencyFactory
             }
             catch (NamingException ex)
             {
-                LOG.log(System.Logger.Level.INFO,"Failed lookup for " + DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_INDIRECT + ", will use scheduled executor from java.util.concurrent.Executors");
+                LOG.log(INFO,"Failed lookup for " + DEFAULT_MANAGED_SCHEDULED_EXECUTOR_SERVICE_NAME_INDIRECT + ", will use scheduled executor from java.util.concurrent.Executors");
                 // If all else fails, use java.util.concurrent variant as scheduler
                 return getSharedJavaUtilScheduledExecutor();
             }

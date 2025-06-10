@@ -24,6 +24,8 @@ import se.laz.casual.network.LogLevelProvider;
 
 import java.net.InetSocketAddress;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * Inbound casual server
  */
@@ -61,7 +63,7 @@ public final class CasualServer
                     if(enableLogHandler)
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.INBOUND_LOGGING_LEVEL));
-                        log.log(System.Logger.Level.INFO,() -> "inbound network log handler enabled, using netty logging level: " + LogLevelProvider.INBOUND_LOGGING_LEVEL);
+                        log.log(INFO,() -> "inbound network log handler enabled, using netty logging level: " + LogLevelProvider.INBOUND_LOGGING_LEVEL);
                     }
                 }
             }).childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -79,10 +81,10 @@ public final class CasualServer
 
     public void close()
     {
-        log.log(System.Logger.Level.INFO,() -> "closing server");
+        log.log(INFO,() -> "closing server");
         channel.close().syncUninterruptibly();
         channel.eventLoop().shutdownGracefully().syncUninterruptibly();
-        log.log(System.Logger.Level.INFO,() -> "server closed");
+        log.log(INFO,() -> "server closed");
     }
 
 }

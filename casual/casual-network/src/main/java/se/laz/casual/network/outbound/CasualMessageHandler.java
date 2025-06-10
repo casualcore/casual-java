@@ -13,6 +13,8 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 
 import java.util.Objects;
 
+import static java.lang.System.Logger.Level.*;
+
 public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
 {
     private static final System.Logger LOG = System.getLogger(CasualMessageHandler.class.getName());
@@ -40,7 +42,7 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final CasualNWMessage<?> msg)
     {
-        LOG.log(System.Logger.Level.TRACE,() -> String.format("reply: %s", LogTool.asLogEntry(msg)));
+        LOG.log(DEBUG,() -> String.format("reply: %s", LogTool.asLogEntry(msg)));
         if(isConversationalMessage(msg.getType()))
         {
             // pass along the pipeline to the next handler

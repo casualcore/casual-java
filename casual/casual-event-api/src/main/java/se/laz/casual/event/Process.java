@@ -5,6 +5,7 @@
  */
 package se.laz.casual.event;
 
+import static java.lang.System.Logger.Level.*;
 
 public final class Process
 {
@@ -21,7 +22,7 @@ public final class Process
         }
         catch(Exception e)
         {
-            LOG.log(System.Logger.Level.WARNING, () -> "could not get process id");
+            LOG.log(WARNING, () -> "could not get process id",e);
         }
         return currentPID;
     }

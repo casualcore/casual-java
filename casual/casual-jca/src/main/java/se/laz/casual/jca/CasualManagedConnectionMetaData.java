@@ -10,6 +10,8 @@ import se.laz.casual.internal.CasualConstants;
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.ManagedConnectionMetaData;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * CasualManagedConnectionMetaData
  *
@@ -22,21 +24,21 @@ public final class CasualManagedConnectionMetaData implements ManagedConnectionM
     @Override
     public String getEISProductName() throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"getEISProductName()");
+        log.log(DEBUG,"getEISProductName()");
         return CasualConstants.CASUAL_NAME;
     }
 
     @Override
     public String getEISProductVersion() throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"getEISProductVersion()");
+        log.log(DEBUG,"getEISProductVersion()");
         return CasualConstants.CASUAL_API_VERSION;
     }
 
     @Override
     public int getMaxConnections() throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"getMaxConnections()");
+        log.log(DEBUG,"getMaxConnections()");
         //Assuming this is the EIS Server we are not aware of any limitations
         //so shall, to that effect, return 0.
         return 0;
@@ -45,7 +47,7 @@ public final class CasualManagedConnectionMetaData implements ManagedConnectionM
     @Override
     public String getUserName() throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"getUserName()");
+        log.log(DEBUG,"getUserName()");
         return System.getProperty("user.name");
     }
 

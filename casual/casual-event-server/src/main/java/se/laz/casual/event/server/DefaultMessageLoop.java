@@ -12,6 +12,8 @@ import se.laz.casual.event.ServiceCallEventStore;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
+import static java.lang.System.Logger.Level.*;
+
 public class DefaultMessageLoop implements MessageLoop
 {
     private static final System.Logger log = System.getLogger(DefaultMessageLoop.class.getName());
@@ -37,8 +39,8 @@ public class DefaultMessageLoop implements MessageLoop
         while (continueLoop.getAsBoolean())
         {
             ServiceCallEvent event = serviceCallEventStore.take();
-            log.log(System.Logger.Level.TRACE,() -> "# of clients: " + connectedClients.size());
-            log.log(System.Logger.Level.TRACE,() -> "writing: " + event + " to all clients");
+            log.log(DEBUG,() -> "# of clients: " + connectedClients.size());
+            log.log(DEBUG,() -> "writing: " + event + " to all clients");
             connectedClients.writeAndFlush(event);
         }
     }

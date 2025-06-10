@@ -30,6 +30,8 @@ import javax.naming.NamingException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
+import static java.lang.System.Logger.Level.*;
+
 @Stateless
 public class JavaeeServiceHandler implements ServiceHandler
 {
@@ -60,7 +62,7 @@ public class JavaeeServiceHandler implements ServiceHandler
     @Override
     public InboundResponse invokeService(InboundRequest request)
     {
-        LOG.log(System.Logger.Level.TRACE, ()->"Request received: " + request );
+        LOG.log(DEBUG, ()->"Request received: " + request );
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
         ServiceHandlerExtension serviceHandlerExtension = ServiceHandlerExtensionFactory.getExtension( Remote.class.getName() );
         ServiceHandlerExtensionContext extensionContext = null;
@@ -75,7 +77,7 @@ public class JavaeeServiceHandler implements ServiceHandler
         }
         catch( Throwable e )
         {
-            LOG.log(System.Logger.Level.WARNING, ()-> "Error invoking service: " + e.getMessage() );
+            LOG.log(WARNING, ()-> "Error invoking service: " + e.getMessage(),e );
             InboundResponse response = InboundResponse.createBuilder()
                     .errorState( ErrorState.TPESVCERR )
                     .transactionState( TransactionState.ROLLBACK_ONLY )
@@ -104,7 +106,7 @@ public class JavaeeServiceHandler implements ServiceHandler
     {
         Context c = getContext();
         Object r = c.lookup( jndiName );
-        LOG.log(System.Logger.Level.TRACE, ()->"Found " + r.getClass() + " : " + r );
+        LOG.log(DEBUG, ()->"Found " + r.getClass() + " : " + r );
         return r;
     }
 
@@ -125,7 +127,7 @@ public class JavaeeServiceHandler implements ServiceHandler
 
         Object result = method.invoke( p, params );
 
-        LOG.log(System.Logger.Level.TRACE, ()-> "Result: " + result );
+        LOG.log(DEBUG, ()-> "Result: " + result );
         return bufferHandler.toResponse( serviceCallInfo, result );
     }
 

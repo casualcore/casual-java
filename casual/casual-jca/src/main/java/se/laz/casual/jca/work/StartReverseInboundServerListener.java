@@ -8,6 +8,7 @@ package se.laz.casual.jca.work;
 
 import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
+import static java.lang.System.Logger.Level.*;
 
 /**
  * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
@@ -34,7 +35,7 @@ public class StartReverseInboundServerListener implements WorkListener
     @Override
     public void workRejected(WorkEvent e)
     {
-        log.log(System.Logger.Level.WARNING,() -> "reverse inbound workRejected, reverse inbound will not be started!!!");
+        log.log(WARNING,() -> "reverse inbound workRejected, reverse inbound will not be started!!!",e.getException());
     }
 
     @Override
@@ -48,8 +49,8 @@ public class StartReverseInboundServerListener implements WorkListener
     {
         if(null != e.getException())
         {
-            log.log(System.Logger.Level.WARNING,() -> "reverse inbound, workCompleted with exception: " + e.getException());
-            log.log(System.Logger.Level.WARNING,() -> "cause: " + e.getException().getCause());
+            log.log(WARNING,() -> "reverse inbound, workCompleted with exception: " + e.getException(),e.getException());
+            log.log(WARNING,() -> "cause: " + e.getException().getCause(),e.getException());
         }
     }
 }

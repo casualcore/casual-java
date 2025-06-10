@@ -15,6 +15,8 @@ import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 
+import static java.lang.System.Logger.Level.*;
+
 // yes it is intentional
 @SuppressWarnings("java:S6548")
 public class JMXStartup
@@ -40,7 +42,7 @@ public class JMXStartup
       }
       catch (MalformedObjectNameException | NotCompliantMBeanException | InstanceAlreadyExistsException | MBeanRegistrationException e)
       {
-         LOG.log(System.Logger.Level.WARNING,() -> "CasualMBean initiation failed, JMX entry will not exist: " + e);
+         LOG.log(WARNING,() -> "CasualMBean initiation failed, JMX entry will not exist: " + e,e);
       }
    }
 

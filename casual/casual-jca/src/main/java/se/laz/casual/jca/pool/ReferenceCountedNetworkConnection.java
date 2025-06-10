@@ -20,6 +20,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.System.Logger.Level.*;
+
 public class ReferenceCountedNetworkConnection implements NetworkConnection
 {
     private static final System.Logger log = System.getLogger(ReferenceCountedNetworkConnection.class.getName());
@@ -41,7 +43,7 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
 
     public int increment()
     {
-        log.log(System.Logger.Level.TRACE,() -> "increment current refcount: " + referenceCount.get());
+        log.log(DEBUG,() -> "increment current refcount: " + referenceCount.get());
         return referenceCount.incrementAndGet();
     }
 
@@ -83,10 +85,10 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
     @Override
     public void close()
     {
-        log.log(System.Logger.Level.TRACE,() -> "close current refcount: " + referenceCount.get());
+        log.log(DEBUG,() -> "close current refcount: " + referenceCount.get());
         if(referenceCount.decrementAndGet() == 0)
         {
-            log.log(System.Logger.Level.TRACE,() -> "closing network connection: " + networkConnection);
+            log.log(DEBUG,() -> "closing network connection: " + networkConnection);
             networkConnection.close();
             closeListener.closed(this);
         }

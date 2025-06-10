@@ -27,6 +27,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static java.lang.System.Logger.Level.*;
+
 public class ConversationConnectCaller implements CasualConversationApi
 {
     private static final System.Logger LOG = System.getLogger(ConversationConnectCaller.class.getName());
@@ -75,11 +77,11 @@ public class ConversationConnectCaller implements CasualConversationApi
         connectReplyFuture.whenComplete((v, e) ->{
             if(null != e)
             {
-                LOG.log(System.Logger.Level.TRACE,()->"conversation tpconnect failed for corrid: " + corrId + "\n serviceName" + serviceName);
+                LOG.log(DEBUG,()->"conversation tpconnect failed for corrid: " + corrId + "\n serviceName" + serviceName);
                 f.completeExceptionally(e);
                 return;
             }
-            LOG.log(System.Logger.Level.TRACE,()->"conversation tpconnect ok for corrid: " + corrId + "\n serviceName" + serviceName);
+            LOG.log(DEBUG,()->"conversation tpconnect ok for corrid: " + corrId + "\n serviceName" + serviceName);
             f.complete(v);
         });
         CasualNWMessage<ConnectReply> msg = f.join();

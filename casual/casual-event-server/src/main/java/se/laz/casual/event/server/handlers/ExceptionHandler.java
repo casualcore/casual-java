@@ -11,6 +11,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
 
+import static java.lang.System.Logger.Level.*;
+
 @ChannelHandler.Sharable
 public final class ExceptionHandler extends ChannelInboundHandlerAdapter
 {
@@ -30,7 +32,7 @@ public final class ExceptionHandler extends ChannelInboundHandlerAdapter
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
     {
-        log.log(System.Logger.Level.WARNING,() -> "EventServer exception caught: " + cause + " closing channel: " + ctx.channel());
+        log.log(WARNING,() -> "EventServer exception caught: " + cause + " closing channel: " + ctx.channel(),cause);
         connectedClients.remove(ctx.channel());
         ctx.close();
     }

@@ -13,6 +13,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.lang.System.Logger.Level.*;
+
 public class CasualInboundTransactionRegistry
 {
     private static final System.Logger log = System.getLogger(CasualInboundTransactionRegistry.class.getName());
@@ -23,14 +25,14 @@ public class CasualInboundTransactionRegistry
     {
         Objects.requireNonNull(channelId, CHANNEL_ID_CAN_NOT_BE_NULL);
         Objects.requireNonNull(key, "key can not be null");
-        log.log(System.Logger.Level.TRACE,() -> "adding transaction " + key + " for channel id: " + channelId + " to inbound transaction registry");
+        log.log(DEBUG,() -> "adding transaction " + key + " for channel id: " + channelId + " to inbound transaction registry");
         transactions.computeIfAbsent(channelId, id -> ConcurrentHashMap.newKeySet()).add(key);
     }
     public void remove(ChannelId channelId, XidKey key)
     {
         Objects.requireNonNull(channelId, CHANNEL_ID_CAN_NOT_BE_NULL);
         Objects.requireNonNull(key, "key can not be null");
-        log.log(System.Logger.Level.TRACE,() -> "removing transaction " + key + "for channel id: " + channelId +" from transaction registry");
+        log.log(DEBUG,() -> "removing transaction " + key + "for channel id: " + channelId +" from transaction registry");
         transactions.computeIfPresent(channelId, (id, set) ->{
            set.remove(key);
            return set.isEmpty() ? null : set;
@@ -40,13 +42,13 @@ public class CasualInboundTransactionRegistry
     public void remove(ChannelId channelId)
     {
         Objects.requireNonNull(channelId, CHANNEL_ID_CAN_NOT_BE_NULL);
-        log.log(System.Logger.Level.TRACE,() -> "Removing all pending transactions for " + channelId + " from transaction registry");
+        log.log(DEBUG,() -> "Removing all pending transactions for " + channelId + " from transaction registry");
         transactions.remove(channelId);
     }
 
     public boolean hasPending()
     {
-        log.log(System.Logger.Level.TRACE,() -> "# of inbound pending: " + transactions.size());
+        log.log(DEBUG,() -> "# of inbound pending: " + transactions.size());
         return !transactions.isEmpty();
     }
 }

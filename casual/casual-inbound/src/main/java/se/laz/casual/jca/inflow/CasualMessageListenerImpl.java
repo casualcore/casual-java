@@ -56,6 +56,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * Inbound Casual Message Listener, responsible for handling all inbound requests received.
  */
@@ -71,11 +73,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel)
     {
-        log.log(System.Logger.Level.TRACE,() -> "domainConnectRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
-        log.log(System.Logger.Level.INFO,()-> "domainConnectRequest(). client" + channel + " asking for protocol version(s)" + message.getMessage().getProtocols());
-        log.log(System.Logger.Level.INFO,()-> "domainConnectRequest(). supported protocols: " + ProtocolVersion.supportedVersions());
+        log.log(DEBUG,() -> "domainConnectRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
+        log.log(INFO,()-> "domainConnectRequest(). client" + channel + " asking for protocol version(s)" + message.getMessage().getProtocols());
+        log.log(INFO,()-> "domainConnectRequest(). supported protocols: " + ProtocolVersion.supportedVersions());
         Long matchedProtocolVersion = ProtocolMatcher.match(message.getMessage().getProtocols());
-        log.log(System.Logger.Level.INFO,() -> "domainConnectRequest(). matched protocol version: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
+        log.log(INFO,() -> "domainConnectRequest(). matched protocol version: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
 
         if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_1.getVersion())
         {
@@ -105,13 +107,13 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void domainDisconnectReply(CasualNWMessage<DomainDisconnectReplyMessage> message)
     {
-        log.log(System.Logger.Level.TRACE,() -> "domainDisconnectReply(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
+        log.log(DEBUG,() -> "domainDisconnectReply(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
     }
 
     @Override
     public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel)
     {
-        log.log(System.Logger.Level.TRACE,() -> "domainDiscoveryRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message);
+        log.log(DEBUG,() -> "domainDiscoveryRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message);
 
         String domainName = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME );
         UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId();
@@ -142,12 +144,12 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry)
     {
-        log.log(System.Logger.Level.TRACE,() -> "serviceCallRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
+        log.log(DEBUG,() -> "serviceCallRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
 
         Xid xid = message.getMessage().getXid();
         if(tpNoReplyOutOfProtocol( message, isServiceCallTransactional( xid )))
         {
-            log.log(System.Logger.Level.WARNING,() ->{
+            log.log(WARNING,() ->{
                 String casualMessageInfo = String.format("xid: %s, correlation: %s, execution: %s",PrettyPrinter.casualStringify(message.getMessage().getXid()),
                         PrettyPrinter.casualStringify(message.getCorrelationId()), PrettyPrinter.casualStringify(message.getMessage().getExecution()));
                 return "For message: " + message + " TPNOREPLY is set but the call is transactional. It is out of protocol so call will be issued but non transactional\n" + casualMessageInfo;
@@ -202,7 +204,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
             }
             catch (NotSupportedException e)
             {
-                log.log(System.Logger.Level.WARNING,"Timeout is not set as is not supported. " + e.getMessage());
+                log.log(WARNING,"Timeout is not set as is not supported. " + e.getMessage(),e);
             }
         }
         return context;
@@ -211,7 +213,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void prepareRequest(CasualNWMessage<CasualTransactionResourcePrepareRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry)
     {
-        log.log(System.Logger.Level.TRACE,() ->  "prepareRequest(). " + PrettyPrinter.format(message.getCorrelationId(),
+        log.log(DEBUG,() ->  "prepareRequest(). " + PrettyPrinter.format(message.getCorrelationId(),
                 message.getMessage().getExecution(), message.getMessage().getXid()) + "flags:" + message.getMessage().getFlags() + " " + message);
         Xid xid = message.getMessage().getXid();
         int status = -1;
@@ -223,7 +225,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         {
 
             status = e.errorCode;
-            log.log( System.Logger.Level.WARNING, ()-> "XAException prepare()" + e.getMessage() );
+            log.log( WARNING, ()-> "XAException prepare()" + e.getMessage() ,e);
         }
         finally
         {
@@ -247,7 +249,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void commitRequest(CasualNWMessage<CasualTransactionResourceCommitRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry)
     {
-        log.log(System.Logger.Level.TRACE,() -> "commitRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
+        log.log(DEBUG,() -> "commitRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
         Xid xid = message.getMessage().getXid();
         boolean onePhase = message.getMessage().getFlags().isSet( XAFlags.TMONEPHASE );
 
@@ -259,7 +261,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         } catch (XAException e)
         {
             status = e.errorCode;
-            log.log( System.Logger.Level.WARNING, ()-> "XAException commit()" + e.getMessage() );
+            log.log( WARNING, ()-> "XAException commit()" + e.getMessage(),e );
         }
         finally
         {
@@ -279,7 +281,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void requestRollback(CasualNWMessage<CasualTransactionResourceRollbackRequestMessage> message, Channel channel, XATerminator xaTerminator, CasualInboundTransactionRegistry inboundTransactionRegistry)
     {
-        log.log(System.Logger.Level.TRACE,() -> "requestRollback(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
+        log.log(DEBUG,() -> "requestRollback(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message );
 
         Xid xid = message.getMessage().getXid();
         int status = -1;
@@ -290,7 +292,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         } catch (XAException e)
         {
             status = e.errorCode;
-            log.log( System.Logger.Level.WARNING, ()-> "XAException rollback()" + e.getMessage() );
+            log.log( WARNING, ()-> "XAException rollback()" + e.getMessage(),e );
         }
         finally
         {

@@ -23,6 +23,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * Can be used to consume events from casuals EventServer
  *
@@ -108,7 +110,7 @@ public class EventClient
                         }
                     }
                 });
-        LOG.log(System.Logger.Level.TRACE,() -> "about to connect to: " + clientInformation.getConnectionInformation().getAddress());
+        LOG.log(DEBUG,() -> "about to connect to: " + clientInformation.getConnectionInformation().getAddress());
         return b.connect(clientInformation.getConnectionInformation().getAddress()).syncUninterruptibly().channel();
     }
 }

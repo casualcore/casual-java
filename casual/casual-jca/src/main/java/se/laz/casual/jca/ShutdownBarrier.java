@@ -8,6 +8,8 @@ package se.laz.casual.jca;
 
 import java.util.Objects;
 
+import static java.lang.System.Logger.Level.*;
+
 public class ShutdownBarrier
 {
     private static final System.Logger log = System.getLogger(ShutdownBarrier.class.getName());
@@ -44,7 +46,7 @@ public class ShutdownBarrier
             {
                 Thread.currentThread().interrupt();
                 // we are not allowed to throw here, so we log it
-                log.log(System.Logger.Level.WARNING,() -> "shutdown barrier thread interrupted during sleep");
+                log.log(WARNING,() -> "shutdown barrier thread interrupted during sleep",e);
             }
         }
     }

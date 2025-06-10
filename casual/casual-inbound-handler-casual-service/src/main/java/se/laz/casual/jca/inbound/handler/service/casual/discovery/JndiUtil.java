@@ -14,6 +14,8 @@ import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.System.Logger.Level.*;
+
 public class JndiUtil
 {
     private static final System.Logger logger = System.getLogger(JndiUtil.class.getName());
@@ -99,7 +101,7 @@ public class JndiUtil
             }
             catch(NamingException e)
             {
-                logger.log( System.Logger.Level.TRACE, () -> "lookup failed for: " + name);
+                logger.log( DEBUG, () -> "lookup failed for: " + name);
             }
         }
         return results;

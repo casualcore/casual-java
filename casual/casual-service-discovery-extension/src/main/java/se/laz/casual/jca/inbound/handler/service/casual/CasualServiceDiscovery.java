@@ -23,6 +23,8 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.lang.reflect.Method;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * CDI extension for discovering services to export to
  * casual
@@ -35,12 +37,12 @@ public class CasualServiceDiscovery implements Extension
 
     public void beforeBeanDiscovery(@Observes BeforeBeanDiscovery beforeBeanDiscovery)
     {
-        LOG.log(System.Logger.Level.INFO,()->"Initializing service Discovery");
+        LOG.log(INFO,()->"Initializing service Discovery");
     }
 
     public <T> void processAnnotatedType(@Observes @WithAnnotations({CasualService.class}) ProcessAnnotatedType<T> processAnnotatedType )
     {
-        LOG.log(System.Logger.Level.INFO,"processAnnotatedType() start.");
+        LOG.log(INFO,"processAnnotatedType() start.");
 
         AnnotatedType<T> type = processAnnotatedType.getAnnotatedType();
 
@@ -61,7 +63,7 @@ public class CasualServiceDiscovery implements Extension
         }
         catch( NamingException e )
         {
-            LOG.log(System.Logger.Level.TRACE, ()-> "Error retrieving app name." );
+            LOG.log(DEBUG, ()-> "Error retrieving app name." );
         }
 
         try
@@ -70,7 +72,7 @@ public class CasualServiceDiscovery implements Extension
         }
         catch( NamingException e )
         {
-            LOG.log(System.Logger.Level.TRACE, ()-> "Error retrieving module name." );
+            LOG.log(DEBUG, ()-> "Error retrieving module name." );
         }
 
         CasualServiceMetaData.CasualServiceMetaDataBuilder b = CasualServiceMetaData.newBuilder()
@@ -91,13 +93,13 @@ public class CasualServiceDiscovery implements Extension
                 serviceRegistry.register(b.build());
             }
         }
-        LOG.log(System.Logger.Level.INFO,()->"processAnnotatedType() end.");
+        LOG.log(INFO,()->"processAnnotatedType() end.");
     }
 
     public void afterBeanDiscovery(@Observes AfterBeanDiscovery abd)
     {
-        LOG.log(System.Logger.Level.INFO,()->"Services found: " + serviceRegistry.serviceMetaDataSize() );
-        LOG.log(System.Logger.Level.INFO,()->"Service Discovery Done");
+        LOG.log(INFO,()->"Services found: " + serviceRegistry.serviceMetaDataSize() );
+        LOG.log(INFO,()->"Service Discovery Done");
     }
 
 }

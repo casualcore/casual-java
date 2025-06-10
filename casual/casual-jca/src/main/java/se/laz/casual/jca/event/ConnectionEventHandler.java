@@ -15,6 +15,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static java.lang.System.Logger.Level.*;
+
 public class ConnectionEventHandler
 {
     private static final System.Logger logger = System.getLogger(ConnectionEventHandler.class.getName());
@@ -33,7 +35,7 @@ public class ConnectionEventHandler
      */
     public void addConnectionEventListener(ConnectionEventListener listener)
     {
-        logger.log(System.Logger.Level.TRACE,"addConnectionEventListener()");
+        logger.log(DEBUG,"addConnectionEventListener()");
         Objects.requireNonNull( listener, "Listener is null" );
         listeners.add(listener);
     }
@@ -55,7 +57,7 @@ public class ConnectionEventHandler
      */
     public void removeConnectionEventListener(ConnectionEventListener listener)
     {
-        logger.log(System.Logger.Level.TRACE,"removeConnectionEventListener()");
+        logger.log(DEBUG,"removeConnectionEventListener()");
         Objects.requireNonNull( listener, "Listener is null" );
         listeners.remove(listener);
     }

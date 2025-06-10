@@ -36,7 +36,7 @@ import java.lang.reflect.Proxy;
 import java.util.Arrays;
 
 import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodMatcher.matches;
-
+import static java.lang.System.Logger.Level.*;
 @Stateless
 public class CasualServiceHandler implements ServiceHandler
 {
@@ -73,7 +73,7 @@ public class CasualServiceHandler implements ServiceHandler
     @Override
     public InboundResponse invokeService(InboundRequest request)
     {
-        LOG.log(System.Logger.Level.TRACE,()->"Request received: " + request );
+        LOG.log(DEBUG,()->"Request received: " + request );
         CasualServiceEntry entry = CasualServiceRegistry.getInstance().getServiceEntry( request.getServiceName() );
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
         ServiceHandlerExtension serviceHandlerExtension = ServiceHandlerExtensionFactory.getExtension( CasualService.class.getName() );
@@ -89,7 +89,7 @@ public class CasualServiceHandler implements ServiceHandler
         }
         catch( Throwable e )
         {
-            LOG.log(System.Logger.Level.WARNING, ()-> "Error invoking service: " + e.getMessage() );
+            LOG.log(WARNING, ()-> "Error invoking service: " + e.getMessage() ,e);
             InboundResponse response = InboundResponse.createBuilder()
                     .errorState( ErrorState.TPESVCERR )
                     .transactionState( TransactionState.ROLLBACK_ONLY )
@@ -121,7 +121,7 @@ public class CasualServiceHandler implements ServiceHandler
     {
         Context c = getContext();
         Object r = c.lookup( jndiName );
-        LOG.log(System.Logger.Level.TRACE,()->"Found " + r.getClass() + " : " + r );
+        LOG.log(DEBUG,()->"Found " + r.getClass() + " : " + r );
         return r;
     }
 

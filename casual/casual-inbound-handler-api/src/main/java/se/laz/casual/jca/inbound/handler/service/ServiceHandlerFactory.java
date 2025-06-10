@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * SPI factory for retrieving registered {@link ServiceHandler} instances.
  */
@@ -66,7 +68,7 @@ public final class ServiceHandlerFactory
             if( h.canHandleService( serviceName ) )
             {
                 serviceHandlerCache.put( serviceName, h );
-                LOG.log(System.Logger.Level.TRACE,() -> "service handler: " + h + " chosen for service: " + serviceName);
+                LOG.log(DEBUG,() -> "service handler: " + h + " chosen for service: " + serviceName);
                 return h;
             }
         }
@@ -75,7 +77,7 @@ public final class ServiceHandlerFactory
 
     private static void log(List<ServiceHandler> handlers)
     {
-        LOG.log(System.Logger.Level.TRACE,()-> "# of service handlers: " + handlers.size() + "\n" + logHandlers(handlers));
+        LOG.log(DEBUG,()-> "# of service handlers: " + handlers.size() + "\n" + logHandlers(handlers));
     }
 
     private static String logHandlers(List<ServiceHandler> handlers)

@@ -10,6 +10,8 @@ import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
 import java.util.function.Supplier;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
  * {@link jakarta.resource.spi.work.WorkManager} to log if anything goes wrong with starting the inbound server
@@ -29,25 +31,25 @@ public class StartInboundServerListener implements WorkListener
     @Override
     public void workAccepted(WorkEvent e)
     {
-        logWorkEvent( e, System.Logger.Level.TRACE, ()->"Casual inbound start, work accepted." );
+        logWorkEvent( e, DEBUG, ()->"Casual inbound start, work accepted." );
     }
 
     @Override
     public void workRejected(WorkEvent e)
     {
-        logWorkEvent( e, System.Logger.Level.WARNING, ()-> "Casual inbound start, work rejected, inbound will not be started!!!"  );
+        logWorkEvent( e, WARNING, ()-> "Casual inbound start, work rejected, inbound will not be started!!!"  );
     }
 
     @Override
     public void workStarted(WorkEvent e)
     {
-        logWorkEvent( e, System.Logger.Level.TRACE, ()-> "Casual inbound start, work started." );
+        logWorkEvent( e, DEBUG, ()-> "Casual inbound start, work started." );
     }
 
     @Override
     public void workCompleted(WorkEvent e)
     {
-        logWorkEvent( e, System.Logger.Level.TRACE, ()-> "Casual inbound start, work completed." );
+        logWorkEvent( e, DEBUG, ()-> "Casual inbound start, work completed." );
     }
 
     private void logWorkEvent( WorkEvent e, System.Logger.Level level, Supplier<String> supplier )
@@ -55,7 +57,7 @@ public class StartInboundServerListener implements WorkListener
         log.log( level, supplier );
         if( e.getException() != null )
         {
-            log.log(System.Logger.Level.ERROR, () -> "Casual inbound start WorkEvent contained an exception: ");
+            log.log(ERROR, () -> "Casual inbound start WorkEvent contained an exception: ");
         }
     }
 }

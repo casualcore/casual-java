@@ -26,6 +26,8 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 
 import java.util.Objects;
 
+import static java.lang.System.Logger.Level.*;
+
 @ChannelHandler.Sharable
 public final class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
 {
@@ -58,7 +60,7 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
     {
         MessageEndpoint endpoint = factory.createEndpoint(null);
         CasualMessageListener listener = (CasualMessageListener) endpoint;
-        log.log(System.Logger.Level.TRACE,() -> "inbound msg: " + message);
+        log.log(DEBUG,() -> "inbound msg: " + message);
         switch ( message.getType() )
         {
             case COMMIT_REQUEST:
@@ -83,7 +85,7 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
                 listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel());
                 break;
             default:
-                log.log(System.Logger.Level.WARNING,"Message type not supported: " + message.getType());
+                log.log(WARNING,"Message type not supported: " + message.getType());
         }
     }
 

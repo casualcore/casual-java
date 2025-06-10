@@ -8,6 +8,8 @@ package se.laz.casual.api.buffer.type.fielded;
 
 import java.nio.charset.Charset;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * Encoding information to use for string encoding/decoding
  * @see EncodingInfoProvider
@@ -22,7 +24,7 @@ public final class EncodingInfo
     {
         EncodingInfoProvider p = EncodingInfoProvider.of();
         charset = p.getCharset();
-        log.log(System.Logger.Level.INFO,() -> "casual fielded encoding set to charset: " + charset);
+        log.log(INFO,() -> "casual fielded encoding set to charset: " + charset);
     }
 
     /**

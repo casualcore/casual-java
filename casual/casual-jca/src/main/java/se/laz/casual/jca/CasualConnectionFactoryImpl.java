@@ -13,6 +13,8 @@ import jakarta.resource.spi.ConnectionManager;
 import jakarta.resource.spi.ConnectionRequestInfo;
 import java.util.Objects;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * CasualConnectionFactoryImpl
  *
@@ -46,28 +48,28 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     @Override
     public CasualConnection getConnection() throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"getConnection()");
+        log.log(DEBUG,"getConnection()");
         return getConnection(null);
     }
 
     @Override
     public CasualConnection getConnection(ConnectionRequestInfo connectionRequestInfo) throws ResourceException
     {
-        log.log(System.Logger.Level.TRACE,"getConnection()");
+        log.log(DEBUG,"getConnection()");
         return (CasualConnection) connectionManager.allocateConnection(managedConnectionFactory, connectionRequestInfo);
     }
 
     @Override
     public Reference getReference() throws NamingException
     {
-        log.log(System.Logger.Level.TRACE,"getReference()");
+        log.log(DEBUG,"getReference()");
         return reference;
     }
 
     @Override
     public void setReference(Reference reference)
     {
-        log.log(System.Logger.Level.TRACE,"setReference()");
+        log.log(DEBUG,"setReference()");
         this.reference = reference;
     }
 

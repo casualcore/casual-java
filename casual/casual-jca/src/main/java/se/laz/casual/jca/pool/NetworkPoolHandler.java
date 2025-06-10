@@ -15,6 +15,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.lang.System.Logger.Level.*;
+
 // yes it is intentional
 @SuppressWarnings("java:S6548")
 public class NetworkPoolHandler
@@ -36,8 +38,8 @@ public class NetworkPoolHandler
         }
         catch(CasualConnectionException e)
         {
-            log.log(System.Logger.Level.TRACE,() -> "connection failure for: " + address);
-            log.log(System.Logger.Level.TRACE,() -> "removing pool: " + poolName);
+            log.log(DEBUG,() -> "connection failure for: " + address);
+            log.log(DEBUG,() -> "removing pool: " + poolName);
             pools.remove(poolName);
             throw e;
         }

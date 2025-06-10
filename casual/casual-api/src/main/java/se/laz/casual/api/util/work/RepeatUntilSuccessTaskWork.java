@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static java.lang.System.Logger.Level.*;
+
 public class RepeatUntilSuccessTaskWork<T> implements Work
 {
     private static final System.Logger LOG = System.getLogger(RepeatUntilSuccessTaskWork.class.getName());
@@ -59,7 +61,7 @@ public class RepeatUntilSuccessTaskWork<T> implements Work
         catch(Exception e)
         {
             long currentBackoff = backoffHelper.registerFailure();
-            LOG.log(System.Logger.Level.WARNING,() -> "task failed: failure #" + backoffHelper.getFailures() + ", retrying in " + currentBackoff + " " + e);
+            LOG.log(WARNING,() -> "task failed: failure #" + backoffHelper.getFailures() + ", retrying in " + currentBackoff + " " + e,e);
             backoffScheduler.schedule(this::scheduleWork, currentBackoff, TimeUnit.MILLISECONDS);
         }
     }
@@ -89,7 +91,7 @@ public class RepeatUntilSuccessTaskWork<T> implements Work
         }
         catch (WorkException e)
         {
-            LOG.log(System.Logger.Level.WARNING,() -> "failed to schedule work, will retry once: " + e);
+            LOG.log(WARNING,() -> "failed to schedule work, will retry once: " + e,e);
             try
             {
                 workManagerSupplier.get().scheduleWork(this, WorkManager.INDEFINITE, null, RepeatUntilSuccessTaskWorkListener.of());

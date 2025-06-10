@@ -7,6 +7,7 @@ package se.laz.casual.jca.inbound.handler.service.casual.discovery;
 
 import se.laz.casual.config.Mode;
 import se.laz.casual.jca.RuntimeInformation;
+import static java.lang.System.Logger.Level.*;
 
 public class TimerStopCondition
 {
@@ -24,8 +25,8 @@ public class TimerStopCondition
 
     public boolean stop( )
     {
-        log.log(System.Logger.Level.TRACE,() -> "startupmode TRIGGER?" + triggerMode);
-        log.log(System.Logger.Level.TRACE,() -> "RuntimeInformation.isInboundStarted()?" + RuntimeInformation.isInboundStarted());
+        log.log(DEBUG,() -> "startupmode TRIGGER?" + triggerMode);
+        log.log(DEBUG,() -> "RuntimeInformation.isInboundStarted()?" + RuntimeInformation.isInboundStarted());
         return triggerMode && RuntimeInformation.isInboundStarted();
     }
 }

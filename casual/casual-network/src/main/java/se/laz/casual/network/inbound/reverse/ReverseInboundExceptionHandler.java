@@ -14,6 +14,8 @@ import se.laz.casual.network.InboundTopologyUpdateContext;
 
 import java.util.Objects;
 
+import static java.lang.System.Logger.Level.*;
+
 public final class ReverseInboundExceptionHandler extends ChannelInboundHandlerAdapter
 {
     private static final System.Logger log = System.getLogger(ReverseInboundExceptionHandler.class.getName());
@@ -33,7 +35,7 @@ public final class ReverseInboundExceptionHandler extends ChannelInboundHandlerA
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
     {
-        log.log(System.Logger.Level.WARNING,() -> "casual reverse inbound exception caught: " + cause + " closing channel");
+        log.log(WARNING,() -> "casual reverse inbound exception caught: " + cause + " closing channel",cause);
         InboundDeactivatedContext.remove(ctx.channel());
         InboundTopologyUpdateContext.remove(ctx.channel());
         inboundTransactionRegistry.remove(ctx.channel().id());

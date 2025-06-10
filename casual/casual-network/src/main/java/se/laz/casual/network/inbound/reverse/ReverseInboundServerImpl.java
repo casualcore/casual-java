@@ -29,6 +29,8 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
+import static java.lang.System.Logger.Level.*;
+
 /**
  * Inbound "server" that connects and then acts exactly like {@link  se.laz.casual.network.inbound.CasualServer}
  * In fact it is in actuality a client but after connect it behaves as if the connection was initiated from the other side.
@@ -57,7 +59,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
         Channel ch = init(reverseInboundConnectionInformation.getAddress(), messageHandler, ReverseInboundExceptionHandler.of(reverseInboundConnectionInformation.getInboundTransactionRegistry()), reverseInboundConnectionInformation.isLogHandlerEnabled(), reverseInboundConnectionInformation.getChannelClass());
         ReverseInboundServerImpl server = new ReverseInboundServerImpl(ch, reverseInboundConnectionInformation.getAddress(), workManagerSupplier);
         ch.closeFuture().addListener(f -> server.onClose(reverseInboundConnectionInformation, eventListener));
-        LOG.log(System.Logger.Level.INFO,() -> "reverse inbound connected to: " + server.getAddress());
+        LOG.log(INFO,() -> "reverse inbound connected to: " + server.getAddress());
         return server;
     }
 
@@ -88,11 +90,11 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
                         if(enableLogHandler)
                         {
                             ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.REVERSE_LOGGING_LEVEL));
-                            LOG.log(System.Logger.Level.INFO,() -> "reverse inbound log handler enabled, using netty logging level: " + LogLevelProvider.REVERSE_LOGGING_LEVEL);
+                            LOG.log(INFO,() -> "reverse inbound log handler enabled, using netty logging level: " + LogLevelProvider.REVERSE_LOGGING_LEVEL);
                         }
                     }
                 });
-        LOG.log(System.Logger.Level.INFO,() -> "reverse inbound about to connect to: " + address);
+        LOG.log(INFO,() -> "reverse inbound about to connect to: " + address);
         return b.connect(address).syncUninterruptibly().channel();
     }
 

@@ -11,6 +11,8 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.System.Logger.Level.*;
+
 public class Delayer
 {
     private static final System.Logger log = System.getLogger(Delayer.class.getName());
@@ -22,7 +24,7 @@ public class Delayer
     {
         try
         {
-            log.log(System.Logger.Level.TRACE,() -> "delaying current thread by " + seconds + " seconds");
+            log.log(DEBUG,() -> "delaying current thread by " + seconds + " seconds");
             Duration delay = Duration.ofSeconds(seconds);
             TimeUnit.SECONDS.sleep(delay.get(ChronoUnit.SECONDS));
         }
