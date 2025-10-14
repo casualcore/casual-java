@@ -12,6 +12,8 @@ import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.jca.InboundThreadContext;
+import se.laz.casual.jca.InboundThreadLocal;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
@@ -102,6 +104,9 @@ public final class CasualServiceCallWork implements Work
         }
     }
 
+    // try with resources to transport information to potential outbound thread
+    // autoclosable and is not used but needs to be there
+    @SuppressWarnings("try")
     private void issueCall()
     {
         CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
@@ -115,7 +120,7 @@ public final class CasualServiceCallWork implements Work
             replyBuilder.setXid( message.getXid() );
         }
         CasualBuffer serviceResult = ServiceBuffer.empty();
-        try
+        try(InboundThreadLocal inboundThreadLocal = InboundThreadLocal.of(new InboundThreadContext(message.getExecution(), message.getXid())))
         {
             InboundResponse reply = callService();
             serviceResult = reply.getBuffer();
