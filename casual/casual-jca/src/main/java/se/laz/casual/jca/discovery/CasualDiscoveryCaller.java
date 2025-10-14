@@ -80,7 +80,7 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
 
     private QueueDetails toQueueDetails(Queue queue, ProtocolVersion protocolVersion)
     {
-        return ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion)
+        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion)
                 ? QueueDetails.of(queue.getName(), queue.getRetries(), protocolVersion, queue.getRetryDelay(), queue.isEnqueueEnabled(), queue.isDequeueEnabled())
                 : QueueDetails.of(queue.getName(), queue.getRetries(), protocolVersion);
 

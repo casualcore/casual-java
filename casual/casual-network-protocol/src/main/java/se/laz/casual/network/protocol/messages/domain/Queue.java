@@ -97,7 +97,7 @@ public final class Queue
     {
         final List<byte[]> l = new ArrayList<>();
         final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
-        final long networkSize = ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion)
+        final long networkSize = ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion)
                 ? DiscoveryReplySizes.QUEUES_ELEMENT_SIZE.getNetworkSize() + nameBytes.length + (long)DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize()
                 + DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize() + DiscoveryReplySizes.QUEUES_ELEMENT_ENQUEUE_ENABLED.getNetworkSize()
                 + DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize()
@@ -110,7 +110,7 @@ public final class Queue
         b.putLong(nameBytes.length)
          .put(nameBytes)
          .putLong(retries);
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
         {
             b.putLong(retryDelay)
              .put(((enqueueEnabled) ? (byte)(1) : (byte)(0)))

@@ -47,7 +47,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         ByteBuffer b = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize() +  CommonSizes.UUID_ID.getNetworkSize());
         CasualEncoderUtils.writeUUID(execution, b);
         CasualEncoderUtils.writeUUID(id, b);
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             CasualEncoderUtils.writeInt(code.getValue());
         }
@@ -83,7 +83,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         sb.append("execution=").append(execution);
         sb.append(", id=").append(id);
         sb.append(", protocolVersion=").append(protocolVersion);
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             sb.append(", code=").append(code);
         }
@@ -108,7 +108,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
 
     public ErrorState code()
     {
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             return code;
         }

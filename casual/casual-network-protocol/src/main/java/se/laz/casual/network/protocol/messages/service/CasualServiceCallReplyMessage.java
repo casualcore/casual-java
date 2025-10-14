@@ -66,7 +66,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
                            ServiceCallReplySizes.CALL_ERROR.getNetworkSize() + ServiceCallReplySizes.CALL_CODE.getNetworkSize() +
                            ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize() +
                            ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
-        if(!ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             messageSize += XIDUtils.getXIDNetworkSize(xid);
         }
@@ -91,7 +91,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
 
     public Xid getXid()
     {
-        if(!ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             return XID.of(xid);
         }
@@ -151,7 +151,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         sb.append("execution=").append(execution);
         sb.append(", error=").append(error);
         sb.append(", userDefinedCode=").append(userDefinedCode);
-        if(!ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             sb.append(", xid=").append(xid);
         }
@@ -220,7 +220,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             msg.error = error;
             msg.userDefinedCode = userSuppliedError;
             msg.protocolVersion = protocolVersion;
-            if(!ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+            if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
             {
                 msg.xid = XID.of(xid);
             }
@@ -237,7 +237,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         CasualEncoderUtils.writeUUID(execution, b);
         b.putInt(error.getValue())
          .putLong(userDefinedCode);
-        if(!ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             CasualEncoderUtils.writeXID(xid, b);
         }
@@ -268,7 +268,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         l.add(executionBuffer.array());
         l.add(CasualEncoderUtils.writeInt(error.getValue()));
         l.add(CasualEncoderUtils.writeLong(userDefinedCode));
-        if(!ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             // note we put the transaction state as well here
             final ByteBuffer xidByteBuffer = ByteBuffer.allocate(XIDUtils.getXIDNetworkSize(xid) + ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize());

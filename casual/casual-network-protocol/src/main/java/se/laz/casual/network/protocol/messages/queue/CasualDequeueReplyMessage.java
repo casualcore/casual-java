@@ -82,7 +82,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         final StringBuilder sb = new StringBuilder("CasualDequeueReplyMessage{");
         sb.append("execution=").append(execution);
         sb.append(", messages=").append(messages);
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             sb.append(", code=").append(code);
         }
@@ -107,7 +107,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
 
     public ErrorState getCode()
     {
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             return code;
         }

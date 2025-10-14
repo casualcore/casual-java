@@ -82,7 +82,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
 
     public byte getParentSpan()
     {
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             return parentSpan;
         }

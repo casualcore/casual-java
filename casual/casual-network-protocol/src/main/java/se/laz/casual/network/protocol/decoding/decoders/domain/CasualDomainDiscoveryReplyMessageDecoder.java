@@ -114,7 +114,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         final ByteBuffer queueNameBuffer = ByteUtils.readFully(channel, (int)queueNameSizeBuffer.getLong());
         final ByteBuffer queueRetriesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize());
 
-        if(!ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion))
+        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
         {
             final ByteBuffer msg = ByteBuffer.allocate(queueNameSizeBuffer.capacity() + queueNameBuffer.capacity() + queueRetriesBuffer.capacity());
             msg.put(queueNameSizeBuffer.array());
@@ -221,7 +221,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         offset += DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize();
         final Queue q = Queue.of(name, protocolVersion)
                              .setRetries(retries);
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
         {
             final long retryDelay = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize()).getLong();
             offset += DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize();

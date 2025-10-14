@@ -38,7 +38,7 @@ public class QueueDetails
     {
         Objects.requireNonNull(name, "name can not be null");
         Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
         {
             throw new CasualProtocolException("retryDelay, enqueueEnabled, dequeueEnabled should be provided for " + ProtocolVersion.VERSION_1_4);
         }
@@ -49,7 +49,7 @@ public class QueueDetails
     {
         Objects.requireNonNull(name, "name can not be null");
         Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
-        if(!ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion))
+        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
         {
             throw new CasualProtocolException("retryDelay, enqueueEnabled, dequeueEnabled are not available for protocol version " + protocolVersion);
         }
@@ -68,7 +68,7 @@ public class QueueDetails
 
     public long getRetryDelay()
     {
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
         {
             return retryDelay;
         }
@@ -77,7 +77,7 @@ public class QueueDetails
 
     public boolean isEnqueueEnabled()
     {
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
         {
             return enqueueEnabled;
         }
@@ -86,7 +86,7 @@ public class QueueDetails
 
     public boolean isDequeueEnabled()
     {
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
         {
             return dequeueEnabled;
         }
@@ -121,7 +121,7 @@ public class QueueDetails
         sb.append("name='").append(name).append('\'');
         sb.append(", retries=").append(retries);
         sb.append(", protocolVersion=").append(protocolVersion);
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneFour(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
         {
             sb.append(", retryDelay=").append(retryDelay);
             sb.append(", enqueueEnabled=").append(enqueueEnabled);

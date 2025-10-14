@@ -48,7 +48,7 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
         CasualEnqueueReplyMessage.Builder builder = CasualEnqueueReplyMessage.createBuilder()
                                                                              .withExecution(execution)
                                                                              .withId(id);
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             final int callError = ByteUtils.readFully(channel, CommonSizes.CALL_ERROR.getNetworkSize()).getInt();
             builder.withCode(ErrorState.unmarshal(callError));
@@ -72,7 +72,7 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
         CasualEnqueueReplyMessage.Builder builder = CasualEnqueueReplyMessage.createBuilder()
                                                                              .withExecution(execution)
                                                                              .withId(id);
-        if(ProtocolVersion.isProtocolVersionOneGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             final ByteBuffer callErrorBuffer = ByteBuffer.wrap(bytes, currentOffset, CommonSizes.CALL_ERROR.getNetworkSize());
             int callError = callErrorBuffer.getInt();
