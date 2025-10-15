@@ -112,9 +112,6 @@ public final class CasualServiceCallWork implements Work
         CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
                                                                                           .setExecution( message.getExecution() )
                                                                                           .setProtocolVersion(protocolVersion);
-        // TODO: transport execution ( span id) to potential outbound calling thread
-        // Note, we can always do that regardless of the protocol version
-        
         if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             replyBuilder.setXid( message.getXid() );
