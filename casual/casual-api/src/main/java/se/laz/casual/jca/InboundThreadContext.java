@@ -9,11 +9,11 @@ import javax.transaction.xa.Xid;
 import java.util.Objects;
 import java.util.UUID;
 
-public record InboundThreadContext (UUID execution, Xid xid)
+public record InboundThreadContext (UUID execution, String parentName)
 {
     public InboundThreadContext
     {
         Objects.requireNonNull(execution);
-        Objects.requireNonNull(xid);
+        Objects.requireNonNull(parentName);
     }
 }

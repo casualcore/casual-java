@@ -120,7 +120,7 @@ public final class CasualServiceCallWork implements Work
             replyBuilder.setXid( message.getXid() );
         }
         CasualBuffer serviceResult = ServiceBuffer.empty();
-        try(InboundThreadLocal inboundThreadLocal = InboundThreadLocal.of(new InboundThreadContext(message.getExecution(), message.getXid())))
+        try(InboundThreadLocal inboundThreadLocal = InboundThreadLocal.of(new InboundThreadContext(message.getExecution(), message.getServiceName())))
         {
             InboundResponse reply = callService();
             serviceResult = reply.getBuffer();
