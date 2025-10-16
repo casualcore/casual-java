@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,10 +7,13 @@ package se.laz.casual.event;
 
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.util.PrettyPrinter;
+import se.laz.casual.jca.SpanId;
+import se.laz.casual.network.ProtocolVersion;
 
 import javax.transaction.xa.Xid;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import static se.laz.casual.api.util.time.InstantUtil.toDurationMicro;
@@ -26,8 +29,10 @@ public class ServiceCallEvent
     private final long start;
     private final long end;
     private final long pending;
-    private final String code;
     private final char order;
+    private final SpanId spanId;
+    private final SpanId parentSpanId;
+    private final String code;
 
     private ServiceCallEvent(Builder builder)
     {
@@ -39,8 +44,10 @@ public class ServiceCallEvent
         start = builder.start;
         end = builder.end;
         pending = builder.pending;
-        code = builder.code.name();
         order = builder.order.getValue();
+        spanId = builder.spanId;
+        parentSpanId = builder.parentSpanId;
+        code = builder.code.name();
     }
 
 
@@ -94,6 +101,16 @@ public class ServiceCallEvent
         return order;
     }
 
+    public Optional<SpanId> getSpan()
+    {
+        return Optional.ofNullable(spanId);
+    }
+
+    public Optional<SpanId> getParentSpan()
+    {
+        return Optional.ofNullable(parentSpanId);
+    }
+
     public static Builder createBuilder()
     {
         return new Builder();
@@ -101,6 +118,8 @@ public class ServiceCallEvent
 
     public static final class Builder
     {
+        public SpanId spanId;
+        public SpanId parentSpanId;
         private String service;
         private String parent = "";
         private long pid = Process.pid();
@@ -188,6 +207,18 @@ public class ServiceCallEvent
             return this;
         }
 
+        public Builder withSpanId(SpanId spanId)
+        {
+            this.spanId = spanId;
+            return this;
+        }
+
+        public Builder withParentSpanId(SpanId parentSpanId)
+        {
+            this.parentSpanId = parentSpanId;
+            return this;
+        }
+
         public ServiceCallEvent build()
         {
             Objects.requireNonNull(service, "service can not be null");
@@ -223,13 +254,23 @@ public class ServiceCallEvent
             return false;
         }
         ServiceCallEvent that = (ServiceCallEvent) o;
-        return getPid() == that.getPid() && getStart() == that.getStart() && getEnd() == that.getEnd() && getPending() == that.getPending() && getOrder() == that.getOrder() && Objects.equals(getService(), that.getService()) && Objects.equals(getParent(), that.getParent()) && Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getTransactionId(), that.getTransactionId()) && Objects.equals(getCode(), that.getCode());
+        return getPid() == that.getPid() && getStart() == that.getStart() &&
+                getEnd() == that.getEnd() && getPending() == that.getPending() &&
+                getOrder() == that.getOrder() && Objects.equals(getService(), that.getService()) &&
+                Objects.equals(getParent(), that.getParent()) &&
+                Objects.equals(getExecution(), that.getExecution()) &&
+                Objects.equals(getTransactionId(), that.getTransactionId()) &&
+                Objects.equals(getCode(), that.getCode()) &&
+                Objects.equals(spanId, that.spanId) &&
+                Objects.equals(parentSpanId, that.parentSpanId);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(getService(), getParent(), getPid(), getExecution(), getTransactionId(), getStart(), getEnd(), getPending(), getCode(), getOrder());
+        return Objects.hash(getService(), getParent(), getPid(), getExecution(), getTransactionId(),
+                getStart(), getEnd(), getPending(), getCode(), getOrder(),
+                spanId, parentSpanId);
     }
 
     @Override
@@ -244,8 +285,10 @@ public class ServiceCallEvent
                 ", start=" + start +
                 ", end=" + end +
                 ", pending=" + pending +
-                ", code='" + code + '\'' +
                 ", order=" + order +
+                ", spanId=" + spanId +
+                ", parentSpanId=" + parentSpanId +
+                ", code='" + code + '\'' +
                 '}';
     }
 }

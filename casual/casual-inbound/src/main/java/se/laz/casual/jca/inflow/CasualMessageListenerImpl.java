@@ -25,6 +25,7 @@ import se.laz.casual.api.xa.XID;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.CasualResourceAdapterException;
+import se.laz.casual.jca.SpanId;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
@@ -156,18 +157,19 @@ public class CasualMessageListenerImpl implements CasualMessageListener
             });
         }
         boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
-        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply, protocolVersion);
+        SpanId spanId = ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion) ? SpanId.of() : null;
+        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage(), isTpNoReply, protocolVersion, spanId);
 
         try
         {
             if(!isTpNoReply && isServiceCallTransactional( xid ) )
             {
                 inboundTransactionRegistry.add(channel.id(), XidKey.of(xid));
-                workManager.scheduleWork(work, WorkManager.INDEFINITE, createTransactionContext(xid, message.getMessage().getTimeout()), new ServiceCallWorkListener(channel, message.getMessage()));
+                workManager.scheduleWork(work, WorkManager.INDEFINITE, createTransactionContext(xid, message.getMessage().getTimeout()), new ServiceCallWorkListener(channel, message.getMessage(), spanId, protocolVersion));
             }
             else
             {
-                workManager.scheduleWork(work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener(channel, message.getMessage(), isTpNoReply));
+                workManager.scheduleWork(work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener(channel, message.getMessage(), isTpNoReply, spanId, protocolVersion));
             }
         }
         catch (WorkException e)

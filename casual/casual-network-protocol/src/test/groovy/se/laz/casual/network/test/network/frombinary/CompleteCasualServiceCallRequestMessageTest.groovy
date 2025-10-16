@@ -53,7 +53,7 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
     def "get header"()
     {
         setup:
-        def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
+        def headerData = Arrays.copyOfRange(dataProtocolVersionGreaterOrEqualToOneThree, 0, MessageHeaderSizes.headerNetworkSize)
         when:
         def header = CasualMessageDecoder.networkHeaderToCasualHeader(headerData)
         then:

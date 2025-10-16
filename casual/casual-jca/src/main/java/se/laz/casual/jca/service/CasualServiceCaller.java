@@ -114,16 +114,20 @@ public class CasualServiceCaller implements CasualServiceApi
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
         final Xid xid = connection.getCurrentXid();
 
+        OutboundContext outboundContext = OutboundContextCreator.create(execution, connection.getNetworkConnection().getProtocolVersion());
+
         ServiceCallEvent.Builder eventBuilder = ServiceCallEvent.createBuilder()
                 .withTransactionId(xid)
                 .withExecution(execution)
-                .withParent("")
+                .withParent(outboundContext.parentName())
                 .withService(serviceName)
                 .withPending(0)
                 .withOrder(Order.CONCURRENT)
+                .withSpanId(outboundContext.span())
+                .withParentSpanId(outboundContext.parentSpan())
                 .start();
 
-        Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, xid, execution, noReply);
+        Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, xid, noReply, outboundContext);
         maybeServiceReturnValue.ifPresent(casualNWMessageCompletableFuture ->
                 casualNWMessageCompletableFuture.whenComplete((v, e) -> {
                             if (null != e)
@@ -208,19 +212,24 @@ public class CasualServiceCaller implements CasualServiceApi
                 '}';
     }
 
-    private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, Xid transactionId, UUID execution, boolean noReply)
+    private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, Xid transactionId, boolean noReply, OutboundContext outboundContext)
     {
         Duration timeout = Duration.of(connection.getTransactionTimeout(), ChronoUnit.SECONDS);
         ProtocolVersion protocolVersion = connection.getNetworkConnection().getProtocolVersion();
-        CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
-                .setExecution(execution)
+        CasualServiceCallRequestMessage.Builder serviceRequestMessageBuilder = CasualServiceCallRequestMessage.createBuilder()
+                .setExecution(outboundContext.execution())
                 .setServiceBuffer(ServiceBuffer.of(data))
                 .setServiceName(serviceName)
+                .setParentName(outboundContext.parentName())
                 .setXid(transactionId)
                 .setTimeout(timeout.toNanos())
                 .setXatmiFlags(flags)
-                .setProtocolVersion(protocolVersion).build();
-        CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
+                .setProtocolVersion(protocolVersion);
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion()))
+        {
+            serviceRequestMessageBuilder.setParentSpan(outboundContext.span().getSpanId());
+        }
+        CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessageBuilder.build());
         LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
 
         if(noReply)

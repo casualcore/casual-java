@@ -18,6 +18,7 @@ import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
 import se.laz.casual.event.ServiceCallEventPublisher
+import se.laz.casual.jca.SpanId
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler
@@ -75,10 +76,10 @@ class CasualServiceCallWorkTest extends Specification
                         .build()
 
         correlationId = UUID.randomUUID()
-        instance = new CasualServiceCallWork(correlationId, message, false, ProtocolVersion.VERSION_1_2)
+        instance = new CasualServiceCallWork(correlationId, message, false, ProtocolVersion.VERSION_1_2, SpanId.of())
         instance.setHandler( handler )
 
-        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true, ProtocolVersion.VERSION_1_2)
+        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true, ProtocolVersion.VERSION_1_2, SpanId.of())
         instanceTPNOREPLY.setHandler( handler )
     }
 
@@ -245,7 +246,7 @@ class CasualServiceCallWorkTest extends Specification
     def "Call Service which does not exist or is not available, returns result with TPNOENT status."()
     {
         given:
-        instance = new CasualServiceCallWork(correlationId, message, false, ProtocolVersion.VERSION_1_2)
+        instance = new CasualServiceCallWork(correlationId, message, false, ProtocolVersion.VERSION_1_2, SpanId.of())
         when:
         instance.run()
         CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()

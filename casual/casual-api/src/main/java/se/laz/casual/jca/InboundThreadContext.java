@@ -5,15 +5,15 @@
  */
 package se.laz.casual.jca;
 
-import javax.transaction.xa.Xid;
 import java.util.Objects;
 import java.util.UUID;
 
-public record InboundThreadContext (UUID execution, String parentName)
+public record InboundThreadContext (SpanId spanId, String parentName, UUID execution)
 {
     public InboundThreadContext
     {
-        Objects.requireNonNull(execution);
+        Objects.requireNonNull(spanId);
         Objects.requireNonNull(parentName);
+        Objects.requireNonNull(execution);
     }
 }

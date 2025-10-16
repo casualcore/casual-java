@@ -6,6 +6,7 @@
 package se.laz.casual.jca;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class InboundThreadLocal implements AutoCloseable
 {
@@ -23,5 +24,9 @@ public class InboundThreadLocal implements AutoCloseable
     public void close()
     {
         THREAD_LOCAL.remove();
+    }
+    public static Optional<InboundThreadContext> getContext()
+    {
+        return Optional.ofNullable(THREAD_LOCAL.get());
     }
 }

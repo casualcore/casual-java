@@ -14,6 +14,7 @@ import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.jca.InboundThreadContext;
 import se.laz.casual.jca.InboundThreadLocal;
+import se.laz.casual.jca.SpanId;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
@@ -40,18 +41,15 @@ public final class CasualServiceCallWork implements Work
     private final ProtocolVersion protocolVersion;
     private CasualNWMessage<CasualServiceCallReplyMessage> response;
     private ServiceHandler handler = null;
+    private final SpanId spanId;
 
-    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, ProtocolVersion protocolVersion)
-    {
-        this(correlationId, message, false, protocolVersion);
-    }
-
-    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply, ProtocolVersion protocolVersion)
+    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply, ProtocolVersion protocolVersion, SpanId spanId)
     {
         this.correlationId = correlationId;
         this.message = message;
         this.isTpNoReply = isTpNoReply;
         this.protocolVersion = protocolVersion;
+        this.spanId = spanId;
     }
 
     public CasualServiceCallRequestMessage getMessage()
@@ -117,7 +115,7 @@ public final class CasualServiceCallWork implements Work
             replyBuilder.setXid( message.getXid() );
         }
         CasualBuffer serviceResult = ServiceBuffer.empty();
-        try(InboundThreadLocal inboundThreadLocal = InboundThreadLocal.of(new InboundThreadContext(message.getExecution(), message.getServiceName())))
+        try(InboundThreadLocal inboundThreadLocal = InboundThreadLocal.of(new InboundThreadContext(spanId, message.getServiceName(), message.getExecution())))
         {
             InboundResponse reply = callService();
             serviceResult = reply.getBuffer();

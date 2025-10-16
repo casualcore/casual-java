@@ -20,6 +20,7 @@ import se.laz.casual.api.xa.XID
 import se.laz.casual.event.Order
 import se.laz.casual.event.ServiceCallEvent
 import se.laz.casual.event.ServiceCallEventPublisher
+import se.laz.casual.jca.SpanId
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
 import se.laz.casual.network.CasualNWMessageDecoder
@@ -82,7 +83,7 @@ class ServiceCallWorkListenerTest extends Specification
         valueHolder.accept(ProtocolVersion.VERSION_1_2)
         inboundHandler = TestInboundHandler.of()
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), inboundHandler)
-        work = new CasualServiceCallWork(correlationId, null, false, valueHolder.get())
+        work = new CasualServiceCallWork(correlationId, null, false, valueHolder.get(), SpanId.of())
         work.response = response
 
         request = CasualServiceCallRequestMessage.createBuilder()
@@ -92,7 +93,7 @@ class ServiceCallWorkListenerTest extends Specification
                .setXid(transactionId)
                 .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                .build()
-        instance = new ServiceCallWorkListener(channel, request)
+        instance = new ServiceCallWorkListener(channel, request, SpanId.of(), ProtocolVersion.VERSION_1_2)
         serviceCallEventPublisher = Mock(ServiceCallEventPublisher)
         instance.setEventPublisher(serviceCallEventPublisher)
     }
@@ -123,7 +124,7 @@ class ServiceCallWorkListenerTest extends Specification
    {
       setup:
       WorkEvent event = new WorkEvent( this, WorkEvent.WORK_COMPLETED, null, null )
-      instance = new ServiceCallWorkListener(channel, request, true)
+      instance = new ServiceCallWorkListener(channel, request, true, SpanId.of(), ProtocolVersion.VERSION_1_2)
       instance.setEventPublisher(serviceCallEventPublisher)
 
       when:
