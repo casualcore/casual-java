@@ -9,6 +9,7 @@ package se.laz.casual.network.protocol.messages.queue
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.queue.QueueMessage
 import se.laz.casual.api.xa.XID
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
@@ -66,7 +67,7 @@ class CasualEnqueueRequestMessageTest extends Specification
         CasualNWMessageImpl<CasualEnqueueRequestMessage> msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualEnqueueRequestMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink)
+        CasualNWMessageImpl<CasualEnqueueRequestMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink, ProtocolVersion.VERSION_1_0)
         then:
         networkBytes != null
         msg == syncResurrectedMsg

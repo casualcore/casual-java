@@ -15,9 +15,6 @@ import se.laz.casual.network.protocol.utils.LocalByteChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
-/**
- * Created by aleph on 2017-03-08.
- */
 class CasualDomainDiscoveryReplyMessageTest extends Specification
 {
     @Shared
@@ -42,7 +39,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def queueNames = ['A queue', 'Another, surprise, queue!']
         def queues = createSomeQueues(queueNames)
         when:
-        def msg = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+        def msg = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName, ProtocolVersion.VERSION_1_3)
                                                    .setServices(services)
                                                    .setQueues(queues)
         then:
@@ -61,7 +58,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def execution = UUID.randomUUID()
         def domainId = UUID.randomUUID()
         def domainName = 'Casually owned domain'
-        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName, ProtocolVersion.VERSION_1_3)
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), replyMessage)
         def sink = new LocalByteChannel()
 
@@ -85,7 +82,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def domainName = 'Casually owned domain'
         def serviceNames = ['First service']
         def services = createSomeServices(serviceNames)
-        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName, ProtocolVersion.VERSION_1_3)
                 .setServices(services)
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), replyMessage)
         def sink = new LocalByteChannel()
@@ -110,7 +107,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def domainName = 'Casually owned domain'
         def queueNames = ['A queue']
         def queues = createSomeQueues(queueNames)
-        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName, ProtocolVersion.VERSION_1_3)
                 .setQueues(queues)
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), replyMessage)
         def sink = new LocalByteChannel()
@@ -137,7 +134,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         def services = createSomeServices(serviceNames)
         def queueNames = ['A queue', 'Another, surprise, queue!']
         def queues = createSomeQueues(queueNames)
-        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+        def replyMessage = CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName, ProtocolVersion.VERSION_1_3)
                 .setServices(services)
                 .setQueues(queues)
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), replyMessage)

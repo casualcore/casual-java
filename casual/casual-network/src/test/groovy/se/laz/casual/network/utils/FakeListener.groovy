@@ -53,7 +53,7 @@ class FakeListener implements MessageEndpoint, CasualMessageListener
    }
 
    @Override
-    void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel) {
+    void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel, ProtocolVersion protocolVersion) {
 
     }
 

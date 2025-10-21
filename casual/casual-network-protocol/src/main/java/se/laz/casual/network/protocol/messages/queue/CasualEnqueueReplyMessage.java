@@ -140,7 +140,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
             return this;
         }
 
-        public Builder setProtocolVersion(ProtocolVersion protocolVersion)
+        public Builder withProtocolVersion(ProtocolVersion protocolVersion)
         {
             this.protocolVersion = protocolVersion;
             return this;
@@ -150,6 +150,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         {
             Objects.requireNonNull(execution, "execution is not allowed to be null");
             Objects.requireNonNull(id, "id is not allowed to be null");
+            Objects.requireNonNull(protocolVersion, "protocolVersion is not allowed to be null");
             return new CasualEnqueueReplyMessage(execution, id, protocolVersion, code);
         }
     }

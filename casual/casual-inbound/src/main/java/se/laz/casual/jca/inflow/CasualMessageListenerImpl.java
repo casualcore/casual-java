@@ -112,13 +112,13 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel)
+    public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel, ProtocolVersion protocolVersion)
     {
         log.finest(() -> "domainDiscoveryRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message);
 
         String domainName = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME );
         UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId();
-        CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), domainId, domainName );
+        CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), domainId, domainName, protocolVersion);
 
         List<Service> services = new ArrayList<>();
 

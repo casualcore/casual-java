@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.queue
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
@@ -33,11 +34,12 @@ class CasualEnqueueReplyMessageTest extends Specification
         def requestMsg = CasualEnqueueReplyMessage.createBuilder()
                                                   .withExecution(UUID.randomUUID())
                                                   .withId(UUID.randomUUID())
+                                                  .withProtocolVersion(ProtocolVersion.VERSION_1_2)
                                                   .build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualEnqueueReplyMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink)
+        CasualNWMessageImpl<CasualEnqueueReplyMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink, ProtocolVersion.VERSION_1_2)
         then:
         networkBytes != null
         requestMsg == syncResurrectedMsg.getMessage()

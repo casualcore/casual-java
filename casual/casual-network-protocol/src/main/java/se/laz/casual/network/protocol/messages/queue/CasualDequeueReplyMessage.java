@@ -53,6 +53,10 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         {
             l.addAll(m.toNetworkBytes());
         }
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+            l.add(ByteBuffer.allocate(DequeueReplySizes.CODE.getNetworkSize()).putInt(code.getValue()).array());
+        }
         return l;
     }
 
@@ -67,7 +71,8 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         {
             return false;
         }
-        return Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getMessages(), that.getMessages()) && protocolVersion == that.protocolVersion && code == that.code;
+        return Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getMessages(), that.getMessages())
+                && protocolVersion == that.protocolVersion && code == that.code;
     }
 
     @Override
@@ -82,10 +87,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         final StringBuilder sb = new StringBuilder("CasualDequeueReplyMessage{");
         sb.append("execution=").append(execution);
         sb.append(", messages=").append(messages);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
-        {
-            sb.append(", code=").append(code);
-        }
+        sb.append(", code=").append(code);
         sb.append('}');
         return sb.toString();
     }

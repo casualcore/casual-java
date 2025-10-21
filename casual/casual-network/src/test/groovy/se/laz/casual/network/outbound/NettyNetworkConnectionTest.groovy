@@ -94,7 +94,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     {
         setup:
         CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> requestMessage = createDomainDiscoveryRequestMessage()
-        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> replyMessage = createDomainDiscoveryReplyMessage()
+        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> replyMessage = createDomainDiscoveryReplyMessage(ProtocolVersion.VERSION_1_3)
         when:
         CompletableFuture<CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage>> f = instance.request(requestMessage)
         channel.writeOneInbound(replyMessage)
@@ -213,7 +213,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         onNetworkError.notifyListenerIfNotConnected(channel) >> {
             networkError = true
         }
-        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> replyMessage = createReplyMessage()
+        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> replyMessage = createReplyMessage(ProtocolVersion.VERSION_1_3)
         when:
         channel.writeOneInbound(replyMessage)
         channel.flushInbound()
@@ -256,9 +256,9 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         return CasualNWMessageImpl.of(corrid, message)
     }
 
-    def createDomainDiscoveryReplyMessage()
+    def createDomainDiscoveryReplyMessage(ProtocolVersion protocolVersion)
     {
-       CasualDomainDiscoveryReplyMessage message = CasualDomainDiscoveryReplyMessage.of(UUID.randomUUID(), UUID.randomUUID(), 'test-domain')
+       CasualDomainDiscoveryReplyMessage message = CasualDomainDiscoveryReplyMessage.of(UUID.randomUUID(), UUID.randomUUID(), 'test-domain', protocolVersion)
        return CasualNWMessageImpl.of(corrid, message)
    }
 
@@ -285,9 +285,9 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
        return CasualNWMessageImpl.of(corrid, builder.build())
    }
 
-    def createReplyMessage()
+    def createReplyMessage(ProtocolVersion protocolVersion)
     {
-        CasualDomainDiscoveryReplyMessage message = CasualDomainDiscoveryReplyMessage.of(UUID.randomUUID(), UUID.randomUUID(), 'test-domain')
+        CasualDomainDiscoveryReplyMessage message = CasualDomainDiscoveryReplyMessage.of(UUID.randomUUID(), UUID.randomUUID(), 'test-domain', protocolVersion)
         return CasualNWMessageImpl.of(corrid, message)
     }
 

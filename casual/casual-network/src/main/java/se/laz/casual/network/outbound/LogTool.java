@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -54,18 +54,22 @@ public final class LogTool
                 execution = ((CasualDomainDiscoveryRequestMessage)message.getMessage()).getExecution();
                 break;
             case DOMAIN_DISCOVERY_REPLY:
+            case DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR:
                 execution = ((CasualDomainDiscoveryReplyMessage)message.getMessage()).getExecution();
                 break;
             case SERVICE_CALL_REQUEST:
+            case SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 execution = ((CasualServiceCallRequestMessage)message.getMessage()).getExecution();
                 break;
             case SERVICE_CALL_REPLY:
+            case SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 execution = ((CasualServiceCallReplyMessage)message.getMessage()).getExecution();
                 break;
             case ENQUEUE_REQUEST:
                 execution = ((CasualEnqueueRequestMessage)message.getMessage()).getExecution();
                 break;
             case ENQUEUE_REPLY:
+            case ENQUEUE_REPLY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 execution = ((CasualEnqueueReplyMessage)message.getMessage()).getExecution();
                 break;
             case DEQUEUE_REQUEST:

@@ -159,7 +159,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         currentOffset += DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize();
         DynamicArrayIndexPair<Queue> queues = getQueues(bytes, currentOffset, numberOfQueues);
 
-        return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+        return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName, protocolVersion)
                                                 .setServices(services.getBytes())
                                                 .setQueues(queues.getBytes());
     }
@@ -267,7 +267,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         {
             addQueue(message.get(currentIndex++), 0, queues);
         }
-        return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+        return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName, protocolVersion)
                                                 .setServices(services)
                                                 .setQueues(queues);
     }

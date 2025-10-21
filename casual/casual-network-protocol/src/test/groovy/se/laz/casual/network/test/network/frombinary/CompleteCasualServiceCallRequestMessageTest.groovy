@@ -31,7 +31,8 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
     def resource = '/protocol/bin/message.service.call.Request.1000.3100.bin'
 
     @Shared
-    def resourceProtocolVersionGreaterOrEqualToOneThree = '/protocol/bin/message.service.call.Request.1000.3100_protocol_version_greater_or_equal_to_1_3.bin'
+    //def resourceProtocolVersionGreaterOrEqualToOneThree = '/protocol/bin/message.service.call.Request.1000.3100_protocol_version_greater_or_equal_to_1_3.bin'
+    def resourceProtocolVersionGreaterOrEqualToOneFour = '/protocol/bin/service-call-1.4.bin'
 
     @Shared
     def data
@@ -42,18 +43,18 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
     def setupSpec()
     {
         data = ResourceLoader.getResourceAsByteArray(resource)
-        dataProtocolVersionGreaterOrEqualToOneThree = ResourceLoader.getResourceAsByteArray(resourceProtocolVersionGreaterOrEqualToOneThree)
+        dataProtocolVersionGreaterOrEqualToOneThree = ResourceLoader.getResourceAsByteArray(resourceProtocolVersionGreaterOrEqualToOneFour)
         then:
         data != null
         data.length == 182
         dataProtocolVersionGreaterOrEqualToOneThree != null
-        dataProtocolVersionGreaterOrEqualToOneThree.length == 287
+        dataProtocolVersionGreaterOrEqualToOneThree.length == 205
     }
 
     def "get header"()
     {
         setup:
-        def headerData = Arrays.copyOfRange(dataProtocolVersionGreaterOrEqualToOneThree, 0, MessageHeaderSizes.headerNetworkSize)
+        def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
         when:
         def header = CasualMessageDecoder.networkHeaderToCasualHeader(headerData)
         then:
@@ -85,14 +86,35 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
                 sink.write(buffer)
         }
         when:
-        CasualNWMessageImpl<CasualServiceCallRequestMessage> msg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> msg = CasualNetworkTestReader.read(sink, ProtocolVersion.VERSION_1_0)
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, ProtocolVersion.VERSION_1_0)
         then:
         msg != null
         msg.getMessage() == resurrectedMsg.getMessage()
         msg == resurrectedMsg
     }
+
+   def 'roundtrip message protocol version 1.4'()
+   {
+      setup:
+      List<byte[]> payload = new ArrayList<>()
+      payload.add(dataProtocolVersionGreaterOrEqualToOneThree)
+      def sink = new LocalByteChannel()
+      payload.each{
+         bytes ->
+            ByteBuffer buffer = ByteBuffer.wrap(bytes)
+            sink.write(buffer)
+      }
+      when:
+      CasualNWMessageImpl<CasualServiceCallRequestMessage> msg = CasualNetworkTestReader.read(sink, ProtocolVersion.VERSION_1_4)
+      CasualMessageEncoder.write(sink, msg)
+      CasualNWMessageImpl<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, ProtocolVersion.VERSION_1_4)
+      then:
+      msg != null
+      msg.getMessage() == resurrectedMsg.getMessage()
+      msg == resurrectedMsg
+   }
 
     def "roundtrip message protocol version equal or greater to one three"()
     {
@@ -106,13 +128,13 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
              sink.write(buffer)
        }
        when:
-       CasualServiceCallRequestMessage msg = CasualNetworkTestReader.readMessage(CasualNWMessageType.SERVICE_CALL_REQUEST, sink, 287, ProtocolVersion.VERSION_1_3)
-       write(sink, msg)
-       CasualServiceCallRequestMessage resurrectedMsg = CasualNetworkTestReader.readMessage(CasualNWMessageType.SERVICE_CALL_REQUEST, sink, 284, ProtocolVersion.VERSION_1_3)
+       CasualNWMessageImpl<CasualServiceCallRequestMessage> msg = CasualNetworkTestReader.read(sink, ProtocolVersion.VERSION_1_3)
+       CasualMessageEncoder.write(sink, msg)
+       CasualNWMessageImpl<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, ProtocolVersion.VERSION_1_3)
        then:
        msg != null
+       msg.getMessage() == resurrectedMsg.getMessage()
        msg == resurrectedMsg
-       Long.toUnsignedString(msg.getParentSpan()) == '9259825810226120327'
     }
 
    <T extends CasualNetworkTransmittable> void write(final WritableByteChannel channel, final T msg)

@@ -47,7 +47,7 @@ public interface CasualMessageListener
     * @param message received.
     * @param channel for the response.
     */
-   void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel );
+   void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel, ProtocolVersion protocolVersion );
 
    /**
     * Process the Service Call request making use of the provided {@link WorkManager} to handle long running executions.

@@ -78,6 +78,7 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
             int callError = callErrorBuffer.getInt();
             builder.withCode(ErrorState.unmarshal(callError));
         }
+        builder.withProtocolVersion(protocolVersion);
         return builder.build();
     }
 

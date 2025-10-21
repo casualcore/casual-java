@@ -122,8 +122,8 @@ class CasualServiceCallerTest extends Specification
     def initialiseReplies()
     {
         serviceReply = createServiceCallReplyMessage( ErrorState.OK, TransactionState.TX_ACTIVE, message )
-        domainDiscoveryReplyFound = createDomainDiscoveryReply(asServices([serviceName]))
-        domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asServices([]))
+        domainDiscoveryReplyFound = createDomainDiscoveryReply(asServices([serviceName]), ProtocolVersion.VERSION_1_3)
+        domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asServices([]), ProtocolVersion.VERSION_1_3)
     }
 
     List<Service> asServices(List<String> serviceNames)
@@ -136,10 +136,10 @@ class CasualServiceCallerTest extends Specification
         return l
     }
 
-    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Service> services)
+    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Service> services, ProtocolVersion protocolVersion)
     {
         CasualNWMessageImpl.of(executionId,
-                CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
+                CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName, protocolVersion)
                                                  .setServices(services))
     }
 

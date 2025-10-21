@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.test.network.frombinary
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -70,9 +71,9 @@ class DomainDiscoveryTopologyUpdateMessageTest extends Specification
                 sink.write(buffer)
         }
         when:
-        CasualNWMessageImpl<DomainDiscoveryTopologyUpdateMessage> msg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<DomainDiscoveryTopologyUpdateMessage> msg = CasualNetworkTestReader.read(sink, ProtocolVersion.VERSION_1_2)
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<DomainDiscoveryTopologyUpdateMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<DomainDiscoveryTopologyUpdateMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, ProtocolVersion.VERSION_1_2)
         then:
         msg != null
         msg.message == resurrectedMsg.message

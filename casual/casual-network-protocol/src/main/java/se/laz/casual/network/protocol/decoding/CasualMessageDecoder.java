@@ -77,22 +77,30 @@ public final class CasualMessageDecoder
             case DOMAIN_DISCOVERY_REQUEST:
                 return (NetworkDecoder<T>) CasualDomainDiscoveryRequestMessageDecoder.of();
             case DOMAIN_DISCOVERY_REPLY:
+            case DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR:
                 return (NetworkDecoder<T>) CasualDomainDiscoveryReplyMessageDecoder.of(protocolVersionSupplier.get());
             case DOMAIN_DISCONNECT_REQUEST:
                 return (NetworkDecoder<T>) DomainDisconnectRequestMessageDecoder.of();
             case DOMAIN_DISCONNECT_REPLY:
                 return (NetworkDecoder<T>) DomainDisconnectReplyMessageDecoder.of();
             case DOMAIN_DISCOVERY_TOPOLOGY_UPDATE:
+                // it was introduced in protocol version 1.2
+                if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneTwo(protocolVersionSupplier.get()))
+                {
+                    throw new UnsupportedOperationException("DOMAIN_DISCOVERY_TOPOLOGY_UPDATE is not available in protocol version : " + protocolVersionSupplier.get());
+                }
                 return (NetworkDecoder<T>) DomainDiscoveryTopologyUpdateMessageDecoder.of();
             case DOMAIN_CONNECT_REQUEST:
                 return (NetworkDecoder<T>) CasualDomainConnectRequestMessageDecoder.of();
             case DOMAIN_CONNECT_REPLY:
                 return (NetworkDecoder<T>) CasualDomainConnectReplyMessageDecoder.of();
             case SERVICE_CALL_REQUEST:
+            case SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 // We may want to use some other size for chunking of service payload
                 CasualServiceCallRequestMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
                 return (NetworkDecoder<T>) CasualServiceCallRequestMessageDecoder.of(protocolVersionSupplier.get());
             case SERVICE_CALL_REPLY:
+            case SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 // We may want to use some other size for chunking of service payload
                 CasualServiceCallReplyMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
                 return (NetworkDecoder<T>) CasualServiceCallReplyMessageDecoder.of(protocolVersionSupplier.get());

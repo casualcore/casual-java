@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -79,6 +79,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.DOMAIN_DISCOVERY_REPLY:
+            case CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR:
                 CasualDomainDiscoveryReplyMessage message = Mock(CasualDomainDiscoveryReplyMessage){
                     getExecution() >> execution
                 }
@@ -89,11 +90,13 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.SERVICE_CALL_REQUEST:
+            case CasualNWMessageType.SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 CasualServiceCallRequestMessage message = Mock(CasualServiceCallRequestMessage){
                     getExecution() >> execution
                 }
                 return message
             case CasualNWMessageType.SERVICE_CALL_REPLY:
+            case CasualNWMessageType.SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 CasualServiceCallReplyMessage message = Mock(CasualServiceCallReplyMessage){
                     getExecution() >> execution
                 }
@@ -104,6 +107,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.ENQUEUE_REPLY:
+            case CasualNWMessageType.ENQUEUE_REPLY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 CasualEnqueueReplyMessage message = Mock(CasualEnqueueReplyMessage){
                     getExecution() >> execution
                 }

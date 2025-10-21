@@ -125,10 +125,10 @@ class CasualQueueCallerTest extends Specification
 
     def initialiseReplies()
     {
-        enqueueReply = createEnqueueReplyMessage()
-        dequeueReply = createDequeueReplyMessage()
-        domainDiscoveryReplyFound = createDomainDiscoveryReply(asQueues([queueInfo.queueName]))
-        domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asQueues([]))
+        enqueueReply = createEnqueueReplyMessage(ProtocolVersion.VERSION_1_0)
+        dequeueReply = createDequeueReplyMessage(ProtocolVersion.VERSION_1_0)
+        domainDiscoveryReplyFound = createDomainDiscoveryReply(asQueues([queueInfo.queueName]), ProtocolVersion.VERSION_1_0)
+        domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asQueues([]), ProtocolVersion.VERSION_1_0)
     }
 
     List<Queue> asQueues(List<String> queuenames)
@@ -141,27 +141,28 @@ class CasualQueueCallerTest extends Specification
         return l
     }
 
-    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Queue> queues)
+    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Queue> queues, ProtocolVersion protocolVersion)
     {
         CasualNWMessageImpl.of(executionId,
-                           CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
+                           CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName, protocolVersion)
                                                             .setQueues(queues))
     }
 
-    CasualNWMessageImpl<CasualEnqueueReplyMessage> createEnqueueReplyMessage()
+    CasualNWMessageImpl<CasualEnqueueReplyMessage> createEnqueueReplyMessage(ProtocolVersion protocolVersion)
     {
         CasualNWMessageImpl.of( executionId,
                 CasualEnqueueReplyMessage.createBuilder()
                                          .withExecution(executionId)
                                          .withId(enqueueReplyId)
+                                         .withProtocolVersion(protocolVersion)
                                          .build())
     }
 
-    CasualNWMessageImpl<CasualDequeueReplyMessage> createDequeueReplyMessage()
+    CasualNWMessageImpl<CasualDequeueReplyMessage> createDequeueReplyMessage(ProtocolVersion protocolVersion)
     {
         CasualNWMessageImpl.of(executionId,
                 CasualDequeueReplyMessage.createBuilder()
-                                         .withProtocolVersion(ProtocolVersion.VERSION_1_2)
+                                         .withProtocolVersion(protocolVersion)
                                          .withExecution(executionId)
                                          .withMessages(Arrays.asList(DequeueMessage.of(QueueMessage.of(message))))
                                          .build()

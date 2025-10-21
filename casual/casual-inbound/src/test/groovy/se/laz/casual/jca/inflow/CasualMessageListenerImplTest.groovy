@@ -152,7 +152,7 @@ class CasualMessageListenerImplTest extends Specification
         )
 
         when:
-        instance.domainDiscoveryRequest( message, channel )
+        instance.domainDiscoveryRequest( message, channel, ProtocolVersion.VERSION_1_3 )
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> reply = inboundHandler.getMsg()
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -17,7 +17,8 @@ public enum DequeueReplySizes
     MESSAGE_TYPE_SIZE(8,8),
     MESSAGE_PAYLOAD_SIZE(8,8),
     MESSAGE_REDELIVERED_COUNT(8,8),
-    MESSAGE_TIMESTAMP_SINCE_EPOC(8,8);
+    MESSAGE_TIMESTAMP_SINCE_EPOC(8,8),
+    CODE(4, 4);
 
     private final int nativeSize;
     private final int networkSize;

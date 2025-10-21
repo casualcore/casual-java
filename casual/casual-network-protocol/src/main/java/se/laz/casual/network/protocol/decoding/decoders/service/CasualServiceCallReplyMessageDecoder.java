@@ -111,9 +111,13 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
         long userError = userErrorBuffer.getLong();
         currentOffset += ServiceCallReplySizes.CALL_CODE.getNetworkSize();
 
-        Pair<Integer, Xid> xidInfo = CasualMessageDecoderUtils.readXid(data, currentOffset);
-        currentOffset = xidInfo.first();
-        final Xid xid = xidInfo.second();
+        Xid xid = null;
+        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+            Pair<Integer, Xid> xidInfo = CasualMessageDecoderUtils.readXid(data, currentOffset);
+            currentOffset = xidInfo.first();
+            xid = xidInfo.second();
+        }
 
         final ByteBuffer transactionStateBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize());
         int transactionState = transactionStateBuffer.get();
@@ -140,14 +144,17 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
         // since serviceTypeName can be NULL in case there is no payload
         serviceTypeName = (0 == serviceBufferPayloadSize) ? "" : serviceTypeName;
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
-        return CasualServiceCallReplyMessage.createBuilder()
-                                            .setExecution(execution)
-                                            .setError(ErrorState.unmarshal(callError))
-                                            .setUserSuppliedError(userError)
-                                            .setXid(xid)
-                                            .setTransactionState(TransactionState.unmarshal(transactionState))
-                                            .setServiceBuffer(serviceBuffer)
-                                            .setProtocolVersion(protocolVersion)
-                                            .build();
+        CasualServiceCallReplyMessage.Builder builder = CasualServiceCallReplyMessage.createBuilder()
+                                                                                     .setExecution(execution)
+                                                                                     .setError(ErrorState.unmarshal(callError))
+                                                                                     .setUserSuppliedError(userError)
+                                                                                     .setTransactionState(TransactionState.unmarshal(transactionState))
+                                                                                     .setServiceBuffer(serviceBuffer)
+                                                                                     .setProtocolVersion(protocolVersion);
+        if(null != xid)
+        {
+            builder.setXid(xid);
+        }
+        return builder.build();
     }
 }

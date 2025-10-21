@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.domain
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.network.protocol.utils.LocalByteChannel
@@ -59,7 +60,7 @@ class CasualDomainConnectRequestMessageTest extends Specification
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualDomainConnectRequestMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink)
+        CasualNWMessageImpl<CasualDomainConnectRequestMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink, ProtocolVersion.VERSION_1_0)
 
         then:
         networkBytes != null
