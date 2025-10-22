@@ -7,7 +7,6 @@
 package se.laz.casual.network.test.network.frombinary
 
 
-import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
@@ -31,8 +30,7 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
     def resource = '/protocol/bin/message.service.call.Request.1000.3100.bin'
 
     @Shared
-    //def resourceProtocolVersionGreaterOrEqualToOneThree = '/protocol/bin/message.service.call.Request.1000.3100_protocol_version_greater_or_equal_to_1_3.bin'
-    def resourceProtocolVersionGreaterOrEqualToOneFour = '/protocol/bin/service-call-1.4.bin'
+    def resourceProtocolVersionGreaterOrEqualToOneFour = '/protocol/bin/message.service.call.Request.3102.bin'
 
     @Shared
     def data
@@ -135,6 +133,7 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
        msg != null
        msg.getMessage() == resurrectedMsg.getMessage()
        msg == resurrectedMsg
+       msg.getMessage().getParentSpan() != null
     }
 
    <T extends CasualNetworkTransmittable> void write(final WritableByteChannel channel, final T msg)
