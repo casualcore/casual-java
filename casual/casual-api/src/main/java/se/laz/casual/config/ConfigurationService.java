@@ -11,6 +11,7 @@ import se.laz.casual.config.json.ConfigurationFileReader;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -104,6 +105,11 @@ public class ConfigurationService
     public static <T> T getConfiguration( ConfigurationOption<T> option )
     {
         return INSTANCE.store.get( option );
+    }
+
+    public static <T> Map<ConfigurationOption<?>, Object> getConfiguration()
+    {
+        return INSTANCE.store.getData();
     }
 
     /**

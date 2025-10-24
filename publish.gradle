@@ -77,8 +77,8 @@ publishing {
     }
 }
 
-
 signing {
+    required = { !project.hasProperty("local")}
     sign publishing.publications.mavenJava
 }
 javadoc {

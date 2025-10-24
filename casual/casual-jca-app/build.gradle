@@ -13,7 +13,8 @@ def casualJCAVersion = version
 
 dependencies {
   deploy (project( path: ':casual:casual-jca', configuration:'resourceAdapter' )) { transitive = false}
-  deploy project(':casual:casual-inbound' )
+  deploy project(path: ':casual:casual-jca-cli', configuration:'archives')
+  deploy project(':casual:casual-inbound')
   deploy project(':casual:casual-inbound-handler-casual-service')
   deploy project(':casual:casual-inbound-handler-javaee-service')
   deploy project(':casual:casual-inbound-handler-jscd-buffer')

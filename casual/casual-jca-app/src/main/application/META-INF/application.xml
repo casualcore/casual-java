@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application
+        xmlns="http://java.sun.com/xml/ns/javaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_10.xsd"
+        version="10">
+    <description>Casual JCA CLI Rest endpoints</description>
+    <module>
+        <web>
+            <web-uri>casual-jca-cli.war</web-uri>
+            <context-root>/__casual/jca/cli</context-root>
+        </web>
+    </module>
+</application>
