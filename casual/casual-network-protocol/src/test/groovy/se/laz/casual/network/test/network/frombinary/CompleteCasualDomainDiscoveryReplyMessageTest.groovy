@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -19,23 +19,29 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
-/**
- * Created by aleph on 2017-03-09.
- */
 class CompleteCasualDomainDiscoveryReplyMessageTest extends Specification
 {
     @Shared
     def resource = '/protocol/bin/message.gateway.domain.discovery.Reply.1000.7301.bin'
 
     @Shared
+    def resourceProtocolVersionOneFour = '/protocol/bin/message.gateway.domain.discovery.Reply.7311.bin'
+
+    @Shared
     def data
+
+    @Shared
+    def dataProtocolVersionOneFour
 
     def setupSpec()
     {
         data = ResourceLoader.getResourceAsByteArray(resource)
+        dataProtocolVersionOneFour = ResourceLoader.getResourceAsByteArray(resourceProtocolVersionOneFour)
         then:
         data != null
         data.length == 167
+        dataProtocolVersionOneFour != null
+        dataProtocolVersionOneFour.length == 145
     }
 
     def "get header"()
