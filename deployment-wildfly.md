@@ -35,7 +35,7 @@ To enable graceful shutdown, wildfly has to be configured via the cli such as:
 /subsystem=ejb3:write-attribute(name=enable-graceful-txn-shutdown, value=true)
 ```
 If this is not set, wildfly will not wait for in flight transactions to finish.
-That also means that `casual-jca` can't handle that as well unless wildfly is configured correctly.
+Without this wildfly configuration casual-jca is not able to perform a graceful shutdown.
 
 ## Note regarding casual-jca global module not exposing its gson dependencies anymore
 
