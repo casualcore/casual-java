@@ -1,18 +1,19 @@
 # Wildfly Deployment
 
 ## Wildfly version
-Note that these examples have been tested with wildfly `34.0.1.Final`.
+Note that these examples have been tested with wildfly `38.0.0.Final`.
 
 ## Casual Dependencies
 
 Create a new module, with an appropriate name e.g. `se.laz.casual`, via the jboss-cli:
 ```python
-module add --name=se.laz.casual \
-	--resources=/opt/jboss/wildfly/casual/casual-inbound-handler-api-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-fielded-annotations-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-service-discovery-extension-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-api-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-event-api-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/objenesis-3.4.jar \
-                --dependencies=javaee.api,sun.jdk"
+module add --name=se.laz.casual \	
+
+--resources=/opt/jboss/wildfly/casual/casual-inbound-handler-api-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-fielded-annotations-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-service-discovery-extension-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-api-${CASUAL_VERSION}.jar:/opt/jboss/wildfly/casual/casual-event-api-${CASUAL_VERSION}.jar \
+                --dependencies=javaee.api,sun.jdk
 ```
 
-Where ```CASUAL_VERSION``` is the casual-jca version, such as ```3.2.49```.
+Where ```CASUAL_VERSION``` is the casual-jca version, such as ```3.3.7```.
 
 
 To make this module available globally you can either update the standalone.xml:
@@ -27,6 +28,23 @@ Or you can add it via the jboss-cli:
 /subsystem=ee:list-add(name=global-modules, value={name=se.laz.casual})
 ```
 
+## Graceful shutdown
+
+To enable graceful shutdown, wildfly has to be configured via the cli such as:
+```python
+/subsystem=ejb3:write-attribute(name=enable-graceful-txn-shutdown, value=true)
+```
+If this is not set, wildfly will not wait for in flight transactions to finish.
+Without this wildfly configuration casual-jca is not able to perform a graceful shutdown.
+
+## Note regarding casual-jca global module not exposing its gson dependencies anymore
+
+Starting with `casual-jca` version `3.2.49`, casual-jca does not expose its `gson` dependency anymore, thus does not pollute all
+other applications with its `gson` version.
+
+That means that your own application(s) need to package whatever `gson` they want to use ( or if you have your own global module,
+exposing a specific version of `gson`).
+
 ## Example Casual RA Configuration
 
 Please note that the id of the resource adapter **must** be `casual-jca`.
@@ -40,7 +58,7 @@ Added the following to the standalone.xml on your wildfly server:
     <resource-adapters>
         <resource-adapter id="casual-jca">
             <archive>
-            casual-jca-app-3.2.49.ear#casual-jca.rar
+            casual-jca-app-3.3.7.ear#casual-jca.rar
             </archive>
             <transaction-support>XATransaction</transaction-support>
             <connection-definitions>

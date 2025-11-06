@@ -20,13 +20,6 @@ configurations {
     resourceAdapterLib
 }
 
-/**
- * To ensure good developer UX, published poms include required transitive
- * dependencies, though these do not need to be packaged into the
- * RAR as they are expected to be provided or included on the classpath.
- * The following removes these transitive dependencies from the RAR.
- * In the case of netty it is instead included in the RAR lib folder.
- */
 configurations.resourceAdapter{
     exclude( group: 'io.netty' )
     exclude( group: 'com.google.code.gson' )

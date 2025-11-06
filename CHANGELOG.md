@@ -1,6 +1,14 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.3.8] - 2025-11-06
+
+### docs: wildfly deployment ([#192](https://github.com/casualcore/casual-java/issues/192))
+Updated wildfly deployment description with regards to gson no longer
+being wanted in the casual-jca global module as well that you need to
+enable wildfly graceful tx shutdown for graceful shutdown being able to
+function as wanted.
+
 ## [3.3.7] - 2025-06-04
 
 ### chore: update maven central publishing ([#187](https://github.com/casualcore/casual-java/issues/187))
