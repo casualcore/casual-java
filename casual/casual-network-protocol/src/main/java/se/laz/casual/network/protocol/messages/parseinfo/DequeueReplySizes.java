@@ -9,6 +9,7 @@ package se.laz.casual.network.protocol.messages.parseinfo;
 public enum DequeueReplySizes
 {
     EXECUTION(16, 16),
+    HAS_VALUE(1,1),
     NUMBER_OF_MESSAGES(8, 8),
     MESSAGE_ID(16, 16),
     MESSAGE_PROPERTIES_SIZE(8,8),

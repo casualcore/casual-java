@@ -7,6 +7,7 @@
 package se.laz.casual.network.protocol.decoding.decoders.queue;
 
 import se.laz.casual.api.flags.ErrorState;
+import se.laz.casual.api.queue.QueueErrorCode;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
@@ -51,7 +52,7 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             final int callError = ByteUtils.readFully(channel, CommonSizes.CALL_ERROR.getNetworkSize()).getInt();
-            builder.withCode(ErrorState.unmarshal(callError));
+            builder.withCode(QueueErrorCode.unmarshal(callError));
         }
         return builder.build();
     }
@@ -76,7 +77,7 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
         {
             final ByteBuffer callErrorBuffer = ByteBuffer.wrap(bytes, currentOffset, CommonSizes.CALL_ERROR.getNetworkSize());
             int callError = callErrorBuffer.getInt();
-            builder.withCode(ErrorState.unmarshal(callError));
+            builder.withCode(QueueErrorCode.unmarshal(callError));
         }
         builder.withProtocolVersion(protocolVersion);
         return builder.build();

@@ -10,6 +10,7 @@ import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
+import se.laz.casual.api.queue.QueueErrorCode;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
@@ -26,9 +27,9 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
     private final UUID id;
     private final ProtocolVersion protocolVersion;
     // from 1.3
-    private final ErrorState code;
+    private final QueueErrorCode code;
 
-    private CasualEnqueueReplyMessage(final UUID execution, final UUID id, ProtocolVersion protocolVersion, ErrorState code)
+    private CasualEnqueueReplyMessage(final UUID execution, final UUID id, ProtocolVersion protocolVersion, QueueErrorCode code)
     {
         this.execution = execution;
         this.id = id;
@@ -106,7 +107,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         return id;
     }
 
-    public ErrorState code()
+    public QueueErrorCode code()
     {
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
@@ -119,7 +120,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
     {
         private UUID execution;
         private UUID id;
-        private ErrorState code;
+        private QueueErrorCode code;
         private ProtocolVersion protocolVersion;
 
         public Builder withExecution(final UUID execution)
@@ -134,7 +135,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
             return this;
         }
 
-        public Builder withCode(ErrorState code)
+        public Builder withCode(QueueErrorCode code)
         {
             this.code = code;
             return this;
@@ -151,6 +152,10 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
             Objects.requireNonNull(execution, "execution is not allowed to be null");
             Objects.requireNonNull(id, "id is not allowed to be null");
             Objects.requireNonNull(protocolVersion, "protocolVersion is not allowed to be null");
+            if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+            {
+                Objects.requireNonNull(code, "code can not be null");
+            }
             return new CasualEnqueueReplyMessage(execution, id, protocolVersion, code);
         }
     }

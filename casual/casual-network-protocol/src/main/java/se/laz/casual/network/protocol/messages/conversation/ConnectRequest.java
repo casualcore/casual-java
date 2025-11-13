@@ -30,7 +30,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
 {
     private final UUID execution;
     private final String serviceName;
-    private final byte parentSpan;
+    private final long parentSpan;
     private final ProtocolVersion protocolVersion;
     private long timeout;
     private final String parentName;
@@ -40,7 +40,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
 
     // private constructor, only used by the builder of this class
     @SuppressWarnings("squid:S00107")
-    private ConnectRequest(UUID execution, String serviceName, long timeout, byte parentSpan, String parentName, Xid xid, Duplex duplex, ServiceBuffer serviceBuffer, ProtocolVersion protocolVersion)
+    private ConnectRequest(UUID execution, String serviceName, long timeout, long parentSpan, String parentName, Xid xid, Duplex duplex, ServiceBuffer serviceBuffer, ProtocolVersion protocolVersion)
     {
         this.execution = execution;
         this.serviceName = serviceName;
@@ -80,13 +80,13 @@ public class ConnectRequest implements CasualNetworkTransmittable
         return new ConnectRequestBuilder();
     }
 
-    public byte getParentSpan()
+    public long getParentSpan()
     {
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
             return parentSpan;
         }
-        throw new CasualProtocolException("parent span is not available in protocol version: " + protocolVersion);
+        throw new CasualProtocolException("parent span does not exist in protocol version: " + protocolVersion);
     }
 
     public String getParentName()
@@ -124,7 +124,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
         private UUID execution;
         private String serviceName;
         private long timeout;
-        private byte parentSpan;
+        private long parentSpan;
         private String parentName = "";
         private Xid xid;
         private Duplex duplex;
@@ -152,9 +152,9 @@ public class ConnectRequest implements CasualNetworkTransmittable
             return this;
         }
 
-        public ConnectRequestBuilder setParentSpan(int parentSpan)
+        public ConnectRequestBuilder setParentSpan(long parentSpan)
         {
-            this.parentSpan = (byte)(parentSpan & 0xFF);
+            this.parentSpan = parentSpan;
             return this;
         }
 

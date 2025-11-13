@@ -92,11 +92,13 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenersIfNotConnected(channel, errorInformer);
         ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of( conversationMessageStorage);
         CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator);
-        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
+        ProtocolVersionValueHolder protocolVersionValueHolder =  ProtocolVersionValueHolder.of();
+        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled(), protocolVersionValueHolder);
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
         LOG.finest(() -> networkConnection + " connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()));
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
         DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
+        protocolVersionValueHolder.accept(networkConnection.protocolVersion);
         networkConnection.setDomainId(id);
         if(networkConnection.protocolSupportsDomainDisconnect())
         {
@@ -121,9 +123,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         this.protocolVersion = protocolVersion;
     }
 
-    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler)
+    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler, ProtocolVersionValueHolder protocolVersionValueHolder)
     {
-        ProtocolVersionValueHolder protocolVersionValueHolder =  ProtocolVersionValueHolder.of();
         Bootstrap b = new Bootstrap()
             .group(workerGroup)
             .channel(channelClass)

@@ -118,6 +118,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.DEQUEUE_REPLY:
+            case CasualNWMessageType.DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 CasualDequeueReplyMessage message = Mock(CasualDequeueReplyMessage){
                     getExecution() >> execution
                 }
@@ -153,6 +154,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.CONVERSATION_CONNECT:
+            case CasualNWMessageType.CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 ConnectRequest message = Mock(ConnectRequest){
                     getExecution() >> execution
                 }

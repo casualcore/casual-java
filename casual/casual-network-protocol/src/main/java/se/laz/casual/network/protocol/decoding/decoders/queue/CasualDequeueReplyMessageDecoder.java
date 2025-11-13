@@ -8,6 +8,7 @@ package se.laz.casual.network.protocol.decoding.decoders.queue;
 
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
+import se.laz.casual.api.queue.QueueErrorCode;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.ProtocolVersion;
@@ -85,7 +86,7 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
                                         .withProtocolVersion(protocolVersion)
                                         .withExecution(execution)
                                         .withMessages(l)
-                                        .withCode(ErrorState.unmarshal(code))
+                                        .withCode(QueueErrorCode.unmarshal(code))
                                         .build();
     }
 
@@ -183,11 +184,15 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
         UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
         currentOffset += CommonSizes.EXECUTION.getNetworkSize();
 
+        byte value = ByteBuffer.wrap(bytes, currentOffset, DequeueReplySizes.HAS_VALUE.getNetworkSize()).get();
+        currentOffset += DequeueReplySizes.HAS_VALUE.getNetworkSize();
         List<DequeueMessage> l = new ArrayList<>();
-        Pair<Integer, DequeueMessage> p = readDequeueMessage(bytes, currentOffset);
-        currentOffset = p.first();
-        l.add(p.second());
-
+        if(value != 0)
+        {
+            Pair<Integer, DequeueMessage> p = readDequeueMessage(bytes, currentOffset);
+            currentOffset = p.first();
+            l.add(p.second());
+        }
         final ByteBuffer callErrorBuffer = ByteBuffer.wrap(bytes, currentOffset, CommonSizes.CALL_ERROR.getNetworkSize());
         int callError = callErrorBuffer.getInt();
 
@@ -195,7 +200,7 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
                                         .withProtocolVersion(protocolVersion)
                                         .withExecution(execution)
                                         .withMessages(l)
-                                        .withCode(ErrorState.unmarshal(callError))
+                                        .withCode(QueueErrorCode.unmarshal(callError))
                                         .build();
     }
 }

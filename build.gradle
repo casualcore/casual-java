@@ -106,9 +106,11 @@ task sphinxMarkdown(type: Copy){
 task sphinxVersion(){
   apply from: "$rootProject.projectDir/versions.gradle"
   def outputFileName = 'docs/source/version'
-    new File(outputFileName).withWriter { writer ->        
-        writer.writeLine "$version"
-  }
+   doLast {
+      new File(outputFileName).withWriter { writer ->
+         writer.writeLine "$version"
+      }
+   }
 }
 
 // run this task to create sphinx docs

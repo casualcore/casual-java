@@ -165,6 +165,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         CasualServiceCallRequestMessage that = (CasualServiceCallRequestMessage) o;
         return Objects.equals(execution, that.execution) &&
             Objects.equals(serviceName, that.serviceName) &&
+                parentSpan == that.parentSpan &&
             Objects.equals(parentName, that.parentName) &&
             Objects.equals(xid, that.xid) &&
             Objects.equals(xatmiFlags, that.xatmiFlags);
@@ -173,7 +174,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     @Override
     public int hashCode()
     {
-        return Objects.hash(execution, serviceName, parentName, xid, xatmiFlags);
+        return Objects.hash(execution, serviceName, parentSpan, parentName, xid, xatmiFlags);
     }
 
     @Override

@@ -76,6 +76,7 @@ public final class LogTool
                 execution = ((CasualDequeueRequestMessage)message.getMessage()).getExecution();
                 break;
             case DEQUEUE_REPLY:
+            case DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 execution = ((CasualDequeueReplyMessage)message.getMessage()).getExecution();
                 break;
             case PREPARE_REQUEST:
@@ -97,6 +98,7 @@ public final class LogTool
                 execution = ((CasualTransactionResourceRollbackReplyMessage)message.getMessage()).getExecution();
                 break;
             case CONVERSATION_CONNECT:
+            case CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 execution = ((ConnectRequest)message.getMessage()).getExecution();
                 break;
             case CONVERSATION_CONNECT_REPLY:
