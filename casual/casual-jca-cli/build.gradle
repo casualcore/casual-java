@@ -7,7 +7,6 @@
 plugins {
   id 'war'
   id 'jacoco'
-  id("org.openapi.generator") version "7.0.0"
 }
 
 dependencies {
@@ -33,23 +32,5 @@ sourceSets {
   }
 }
 
-openApiGenerate {
-  generatorName.set("java")
-  inputSpec.set("$projectDir/src/main/resources/openapi.yaml")
-  outputDir.set("${buildDir}/generated")
-  modelPackage.set("se.laz.casual.connection.jca.cli.model")
-  skipValidateSpec.set(true)
-  library.set("rest-assured")
-  globalProperties.set([
-      modelDocs: "false",
-      apis: "false",
-      models: "",
-      modelTests: "false"
-  ])
-  configOptions.put("dateLibrary", "java8")
-  configOptions.put("useJakartaEe", "true")
-}
-
-compileJava.dependsOn tasks.openApiGenerate
 javadocJar.enabled = false
 sourcesJar.enabled = false
