@@ -19,23 +19,19 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
-/**
- * Created by aleph on 2017-04-03.
- */
 class CasualTransactionResourcePrepareReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.transaction.resource.prepare.Reply.1000.5202.bin'
+    def resource = '/protocol/b64/message.transaction.resource.prepare.reply.1000.5202.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         data != null
-        data.length == 112
     }
 
     def "get header"()

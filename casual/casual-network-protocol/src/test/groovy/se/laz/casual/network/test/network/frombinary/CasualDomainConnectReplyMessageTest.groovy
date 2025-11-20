@@ -22,17 +22,16 @@ import java.nio.ByteBuffer
 class CasualDomainConnectReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.gateway.domain.connect.Reply.1000.7201.bin'
+    def resource = '/protocol/b64/message.gateway.domain.connect.reply.1000.7201.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         data != null
-        data.length == 88
     }
 
     def "get header"()

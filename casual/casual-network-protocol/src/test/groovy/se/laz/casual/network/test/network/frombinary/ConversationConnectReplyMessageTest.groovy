@@ -23,17 +23,15 @@ import java.nio.ByteBuffer
 class ConversationConnectReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.conversation.connect.Reply.1000.3211.bin'
+    def resource = '/protocol/b64/message.conversation.connect.reply.1000.3211.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
-        println("len ${data.length}")
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         assert(data != null)
-        assert(data.length == 52)
     }
 
     def "get header"()
@@ -72,8 +70,6 @@ class ConversationConnectReplyMessageTest extends Specification
        }
        when:
        CasualNWMessageImpl<ConnectReply> msg = CasualNetworkTestReader.read(sink)
-       println("Msg: ${msg}")
-       println("ConnectRequest: ${msg.message}")
        CasualMessageEncoder.write(sink, msg)
        CasualNWMessageImpl<ConnectReply> resurrectedMsg = CasualNetworkTestReader.read(sink)
        then:

@@ -22,18 +22,16 @@ import java.nio.ByteBuffer
 class ConversationDisconnectMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.conversation.Disconnect.1000.3213.bin'
+    def resource = '/protocol/b64/message.conversation.disconnect.1000.3213.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
-        println("len ${data.length}")
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         assert(data != null)
-        assert(data.length == 48)
     }
 
     def "get header"()

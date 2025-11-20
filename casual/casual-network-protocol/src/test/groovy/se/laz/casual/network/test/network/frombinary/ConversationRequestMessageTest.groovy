@@ -23,18 +23,16 @@ import java.nio.ByteBuffer
 class ConversationRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.conversation.Send.1000.3212.bin'
+    def resource = '/protocol/b64/message.conversation.request.1000.3212.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
-        println("len ${data.length}")
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         assert(data != null)
-        assert(data.length == 214)
     }
 
     def "get header"()

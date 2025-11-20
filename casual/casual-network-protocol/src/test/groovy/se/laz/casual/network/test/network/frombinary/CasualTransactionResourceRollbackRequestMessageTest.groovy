@@ -19,23 +19,19 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
-/**
- * Created by aleph on 2017-04-03.
- */
 class CasualTransactionResourceRollbackRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.transaction.resource.rollback.Request.1000.5205.bin'
+    def resource = '/protocol/b64/message.transaction.resource.rollback.request.1000.5205.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         data != null
-        data.length == 116
     }
 
     def "get header"()

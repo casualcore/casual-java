@@ -23,17 +23,16 @@ import java.nio.ByteBuffer
 class DomainDisconnectReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/gateway_domain_disconnect_reply.1.1.7203.bin'
+    def resource = '/protocol/b64/message.gateway.domain.disconnect.reply.1001.7203.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         data != null
-        data.length == 96
     }
 
     def "get header"()

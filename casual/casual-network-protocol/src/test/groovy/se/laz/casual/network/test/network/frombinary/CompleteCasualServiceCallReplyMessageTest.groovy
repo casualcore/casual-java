@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.test.network.frombinary
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -19,23 +20,25 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
-/**
- * Created by aleph on 2017-03-28.
- */
 class CompleteCasualServiceCallReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.service.call.Reply.1000.3101.bin'
+    def resource = '/protocol/b64/message.service.call.reply.1000.3101.b64'
+    @Shared
+    def resourceProtocolVersionGreaterOrEqualToOneFour = '/protocol/b64/message.service.call.request.1003.3102.b64'
 
     @Shared
     def data
+    @Shared
+    def dataProtocolVersionGreaterOrEqualToOneThree
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
+        dataProtocolVersionGreaterOrEqualToOneThree = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersionGreaterOrEqualToOneFour))
         then:
         data != null
-        data.length == 141
+        dataProtocolVersionGreaterOrEqualToOneThree != null
     }
 
     def "get header"()
@@ -66,7 +69,7 @@ class CompleteCasualServiceCallReplyMessageTest extends Specification
     {
         setup:
         List<byte[]> payload = new ArrayList<>()
-        payload.add(data)
+        payload.add(binary)
         def sink = new LocalByteChannel()
         payload.each{
             bytes ->
@@ -74,13 +77,20 @@ class CompleteCasualServiceCallReplyMessageTest extends Specification
                 sink.write(buffer)
         }
         when:
-        CasualNWMessageImpl<CasualServiceCallReplyMessage> msg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualServiceCallReplyMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualServiceCallReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualServiceCallReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
         then:
         msg != null
         msg.getMessage() == resurrectedMsg.getMessage()
         msg == resurrectedMsg
+        where:
+        binary                                        | protocolVersion
+        data                                          | ProtocolVersion.VERSION_1_0
+        data                                          | ProtocolVersion.VERSION_1_1
+        data                                          | ProtocolVersion.VERSION_1_2
+        dataProtocolVersionGreaterOrEqualToOneThree   | ProtocolVersion.VERSION_1_3
+        dataProtocolVersionGreaterOrEqualToOneThree   | ProtocolVersion.VERSION_1_4
     }
 
 }

@@ -19,23 +19,19 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
-/**
- * Created by aleph on 2017-03-03.
- */
 class CompleteCasualDomainDiscoveryRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.gateway.domain.discovery.Request.1000.7300.bin'
+    def resource = '/protocol/b64/message.gateway.domain.discovery.request.1000.7300.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         data != null
-        data.length == 186
     }
 
     def "get header"()

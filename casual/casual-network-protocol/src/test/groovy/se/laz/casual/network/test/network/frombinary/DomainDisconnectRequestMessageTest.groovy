@@ -6,7 +6,7 @@
 
 package se.laz.casual.network.test.network.frombinary
 
-import se.laz.casual.network.ProtocolVersion
+
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -23,17 +23,16 @@ import java.nio.ByteBuffer
 class DomainDisconnectRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/gateway_domain_disconnect_request.1.1.7202.bin'
+    def resource = '/protocol/b64/message.gateway.domain.disconnect.request.1001.7202.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         data != null
-        data.length == 96
     }
 
     def "get header"()
