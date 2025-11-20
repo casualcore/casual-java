@@ -119,6 +119,7 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
                 .setTimeout(timeout)
                 .setParentSpan(parentSpan)
                 .setParentName(parentName)
+                .setProtocolVersion(protocolVersion)
                 .setXid(xid)
                 .setDuplex(duplex)
                 .setServiceBuffer(serviceBuffer)

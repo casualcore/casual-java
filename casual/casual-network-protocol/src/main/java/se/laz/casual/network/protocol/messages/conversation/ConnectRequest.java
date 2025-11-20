@@ -64,14 +64,24 @@ public class ConnectRequest implements CasualNetworkTransmittable
         final byte[] serviceNameBytes = serviceName.getBytes(StandardCharsets.UTF_8);
         final byte[] parentNameBytes = parentName.getBytes(StandardCharsets.UTF_8);
         final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
-        final long messageSize = ConversationConnectRequestSizes.EXECUTION.getNetworkSize() +
+        long messageSize = ConversationConnectRequestSizes.EXECUTION.getNetworkSize() +
                 ConversationConnectRequestSizes.CALL_DESCRIPTOR.getNetworkSize() +
                 ConversationConnectRequestSizes.SERVICE_NAME_SIZE.getNetworkSize() + serviceNameBytes.length +
-                ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize() +
                 ConversationConnectRequestSizes.PARENT_NAME_SIZE.getNetworkSize() + parentNameBytes.length +
                 XIDUtils.getXIDNetworkSize(xid) +
                 ConversationConnectRequestSizes.DUPLEX.getNetworkSize() +
                 ConversationConnectRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ConversationConnectRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+            if(timeout > 0)
+            {
+                messageSize += ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize() + ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
+            }
+        }
+        else
+        {
+            messageSize += ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
+        }
         return toNetworkBytes((int)messageSize, serviceNameBytes, parentNameBytes, serviceBytes);
     }
 
@@ -204,10 +214,23 @@ public class ConnectRequest implements CasualNetworkTransmittable
         ByteBuffer b = ByteBuffer.allocate(messageSize);
         CasualEncoderUtils.writeUUID(execution, b);
         b.putLong(serviceNameBytes.length)
-                .put(serviceNameBytes)
-                .putLong(timeout)
-                .putLong(parentNameBytes.length)
-                .put(parentNameBytes);
+         .put(serviceNameBytes);
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+            byte hasValue = (byte)((timeout > 0) ? 1: 0);
+            b.put(hasValue);
+            if(timeout > 0)
+            {
+                b.putLong(timeout);
+            }
+            b.putLong(parentSpan);
+        }
+        else
+        {
+            b.putLong(timeout);
+        }
+        b.putLong(parentNameBytes.length)
+         .put(parentNameBytes);
         CasualEncoderUtils.writeXID(xid, b);
         b.putShort(duplex.getValue());
         b.putLong(serviceBytes.get(0).length).put(serviceBytes.get(0));

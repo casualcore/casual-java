@@ -89,9 +89,7 @@ class ConversationConnectRequestMessageTest extends Specification
        data                                   | ProtocolVersion.VERSION_1_0
        data                                   | ProtocolVersion.VERSION_1_1
        data                                   | ProtocolVersion.VERSION_1_2
-       // TODO:
-       // Testdata problem, hasValue ska vara 1 men satt till 0
-       //dataProtocolVersionOneThreeOrGreater   | ProtocolVersion.VERSION_1_3
-       //dataProtocolVersionOneThreeOrGreater   | ProtocolVersion.VERSION_1_4
+       dataProtocolVersionOneThreeOrGreater   | ProtocolVersion.VERSION_1_3
+       dataProtocolVersionOneThreeOrGreater   | ProtocolVersion.VERSION_1_4
     }
 }
