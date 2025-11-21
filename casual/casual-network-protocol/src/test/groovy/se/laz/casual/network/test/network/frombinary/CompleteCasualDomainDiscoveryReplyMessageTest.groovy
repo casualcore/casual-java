@@ -88,6 +88,9 @@ class CompleteCasualDomainDiscoveryReplyMessageTest extends Specification
         where:
         binary                       | protocolVersion
         data                         | ProtocolVersion.VERSION_1_0
+        data                         | ProtocolVersion.VERSION_1_1
+        data                         | ProtocolVersion.VERSION_1_2
+        data                         | ProtocolVersion.VERSION_1_3
         dataProtocolVersionOneFour   | ProtocolVersion.VERSION_1_4
     }
 

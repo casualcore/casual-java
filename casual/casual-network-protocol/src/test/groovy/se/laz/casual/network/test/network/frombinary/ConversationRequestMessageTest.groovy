@@ -10,7 +10,6 @@ import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.conversation.ConnectRequest
 import se.laz.casual.network.protocol.messages.conversation.Request
 import se.laz.casual.network.protocol.messages.parseinfo.MessageHeaderSizes
 import se.laz.casual.network.protocol.utils.LocalByteChannel
