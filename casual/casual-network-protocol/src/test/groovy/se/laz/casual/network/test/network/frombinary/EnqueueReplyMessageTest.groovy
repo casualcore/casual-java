@@ -63,11 +63,11 @@ class EnqueueReplyMessageTest extends Specification
       resurrectedHeader == header
    }
 
-   def "roundtrip message"()
+   def "roundtrip message #protocolVersion"()
    {
       setup:
       List<byte[]> payload = new ArrayList<>()
-      payload.add(data)
+      payload.add(binary)
       def sink = new LocalByteChannel()
       payload.each{
          bytes ->

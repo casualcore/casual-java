@@ -1,5 +1,6 @@
 package se.laz.casual.network.test.network.frombinary
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -63,12 +64,14 @@ class EnqueueRequestMessageTest extends Specification
             sink.write(buffer)
       }
       when:
-      CasualNWMessageImpl<CasualEnqueueRequestMessage> msg = CasualNetworkTestReader.read(sink)
+      CasualNWMessageImpl<CasualEnqueueRequestMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
       CasualMessageEncoder.write(sink, msg)
-      CasualNWMessageImpl<CasualEnqueueRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+      CasualNWMessageImpl<CasualEnqueueRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
       then:
       msg != null
       msg.getMessage() == resurrectedMsg.getMessage()
       msg == resurrectedMsg
+      where:
+      protocolVersion << ProtocolVersion.values()
    }
 }
