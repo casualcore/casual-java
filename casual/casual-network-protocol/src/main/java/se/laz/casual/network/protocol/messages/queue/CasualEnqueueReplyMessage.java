@@ -6,7 +6,6 @@
 
 package se.laz.casual.network.protocol.messages.queue;
 
-import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
@@ -45,7 +44,9 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
     @Override
     public List<byte[]> toNetworkBytes()
     {
-        ByteBuffer b = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize() +  CommonSizes.UUID_ID.getNetworkSize());
+        int size = CommonSizes.EXECUTION.getNetworkSize() +  CommonSizes.UUID_ID.getNetworkSize();
+        size += ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion) ?  CommonSizes.CALL_ERROR.getNetworkSize() : 0;
+        ByteBuffer b = ByteBuffer.allocate(size);
         CasualEncoderUtils.writeUUID(execution, b);
         CasualEncoderUtils.writeUUID(id, b);
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))

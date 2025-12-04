@@ -7,7 +7,6 @@
 package se.laz.casual.network.protocol.decoding.decoders.queue;
 
 import se.laz.casual.api.buffer.type.ServiceBuffer;
-import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.queue.QueueErrorCode;
 import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.api.util.Pair;
@@ -55,7 +54,7 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
     {
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-            return readChunkedProtocolVersionGreaterThanOneTwo(channel);
+            return readChunkedProtocolVersionGreaterOrEqualToOneThree(channel);
         }
         UUID execution = CasualMessageDecoderUtils.readUUID(channel);
         int numberOfMessages = (int) ByteUtils.readFully(channel, DequeueReplySizes.NUMBER_OF_MESSAGES.getNetworkSize()).getLong();
@@ -71,7 +70,7 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
                                         .build();
     }
 
-    private CasualDequeueReplyMessage readChunkedProtocolVersionGreaterThanOneTwo(final ReadableByteChannel channel)
+    private CasualDequeueReplyMessage readChunkedProtocolVersionGreaterOrEqualToOneThree(final ReadableByteChannel channel)
     {
         UUID execution = CasualMessageDecoderUtils.readUUID(channel);
         boolean has_value = CasualMessageDecoderUtils.readByte(channel) > 0;

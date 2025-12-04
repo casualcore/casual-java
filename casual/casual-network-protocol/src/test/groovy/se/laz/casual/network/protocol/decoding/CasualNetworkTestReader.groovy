@@ -41,11 +41,6 @@ class CasualNetworkTestReader
         return readMessage( channel, header, networkReader )
     }
 
-    static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel)
-    {
-       return read(channel, ProtocolVersion.VERSION_1_0)
-    }
-
     static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final ReadableByteChannel channel, ProtocolVersion protocolVersion)
     {
         final CasualNWMessageHeader header = networkHeaderToCasualHeader( channel )

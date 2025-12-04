@@ -51,4 +51,52 @@ class ProtocolVersionTest extends Specification
       ]
    }
 
+   def 'isProtocolVersionGreaterOrEqualToOneTwo true'()
+   {
+      expect:
+      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneTwo(protocolVersion) == true
+      where:
+      protocolVersion << [ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+   }
+
+   def 'isProtocolVersionGreaterOrEqualToOneTwo false'()
+   {
+      expect:
+      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneTwo(protocolVersion) == false
+      where:
+      protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1]
+   }
+
+   def 'isProtocolVersionGreaterOrEqualToOneThree true'()
+   {
+      expect:
+      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion) == true
+      where:
+      protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+   }
+
+   def 'isProtocolVersionGreaterOrEqualToOneThree false'()
+   {
+      expect:
+      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion) == false
+      where:
+      protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2]
+   }
+
+   def 'isProtocolVersionGreaterOrEqualToOneFour true'()
+   {
+      expect:
+      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion) == true
+      where:
+      protocolVersion << [ProtocolVersion.VERSION_1_4]
+   }
+
+   def 'isProtocolVersionGreaterOrEqualToOneFour false'()
+   {
+      expect:
+      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion) == false
+      where:
+      protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3]
+   }
+
 }

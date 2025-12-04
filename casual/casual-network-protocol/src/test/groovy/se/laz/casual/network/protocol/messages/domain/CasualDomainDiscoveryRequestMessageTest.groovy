@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.domain
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -14,9 +15,6 @@ import spock.lang.Specification
 
 import java.util.stream.Collectors
 
-/**
- * Created by aleph on 2017-03-02.
- */
 class CasualDomainDiscoveryRequestMessageTest extends Specification
 {
     def "Roundtrip with message payload less than Integer.MAX_VALUE - no services and one queues - sync"()
@@ -39,7 +37,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
 
         then:
         networkBytes != null
@@ -50,6 +48,8 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         queueNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedQueuesToFollow()
         serviceNames == resurrectedMsg.getMessage().getServiceNames()
         queueNames == resurrectedMsg.getMessage().getQueueNames()
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
     }
 
 
@@ -84,7 +84,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
 
         then:
         networkBytes != null
@@ -95,6 +95,8 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         uniqueAndSortedQueueNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedQueuesToFollow()
         uniqueAndSortedServiceNames == resurrectedMsg.getMessage().getServiceNames()
         uniqueAndSortedQueueNames == resurrectedMsg.getMessage().getQueueNames()
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
     def "Roundtrip forced to chunk - one service and no queues, sync"()

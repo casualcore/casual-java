@@ -60,7 +60,7 @@ class CasualDomainConnectRequestMessageTest extends Specification
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualDomainConnectRequestMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink, ProtocolVersion.VERSION_1_0)
+        CasualNWMessageImpl<CasualDomainConnectRequestMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink, protocolVersion)
 
         then:
         networkBytes != null
@@ -68,6 +68,8 @@ class CasualDomainConnectRequestMessageTest extends Specification
         msg == syncResurrectedMsg
         domainName == syncResurrectedMsg.message.domainName
         protocols == syncResurrectedMsg.message.protocols
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
     }
 
 }

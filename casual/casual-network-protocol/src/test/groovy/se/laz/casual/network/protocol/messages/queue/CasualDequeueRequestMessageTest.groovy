@@ -47,5 +47,7 @@ class CasualDequeueRequestMessageTest extends Specification
         then:
         networkBytes != null
         msg == syncResurrectedMsg
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
     }
 }

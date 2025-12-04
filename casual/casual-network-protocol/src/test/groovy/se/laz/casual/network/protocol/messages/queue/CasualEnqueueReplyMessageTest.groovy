@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.queue
 
+import se.laz.casual.api.queue.QueueErrorCode
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.utils.LocalByteChannel
@@ -31,19 +32,25 @@ class CasualEnqueueReplyMessageTest extends Specification
     def "roundtrip"()
     {
         setup:
-        def requestMsg = CasualEnqueueReplyMessage.createBuilder()
+        def requestMsgBuilder = CasualEnqueueReplyMessage.createBuilder()
                                                   .withExecution(UUID.randomUUID())
                                                   .withId(UUID.randomUUID())
-                                                  .withProtocolVersion(ProtocolVersion.VERSION_1_2)
-                                                  .build()
+                                                  .withProtocolVersion(protocolVersion)
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+           requestMsgBuilder.withCode(QueueErrorCode.ok)
+        }
+        def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualEnqueueReplyMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink, ProtocolVersion.VERSION_1_2)
+        CasualNWMessageImpl<CasualEnqueueReplyMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink, protocolVersion)
         then:
         networkBytes != null
         requestMsg == syncResurrectedMsg.getMessage()
         msg == syncResurrectedMsg
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
     }
 
 

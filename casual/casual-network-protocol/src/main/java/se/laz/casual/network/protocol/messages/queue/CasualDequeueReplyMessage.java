@@ -6,7 +6,6 @@
 
 package se.laz.casual.network.protocol.messages.queue;
 
-import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
@@ -39,7 +38,9 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
     @Override
     public CasualNWMessageType getType()
     {
-        return CasualNWMessageType.DEQUEUE_REPLY;
+        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)
+                ? CasualNWMessageType.DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE
+                : CasualNWMessageType.DEQUEUE_REPLY;
     }
 
     @Override
@@ -50,6 +51,12 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         partialContent.putLong(messages.size());
         List<byte[]> l = new ArrayList<>();
         l.add(partialContent.array());
+        if(!messages.isEmpty() && ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+            byte[] hasValue = new byte[1];
+            hasValue[0] = 1;
+            l.add(hasValue);
+        }
         for(DequeueMessage m : messages)
         {
             l.addAll(m.toNetworkBytes());

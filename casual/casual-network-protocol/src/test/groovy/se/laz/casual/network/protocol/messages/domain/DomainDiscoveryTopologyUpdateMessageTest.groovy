@@ -39,7 +39,7 @@ class DomainDiscoveryTopologyUpdateMessageTest extends Specification
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<DomainDiscoveryTopologyUpdateMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink, ProtocolVersion.VERSION_1_2)
+        CasualNWMessageImpl<DomainDiscoveryTopologyUpdateMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink, protocolVersion)
 
         then:
         networkBytes != null
@@ -47,6 +47,8 @@ class DomainDiscoveryTopologyUpdateMessageTest extends Specification
         msg == syncResurrectedMsg
         domainName == syncResurrectedMsg.message.domainName
         domainsSize == syncResurrectedMsg.message.domainsSize
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
     }
 
 }

@@ -226,6 +226,10 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             {
                 msg.xid = XID.of(xid);
             }
+            else if(null != xid)
+            {
+                throw new CasualProtocolException("xid can not be set in protocol version: " + protocolVersion);
+            }
             msg.transactionState = transactionState;
             msg.serviceBuffer = serviceBuffer;
             return msg;

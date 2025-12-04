@@ -7,6 +7,7 @@
 package se.laz.casual.network.protocol.messages.queue
 
 import se.laz.casual.api.buffer.type.ServiceBuffer
+import se.laz.casual.api.queue.QueueErrorCode
 import se.laz.casual.api.queue.QueueMessage
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -38,18 +39,26 @@ class CasualDequeueReplyMessageTest extends Specification
     def "roundtrip"()
     {
         setup:
-        CasualDequeueReplyMessage requestMsg = CasualDequeueReplyMessage.createBuilder()
-                                                  .withProtocolVersion(ProtocolVersion.VERSION_1_2)
+        def requestMsgBuilder = CasualDequeueReplyMessage.createBuilder()
+                                                  .withProtocolVersion(protocolVersion)
                                                   .withExecution(UUID.randomUUID())
                                                   .withMessages(createMessages(5))
-                                                  .build()
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+           requestMsgBuilder.withCode(QueueErrorCode.ok)
+        }
+        def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl<CasualDequeueReplyMessage> msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualDequeueReplyMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink, ProtocolVersion.VERSION_1_2)
+        CasualNWMessageImpl<CasualDequeueReplyMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink, protocolVersion)
         then:
         networkBytes != null
         msg == syncResurrectedMsg
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+           syncResurrectedMsg.getMessage().getCode() == QueueErrorCode.ok
+        }
         for( int i = 0; i < msg.getMessage().getMessages().size(); ++i)
         {
             DequeueMessage m = msg.getMessage().getMessages().get( i )
@@ -58,6 +67,8 @@ class CasualDequeueReplyMessageTest extends Specification
             Arrays.deepEquals( m.getPayload().getPayload().toArray(), am.getPayload().getPayload().toArray( ) )
             Arrays.deepEquals( m.getPayload().getPayload().toArray(), sm.getPayload().getPayload().toArray( ) )
         }
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
     }
 
     def createMessages(numberOfMessages)

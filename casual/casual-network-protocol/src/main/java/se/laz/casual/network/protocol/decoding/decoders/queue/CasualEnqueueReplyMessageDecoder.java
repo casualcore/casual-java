@@ -6,7 +6,6 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.queue;
 
-import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.queue.QueueErrorCode;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;

@@ -41,6 +41,8 @@ class CasualServiceCallRequestMessageTest extends Specification
     def serviceType = 'application/json'
     @Shared
     def serviceBuffer
+    @Shared
+    long parentSpan = 1234L
 
     def setupSpec()
     {
@@ -50,20 +52,25 @@ class CasualServiceCallRequestMessageTest extends Specification
         serviceBuffer = ServiceBuffer.of(serviceType, serviceData)
     }
 
-    def "Message creation"()
-    {
-        setup:
-        when:
-        def msg = CasualServiceCallRequestMessage.createBuilder()
-                                          .setExecution(execution)
-                                          .setServiceName(serviceName)
-                                          .setTimeout(timeout)
-                                          .setParentName(parentName)
-                                          .setXid(nullXID)
-                                          .setXatmiFlags(xatmiFlags)
-                                          .setServiceBuffer(serviceBuffer)
-                                          .setProtocolVersion(ProtocolVersion.VERSION_1_2)
-                                          .build()
+    def "Message creation"() {
+       setup:
+
+       when:
+       //println("protocolVersion: ${protocolVersion}")
+       def msgBuilder = CasualServiceCallRequestMessage.createBuilder()
+               .setExecution(execution)
+               .setServiceName(serviceName)
+               .setTimeout(timeout)
+               .setParentName(parentName)
+               .setXid(nullXID)
+               .setXatmiFlags(xatmiFlags)
+               .setServiceBuffer(serviceBuffer)
+               .setProtocolVersion(protocolVersion)
+       if (ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+       {
+          msgBuilder.setParentSpan(parentSpan)
+       }
+        def msg = msgBuilder.build()
         then:
         msg.execution == execution
         msg.serviceName == serviceName
@@ -72,12 +79,18 @@ class CasualServiceCallRequestMessageTest extends Specification
         msg.xid == nullXID
         msg.serviceBuffer == serviceBuffer
         msg.serviceBuffer.payload == serviceBuffer.payload
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+           msg.getParentSpan() == parentSpan
+        }
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()
     {
         setup:
-        def requestMsg = CasualServiceCallRequestMessage.createBuilder()
+        def requestMsgBuilder = CasualServiceCallRequestMessage.createBuilder()
                 .setExecution(execution)
                 .setServiceName(serviceName)
                 .setTimeout(timeout)
@@ -85,15 +98,20 @@ class CasualServiceCallRequestMessageTest extends Specification
                 .setXid(nullXID)
                 .setXatmiFlags(xatmiFlags)
                 .setServiceBuffer(serviceBuffer)
-                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
-                .build()
+                .setProtocolVersion(protocolVersion)
+
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+           requestMsgBuilder.setParentSpan(parentSpan)
+        }
+        def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
 
         then:
         networkBytes != null
@@ -101,6 +119,12 @@ class CasualServiceCallRequestMessageTest extends Specification
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().serviceBuffer.payload
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+          resurrectedMsg.getMessage().getParentSpan() == parentSpan
+        }
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
     }
 
     def collectServicePayload(List<byte[]> bytes)
