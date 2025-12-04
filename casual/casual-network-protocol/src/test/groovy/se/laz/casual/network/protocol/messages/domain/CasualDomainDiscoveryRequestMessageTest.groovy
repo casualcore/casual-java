@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -49,7 +49,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         serviceNames == resurrectedMsg.getMessage().getServiceNames()
         queueNames == resurrectedMsg.getMessage().getQueueNames()
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << ProtocolVersion.values()
     }
 
 
@@ -120,7 +120,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
 
         then:
         networkBytes != null
@@ -131,6 +131,8 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         queueNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedQueuesToFollow()
         serviceNames == resurrectedMsg.getMessage().getServiceNames()
         queueNames == resurrectedMsg.getMessage().getQueueNames()
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
     def "Roundtrip forced to chunk - no service and one queues, sync"()
@@ -154,7 +156,7 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
 
         then:
         networkBytes != null
@@ -165,6 +167,8 @@ class CasualDomainDiscoveryRequestMessageTest extends Specification
         queueNames.size() == resurrectedMsg.getMessage().getNumberOfRequestedQueuesToFollow()
         serviceNames == resurrectedMsg.getMessage().getServiceNames()
         queueNames == resurrectedMsg.getMessage().getQueueNames()
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
    def 'service and queue names are always unique and sorted regardless of input'()

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2025, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
 package se.laz.casual.network.test.network.frombinary
 
 import se.laz.casual.network.ProtocolVersion
@@ -70,9 +75,9 @@ class EnqueueReplyMessageTest extends Specification
             sink.write(buffer)
       }
       when:
-      CasualNWMessageImpl<CasualEnqueueReplyMessage> msg = CasualNetworkTestReader.read(sink)
+      CasualNWMessageImpl<CasualEnqueueReplyMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
       CasualMessageEncoder.write(sink, msg)
-      CasualNWMessageImpl<CasualEnqueueReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+      CasualNWMessageImpl<CasualEnqueueReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
       then:
       msg != null
       msg.getMessage() == resurrectedMsg.getMessage()

@@ -57,7 +57,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         msg.services == services
         msg.queues == queues
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << ProtocolVersion.values()
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE. No services and no queues - sync"()
@@ -81,7 +81,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         msg.getMessage() == replyMessage
         msg == resurrectedMsg
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << ProtocolVersion.values()
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE. One service, no queues - sync"()
@@ -108,7 +108,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         msg.getMessage() == replyMessage
         msg == resurrectedMsg
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << ProtocolVersion.values()
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE. No services, one queue - sync"()
@@ -135,7 +135,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         msg.getMessage() == replyMessage
         msg == resurrectedMsg
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << ProtocolVersion.values()
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()
@@ -164,7 +164,7 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         msg.getMessage() == replyMessage
         msg == resurrectedMsg
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << ProtocolVersion.values()
     }
 
     def createSomeServices(List<String> names)

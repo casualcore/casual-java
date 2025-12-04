@@ -84,7 +84,7 @@ class CasualServiceCallRequestMessageTest extends Specification
            msg.getParentSpan() == parentSpan
         }
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << ProtocolVersion.values()
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()
@@ -124,7 +124,7 @@ class CasualServiceCallRequestMessageTest extends Specification
           resurrectedMsg.getMessage().getParentSpan() == parentSpan
         }
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << ProtocolVersion.values()
     }
 
     def collectServicePayload(List<byte[]> bytes)

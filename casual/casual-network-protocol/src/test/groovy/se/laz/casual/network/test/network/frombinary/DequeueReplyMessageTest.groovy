@@ -70,9 +70,9 @@ class DequeueReplyMessageTest extends Specification
             sink.write(buffer)
       }
       when:
-      CasualNWMessageImpl<CasualDequeueReplyMessage> msg = CasualNetworkTestReader.read(sink)
+      CasualNWMessageImpl<CasualDequeueReplyMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
       CasualMessageEncoder.write(sink, msg)
-      CasualNWMessageImpl<CasualDequeueReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+      CasualNWMessageImpl<CasualDequeueReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
       then:
       msg != null
       msg.getMessage() == resurrectedMsg.getMessage()
