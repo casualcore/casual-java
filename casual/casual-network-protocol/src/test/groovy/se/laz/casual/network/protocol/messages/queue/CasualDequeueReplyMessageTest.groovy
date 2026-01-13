@@ -42,10 +42,14 @@ class CasualDequeueReplyMessageTest extends Specification
         def requestMsgBuilder = CasualDequeueReplyMessage.createBuilder()
                                                   .withProtocolVersion(protocolVersion)
                                                   .withExecution(UUID.randomUUID())
-                                                  .withMessages(createMessages(5))
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
            requestMsgBuilder.withCode(QueueErrorCode.ok)
+           requestMsgBuilder.withMessages(createMessages(1))
+        }
+        else
+        {
+           requestMsgBuilder.withMessages(createMessages(5))
         }
         def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl<CasualDequeueReplyMessage> msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)

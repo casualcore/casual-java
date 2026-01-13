@@ -7,7 +7,6 @@ import se.laz.casual.network.protocol.decoding.CasualMessageDecoder;
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -37,7 +36,7 @@ public record HeadlessCasualMessage(CasualNWMessageType type, String base64Body,
                                                             .mapToInt(bytes -> bytes.length)
                                                             .sum());
         messageBytes.forEach(bytes -> buffer.put(bytes));
-        return new String(Base64.getEncoder().encode(buffer.array()), StandardCharsets.UTF_8);
+        return Base64.getEncoder().encodeToString(buffer.array());
     }
 
 }

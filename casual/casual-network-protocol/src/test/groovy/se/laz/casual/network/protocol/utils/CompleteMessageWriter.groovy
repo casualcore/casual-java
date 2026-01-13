@@ -99,7 +99,7 @@ class CompleteMessageWriter
 
 
    ]
-   static void createBinDumps(String path)
+   static void createBase64Dumps(String path)
    {
       headlessMessages.forEach({m ->
          def filename = String.format(m.template,m.protocolVersion.getVersion(), m.type.messageId)
@@ -108,6 +108,7 @@ class CompleteMessageWriter
    }
    static void dump(def path, String base64)
    {
+      println("writing file: ${path}")
       Files.writeString(path, base64)
    }
    static void main(String[] args)
@@ -115,7 +116,7 @@ class CompleteMessageWriter
       try
       {
          String path = Files.createTempDirectory('casual-protocol').toFile().getAbsolutePath()
-         createBinDumps(path)
+         createBase64Dumps(path)
          println("base64 dumps created in ${path}")
       }
       catch(Exception e)

@@ -20,7 +20,6 @@ class DequeueReplyMessageTest extends Specification
    def resource = '/protocol/b64/message.queue.dequeue.reply.1000.6201.b64'
    @Shared
    def resourceProtocolVersionOneThreeOrGreater = '/protocol/b64/message.queue.dequeue.reply.1003.6202.b64'
-
    @Shared
    def data
    @Shared
@@ -38,7 +37,7 @@ class DequeueReplyMessageTest extends Specification
    def "get header"()
    {
       setup:
-      def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
+      def headerData = Arrays.copyOfRange(dataProtocolVersionOneThreeOrGreater, 0, MessageHeaderSizes.headerNetworkSize)
       when:
       def header = CasualMessageDecoder.networkHeaderToCasualHeader(headerData)
       then:
@@ -48,7 +47,7 @@ class DequeueReplyMessageTest extends Specification
    def "roundtrip header"()
    {
       setup:
-      def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
+      def headerData = Arrays.copyOfRange(dataProtocolVersionOneThreeOrGreater, 0, MessageHeaderSizes.headerNetworkSize)
       def header = CasualMessageDecoder.networkHeaderToCasualHeader(headerData)
       when:
       def resurrectedHeader = CasualMessageDecoder.networkHeaderToCasualHeader(header.toNetworkBytes())
@@ -62,7 +61,7 @@ class DequeueReplyMessageTest extends Specification
    {
       setup:
       List<byte[]> payload = new ArrayList<>()
-      payload.add(data)
+      payload.add(binary)
       def sink = new LocalByteChannel()
       payload.each{
          bytes ->

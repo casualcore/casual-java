@@ -46,12 +46,34 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
     @Override
     public List<byte[]> toNetworkBytes()
     {
+        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)
+                ? toNetworkBytesProtocolVersionGreaterOrEqualToOneThree()
+                : toNetworkBytesProtocolVersionLessThanOneThree();
+    }
+
+    private List<byte[]> toNetworkBytesProtocolVersionLessThanOneThree()
+    {
         ByteBuffer partialContent = ByteBuffer.allocate(DequeueReplySizes.EXECUTION.getNetworkSize() + DequeueReplySizes.NUMBER_OF_MESSAGES.getNetworkSize());
         CasualEncoderUtils.writeUUID(execution, partialContent);
         partialContent.putLong(messages.size());
         List<byte[]> l = new ArrayList<>();
         l.add(partialContent.array());
-        if(!messages.isEmpty() && ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        for(DequeueMessage m : messages)
+        {
+            l.addAll(m.toNetworkBytes());
+        }
+        return l;
+    }
+
+    private List<byte[]> toNetworkBytesProtocolVersionGreaterOrEqualToOneThree()
+    {
+        // note: can only carry one message as opposed to protocol version < 1.3 where
+        // it can contain n number of messages
+        ByteBuffer partialContent = ByteBuffer.allocate(DequeueReplySizes.EXECUTION.getNetworkSize());
+        CasualEncoderUtils.writeUUID(execution, partialContent);
+        List<byte[]> l = new ArrayList<>();
+        l.add(partialContent.array());
+        if(!messages.isEmpty())
         {
             byte[] hasValue = new byte[1];
             hasValue[0] = 1;
@@ -95,7 +117,10 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         final StringBuilder sb = new StringBuilder("CasualDequeueReplyMessage{");
         sb.append("execution=").append(execution);
         sb.append(", messages=").append(messages);
-        sb.append(", code=").append(code);
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+            sb.append(", code=").append(code);
+        }
         sb.append('}');
         return sb.toString();
     }
@@ -163,6 +188,10 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
             if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
             {
                 Objects.requireNonNull(code, "code can not be null");
+                if(messages.size() > 1)
+                {
+                    throw new CasualProtocolException("for protocol version >= 1.3, only one message can be carried");
+                }
             }
             return new CasualDequeueReplyMessage(execution, new ArrayList<>(messages), protocolVersion, code);
         }
