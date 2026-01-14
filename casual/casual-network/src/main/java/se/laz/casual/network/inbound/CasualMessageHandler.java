@@ -25,12 +25,13 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
 import java.util.Objects;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 @ChannelHandler.Sharable
 public final class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
 {
-    private static Logger log = Logger.getLogger(CasualMessageHandler.class.getName());
+    private static System.Logger log = System.getLogger(CasualMessageHandler.class.getName());
     private final MessageEndpointFactory factory;
     private final XATerminator xaTerminator;
     private final WorkManager workManager;
@@ -59,7 +60,7 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
     {
         MessageEndpoint endpoint = factory.createEndpoint(null);
         CasualMessageListener listener = (CasualMessageListener) endpoint;
-        log.finest(() -> "inbound msg: " + message);
+        log.log(DEBUG,() -> "inbound msg: " + message);
         switch ( message.getType() )
         {
             case COMMIT_REQUEST:
@@ -84,7 +85,7 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
                 listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel());
                 break;
             default:
-                log.warning("Message type not supported: " + message.getType());
+                log.log(WARNING,"Message type not supported: " + message.getType());
         }
     }
 

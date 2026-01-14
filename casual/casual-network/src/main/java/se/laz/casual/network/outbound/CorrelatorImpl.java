@@ -15,11 +15,12 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 public final class CorrelatorImpl implements Correlator
 {
-    private static final Logger log = Logger.getLogger(CorrelatorImpl.class.getName());
+    private static final System.Logger log = System.getLogger(CorrelatorImpl.class.getName());
     private final Map<UUID, CompletableFuture<?>> requests = new ConcurrentHashMap<>();
     private CorrelatorImpl()
     {}
@@ -41,7 +42,7 @@ public final class CorrelatorImpl implements Correlator
         if(null == f)
         {
             // log failure, this is an inconsistency that should not occur
-            log.warning(() -> "Can not find a future for correlation id: " + msg.getCorrelationId() + " this should NEVER happen!");
+            log.log(WARNING,() -> "Can not find a future for correlation id: " + msg.getCorrelationId() + " this should NEVER happen!");
             return;
         }
         if(!f.isCancelled())

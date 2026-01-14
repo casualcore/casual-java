@@ -26,11 +26,12 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 public final class ReverseInboundMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
 {
-    private static Logger log = Logger.getLogger(ReverseInboundMessageHandler.class.getName());
+    private static System.Logger log = System.getLogger(ReverseInboundMessageHandler.class.getName());
     private static final ExecutorService executor = Executors.newCachedThreadPool();
     private final MessageEndpointFactory factory;
     private final XATerminator xaTerminator;
@@ -60,7 +61,7 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
     {
         MessageEndpoint endpoint = factory.createEndpoint(null);
         CasualMessageListener listener = (CasualMessageListener) endpoint;
-        log.finest(() -> "reverse inbound msg: " + message);
+        log.log(DEBUG,() -> "reverse inbound msg: " + message);
         switch ( message.getType() )
         {
             case COMMIT_REQUEST:
@@ -85,7 +86,7 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
                 listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel());
                 break;
             default:
-                log.warning("Message type not supported: " + message.getType());
+                log.log(WARNING,"Message type not supported: " + message.getType());
         }
     }
 

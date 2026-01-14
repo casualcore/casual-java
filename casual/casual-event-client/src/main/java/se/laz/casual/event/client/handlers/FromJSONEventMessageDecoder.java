@@ -15,11 +15,12 @@ import se.laz.casual.event.client.EventObserver;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 public class FromJSONEventMessageDecoder extends SimpleChannelInboundHandler<Object>
 {
-    private static final Logger LOG = Logger.getLogger(FromJSONEventMessageDecoder.class.getName());
+    private static final System.Logger LOG = System.getLogger(FromJSONEventMessageDecoder.class.getName());
     private final CompletableFuture<Boolean> connectFuture;
 
     private enum State{
@@ -53,7 +54,7 @@ public class FromJSONEventMessageDecoder extends SimpleChannelInboundHandler<Obj
         {
             ServiceCallEvent event = JsonProviderFactory.getJsonProvider().fromJson(json, ServiceCallEvent.class);
             observer.notify(event);
-            LOG.finest(() -> "read msg: " + event + " on channel: " + channelHandlerContext.channel());
+            LOG.log(DEBUG,() -> "read msg: " + event + " on channel: " + channelHandlerContext.channel());
         }
     }
 }

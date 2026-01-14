@@ -22,14 +22,15 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMes
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
 import java.util.UUID;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 /**
  * Work instance for performing inbound casual service call requests within the work manager.
  */
 public final class CasualServiceCallWork implements Work
 {
-    private static final Logger log = Logger.getLogger(CasualServiceCallWork.class.getName());
+    private static final System.Logger log = System.getLogger(CasualServiceCallWork.class.getName());
 
     private final CasualServiceCallRequestMessage message;
     private final UUID correlationId;
@@ -95,7 +96,7 @@ public final class CasualServiceCallWork implements Work
         }
         catch( ServiceHandlerNotFoundException e)
         {
-            log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
+            log.log(WARNING,()-> "ServiceHandler not available for: " + message.getServiceName() ,e);
         }
     }
 
@@ -119,7 +120,7 @@ public final class CasualServiceCallWork implements Work
         {
             replyBuilder.setError( ErrorState.TPENOENT )
                         .setTransactionState( TransactionState.ROLLBACK_ONLY );
-            log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
+            log.log(WARNING,()-> "ServiceHandler not available for: " + message.getServiceName(),e );
         }
         finally
         {

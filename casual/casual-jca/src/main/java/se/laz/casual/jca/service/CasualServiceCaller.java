@@ -43,11 +43,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 public class CasualServiceCaller implements CasualServiceApi
 {
-    private static final Logger LOG = Logger.getLogger(CasualServiceCaller.class.getName());
+    private static final System.Logger LOG = System.getLogger(CasualServiceCaller.class.getName());
     private static final String SERVICE_NAME_LITERAL = " serviceName: ";
     private ServiceCallEventPublisher  eventPublisher;
     private final CasualManagedConnection connection;
@@ -127,11 +128,11 @@ public class CasualServiceCaller implements CasualServiceApi
                 casualNWMessageCompletableFuture.whenComplete((v, e) -> {
                             if (null != e)
                             {
-                                LOG.finest(() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
+                                LOG.log(DEBUG,() -> "service call request failed for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
                                 f.completeExceptionally(e);
                                 return;
                             }
-                            LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
+                            LOG.log(DEBUG,() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
                     eventBuilder.withCode(v.getMessage().getError())
                             .end();
                             getEventPublisher().post(eventBuilder.build());
@@ -218,7 +219,7 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setTimeout(timeout.toNanos())
                 .setXatmiFlags(flags).build();
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
-        LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
+        LOG.log(DEBUG,() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
 
         if(noReply)
         {
@@ -230,7 +231,7 @@ public class CasualServiceCaller implements CasualServiceApi
 
     private CasualNWMessage<CasualDomainDiscoveryReplyMessage> serviceDiscovery(UUID corrid, String serviceName)
     {
-        LOG.finest(() -> "issuing domain discovery, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
+        LOG.log(DEBUG,() -> "issuing domain discovery, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
 
         CasualDomainDiscoveryRequestMessage requestMsg = CasualDomainDiscoveryRequestMessage.createBuilder()
                 .setExecution(UUID.randomUUID())
@@ -242,7 +243,7 @@ public class CasualServiceCaller implements CasualServiceApi
         CompletableFuture<CasualNWMessage<CasualDomainDiscoveryReplyMessage>> replyMsgFuture = connection.getNetworkConnection().request(msg);
 
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
-        LOG.finest(() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
+        LOG.log(DEBUG,() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
         return replyMsg;
     }
 

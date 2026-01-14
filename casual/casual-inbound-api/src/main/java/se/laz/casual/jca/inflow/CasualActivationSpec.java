@@ -9,7 +9,8 @@ import jakarta.resource.spi.Activation;
 import jakarta.resource.spi.ActivationSpec;
 import jakarta.resource.spi.InvalidPropertyException;
 import jakarta.resource.spi.ResourceAdapter;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 /**
  * Activation Specification for Inbound Message Listener.
@@ -17,7 +18,7 @@ import java.util.logging.Logger;
 @Activation(messageListeners = { CasualMessageListener.class })
 public class CasualActivationSpec implements ActivationSpec
 {
-   private static Logger logger = Logger.getLogger(CasualActivationSpec.class.getName());
+   private static System.Logger logger = System.getLogger(CasualActivationSpec.class.getName());
    private ResourceAdapter ra;
 
    private Integer port;
@@ -35,21 +36,21 @@ public class CasualActivationSpec implements ActivationSpec
    @Override
    public void validate() throws InvalidPropertyException
    {
-      logger.finest("validate()");
+      logger.log(DEBUG,"validate()");
 
    }
 
    @Override
    public ResourceAdapter getResourceAdapter()
    {
-      logger.finest("getResourceAdapter()");
+      logger.log(DEBUG,"getResourceAdapter()");
       return ra;
    }
 
    @Override
    public void setResourceAdapter(ResourceAdapter ra)
    {
-      logger.finest("setResourceAdapter()");
+      logger.log(DEBUG,"setResourceAdapter()");
       this.ra = ra;
    }
 

@@ -11,11 +11,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 
 import java.lang.reflect.Type;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 public class ConnectRequestMessageTypeAdapter implements JsonDeserializer<ConnectRequestMessage>
 {
-    private static final Logger log = Logger.getLogger(ConnectRequestMessageTypeAdapter.class.getName());
+    private static final System.Logger log = System.getLogger(ConnectRequestMessageTypeAdapter.class.getName());
     public static ConnectRequestMessageTypeAdapter of()
     {
         return new ConnectRequestMessageTypeAdapter();
@@ -24,7 +25,7 @@ public class ConnectRequestMessageTypeAdapter implements JsonDeserializer<Connec
     public ConnectRequestMessage deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
     {
         String message = json.getAsJsonObject().get("message").getAsString();
-        log.finest(() -> "message: " + message);
+        log.log(DEBUG,() -> "message: " + message);
         ConnectRequest connectRequest = ConnectRequest.unmarshall(message);
         return ConnectRequestMessage.of(connectRequest);
     }

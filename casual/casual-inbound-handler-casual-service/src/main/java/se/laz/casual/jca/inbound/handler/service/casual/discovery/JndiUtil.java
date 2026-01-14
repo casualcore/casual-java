@@ -13,12 +13,12 @@ import javax.naming.NamingException;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 public class JndiUtil
 {
-    private static final Logger logger = Logger.getLogger(JndiUtil.class.getName());
+    private static final System.Logger logger = System.getLogger(JndiUtil.class.getName());
     private static final String BEAN_INTERFACE_SEPERATOR = "!";
     private static final String SEPERATOR = "/";
     private static final String PACKAGE_SEPERATOR = ".";
@@ -101,7 +101,7 @@ public class JndiUtil
             }
             catch(NamingException e)
             {
-                logger.log( Level.FINEST, e, () -> "lookup failed for: " + name);
+                logger.log( DEBUG, () -> "lookup failed for: " + name);
             }
         }
         return results;

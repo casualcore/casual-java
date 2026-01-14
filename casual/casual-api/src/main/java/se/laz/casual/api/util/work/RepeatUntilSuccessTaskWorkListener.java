@@ -8,11 +8,12 @@ package se.laz.casual.api.util.work;
 
 import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 public class RepeatUntilSuccessTaskWorkListener implements WorkListener
 {
-    private static Logger log = Logger.getLogger( RepeatUntilSuccessTaskWorkListener.class.getName());
+    private static System.Logger log = System.getLogger( RepeatUntilSuccessTaskWorkListener.class.getName());
 
     public static RepeatUntilSuccessTaskWorkListener of()
     {
@@ -28,7 +29,7 @@ public class RepeatUntilSuccessTaskWorkListener implements WorkListener
     @Override
     public void workRejected(WorkEvent e)
     {
-        log.warning(() -> "RepeatUntilSuccessTaskWork rejected");
+        log.log(WARNING,() -> "RepeatUntilSuccessTaskWork rejected",e.getException());
     }
 
     @Override
@@ -42,8 +43,8 @@ public class RepeatUntilSuccessTaskWorkListener implements WorkListener
     {
         if(null != event.getException())
         {
-            log.warning(() -> "workCompleted failed: " + event.getException());
-            log.warning(() -> "cause: " + event.getException().getCause());
+            log.log(WARNING,() -> "workCompleted failed: " + event.getException(),event.getException());
+            log.log(WARNING,() -> "cause: " + event.getException().getCause(),event.getException());
         }
     }
 }

@@ -14,14 +14,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 /**
  * SPI factory for retrieving registered {@link ServiceHandler} instances.
  */
 public final class ServiceHandlerFactory
 {
-    private static final Logger LOG = Logger.getLogger(ServiceHandlerFactory.class.getName());
+    private static final System.Logger LOG = System.getLogger(ServiceHandlerFactory.class.getName());
     private static final Map<String,ServiceHandler> serviceHandlerCache = new ConcurrentHashMap<>();
 
     private ServiceHandlerFactory()
@@ -67,7 +68,7 @@ public final class ServiceHandlerFactory
             if( h.canHandleService( serviceName ) )
             {
                 serviceHandlerCache.put( serviceName, h );
-                LOG.finest(() -> "service handler: " + h + " chosen for service: " + serviceName);
+                LOG.log(DEBUG,() -> "service handler: " + h + " chosen for service: " + serviceName);
                 return h;
             }
         }
@@ -76,7 +77,7 @@ public final class ServiceHandlerFactory
 
     private static void log(List<ServiceHandler> handlers)
     {
-        LOG.finest(()-> "# of service handlers: " + handlers.size() + "\n" + logHandlers(handlers));
+        LOG.log(DEBUG,()-> "# of service handlers: " + handlers.size() + "\n" + logHandlers(handlers));
     }
 
     private static String logHandlers(List<ServiceHandler> handlers)

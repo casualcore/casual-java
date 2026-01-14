@@ -14,13 +14,14 @@ import se.laz.casual.network.outbound.NetworkListener;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 // yes it is intentional
 @SuppressWarnings("java:S6548")
 public class NetworkPoolHandler
 {
-    private static final Logger log = Logger.getLogger(NetworkPoolHandler.class.getName());
+    private static final System.Logger log = System.getLogger(NetworkPoolHandler.class.getName());
     private static final NetworkPoolHandler instance = new NetworkPoolHandler();
     private final Map<String, NetworkConnectionPool> pools = new ConcurrentHashMap<>();
 
@@ -37,8 +38,8 @@ public class NetworkPoolHandler
         }
         catch(CasualConnectionException e)
         {
-            log.finest(() -> "connection failure for: " + address);
-            log.finest(() -> "removing pool: " + poolName);
+            log.log(DEBUG,() -> "connection failure for: " + address);
+            log.log(DEBUG,() -> "removing pool: " + poolName);
             pools.remove(poolName);
             throw e;
         }

@@ -23,8 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static java.lang.System.Logger.Level.*;
 
 /**
  * CasualManagedConnectionFactory
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation, ValidatingManagedConnectionFactory
 { 
    private static final long serialVersionUID = 1L;
-   private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
+   private static System.Logger log = System.getLogger(CasualManagedConnectionFactory.class.getName());
    private  CasualManagedConnectionProducer casualManagedConnectionProducer;
    private ResourceAdapter ra;
    private PrintWriter logwriter;
@@ -108,7 +109,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    @Override
    public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException
    {
-      log.finest("createConnectionFactory()");
+      log.log(DEBUG,"createConnectionFactory()");
       return new CasualConnectionFactoryImpl(this, cxManager);
    }
 
@@ -125,7 +126,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       try
       {
          CasualManagedConnection managedConnection = casualManagedConnectionProducer.createManagedConnection(this);
-         log.finest(() -> "Created a new managed connection: " + managedConnection);
+         log.log(DEBUG,() -> "Created a new managed connection: " + managedConnection);
          return managedConnection;
       }
       catch(Exception e)
@@ -134,7 +135,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
          PrintWriter printWriter = new PrintWriter( writer );
          e.printStackTrace(printWriter);
          printWriter.flush();
-         log.warning(() -> "createManagedConnection failed: " + writer);
+         log.log(WARNING,() -> "createManagedConnection failed: " + writer,e);
          throw new CommException(e);
       }
    }
@@ -144,7 +145,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    public ManagedConnection matchManagedConnections(Set connectionSet,
                                                     Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
-      log.finest("matchManagedConnections()");
+      log.log(DEBUG,"matchManagedConnections()");
       return (ManagedConnection)connectionSet.stream()
                                              .filter(CasualManagedConnection.class::isInstance)
                                              .findFirst( )
@@ -167,28 +168,28 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    @Override
    public PrintWriter getLogWriter() throws ResourceException
    {
-      log.finest("getLogWriter()");
+      log.log(DEBUG,"getLogWriter()");
       return logwriter;
    }
 
    @Override
    public void setLogWriter(PrintWriter out) throws ResourceException
    {
-      log.finest("setLogWriter()");
+      log.log(DEBUG,"setLogWriter()");
       logwriter = out;
    }
 
    @Override
    public ResourceAdapter getResourceAdapter()
    {
-      log.finest("getResourceAdapter()");
+      log.log(DEBUG,"getResourceAdapter()");
       return ra;
    }
 
    @Override
    public void setResourceAdapter(ResourceAdapter ra)
    {
-      log.finest("setResourceAdapter()");
+      log.log(DEBUG,"setResourceAdapter()");
       this.ra = ra;
    }
 

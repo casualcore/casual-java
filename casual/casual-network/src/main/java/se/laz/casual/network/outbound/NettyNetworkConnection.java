@@ -46,11 +46,12 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 public class NettyNetworkConnection implements NetworkConnection, ConversationClose, CasualOutboundMessageListener
 {
-    private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
+    private static final System.Logger LOG = System.getLogger(NettyNetworkConnection.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
     private final BaseConnectionInformation ci;
     private final Correlator correlator;
@@ -93,7 +94,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator);
         Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled());
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
-        LOG.finest(() -> networkConnection + " connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()));
+        LOG.log(DEBUG,() -> networkConnection + " connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()));
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
         DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
         networkConnection.setDomainId(id);
@@ -134,11 +135,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                     if(enableLogHandler)
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.OUTBOUND_LOGGING_LEVEL));
-                        LOG.info(() -> "outbound network log handler enabled, using netty logging level: " + LogLevelProvider.OUTBOUND_LOGGING_LEVEL);
+                        LOG.log(INFO,() -> "outbound network log handler enabled, using netty logging level: " + LogLevelProvider.OUTBOUND_LOGGING_LEVEL);
                     }
                 }
             });
-        LOG.finest(() -> "about to connect to: " + address);
+        LOG.log(DEBUG,() -> "about to connect to: " + address);
         return b.connect(address).syncUninterruptibly().channel();
     }
 
@@ -180,10 +181,10 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     {
         issueRequest(message, true).ifPresent(casualNWMessageCompletableFuture -> casualNWMessageCompletableFuture.whenComplete((v, e) -> {
             if (null != e) {
-                LOG.warning("requestNoReply: " + message + " error: " + e);
+                LOG.log(WARNING,"requestNoReply: " + message + " error: " + e,e);
                 return;
             }
-            LOG.warning("requestNoReply: " + message + " got reply: " + v);
+            LOG.log(WARNING,"requestNoReply: " + message + " got reply: " + v);
         }));
     }
 
@@ -223,7 +224,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     public void close()
     {
         connected.set(false);
-        LOG.finest(() -> this + " network connection close called by appserver, closing");
+        LOG.log(DEBUG,() -> this + " network connection close called by appserver, closing");
         channel.close();
     }
 
@@ -234,7 +235,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
             // new service calls are not ok when domain has been disconnected
             throw new DomainDisconnectedException("Domain: " + domainId + " has disconnected, no service or queue calls allowed");
         }
-        LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
+        LOG.log(DEBUG,() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
     }
 
     private <T extends CasualNetworkTransmittable, X extends CasualNetworkTransmittable> Optional<CompletableFuture<CasualNWMessage<T>>> issueRequest(CasualNWMessage<X> message, boolean noReply)
@@ -243,7 +244,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         CompletableFuture<CasualNWMessage<T>> f = new CompletableFuture<>();
         if(!channel.isActive())
         {
-            LOG.finest("channel not active, connection gone");
+            LOG.log(DEBUG,"channel not active, connection gone");
             f.completeExceptionally(new CasualConnectionException("can not write msg: " + message + " connection is gone"));
             return noReply ? Optional.empty() : Optional.of(f);
         }
@@ -257,7 +258,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
             if(!v.isSuccess()){
                 List<UUID> l = new ArrayList<>();
                 l.add(message.getCorrelationId());
-                LOG.finest(() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
+                LOG.log(DEBUG,() -> String.format("failed request: %s", LogTool.asLogEntry(message)));
                 // This since all outstanding requests may already have been completed exceptionally
                 // when no reply - nobody is listening Dave
                 if(!f.isCompletedExceptionally() && !noReply) {
@@ -332,18 +333,18 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                                                                                             .withProtocols(ProtocolVersion.supportedVersionNumbers())
                                                                                             .build();
         CasualNWMessage<CasualDomainConnectRequestMessage> nwMessage = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage);
-        LOG.finest(() -> "about to send handshake: " + this);
+        LOG.log(DEBUG,() -> "about to send handshake: " + this);
         CompletableFuture<CasualNWMessage<CasualDomainConnectReplyMessage>> replyEnvelopeFuture = request(nwMessage);
-        LOG.finest(() -> "handshake sent: " + this);
+        LOG.log(DEBUG,() -> "handshake sent: " + this);
         CasualNWMessage<CasualDomainConnectReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
-        LOG.finest(() -> "received handshake reply: " + this);
+        LOG.log(DEBUG,() -> "received handshake reply: " + this);
         long actualProtocolVersion = ProtocolVersion.supportedVersionNumbers()
                                                               .stream()
                                                               .filter(version -> version == replyEnvelope.getMessage().getProtocolVersion())
                                                               .findFirst()
                                                               .orElseThrow(() -> new CasualConnectionException("wanted one of protocol versions " + ProtocolVersion.supportedVersionNumbers() + " but it is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion()));
         setProtocolVersion(ProtocolVersion.unmarshall(actualProtocolVersion));
-        LOG.info(() -> "using protocol version: " + protocolVersion + " asked for: " + ProtocolVersion.supportedVersions());
+        LOG.log(INFO,() -> "using protocol version: " + protocolVersion + " asked for: " + ProtocolVersion.supportedVersions());
         return DomainId.of(replyEnvelope.getMessage().getDomainId());
     }
 
@@ -409,7 +410,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public <T extends CasualNetworkTransmittable> void handleMessage(CasualNWMessage<T> message)
     {
-        LOG.finest(() -> "message: " + LogTool.asLogEntry(message));
+        LOG.log(DEBUG,() -> "message: " + LogTool.asLogEntry(message));
         final T msg = message.getMessage();
         if(msg instanceof DomainDisconnectRequestMessage requestMessage)
         {
@@ -422,7 +423,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         }
         else
         {
-            LOG.warning(() -> "message type: " + message.getType() + " not handled!");
+            LOG.log(WARNING,() -> "message type: " + message.getType() + " not handled!");
         }
 
     }

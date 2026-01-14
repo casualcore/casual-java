@@ -18,11 +18,12 @@ import se.laz.casual.network.outbound.NetworkListener;
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
+
+import static java.lang.System.Logger.Level.*;
 
 public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListener, NetworkListener
 {
-    private static final Logger LOG = Logger.getLogger(NetworkConnectionPool.class.getName());
+    private static final System.Logger LOG = System.getLogger(NetworkConnectionPool.class.getName());
     private final Address address;
     private final ConnectionContainer connections = ConnectionContainer.of();
     private final String poolName;
@@ -85,7 +86,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         synchronized (getOrCreateLock)
         {
             connections.removeConnection(networkConnection);
-            LOG.finest(() -> "removed: " + networkConnection + " from: " + this);
+            LOG.log(DEBUG,() -> "removed: " + networkConnection + " from: " + this);
         }
     }
 
@@ -129,7 +130,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         if (networkConnection instanceof NettyNetworkConnection impl)
         {
             impl.addListener(networkListener);
-            LOG.finest(() -> "created network connection: " + networkConnection);
+            LOG.log(DEBUG,() -> "created network connection: " + networkConnection);
             return ReferenceCountedNetworkConnection.of(impl, referenceCountedNetworkCloseListener);
         }
         throw new CasualResourceAdapterException("Wrong implementation for NetworkConnection, was expecting NettyNetworkConnection but got: " + networkConnection.getClass());

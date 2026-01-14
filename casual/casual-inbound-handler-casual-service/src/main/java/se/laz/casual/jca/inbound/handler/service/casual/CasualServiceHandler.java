@@ -34,15 +34,13 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodMatcher.matches;
-
+import static java.lang.System.Logger.Level.*;
 @Stateless
 public class CasualServiceHandler implements ServiceHandler
 {
-    private static final Logger LOG = Logger.getLogger(CasualServiceHandler.class.getName());
+    private static final System.Logger LOG = System.getLogger(CasualServiceHandler.class.getName());
 
     private Context context;
 
@@ -75,7 +73,7 @@ public class CasualServiceHandler implements ServiceHandler
     @Override
     public InboundResponse invokeService(InboundRequest request)
     {
-        LOG.finest( ()->"Request received: " + request );
+        LOG.log(DEBUG,()->"Request received: " + request );
         CasualServiceEntry entry = CasualServiceRegistry.getInstance().getServiceEntry( request.getServiceName() );
         ThreadClassLoaderTool tool = new ThreadClassLoaderTool();
         ServiceHandlerExtension serviceHandlerExtension = ServiceHandlerExtensionFactory.getExtension( CasualService.class.getName() );
@@ -91,7 +89,7 @@ public class CasualServiceHandler implements ServiceHandler
         }
         catch( Throwable e )
         {
-            LOG.log( Level.WARNING, e, ()-> "Error invoking service: " + e.getMessage() );
+            LOG.log(WARNING, ()-> "Error invoking service: " + e.getMessage() ,e);
             InboundResponse response = InboundResponse.createBuilder()
                     .errorState( ErrorState.TPESVCERR )
                     .transactionState( TransactionState.ROLLBACK_ONLY )
@@ -123,7 +121,7 @@ public class CasualServiceHandler implements ServiceHandler
     {
         Context c = getContext();
         Object r = c.lookup( jndiName );
-        LOG.finest( ()->"Found " + r.getClass() + " : " + r );
+        LOG.log(DEBUG,()->"Found " + r.getClass() + " : " + r );
         return r;
     }
 
