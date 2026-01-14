@@ -17,6 +17,7 @@ import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.CasualManagedConnection;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
@@ -56,7 +57,15 @@ public class CasualQueueCaller implements CasualQueueApi
         {
             // Always setting error state OK for now. In the future when error state is handled in the casual queue
             // protocol any error state supplied from casual should be used (same with dequeue)
-            return EnqueueReturn.createBuilder().withErrorState(ErrorState.OK).withId(makeEnqueueCall(UUID.randomUUID(), qinfo, msg)).build();
+            CasualEnqueueReplyMessage replyMessage = makeEnqueueCall(UUID.randomUUID(), qinfo, msg);
+            EnqueueReturn.Builder builder = EnqueueReturn.createBuilder();
+            builder.withErrorState(ErrorState.OK)
+                   .withId(replyMessage.getId());
+            if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion()))
+            {
+                builder.withErrorCode(replyMessage.getCode());
+            }
+            return builder.build();
         }
         catch(Exception e)
         {
@@ -92,7 +101,7 @@ public class CasualQueueCaller implements CasualQueueApi
         }
     }
 
-    private UUID makeEnqueueCall(UUID corrid, QueueInfo qinfo, QueueMessage msg)
+    private CasualEnqueueReplyMessage makeEnqueueCall(UUID corrid, QueueInfo qinfo, QueueMessage msg)
     {
         CasualEnqueueRequestMessage requestMessage = CasualEnqueueRequestMessage.createBuilder()
                                                                                 .withExecution(UUID.randomUUID())
@@ -104,8 +113,7 @@ public class CasualQueueCaller implements CasualQueueApi
         CompletableFuture<CasualNWMessage<CasualEnqueueReplyMessage>> networkReplyMessageFuture = connection.getNetworkConnection().request(networkRequestMessage);
 
         CasualNWMessage<CasualEnqueueReplyMessage> networkReplyMessage = networkReplyMessageFuture.join();
-        CasualEnqueueReplyMessage replyMessage = networkReplyMessage.getMessage();
-        return replyMessage.getId();
+        return networkReplyMessage.getMessage();
     }
 
     private QueueMessage makeDequeueCall(UUID corrid, QueueInfo qinfo, MessageSelector selector)

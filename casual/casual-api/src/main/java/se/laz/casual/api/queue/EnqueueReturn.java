@@ -16,12 +16,14 @@ public class EnqueueReturn
 {
     private final UUID id;
     private final ErrorState errorState;
+    private final QueueErrorCode errorCode;
 
-    private EnqueueReturn(UUID id, ErrorState errorState)
+    private EnqueueReturn(UUID id, ErrorState errorState, QueueErrorCode errorCode)
     {
         Objects.requireNonNull(errorState, "errorState can't be null");
         this.id = id;
         this.errorState = errorState;
+        this.errorCode = errorCode;
     }
 
     public Optional<UUID> getId()
@@ -32,6 +34,15 @@ public class EnqueueReturn
     public ErrorState getErrorState()
     {
         return errorState;
+    }
+
+    /**
+     * Only available when using gw protocol version >= 1.3
+     * @return
+     */
+    public Optional<QueueErrorCode> getErrorCode()
+    {
+        return Optional.ofNullable(errorCode);
     }
 
     public static Builder createBuilder()
@@ -73,6 +84,7 @@ public class EnqueueReturn
     {
         private UUID id;
         private ErrorState errorState;
+        private QueueErrorCode errorCode;
 
         public Builder withId(UUID id)
         {
@@ -86,9 +98,14 @@ public class EnqueueReturn
             return this;
         }
 
+        public void withErrorCode(QueueErrorCode errorCode)
+        {
+            this.errorCode = errorCode;
+        }
+
         public EnqueueReturn build()
         {
-            return new EnqueueReturn(id, errorState);
+            return new EnqueueReturn(id, errorState, errorCode);
         }
     }
 }

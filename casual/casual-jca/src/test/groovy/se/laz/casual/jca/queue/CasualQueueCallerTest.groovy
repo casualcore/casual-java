@@ -6,10 +6,12 @@
 
 package se.laz.casual.jca.queue
 
+import se.laz.casual.api.CasualRuntimeException
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.queue.DequeueReturn
 import se.laz.casual.api.queue.EnqueueReturn
 import se.laz.casual.api.queue.MessageSelector
+import se.laz.casual.api.queue.QueueErrorCode
 import se.laz.casual.api.queue.QueueInfo
 import se.laz.casual.api.queue.QueueMessage
 import se.laz.casual.api.xa.XID
@@ -21,6 +23,7 @@ import se.laz.casual.jca.CasualResourceManager
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.connection.CasualConnectionException
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
@@ -65,7 +68,8 @@ class CasualQueueCallerTest extends Specification
     @Shared CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> actualDomainDiscoveryRequest
     @Shared def bigBaddaBoom = 'big badda boom'
     @Shared int resourceId = 42
-
+    @Shared ProtocolVersionValueHolder protocolVersionValueHolder = ProtocolVersionValueHolder.of()
+    QueueErrorCode queueErrorCode = QueueErrorCode.ok
     def setup()
     {
         mcf = Mock(CasualManagedConnectionFactory)
@@ -74,6 +78,7 @@ class CasualQueueCallerTest extends Specification
         }
         networkConnection = Mock(NetworkConnection){
            getDomainId() >> domainOne
+           getProtocolVersion() >> {protocolVersionValueHolder.get()}
         }
         connection = new CasualManagedConnection( mcf )
         connection.networkConnection =  networkConnection
@@ -150,12 +155,16 @@ class CasualQueueCallerTest extends Specification
 
     CasualNWMessageImpl<CasualEnqueueReplyMessage> createEnqueueReplyMessage(ProtocolVersion protocolVersion)
     {
+       CasualEnqueueReplyMessage.Builder builder = CasualEnqueueReplyMessage.createBuilder()
+               .withExecution(executionId)
+               .withId(enqueueReplyId)
+               .withProtocolVersion(protocolVersion);
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+           builder.withCode(queueErrorCode)
+        }
         CasualNWMessageImpl.of( executionId,
-                CasualEnqueueReplyMessage.createBuilder()
-                                         .withExecution(executionId)
-                                         .withId(enqueueReplyId)
-                                         .withProtocolVersion(protocolVersion)
-                                         .build())
+                builder.build())
     }
 
     CasualNWMessageImpl<CasualDequeueReplyMessage> createDequeueReplyMessage(ProtocolVersion protocolVersion)
@@ -172,16 +181,29 @@ class CasualQueueCallerTest extends Specification
     def 'enqueue'()
     {
         when:
-        EnqueueReturn msgId = instance.enqueue(queueInfo, QueueMessage.of(message))
+        enqueueReply = createEnqueueReplyMessage(protocolVersion)
+        protocolVersionValueHolder.accept(protocolVersion)
+        EnqueueReturn enqueueReturn = instance.enqueue(queueInfo, QueueMessage.of(message))
         then:
         noExceptionThrown()
-        msgId.getId().get() == enqueueReplyId
+        enqueueReturn.getId().get() == enqueueReplyId
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        {
+           QueueErrorCode code = enqueueReturn.getErrorCode().orElseThrow ({new CasualRuntimeException("Missing error code")})
+           code == queueErrorCode
+        }
+        else
+        {
+           enqueueReturn.getErrorCode().isEmpty()
+        }
         1 * networkConnection.request( _ ) >> {
             CasualNWMessageImpl<CasualEnqueueRequestMessage> input ->
                 actualEnqueueRequest = input
                 return CompletableFuture.completedFuture(enqueueReply)
         }
         expect actualEnqueueRequest, matching( expectedEnqueueRequest )
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
     def 'enqueue goes big badda boom'()

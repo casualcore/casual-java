@@ -108,7 +108,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         return id;
     }
 
-    public QueueErrorCode code()
+    public QueueErrorCode getCode()
     {
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
