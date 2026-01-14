@@ -57,6 +57,10 @@ public final class Queue
 
     public long getRetryDelay()
     {
+        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
+        {
+            throw new CasualProtocolException("retry delay not available in protocol version " + protocolVersion);
+        }
         return retryDelay;
     }
 
@@ -68,6 +72,10 @@ public final class Queue
 
     public boolean isEnqueueEnabled()
     {
+        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
+        {
+            throw new CasualProtocolException("enqueue enabled is not available in protocol version " + protocolVersion);
+        }
         return enqueueEnabled;
     }
 
@@ -79,6 +87,10 @@ public final class Queue
 
     public boolean isDequeueEnabled()
     {
+        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
+        {
+            throw new CasualProtocolException("dequeue enabled is not available in protocol version " + protocolVersion);
+        }
         return dequeueEnabled;
     }
 
@@ -131,7 +143,8 @@ public final class Queue
         {
             return false;
         }
-        return getRetries() == queue.getRetries() && getRetryDelay() == queue.getRetryDelay() && isEnqueueEnabled() == queue.isEnqueueEnabled() && isDequeueEnabled() == queue.isDequeueEnabled() && Objects.equals(getName(), queue.getName());
+        return retries == queue.retries && retryDelay == queue.retryDelay && enqueueEnabled == queue.enqueueEnabled &&
+                dequeueEnabled == queue.dequeueEnabled && Objects.equals(getName(), queue.getName());
     }
 
     @Override

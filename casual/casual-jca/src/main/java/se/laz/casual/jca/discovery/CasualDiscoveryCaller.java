@@ -81,7 +81,14 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
     private QueueDetails toQueueDetails(Queue queue, ProtocolVersion protocolVersion)
     {
         return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion)
-                ? QueueDetails.of(queue.getName(), queue.getRetries(), protocolVersion, queue.getRetryDelay(), queue.isEnqueueEnabled(), queue.isDequeueEnabled())
+                ? QueueDetails.createBuilder()
+                              .withName(queue.getName())
+                              .withRetries(queue.getRetries())
+                              .withProtocolVersion(protocolVersion)
+                              .withRetryDelay(queue.getRetryDelay())
+                              .withEnqueueEnabled(queue.isEnqueueEnabled())
+                              .withDequeueEnabled(queue.isDequeueEnabled())
+                              .build()
                 : QueueDetails.of(queue.getName(), queue.getRetries(), protocolVersion);
 
     }
