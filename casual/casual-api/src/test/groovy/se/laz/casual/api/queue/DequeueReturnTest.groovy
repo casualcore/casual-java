@@ -44,18 +44,24 @@ class DequeueReturnTest extends Specification {
     def "buildable variants"(QueueMessage queueMessage, ErrorState errorState)
     {
         when:
-        DequeueReturn dequeueReturn = DequeueReturn.createBuilder().withQueueMessage(queueMessage).withErrorState(errorState).build()
+        DequeueReturn dequeueReturn = DequeueReturn.createBuilder().
+                withQueueMessage(queueMessage).
+                withErrorState(errorState)
+                .withErrorCode(errorCode)
+                .build()
 
         then:
         noExceptionThrown()
         dequeueReturn != null
 
         where:
-        queueMessage     | errorState
-        someQueueMessage | ErrorState.OK
-        null             | ErrorState.OK
-        someQueueMessage | ErrorState.TPENOENT
-        null             | ErrorState.TPENOENT
+        queueMessage     | errorState           | errorCode
+        someQueueMessage | ErrorState.OK        | null
+        null             | ErrorState.OK        | null
+        someQueueMessage | ErrorState.TPENOENT  | null
+        null             | ErrorState.TPENOENT  | null
+        someQueueMessage | ErrorState.OK        | QueueErrorCode.ok
+        null             | ErrorState.OK        | QueueErrorCode.no_message
     }
 
     def "not buildable variants"(QueueMessage queueMessages, ErrorState errorState)

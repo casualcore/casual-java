@@ -15,12 +15,15 @@ public class DequeueReturn
 {
     private final QueueMessage queueMessage;
     private final ErrorState errorState;
+    // only available in protocol version >= 1.3
+    private final QueueErrorCode errorCode;
 
-    private DequeueReturn(QueueMessage queueMessage, ErrorState errorState)
+    private DequeueReturn(QueueMessage queueMessage, ErrorState errorState, QueueErrorCode errorCode)
     {
         Objects.requireNonNull(errorState, "errorState can't be null");
         this.queueMessage = queueMessage;
         this.errorState = errorState;
+        this.errorCode = errorCode;
     }
 
     public Optional<QueueMessage> getQueueMessage()
@@ -31,6 +34,15 @@ public class DequeueReturn
     public ErrorState getErrorState()
     {
         return errorState;
+    }
+
+    /**
+     * Only available when using protocol version >= 1.3
+     * @return
+     */
+    public Optional<QueueErrorCode> getErrorCode()
+    {
+        return Optional.ofNullable(errorCode);
     }
 
     public static Builder createBuilder()
@@ -71,6 +83,7 @@ public class DequeueReturn
     {
         private QueueMessage queueMessage;
         private ErrorState errorState;
+        private QueueErrorCode errorCode;
 
         public Builder withQueueMessage(QueueMessage queueMessage)
         {
@@ -84,9 +97,14 @@ public class DequeueReturn
             return this;
         }
 
+        public Builder withErrorCode(QueueErrorCode errorCode)
+        {
+            this.errorCode = errorCode;
+            return this;
+        }
         public DequeueReturn build()
         {
-            return new DequeueReturn(queueMessage, errorState);
+            return new DequeueReturn(queueMessage, errorState, errorCode);
         }
     }
 }

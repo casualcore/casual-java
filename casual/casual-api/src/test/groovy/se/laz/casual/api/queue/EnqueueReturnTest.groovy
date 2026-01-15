@@ -42,16 +42,21 @@ class EnqueueReturnTest extends Specification {
     {
         when:
 
-        EnqueueReturn enqueueReturn = EnqueueReturn.createBuilder().withId(uuid).withErrorState(errorState).build()
+        EnqueueReturn enqueueReturn = EnqueueReturn.createBuilder()
+                .withId(uuid)
+                .withErrorState(errorState)
+                .withErrorCode(errorCode)
+                .build()
 
         then:
         enqueueReturn != null
         noExceptionThrown()
 
         where:
-        uuid              | errorState
-        UUID.randomUUID() | ErrorState.OK
-        null              | ErrorState.TPENOENT
+        uuid              | errorState           | errorCode
+        UUID.randomUUID() | ErrorState.OK        | null
+        null              | ErrorState.TPENOENT  | null
+        UUID.randomUUID() | ErrorState.OK        | QueueErrorCode.ok
     }
 
     def "not buildable variants"(UUID uuid, ErrorState errorState)

@@ -98,9 +98,10 @@ public class EnqueueReturn
             return this;
         }
 
-        public void withErrorCode(QueueErrorCode errorCode)
+        public Builder withErrorCode(QueueErrorCode errorCode)
         {
             this.errorCode = errorCode;
+            return this;
         }
 
         public EnqueueReturn build()
