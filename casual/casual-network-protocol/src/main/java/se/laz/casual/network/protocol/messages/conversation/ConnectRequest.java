@@ -254,7 +254,10 @@ public class ConnectRequest implements CasualNetworkTransmittable
             return false;
         }
         ConnectRequest that = (ConnectRequest) o;
-        return timeout == that.timeout && Objects.equals(execution, that.execution) && Objects.equals(serviceName, that.serviceName) && Objects.equals(parentName, that.parentName) && Objects.equals(xid, that.xid) && Objects.equals(duplex, that.duplex);
+        return timeout == that.timeout && Objects.equals(execution, that.execution) &&
+                Objects.equals(serviceName, that.serviceName) &&
+                Objects.equals(parentName, that.parentName) && Objects.equals(parentSpan, that.parentSpan) &&
+                Objects.equals(xid, that.xid) && Objects.equals(duplex, that.duplex);
     }
 
     @Override
@@ -271,6 +274,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
                 ", serviceName='" + serviceName + '\'' +
                 ", timeout=" + timeout +
                 ", parentName='" + parentName + '\'' +
+                ", parentSpan='" + parentSpan + '\'' +
                 ", xid=" + xid +
                 ", duplex=" + duplex +
                 ", serviceBuffer=" + serviceBuffer +

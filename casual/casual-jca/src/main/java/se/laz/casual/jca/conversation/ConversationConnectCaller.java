@@ -17,6 +17,8 @@ import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.jca.ConversationConnectException;
+import se.laz.casual.jca.SpanId;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.conversation.ConnectReply;
 import se.laz.casual.network.protocol.messages.conversation.ConnectRequest;
@@ -68,6 +70,10 @@ public class ConversationConnectCaller implements CasualConversationApi
         if(null != data)
         {
             connectRequestBuilder.setServiceBuffer(ServiceBuffer.of(data));
+        }
+        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(managedConnection.getNetworkConnection().getProtocolVersion()))
+        {
+            connectRequestBuilder.setParentSpan(SpanId.of().getSpanId());
         }
         ConnectRequest connectRequest = connectRequestBuilder.build();
         final UUID corrId = UUID.randomUUID();
