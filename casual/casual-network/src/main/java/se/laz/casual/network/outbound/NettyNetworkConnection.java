@@ -93,7 +93,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of( conversationMessageStorage);
         CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator);
         ProtocolVersionValueHolder protocolVersionValueHolder =  ProtocolVersionValueHolder.of();
-        Channel ch = init(ci.getAddress(), workerGroup, ci.getChannelClass(), messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), ci.isLogHandlerEnabled(), protocolVersionValueHolder);
+        Channel ch = init(ci, workerGroup, messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), protocolVersionValueHolder);
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
         LOG.finest(() -> networkConnection + " connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()));
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
@@ -123,11 +123,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         this.protocolVersion = protocolVersion;
     }
 
-    private static Channel init(final InetSocketAddress address, final EventLoopGroup workerGroup, Class<? extends Channel> channelClass, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, boolean enableLogHandler, ProtocolVersionValueHolder protocolVersionValueHolder)
+    private static Channel init(NettyConnectionInformation ci, final EventLoopGroup workerGroup, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, ProtocolVersionValueHolder protocolVersionValueHolder)
     {
         Bootstrap b = new Bootstrap()
             .group(workerGroup)
-            .channel(channelClass)
+            .channel(ci.getChannelClass())
             .option(ChannelOption.SO_KEEPALIVE, true)
             .handler(new ChannelInitializer<SocketChannel>()
             {
@@ -135,15 +135,15 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                 protected void initChannel(SocketChannel ch)
                 {
                     ch.pipeline().addLast(CasualNWMessageDecoder.of(protocolVersionValueHolder), CasualNWMessageEncoder.of(), messageHandler, conversationMessageHandler, exceptionHandler);
-                    if(enableLogHandler)
+                    if(ci.isLogHandlerEnabled())
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.OUTBOUND_LOGGING_LEVEL));
                         LOG.info(() -> "outbound network log handler enabled, using netty logging level: " + LogLevelProvider.OUTBOUND_LOGGING_LEVEL);
                     }
                 }
             });
-        LOG.finest(() -> "about to connect to: " + address);
-        return b.connect(address).syncUninterruptibly().channel();
+        LOG.finest(() -> "about to connect to: " + ci.getAddress());
+        return b.connect(ci.getAddress()).syncUninterruptibly().channel();
     }
 
     private void setConnectionHandler(DomainDisconnectHandler domainDisconnectHandler)
@@ -430,5 +430,4 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         }
 
     }
-
 }

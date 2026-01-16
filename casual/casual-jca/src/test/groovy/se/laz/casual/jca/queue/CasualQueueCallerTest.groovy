@@ -69,7 +69,7 @@ class CasualQueueCallerTest extends Specification
     @Shared def bigBaddaBoom = 'big badda boom'
     @Shared int resourceId = 42
     @Shared ProtocolVersionValueHolder protocolVersionValueHolder = ProtocolVersionValueHolder.of()
-    QueueErrorCode queueErrorCode = QueueErrorCode.ok
+    QueueErrorCode queueErrorCode = QueueErrorCode.OK
     def setup()
     {
         mcf = Mock(CasualManagedConnectionFactory)

@@ -73,9 +73,9 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
     private CasualDequeueReplyMessage readChunkedProtocolVersionGreaterOrEqualToOneThree(final ReadableByteChannel channel)
     {
         UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        boolean has_value = CasualMessageDecoderUtils.readByte(channel) > 0;
+        boolean hasValue = CasualMessageDecoderUtils.readByte(channel) > 0;
         List<DequeueMessage> l = new ArrayList<>();
-        if(has_value)
+        if(hasValue)
         {
             // There's only ever 1 message in v >= 1.3
             l.add(readDequeueMessage(channel));

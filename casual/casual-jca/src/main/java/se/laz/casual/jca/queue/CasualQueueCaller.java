@@ -90,8 +90,8 @@ public class CasualQueueCaller implements CasualQueueApi
             Pair<Optional<QueueMessage>, Optional<QueueErrorCode>> answer = makeDequeueCall(UUID.randomUUID(), qinfo, selector);
             DequeueReturn.Builder builder = DequeueReturn.createBuilder();
             builder.withErrorState(ErrorState.OK);
-            answer.first().ifPresent(msg -> builder.withQueueMessage(msg));
-            answer.second().ifPresent(code -> builder.withErrorCode(code));
+            answer.first().ifPresent(builder::withQueueMessage);
+            answer.second().ifPresent(builder::withErrorCode);
             return builder.build();
         }
         catch(Exception e)

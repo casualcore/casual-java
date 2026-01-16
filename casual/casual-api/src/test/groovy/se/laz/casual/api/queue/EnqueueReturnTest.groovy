@@ -56,7 +56,7 @@ class EnqueueReturnTest extends Specification {
         uuid              | errorState           | errorCode
         UUID.randomUUID() | ErrorState.OK        | null
         null              | ErrorState.TPENOENT  | null
-        UUID.randomUUID() | ErrorState.OK        | QueueErrorCode.ok
+        UUID.randomUUID() | ErrorState.OK        | QueueErrorCode.OK
     }
 
     def "not buildable variants"(UUID uuid, ErrorState errorState)

@@ -38,7 +38,7 @@ class CasualEnqueueReplyMessageTest extends Specification
                                                   .withProtocolVersion(protocolVersion)
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-           requestMsgBuilder.withCode(QueueErrorCode.ok)
+           requestMsgBuilder.withCode(QueueErrorCode.OK)
         }
         def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)

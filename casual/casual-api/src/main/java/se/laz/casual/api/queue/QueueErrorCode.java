@@ -4,12 +4,12 @@ import java.util.Arrays;
 
 public enum QueueErrorCode
 {
-    ok(0),
-    no_message(1),
-    no_queue(10),
-    argument(20),
-    system(30),
-    signaled(40);
+    OK(0),
+    NO_MESSAGE(1),
+    NO_QUEUE(10),
+    ARGUMENT(20),
+    SYSTEM(30),
+    SIGNALED(40);
     private final int value;
 
     QueueErrorCode(int value)

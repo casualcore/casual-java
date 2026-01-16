@@ -8,7 +8,6 @@ package se.laz.casual.event;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.jca.SpanId;
-import se.laz.casual.network.ProtocolVersion;
 
 import javax.transaction.xa.Xid;
 import java.time.Instant;
@@ -118,8 +117,8 @@ public class ServiceCallEvent
 
     public static final class Builder
     {
-        public SpanId spanId;
-        public SpanId parentSpanId;
+        private SpanId spanId;
+        private SpanId parentSpanId;
         private String service;
         private String parent = "";
         private long pid = Process.pid();

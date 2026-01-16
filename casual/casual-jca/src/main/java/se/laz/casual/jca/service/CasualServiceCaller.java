@@ -227,7 +227,7 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setProtocolVersion(protocolVersion);
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion()))
         {
-            serviceRequestMessageBuilder.setParentSpan(outboundContext.span().getSpanId());
+            serviceRequestMessageBuilder.setParentSpan(outboundContext.span().getId());
         }
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessageBuilder.build());
         LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);

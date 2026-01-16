@@ -100,7 +100,7 @@ public class QueueDetails
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer("QueueDetails{");
+        final StringBuilder sb = new StringBuilder("QueueDetails{");
         sb.append("name='").append(name).append('\'');
         sb.append(", retries=").append(retries);
         sb.append(", protocolVersion=").append(protocolVersion);

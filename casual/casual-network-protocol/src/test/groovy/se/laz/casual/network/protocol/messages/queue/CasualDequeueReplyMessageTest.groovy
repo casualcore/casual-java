@@ -44,7 +44,7 @@ class CasualDequeueReplyMessageTest extends Specification
                                                   .withExecution(UUID.randomUUID())
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-           requestMsgBuilder.withCode(QueueErrorCode.ok)
+           requestMsgBuilder.withCode(QueueErrorCode.OK)
            requestMsgBuilder.withMessages(createMessages(1))
         }
         else
@@ -61,7 +61,7 @@ class CasualDequeueReplyMessageTest extends Specification
         msg == syncResurrectedMsg
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-           syncResurrectedMsg.getMessage().getCode() == QueueErrorCode.ok
+           syncResurrectedMsg.getMessage().getCode() == QueueErrorCode.OK
         }
         for( int i = 0; i < msg.getMessage().getMessages().size(); ++i)
         {

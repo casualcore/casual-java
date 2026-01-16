@@ -225,9 +225,9 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         {
             final long retryDelay = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize()).getLong();
             offset += DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize();
-            boolean enqueueEnabled = ((int)ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_ENQUEUE_ENABLED.getNetworkSize()).get()) > 0;
+            boolean enqueueEnabled = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_ENQUEUE_ENABLED.getNetworkSize()).get() > 0;
             offset += DiscoveryReplySizes.QUEUES_ELEMENT_ENQUEUE_ENABLED.getNetworkSize();
-            boolean dequeueEnabled = ((int)ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize()).get()) > 0;
+            boolean dequeueEnabled = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize()).get() > 0;
             offset += DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize();
             q.setRetryDelay(retryDelay)
              .setEnqueueEnabled(enqueueEnabled)

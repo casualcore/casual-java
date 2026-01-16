@@ -10,6 +10,8 @@ import java.util.UUID;
 
 public final class OutboundContextCreator
 {
+    private OutboundContextCreator()
+    {}
     public static OutboundContext create(UUID execution, ProtocolVersion protocolVersion)
     {
         return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)

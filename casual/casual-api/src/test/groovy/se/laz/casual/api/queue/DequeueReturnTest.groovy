@@ -60,8 +60,8 @@ class DequeueReturnTest extends Specification {
         null             | ErrorState.OK        | null
         someQueueMessage | ErrorState.TPENOENT  | null
         null             | ErrorState.TPENOENT  | null
-        someQueueMessage | ErrorState.OK        | QueueErrorCode.ok
-        null             | ErrorState.OK        | QueueErrorCode.no_message
+        someQueueMessage | ErrorState.OK        | QueueErrorCode.OK
+        null             | ErrorState.OK        | QueueErrorCode.NO_MESSAGE
     }
 
     def "not buildable variants"(QueueMessage queueMessages, ErrorState errorState)

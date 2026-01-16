@@ -35,7 +35,7 @@ public record HeadlessCasualMessage(CasualNWMessageType type, String base64Body,
         ByteBuffer buffer = ByteBuffer.allocate(messageBytes.stream()
                                                             .mapToInt(bytes -> bytes.length)
                                                             .sum());
-        messageBytes.forEach(bytes -> buffer.put(bytes));
+        messageBytes.forEach(buffer::put);
         return Base64.getEncoder().encodeToString(buffer.array());
     }
 

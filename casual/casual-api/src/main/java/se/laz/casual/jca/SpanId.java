@@ -12,30 +12,33 @@ import java.util.Random;
 public class SpanId
 {
     private static final int RADIX = 64;
-    private final long spanId;
+    private final long id;
 
-    private SpanId(long spanId)
+    private SpanId(long id)
     {
-        this.spanId = spanId;
+        this.id = id;
     }
+    // java:S2245 - pseudo randomness is fine here
+    // java:S2119 - same as having Random in the ctor
+    @SuppressWarnings({"java:S2245", "java:S2119"})
     public static SpanId of()
     {
         Random random = new Random();
         BigInteger value = new BigInteger(RADIX, random);
         return new SpanId(value.longValue());
     }
-    public static SpanId of(long spanId)
+    public static SpanId of(long id)
     {
-        return new SpanId(spanId);
+        return new SpanId(id);
     }
     public String asHex()
     {
-        return String.format("%016x", spanId);
+        return String.format("%016x", id);
     }
 
-    public long getSpanId()
+    public long getId()
     {
-        return spanId;
+        return id;
     }
 
     @Override
@@ -50,18 +53,18 @@ public class SpanId
             return false;
         }
         SpanId traceId1 = (SpanId) o;
-        return spanId == traceId1.spanId;
+        return id == traceId1.id;
     }
     @Override
     public int hashCode()
     {
-        return Objects.hash(spanId);
+        return Objects.hash(id);
     }
     @Override
     public String toString()
     {
         return "SpanId{" +
-                "spanId=" + spanId +
+                "spanId=" + id +
                 "hex=" + asHex() +
                 '}';
     }

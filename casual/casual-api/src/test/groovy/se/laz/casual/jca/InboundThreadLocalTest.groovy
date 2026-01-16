@@ -6,7 +6,7 @@
 
 package se.laz.casual.jca
 
-import spock.lang.Shared
+
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -16,12 +16,12 @@ import java.util.concurrent.TimeUnit
 
 class InboundThreadLocalTest extends Specification
 {
-    @Shared InboundThreadContext testContext
-    @Shared InboundThreadContext altContext
-    @Shared SpanId testSpanId
-    @Shared SpanId altSpanId
-    @Shared UUID testExecution
-    @Shared UUID altExecution
+    InboundThreadContext testContext
+    InboundThreadContext altContext
+    SpanId testSpanId
+    SpanId altSpanId
+    UUID testExecution
+    UUID altExecution
 
     def setup()
     {
@@ -31,11 +31,6 @@ class InboundThreadLocalTest extends Specification
         altExecution = UUID.randomUUID()
         testContext = new InboundThreadContext(testSpanId, "testParent", testExecution)
         altContext = new InboundThreadContext(altSpanId, "altParent", altExecution)
-
-        // Ensure clean thread state before each test
-        InboundThreadLocal.getContext().ifPresent { ctx ->
-            new InboundThreadLocal(ctx).close()
-        }
     }
 
     def cleanup()

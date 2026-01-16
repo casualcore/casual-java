@@ -79,15 +79,11 @@ public class CasualNWMessageDecoder extends ByteToMessageDecoder
             in.readBytes(messageBytes);
             Optional<CasualNWMessage<?>> maybeMessage = Optional.of( CasualMessageDecoder.read(messageBytes, header, protocolVersionValueHolder) );
             maybeMessage.ifPresent(msg -> {
-                if(msg.getType() == CasualNWMessageType.DOMAIN_CONNECT_REQUEST)
+                if(msg.getType() == CasualNWMessageType.DOMAIN_CONNECT_REQUEST &&
+                        msg.getMessage() instanceof  CasualDomainConnectRequestMessage connectReqMsg)
                 {
-                    // resolve the protocol version here and now
-                    // for usage with some network messages that differ depending on protocol version
-                    if(msg.getMessage() instanceof  CasualDomainConnectRequestMessage connectReqMsg)
-                    {
-                        ProtocolVersion protocolVersion = ProtocolVersion.unmarshall(ProtocolMatcher.match(connectReqMsg.getProtocols()));
-                        protocolVersionValueHolder.accept(protocolVersion);
-                    }
+                    ProtocolVersion protocolVersion = ProtocolVersion.unmarshall(ProtocolMatcher.match(connectReqMsg.getProtocols()));
+                    protocolVersionValueHolder.accept(protocolVersion);
                 }
             });
             return maybeMessage;
