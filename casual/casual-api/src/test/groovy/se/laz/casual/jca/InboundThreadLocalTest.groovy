@@ -6,12 +6,10 @@
 
 package se.laz.casual.jca
 
-
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class InboundThreadLocalTest extends Specification
@@ -132,62 +130,66 @@ class InboundThreadLocalTest extends Specification
 
     def "thread isolation test - each thread should have its own context"()
     {
-        given:
-        def executor = Executors.newFixedThreadPool(2)
-        def latch = new CountDownLatch(2)
-        def results = [:] as Map<String, InboundThreadContext>
+       given:
+       def latch = new CountDownLatch(2)
+       def results = Collections.synchronizedMap([:] as Map<String, InboundThreadContext>)
 
-        when:
-        // Thread 1 gets altContext (started from clean main thread)
-        executor.submit({
-            try (def threadLocal = InboundThreadLocal.of(altContext))
-            {
-                results["thread1"] = InboundThreadLocal.getContext().get()
-            }
-            latch.countDown()
-        })
+       when:
+       // Thread 1: sets its OWN context (no inheritance needed here)
+       new Thread({
+          try (def threadLocal = InboundThreadLocal.of(altContext)) {
+             def ctx = InboundThreadLocal.getContext().get()
+             results["thread1"] = ctx
+             // Optional: assert here for faster failure feedback
+             assert ctx == altContext : "Thread1 should see altContext but saw $ctx"
+          } catch (Throwable t) {
+             t.printStackTrace()
+          }
+          latch.countDown()
+       } as Runnable).start()
 
-        // Thread 2 starts with no context inheritance
-        executor.submit({
-            results["thread2"] = InboundThreadLocal.getContext().orElse(null)
-            latch.countDown()
-        })
+       // Thread 2: nothing set → must be null
+       new Thread({
+          def ctx = InboundThreadLocal.getContext().orElse(null)
+          results["thread2"] = ctx
+          latch.countDown()
+       } as Runnable).start()
 
-        latch.await(5, TimeUnit.SECONDS)
-        executor.shutdown()
+       latch.await(10, TimeUnit.SECONDS)
 
-        then:
-        results["thread1"] == altContext
-        results["thread2"] == null
-        !InboundThreadLocal.getContext().isPresent()
+       then:
+       results["thread1"] == altContext
+       results["thread2"] == null
+       InboundThreadLocal.getContext().isEmpty()   // main thread clean
     }
 
-    def "context inheritance test - child threads should inherit parent context"()
-    {
-        given:
-        def executor = Executors.newSingleThreadExecutor()
-        def latch = new CountDownLatch(1)
-        def childContext = null as InboundThreadContext
+    def "context inheritance test - child threads should inherit parent context"() {
+       given:
+       InboundThreadContext childContext = null
 
-        when:
-        try (def parentInboundThreadLocal = InboundThreadLocal.of(testContext))
-        {
-            executor.submit({
-                childContext = InboundThreadLocal.getContext().orElse(null)
-                latch.countDown()
-            })
-        }
+       when:
+       try (def parent = InboundThreadLocal.of(testContext)) {
+          def latch = new CountDownLatch(1)
 
-        latch.await(5, TimeUnit.SECONDS)
-        executor.shutdown()
+          new Thread({
+            childContext = InboundThreadLocal.getContext().orElse(null)
+             latch.countDown()
+          }).start()
 
-        then:
-        childContext == testContext
-        childContext.spanId() == testSpanId
-        childContext.parentName() == "testParent"
-        childContext.execution() == testExecution
+          latch.await(5, TimeUnit.SECONDS)
+       }
+
+       then:
+       childContext == testContext
+       childContext?.spanId() == testSpanId
+       childContext?.parentName() == "testParent"
+       childContext?.execution() == testExecution
+
+       when:
+       childContext = InboundThreadLocal.getContext().orElse(null)
+       then:
+       childContext == null
     }
-
     def "multiple instances in same thread should override each other"()
     {
         when:
