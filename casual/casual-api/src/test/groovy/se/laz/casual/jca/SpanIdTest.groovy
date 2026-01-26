@@ -16,7 +16,7 @@ class SpanIdTest extends Specification
       def spanId = SpanId.of(value)
       def spanIdTwo = SpanId.of(value)
       then:
-      spanId.getId() == value
+      spanId.asUnsignedLong() == value
       spanId.equals(spanIdTwo)
       where:
       value << (1L .. 100L)

@@ -10,6 +10,7 @@ import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.util.Pair;
+import se.laz.casual.jca.SpanId;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
@@ -89,10 +90,11 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         {
             serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
         }
-        int parentSpan = 0;
+        byte[] parentSpan = null;
         if (ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-            parentSpan = ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()).get();
+            parentSpan = new byte[ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()];
+            ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()).get(parentSpan);
         }
         final int parentNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).getLong();
         final String parentName = CasualMessageDecoderUtils.readString(channel, parentNameSize);
@@ -113,7 +115,7 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         }
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-            builder.setParentSpan(parentSpan);
+            builder.setParentSpan(SpanId.of(parentSpan));
         }
         return builder.build();
     }
@@ -148,10 +150,11 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
             timeout = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
             currentOffset += ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
         }
-        long parentSpan = 0;
+        byte[] parentSpan = null;
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-            parentSpan = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()).getLong();
+            parentSpan = new byte[ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()];
+            System.arraycopy(data, currentOffset, parentSpan, 0, ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize());
             currentOffset += ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize();
         }
         final int parentNameSize = (int)ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).getLong();
@@ -191,7 +194,7 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         }
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-            builder.setParentSpan(parentSpan);
+            builder.setParentSpan(SpanId.of(parentSpan));
         }
         return builder.build();
     }

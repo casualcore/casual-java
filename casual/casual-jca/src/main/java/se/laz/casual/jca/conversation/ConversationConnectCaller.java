@@ -73,7 +73,7 @@ public class ConversationConnectCaller implements CasualConversationApi
         }
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(managedConnection.getNetworkConnection().getProtocolVersion()))
         {
-            connectRequestBuilder.setParentSpan(SpanId.of().getId());
+            connectRequestBuilder.setParentSpan(SpanId.of().asUnsignedLong());
         }
         ConnectRequest connectRequest = connectRequestBuilder.build();
         final UUID corrId = UUID.randomUUID();

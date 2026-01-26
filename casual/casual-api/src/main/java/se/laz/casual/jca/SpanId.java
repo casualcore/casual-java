@@ -5,40 +5,69 @@
  */
 package se.laz.casual.jca;
 
-import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
 
 public class SpanId
 {
-    private static final int RADIX = 64;
-    private final long id;
-
-    private SpanId(long id)
-    {
-        this.id = id;
-    }
     // java:S2245 - pseudo randomness is fine here
-    // java:S2119 - same as having Random in the ctor
     @SuppressWarnings({"java:S2245", "java:S2119"})
+    private static final Random RANDOM = new Random();
+    private static final int ID_LENGTH = 8;
+    private final byte[] id;
+
+    private SpanId(byte[] bytes)
+    {
+        this.id = bytes.clone();
+    }
+
+    public static SpanId of(byte[] bytes)
+    {
+        Objects.requireNonNull(bytes, "bytes can not be null");
+        if (bytes.length != ID_LENGTH)
+        {
+            throw new IllegalArgumentException("SpanId must be exactly " + ID_LENGTH + " # of bytes");
+        }
+        return new SpanId(bytes);
+    }
+
     public static SpanId of()
     {
-        Random random = new Random();
-        BigInteger value = new BigInteger(RADIX, random);
-        return new SpanId(value.longValue());
-    }
-    public static SpanId of(long id)
-    {
-        return new SpanId(id);
-    }
-    public String asHex()
-    {
-        return String.format("%016x", id);
+        byte[] bytes = new byte[ID_LENGTH];
+        RANDOM.nextBytes(bytes);
+        return new SpanId(bytes);
     }
 
-    public long getId()
+    public static SpanId of(long value)
     {
-        return id;
+        byte[] bytes = new byte[ID_LENGTH];
+        for (int i = ID_LENGTH - 1; i >= 0; i--)
+        {
+            bytes[i] = (byte) (value & 0xFF);
+            value >>>= 8;
+        }
+        return new SpanId(bytes);
+    }
+
+    public byte[] getId()
+    {
+        return id.clone();
+    }
+
+    public String asHex()
+    {
+        return String.format("%016x", asUnsignedLong());
+    }
+
+    public long asUnsignedLong()
+    {
+        long value = 0;
+        for (byte b : id)
+        {
+            value = (value << 8) | (b & 0xFFL);
+        }
+        return value;
     }
 
     @Override
@@ -53,7 +82,7 @@ public class SpanId
             return false;
         }
         SpanId traceId1 = (SpanId) o;
-        return id == traceId1.id;
+        return Arrays.equals(id,traceId1.id);
     }
     @Override
     public int hashCode()

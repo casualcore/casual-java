@@ -94,7 +94,7 @@ public class ServiceCallWorkListener implements WorkListener
                     .withOrder(Order.SEQUENTIAL);
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-            eventBuilder.withParentSpanId(SpanId.of(message.getParentSpan()))
+            eventBuilder.withParentSpanId(message.getParentSpan())
                         .withSpanId(spanId);
         }
         if(!isTpNoReply && work instanceof CasualServiceCallWork casualWork)

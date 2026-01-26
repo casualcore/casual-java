@@ -10,6 +10,7 @@ import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.xa.XID
+import se.laz.casual.jca.SpanId
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -42,7 +43,7 @@ class CasualServiceCallRequestMessageTest extends Specification
     @Shared
     def serviceBuffer
     @Shared
-    long parentSpan = 1234L
+    SpanId parentSpan = SpanId.of()
 
     def setupSpec()
     {
@@ -121,7 +122,7 @@ class CasualServiceCallRequestMessageTest extends Specification
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().serviceBuffer.payload
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-          resurrectedMsg.getMessage().getParentSpan() == parentSpan
+          resurrectedMsg.getMessage().getParentSpan().asUnsignedLong() == parentSpan
         }
         where:
         protocolVersion << ProtocolVersion.values()
