@@ -233,7 +233,10 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 
     private <X extends CasualNetworkTransmittable> void preRequest(CasualNWMessage<X> message)
     {
-        if(hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(message))
+        // note: null check because it may be that we have not finished the connection phase
+        // and thus no protocolVersion has yet been set
+        if(null != protocolVersion
+           && hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(message))
         {
             // new service calls are not ok when domain has been disconnected
             throw new DomainDisconnectedException("Domain: " + domainId + " has disconnected, no service or queue calls allowed");

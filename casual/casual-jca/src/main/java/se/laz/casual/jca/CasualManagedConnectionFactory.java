@@ -5,8 +5,6 @@
  */
 package se.laz.casual.jca;
 
-import se.laz.casual.network.ProtocolVersion;
-
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.CommException;
 import jakarta.resource.spi.ConnectionManager;
@@ -16,6 +14,7 @@ import jakarta.resource.spi.ManagedConnectionFactory;
 import jakarta.resource.spi.ResourceAdapter;
 import jakarta.resource.spi.ResourceAdapterAssociation;
 import jakarta.resource.spi.ValidatingManagedConnectionFactory;
+
 import javax.security.auth.Subject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -43,7 +42,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
 
    private String hostName;
    private Integer portNumber;
-   private Long casualProtocolVersion = 1000L;
    private String networkConnectionPoolName;
    private Integer networkConnectionPoolSize;
    private final int resourceId = CasualResourceManager.getInstance().getNextId();
@@ -71,18 +69,6 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    public void setPortNumber(Integer portNumber)
    {
       this.portNumber = portNumber;
-   }
-
-   public ProtocolVersion getCasualProtocolVersion()
-   {
-      return ProtocolVersion.unmarshall(casualProtocolVersion);
-   }
-
-   public CasualManagedConnectionFactory setCasualProtocolVersion(Long casualProtocolVersion)
-   {
-      Objects.requireNonNull(casualProtocolVersion, "casual protocol version can not be null!");
-      this.casualProtocolVersion = casualProtocolVersion;
-      return this;
    }
 
    public String getNetworkConnectionPoolName()

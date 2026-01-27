@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,7 +8,6 @@ package se.laz.casual.jca.pool
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.Address
 import se.laz.casual.jca.CasualResourceAdapterException
-import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.outbound.NetworkListener
 import spock.lang.Specification
 
@@ -21,18 +20,17 @@ class NetworkConnectionPoolTest extends Specification
       def poolName = 'small-pool'
       Address address = Address.of("nifty", 7771)
       Address anotherAddress = Address.of('delta', 8787)
-      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       NetworkConnectionCreator connectionCreator = Mock(NetworkConnectionCreator){
-         1 * createNetworkConnection(address, protocolVersion, *_) >> Mock(ReferenceCountedNetworkConnection)
+         1 * createNetworkConnection(address,  *_) >> Mock(ReferenceCountedNetworkConnection)
       }
       NetworkConnectionPool pool = NetworkConnectionPool.of(poolName, address, poolSize, connectionCreator)
       when: // working as expected with the correct address
-      NetworkConnection connection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
+      NetworkConnection connection = pool.getOrCreateConnection(address, Mock(NetworkListener))
       then:
       noExceptionThrown()
       connection != null
       when: // using the wrong address - throws
-      pool.getOrCreateConnection(anotherAddress, protocolVersion, Mock(NetworkListener))
+      pool.getOrCreateConnection(anotherAddress, Mock(NetworkListener))
       then:
       thrown(CasualResourceAdapterException)
    }
@@ -43,14 +41,13 @@ class NetworkConnectionPoolTest extends Specification
       int poolSize = 1
       def poolName = 'small-pool'
       Address address = Address.of("nifty", 7771)
-      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       NetworkConnectionCreator connectionCreator = Mock(NetworkConnectionCreator){
-         1 * createNetworkConnection(address, protocolVersion, *_) >> Mock(ReferenceCountedNetworkConnection)
+         1 * createNetworkConnection(address, *_) >> Mock(ReferenceCountedNetworkConnection)
       }
       NetworkConnectionPool pool = NetworkConnectionPool.of(poolName, address, poolSize, connectionCreator)
       when:
-      NetworkConnection connection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
-      NetworkConnection sameConnection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
+      NetworkConnection connection = pool.getOrCreateConnection(address, Mock(NetworkListener))
+      NetworkConnection sameConnection = pool.getOrCreateConnection(address, Mock(NetworkListener))
       then:
       connection == sameConnection
    }
@@ -61,17 +58,16 @@ class NetworkConnectionPoolTest extends Specification
       int poolSize = 1000
       def poolName = 'small-pool'
       Address address = Address.of("nifty", 7771)
-      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       NetworkConnectionCreator connectionCreator = Mock(NetworkConnectionCreator){
-         1 * createNetworkConnection(address, protocolVersion, *_) >> Mock(ReferenceCountedNetworkConnection)
+         1 * createNetworkConnection(address,  *_) >> Mock(ReferenceCountedNetworkConnection)
       }
       NetworkConnectionPool pool = NetworkConnectionPool.of(poolName, address, poolSize, connectionCreator)
       when:
-      NetworkConnection connection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
+      NetworkConnection connection = pool.getOrCreateConnection(address, Mock(NetworkListener))
       NetworkConnection anotherConnection = null
       while(connection == anotherConnection)
       {
-         anotherConnection = pool.getOrCreateConnection(address, protocolVersion, Mock(NetworkListener))
+         anotherConnection = pool.getOrCreateConnection(address, Mock(NetworkListener))
       }
       then:
       connection != anotherConnection

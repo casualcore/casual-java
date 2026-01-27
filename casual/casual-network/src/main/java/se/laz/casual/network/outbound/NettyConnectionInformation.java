@@ -23,9 +23,9 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
     private final Class<? extends Channel> channelClass;
     private final Correlator correlator;
 
-    private NettyConnectionInformation(InetSocketAddress address, ProtocolVersion protocolVersion, UUID domainId, String domainName, Class<? extends Channel> channelClass, Correlator correlator, boolean logHandlerEnabled)
+    private NettyConnectionInformation(InetSocketAddress address, UUID domainId, String domainName, Class<? extends Channel> channelClass, Correlator correlator, boolean logHandlerEnabled)
     {
-        super(address, protocolVersion, domainId, domainName, logHandlerEnabled);
+        super(address, domainId, domainName, logHandlerEnabled);
         this.channelClass = channelClass;
         this.correlator = correlator;
     }
@@ -128,13 +128,12 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
         public NettyConnectionInformation build()
         {
             Objects.requireNonNull(address, "address can not be null");
-            Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
             Objects.requireNonNull(domainId, "domainId can not be null");
             Objects.requireNonNull(domainName, "domainName can not be null");
             channelClass = (null == channelClass) ? NioSocketChannel.class : channelClass;
             correlator = (null == correlator) ? CorrelatorImpl.of() : correlator;
             boolean useLogHandler = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER );
-            return new NettyConnectionInformation(address, protocolVersion, domainId, domainName, channelClass, correlator, useLogHandler );
+            return new NettyConnectionInformation(address, domainId, domainName, channelClass, correlator, useLogHandler );
         }
     }
 }

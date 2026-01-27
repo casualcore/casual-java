@@ -10,7 +10,6 @@ import io.netty.channel.epoll.EpollSocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import se.laz.casual.config.ConfigurationOptions
 import se.laz.casual.config.ConfigurationService
-import se.laz.casual.network.ProtocolVersion
 import spock.lang.Specification
 
 class NettyConnectionInformationCreatorTest extends Specification
@@ -24,9 +23,8 @@ class NettyConnectionInformationCreatorTest extends Specification
    {
       given:
       InetSocketAddress address = new InetSocketAddress('foo.bar', 1234)
-      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       when:
-      NettyConnectionInformation ci = NettyConnectionInformationCreator.create(address, protocolVersion)
+      NettyConnectionInformation ci = NettyConnectionInformationCreator.create(address)
       then:
       ci.getChannelClass() == NioSocketChannel.class
    }
@@ -35,11 +33,10 @@ class NettyConnectionInformationCreatorTest extends Specification
    {
       given:
       InetSocketAddress address = new InetSocketAddress('foo.bar', 1234)
-      ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
       ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL, true )
 
       when:
-      NettyConnectionInformation ci = NettyConnectionInformationCreator.create(address, protocolVersion)
+      NettyConnectionInformation ci = NettyConnectionInformationCreator.create(address)
 
       then:
       ci.getChannelClass() == EpollSocketChannel.class

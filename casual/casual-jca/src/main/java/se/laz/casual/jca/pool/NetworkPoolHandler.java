@@ -7,7 +7,6 @@ package se.laz.casual.jca.pool;
 
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.Address;
-import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.outbound.NetworkListener;
 
@@ -29,11 +28,11 @@ public class NetworkPoolHandler
         return instance;
     }
 
-    public NetworkConnection getOrCreate(String poolName, Address address, ProtocolVersion protocolVersion, NetworkListener listener, int poolSize)
+    public NetworkConnection getOrCreate(String poolName, Address address, NetworkListener listener, int poolSize)
     {
         try
         {
-            return pools.computeIfAbsent(poolName, key -> NetworkConnectionPool.of(key, address, poolSize)).getOrCreateConnection(address, protocolVersion, listener);
+            return pools.computeIfAbsent(poolName, key -> NetworkConnectionPool.of(key, address, poolSize)).getOrCreateConnection(address, listener);
         }
         catch(CasualConnectionException e)
         {

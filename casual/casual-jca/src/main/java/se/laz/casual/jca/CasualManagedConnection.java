@@ -104,7 +104,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
                                  .getOrCreate(
                                          mcf.getNetworkConnectionPoolName(),
                                          mcf.getAddress(),
-                                         mcf.getCasualProtocolVersion(),
                                          this,
                                          mcf.getNetworkConnectionPoolSize());
     }
@@ -321,7 +320,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
 
     private NetworkConnection createOneToOneManagedConnection()
     {
-        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(mcf.getHostName(), mcf.getPortNumber()), mcf.getCasualProtocolVersion());
+        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(mcf.getHostName(), mcf.getPortNumber()));
         NetworkConnection newNetworkConnection = NettyNetworkConnection.of(ci, this);
         log.finest(() -> "created new nw connection " + this);
         return newNetworkConnection;

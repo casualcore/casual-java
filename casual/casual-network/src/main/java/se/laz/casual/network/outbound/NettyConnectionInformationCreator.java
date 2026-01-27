@@ -9,7 +9,6 @@ package se.laz.casual.network.outbound;
 import io.netty.channel.epoll.EpollSocketChannel;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.network.ProtocolVersion;
 
 import java.net.InetSocketAddress;
 
@@ -18,11 +17,10 @@ public final class NettyConnectionInformationCreator
     private NettyConnectionInformationCreator()
     {}
 
-    public static NettyConnectionInformation create(InetSocketAddress address, ProtocolVersion protocolVersion)
+    public static NettyConnectionInformation create(InetSocketAddress address)
     {
 
         NettyConnectionInformation.Builder builder = NettyConnectionInformation.createBuilder().withAddress(address)
-                                                                  .withProtocolVersion(protocolVersion)
                                                                   .withDomainId( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId() )
                                                                   .withDomainName(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME ));
         boolean useEPoll = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL );
