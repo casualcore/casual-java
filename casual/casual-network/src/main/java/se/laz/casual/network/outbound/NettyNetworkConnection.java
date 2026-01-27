@@ -309,22 +309,12 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 
     private boolean protocolSupportsDomainDisconnect()
     {
-        return isProtocolVersionOneOneOrOneTwo();
+        return ProtocolVersion.supportsDomainDisconnect(protocolVersion);
     }
 
     private boolean protocolSupportsDomainTopologyChange()
     {
-        return isProtocolVersionOneTwo();
-    }
-
-    private boolean isProtocolVersionOneOneOrOneTwo()
-    {
-        return protocolVersion == ProtocolVersion.VERSION_1_1 || isProtocolVersionOneTwo();
-    }
-
-    private boolean isProtocolVersionOneTwo()
-    {
-        return protocolVersion == ProtocolVersion.VERSION_1_2;
+        return ProtocolVersion.supportsDomainTopologyChange(protocolVersion);
     }
 
     private DomainId throwIfProtocolVersionNotSupportedByEIS(final UUID domainId, final String domainName)

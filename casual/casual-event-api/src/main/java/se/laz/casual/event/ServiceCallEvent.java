@@ -7,7 +7,6 @@ package se.laz.casual.event;
 
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.util.PrettyPrinter;
-import se.laz.casual.jca.SpanId;
 
 import javax.transaction.xa.Xid;
 import java.time.Instant;
@@ -29,8 +28,8 @@ public class ServiceCallEvent
     private final long end;
     private final long pending;
     private final char order;
-    private final SpanId spanId;
-    private final SpanId parentSpanId;
+    private final String spanId;
+    private final String parentSpanId;
     private final String code;
 
     private ServiceCallEvent(Builder builder)
@@ -100,12 +99,12 @@ public class ServiceCallEvent
         return order;
     }
 
-    public Optional<SpanId> getSpan()
+    public Optional<String> getSpan()
     {
         return Optional.ofNullable(spanId);
     }
 
-    public Optional<SpanId> getParentSpan()
+    public Optional<String> getParentSpan()
     {
         return Optional.ofNullable(parentSpanId);
     }
@@ -117,8 +116,8 @@ public class ServiceCallEvent
 
     public static final class Builder
     {
-        private SpanId spanId;
-        private SpanId parentSpanId;
+        private String spanId;
+        private String parentSpanId;
         private String service;
         private String parent = "";
         private long pid = Process.pid();
@@ -206,13 +205,13 @@ public class ServiceCallEvent
             return this;
         }
 
-        public Builder withSpanId(SpanId spanId)
+        public Builder withSpanId(String spanId)
         {
             this.spanId = spanId;
             return this;
         }
 
-        public Builder withParentSpanId(SpanId parentSpanId)
+        public Builder withParentSpanId(String parentSpanId)
         {
             this.parentSpanId = parentSpanId;
             return this;

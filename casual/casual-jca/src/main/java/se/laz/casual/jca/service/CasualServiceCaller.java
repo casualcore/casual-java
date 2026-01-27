@@ -116,6 +116,8 @@ public class CasualServiceCaller implements CasualServiceApi
 
         OutboundContext outboundContext = OutboundContextCreator.create(execution, connection.getNetworkConnection().getProtocolVersion());
 
+        String spanId = outboundContext.span() == null ? null : outboundContext.span().asHex();
+        String parentSpanId = outboundContext.parentSpan() == null ? null : outboundContext.parentSpan().asHex();
         ServiceCallEvent.Builder eventBuilder = ServiceCallEvent.createBuilder()
                 .withTransactionId(xid)
                 .withExecution(execution)
@@ -123,8 +125,8 @@ public class CasualServiceCaller implements CasualServiceApi
                 .withService(serviceName)
                 .withPending(0)
                 .withOrder(Order.CONCURRENT)
-                .withSpanId(outboundContext.span())
-                .withParentSpanId(outboundContext.parentSpan())
+                .withSpanId(spanId)
+                .withParentSpanId(parentSpanId)
                 .start();
 
         Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, xid, noReply, outboundContext);

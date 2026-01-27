@@ -67,7 +67,7 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
         resurrectedHeader == header
     }
 
-    def "roundtrip message"()
+    def "roundtrip message #protocolVersion"()
     {
         setup:
         List<byte[]> payload = new ArrayList<>()

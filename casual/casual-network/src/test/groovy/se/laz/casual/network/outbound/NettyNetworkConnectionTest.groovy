@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -76,6 +76,10 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, Mock(OnNetworkError)))
         instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, {testExecutorService}, Mock(ErrorInformer))
         instance.setDomainId(casualDomainId)
+        DomainDisconnectHandler disconnectHandler = Mock(DomainDisconnectHandler){
+           hasDomainBeenDisconnected() >> false
+        }
+        instance.setConnectionHandler(disconnectHandler)
     }
 
     def 'Of with a null connection info throws NullPointerException.'()
@@ -93,6 +97,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'ping ponging a domain discovery request message'()
     {
         setup:
+        instance.setProtocolVersion(ProtocolVersion.VERSION_1_3)
         CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> requestMessage = createDomainDiscoveryRequestMessage()
         CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> replyMessage = createDomainDiscoveryReplyMessage(ProtocolVersion.VERSION_1_3)
         when:
@@ -108,6 +113,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'tpacall TPNOREPLY'()
     {
        setup:
+       instance.setProtocolVersion(ProtocolVersion.VERSION_1_2)
        CasualNWMessageImpl<CasualServiceCallRequestMessage> requestMessage = createServiceCallRequestMessage(true, false)
        when:
        instance.requestNoReply(requestMessage)
@@ -238,6 +244,11 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
             networkError = true
         }
         def localInstance = new NettyNetworkConnection(ci, correlator, channel, Mock(ConversationMessageStorage), {Mock(ManagedExecutorService)}, Mock(ErrorInformer))
+        localInstance.setProtocolVersion(ProtocolVersion.VERSION_1_2)
+        DomainDisconnectHandler disconnectHandler = Mock(DomainDisconnectHandler){
+           hasDomainBeenDisconnected() >> false
+        }
+        localInstance.setConnectionHandler(disconnectHandler)
         CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> requestMessage = createDomainDiscoveryRequestMessage()
         when:
         localInstance.request(requestMessage)

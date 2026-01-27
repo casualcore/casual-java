@@ -99,4 +99,30 @@ class ProtocolVersionTest extends Specification
       protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3]
    }
 
+   def 'supports domain topology change'()
+   {
+      expect:
+      ProtocolVersion.supportsDomainTopologyChange(protocolVersion) == expectedOutcome
+      where:
+      protocolVersion               | expectedOutcome
+      ProtocolVersion.VERSION_1_0   | false
+      ProtocolVersion.VERSION_1_1   | false
+      ProtocolVersion.VERSION_1_2   | true
+      ProtocolVersion.VERSION_1_3   | true
+      ProtocolVersion.VERSION_1_4   | true
+   }
+
+   def 'supports domain disconnect'()
+   {
+      expect:
+      ProtocolVersion.supportsDomainDisconnect(protocolVersion) == expectedOutcome
+      where:
+      protocolVersion               | expectedOutcome
+      ProtocolVersion.VERSION_1_0   | false
+      ProtocolVersion.VERSION_1_1   | true
+      ProtocolVersion.VERSION_1_2   | true
+      ProtocolVersion.VERSION_1_3   | true
+      ProtocolVersion.VERSION_1_4   | true
+   }
+
 }

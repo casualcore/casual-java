@@ -96,6 +96,16 @@ public enum ProtocolVersion
         return supportedVersionsString;
     }
 
+    public static boolean supportsDomainTopologyChange(ProtocolVersion protocolVersion)
+    {
+        return protocolVersion.version >= ProtocolVersion.VERSION_1_2.version;
+    }
+
+    public static boolean supportsDomainDisconnect(ProtocolVersion protocolVersion)
+    {
+         return protocolVersion.version >= ProtocolVersion.VERSION_1_1.version;
+    }
+
     public static boolean isProtocolVersionGreaterOrEqualToOneThree(ProtocolVersion protocolVersion)
     {
         return protocolVersion.version >=  ProtocolVersion.VERSION_1_3.version;
