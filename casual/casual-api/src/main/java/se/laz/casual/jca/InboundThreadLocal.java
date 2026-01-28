@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, The casual project. All rights reserved.
+ * Copyright (c) 2025 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,9 +10,12 @@ import java.util.Optional;
 
 public class InboundThreadLocal implements AutoCloseable
 {
-    private static final InheritableThreadLocal<InboundThreadContext> THREAD_LOCAL = new InheritableThreadLocal<>();
+    private static final ThreadLocal<InboundThreadContext> THREAD_LOCAL = new ThreadLocal<>();
+    private final InboundThreadContext previousContext;
+    private boolean closed;
     private InboundThreadLocal(InboundThreadContext context)
     {
+        this.previousContext = THREAD_LOCAL.get();
         THREAD_LOCAL.set(context);
     }
     public static InboundThreadLocal of(InboundThreadContext context)
@@ -23,7 +26,18 @@ public class InboundThreadLocal implements AutoCloseable
     @Override
     public void close()
     {
-        THREAD_LOCAL.remove();
+        if (!closed)
+        {
+            if (previousContext == null)
+            {
+                THREAD_LOCAL.remove();
+            }
+            else
+            {
+                THREAD_LOCAL.set(previousContext);
+            }
+            closed = true;
+        }
     }
     public static Optional<InboundThreadContext> getContext()
     {

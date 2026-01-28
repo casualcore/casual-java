@@ -6,11 +6,14 @@
 
 package se.laz.casual.jca
 
+import se.laz.casual.api.concurrency.Concurrent
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 class InboundThreadLocalTest extends Specification
 {
@@ -117,7 +120,7 @@ class InboundThreadLocalTest extends Specification
     {
         when:
         Optional<InboundThreadContext> contextAfterTry
-        try (def inboundThreadLocal = InboundThreadLocal.of(testContext))
+        try (def ignored = InboundThreadLocal.of(testContext))
         {
             assert InboundThreadLocal.getContext().isPresent()
             assert InboundThreadLocal.getContext().get() == testContext
@@ -168,13 +171,16 @@ class InboundThreadLocalTest extends Specification
        InboundThreadContext childContext = null
 
        when:
-       try (def parent = InboundThreadLocal.of(testContext)) {
+       try (def ignored = InboundThreadLocal.of(testContext)) {
           def latch = new CountDownLatch(1)
 
-          new Thread({
-            childContext = InboundThreadLocal.getContext().orElse(null)
+          def work = {
+             childContext = InboundThreadLocal.getContext().orElse(null)
              latch.countDown()
-          }).start()
+          }
+          def wrapped = Concurrent.wrap(work)
+
+          new Thread(wrapped).start()
 
           latch.await(5, TimeUnit.SECONDS)
        }
@@ -189,51 +195,6 @@ class InboundThreadLocalTest extends Specification
        childContext = InboundThreadLocal.getContext().orElse(null)
        then:
        childContext == null
-    }
-    def "multiple instances in same thread should override each other"()
-    {
-        when:
-        def firstLocal = InboundThreadLocal.of(testContext)
-        assert InboundThreadLocal.getContext().get() == testContext
-        
-        def secondLocal = InboundThreadLocal.of(altContext)
-        assert InboundThreadLocal.getContext().get() == altContext
-        
-        // Close both to clean up
-        secondLocal.close()
-        def contextAfterSecondClose = InboundThreadLocal.getContext().isPresent()
-        firstLocal.close()
-        def contextAfterFirstClose = InboundThreadLocal.getContext().isPresent()
-
-        then:
-        !contextAfterSecondClose
-        !contextAfterFirstClose
-        
-        cleanup:
-        firstLocal.close()
-        secondLocal.close()
-    }
-
-    def "nested usage pattern - inner context clobbers"()
-    {
-        given:
-        def contextHistory = [] as List<Optional<InboundThreadContext>>
-        when:
-        try (def outerLocal = InboundThreadLocal.of(testContext))
-        {
-            contextHistory.add(InboundThreadLocal.getContext())
-            try (def innerLocal = InboundThreadLocal.of(altContext))
-            {
-                contextHistory.add(InboundThreadLocal.getContext())
-            }
-            contextHistory.add(InboundThreadLocal.getContext())
-        }
-        contextHistory.add(InboundThreadLocal.getContext())
-        then:
-        contextHistory[0].get() == testContext
-        contextHistory[1].get() == altContext
-        !contextHistory[2].present  // After inner close, outer is gone too
-        !contextHistory[3].present  // After outer close, still gone
     }
 
     @Unroll
@@ -251,4 +212,80 @@ class InboundThreadLocalTest extends Specification
         SpanId.of(999) | "validName"   | UUID.randomUUID()
     }
 
+    def 'does not propagate to pooled thread if not wrapped'()
+    {
+       given:
+       def capturedInAsync = new AtomicReference<InboundThreadContext>()
+       when:
+       try (def ignored = InboundThreadLocal.of(testContext)) {
+          def executor = Executors.newFixedThreadPool(2)
+
+          executor.submit({
+             capturedInAsync.set(InboundThreadLocal.getContext().orElse(null))
+          } as Runnable)
+
+          executor.shutdown()
+          executor.awaitTermination(5, TimeUnit.SECONDS)
+       }
+
+       then:
+       capturedInAsync.get() == null
+       InboundThreadLocal.getContext().isEmpty()
+    }
+
+   def 'does propagate to pooled thread when wrapped'()
+   {
+      given:
+      def capturedInAsync = new AtomicReference<InboundThreadContext>()
+      when:
+      try (def ignored = InboundThreadLocal.of(testContext))
+      {
+         def executor = Executors.newFixedThreadPool(2)
+         Runnable work = {
+            capturedInAsync.set(InboundThreadLocal.getContext().orElse(null))
+         }
+         executor.submit(Concurrent.wrap(work))
+         executor.shutdown()
+         executor.awaitTermination(5, TimeUnit.SECONDS)
+      }
+      then:
+      capturedInAsync.get() == testContext
+      InboundThreadLocal.getContext().isEmpty()
+   }
+
+   def 'context survives multiple pooled tasks from same outer scope'()
+   {
+      given:
+      def captured1 = new AtomicReference<InboundThreadContext>()
+      def captured2 = new AtomicReference<InboundThreadContext>()
+      def captured3 = new AtomicReference<InboundThreadContext>()
+
+      when:
+      try (def ignored = InboundThreadLocal.of(testContext))
+      {
+         def executor = Executors.newFixedThreadPool(3)
+         executor.submit(Concurrent.wrap( { captured1.set(InboundThreadLocal.getContext().orElse(null)) }))
+         executor.submit(Concurrent.wrap( { captured2.set(InboundThreadLocal.getContext().orElse(null)) }))
+         executor.submit(Concurrent.wrap( { captured3.set(InboundThreadLocal.getContext().orElse(null)) }))
+         executor.shutdown()
+         executor.awaitTermination(5, TimeUnit.SECONDS)
+      }
+      then:
+      captured1.get() == testContext
+      captured2.get() == testContext
+      captured3.get() == testContext
+      InboundThreadLocal.getContext().isEmpty()
+   }
+
+   def 'double close is safe and idempotent'()
+   {
+      when:
+      def scope = InboundThreadLocal.of(testContext)
+      scope.close()
+      scope.close()
+
+      then:
+      noExceptionThrown()
+      InboundThreadLocal.getContext().isEmpty()
+   }
 }
