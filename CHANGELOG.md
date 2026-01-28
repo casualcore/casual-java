@@ -1,13 +1,6 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
-## [3.3.9] - 2025-01-26
-
-### Updates to follow JCA version 2.1.0 ([#190](https://github.com/casualcore/casual-java/issues/190))
-Updated XML descriptors from Java EE to Jakarta EE:
-- beans.xml: Jakarta EE 4.0 namespace
-- ra.xml: Connector 2.1 namespace
-
 ## [3.3.8] - 2025-11-06
 
 ### docs: wildfly deployment ([#192](https://github.com/casualcore/casual-java/issues/192))
