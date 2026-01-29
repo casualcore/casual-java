@@ -10,10 +10,13 @@ import se.laz.casual.api.concurrency.Concurrent
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.concurrent.Callable
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Supplier
 
 class InboundThreadLocalTest extends Specification
 {
@@ -251,6 +254,114 @@ class InboundThreadLocalTest extends Specification
       then:
       capturedInAsync.get() == testContext
       InboundThreadLocal.getContext().isEmpty()
+   }
+
+   def 'does propagate to pooled thread when wrapped - using Callable'()
+   {
+      given:
+      def capturedInAsync = new AtomicReference<InboundThreadContext>()
+      when:
+      def result
+      try (def ignored = InboundThreadLocal.of(testContext))
+      {
+         def executor = Executors.newFixedThreadPool(2)
+         Callable<InboundThreadContext> work = new Callable<InboundThreadContext>() {
+            @Override
+            InboundThreadContext call() throws Exception {
+               def context = InboundThreadLocal.getContext().orElse(null)
+               capturedInAsync.set(context)
+               return context
+            }
+         }
+
+         Callable<InboundThreadContext> wrappedCallable = Concurrent.wrap(work)
+         def future = executor.submit(wrappedCallable)
+         result = future.get(5, TimeUnit.SECONDS)
+         executor.shutdown()
+         executor.awaitTermination(5, TimeUnit.SECONDS)
+      }
+      then:
+      capturedInAsync.get() == testContext
+      result == testContext
+      InboundThreadLocal.getContext().isEmpty()
+   }
+
+   def 'wrapped Callable does nothing when no context is active'()
+   {
+      given:
+      def captured = new AtomicReference<InboundThreadContext>()
+
+      when:
+      def executor = Executors.newFixedThreadPool(1)
+      Callable<InboundThreadContext> work = new Callable<InboundThreadContext>() {
+         @Override
+         InboundThreadContext call() throws Exception {
+            def context = InboundThreadLocal.getContext().orElse(null)
+            captured.set(context)
+            return context
+         }
+      }
+
+      Callable<InboundThreadContext> wrappedCallable = Concurrent.wrap(work)
+      def future = executor.submit(wrappedCallable)
+      def result = future.get(5, TimeUnit.SECONDS)
+      executor.shutdown()
+      executor.awaitTermination(5, TimeUnit.SECONDS)
+
+      then:
+      captured.get() == null
+      result == null
+   }
+
+   def 'wrapped Supplier should propagate context to pooled thread (CompletableFuture style)'() {
+      given:
+      def capturedInAsync = new AtomicReference<InboundThreadContext>()
+
+      when:
+      def result
+      try (def ignored = InboundThreadLocal.of(testContext)) {
+         def executor = Executors.newFixedThreadPool(2)
+
+         Supplier<InboundThreadContext> supplier = new Supplier<InboundThreadContext>() {
+            @Override
+            InboundThreadContext get() {
+               def context = InboundThreadLocal.getContext().orElse(null)
+               capturedInAsync.set(context)
+               return context
+            }
+         }
+
+         def wrappedSupplier = Concurrent.wrap(supplier)
+
+         def future = CompletableFuture.supplyAsync(wrappedSupplier, executor)
+         result = future.get(5, TimeUnit.SECONDS)
+
+         executor.shutdown()
+         executor.awaitTermination(5, TimeUnit.SECONDS)
+      }
+
+      then:
+      capturedInAsync.get() == testContext
+      result == testContext
+      InboundThreadLocal.getContext().isEmpty()
+   }
+
+   def 'wrapped Supplier does nothing when no context is active'()
+   {
+      given:
+      def captured = new AtomicReference<InboundThreadContext>()
+
+      when:
+      def executor = Executors.newFixedThreadPool(1)
+      def wrapped = Concurrent.wrap({
+         captured.set(InboundThreadLocal.getContext().orElse(null))
+         return "done"
+      } as Supplier<String>)
+
+      CompletableFuture.supplyAsync(wrapped, executor).get(5, TimeUnit.SECONDS)
+
+      then:
+      captured.get() == null
    }
 
    def 'context survives multiple pooled tasks from same outer scope'()
