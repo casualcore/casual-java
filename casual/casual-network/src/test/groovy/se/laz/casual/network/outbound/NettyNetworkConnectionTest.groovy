@@ -65,7 +65,6 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         correlator = CorrelatorImpl.of()
         ci = NettyConnectionInformation.createBuilder()
                                                             .withAddress(new InetSocketAddress(3712))
-                                                            .withProtocolVersion(ProtocolVersion.VERSION_1_0)
                                                             .withDomainId(UUID.randomUUID())
                                                             .withDomainName('testDomain')
                                                             .withCorrelator(correlator)

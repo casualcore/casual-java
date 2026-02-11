@@ -87,13 +87,13 @@ public class SpanId
     @Override
     public int hashCode()
     {
-        return Objects.hash(id);
+        return Arrays.hashCode(id);
     }
     @Override
     public String toString()
     {
         return "SpanId{" +
-                "spanId=" + id +
+                "spanId=" + asUnsignedLong() +
                 "hex=" + asHex() +
                 '}';
     }

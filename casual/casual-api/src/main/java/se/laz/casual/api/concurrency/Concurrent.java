@@ -12,8 +12,10 @@ import se.laz.casual.jca.InboundThreadLocal;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
-public class Concurrent
+public final class Concurrent
 {
+    private Concurrent()
+    {}
     public static Runnable wrap(Runnable task) {
         var current = InboundThreadLocal.getContext().orElse(null);
         if (current == null)

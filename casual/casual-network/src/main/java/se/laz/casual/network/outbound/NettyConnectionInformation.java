@@ -10,7 +10,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.network.ProtocolVersion;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -85,7 +84,6 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
         private InetSocketAddress address;
         private UUID domainId;
         private String domainName;
-        private ProtocolVersion protocolVersion;
         private Class<? extends Channel> channelClass;
         private Correlator correlator;
 
@@ -104,12 +102,6 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
         public Builder withDomainName(String domainName)
         {
             this.domainName = domainName;
-            return this;
-        }
-
-        public Builder withProtocolVersion(ProtocolVersion protocolVersion)
-        {
-            this.protocolVersion = protocolVersion;
             return this;
         }
 
