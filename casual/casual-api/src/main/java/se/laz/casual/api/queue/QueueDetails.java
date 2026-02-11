@@ -20,7 +20,7 @@ public class QueueDetails
     private final Long retryDelay;
     private final Boolean enqueueEnabled;
     private final Boolean dequeueEnabled;
-    public QueueDetails(String name, long retries, ProtocolVersion protocolVersion, Long retryDelay, Boolean enqueueEnabled, Boolean dequeueEnabled)
+    private QueueDetails(String name, long retries, ProtocolVersion protocolVersion, Long retryDelay, Boolean enqueueEnabled, Boolean dequeueEnabled)
     {
         this.name = name;
         this.retries = retries;
@@ -28,11 +28,6 @@ public class QueueDetails
         this.retryDelay = retryDelay;
         this.enqueueEnabled = enqueueEnabled;
         this.dequeueEnabled = dequeueEnabled;
-    }
-
-    public QueueDetails(String name, long retries, ProtocolVersion protocolVersion)
-    {
-        this(name, retries, protocolVersion, null, null, null);
     }
 
     private QueueDetails(Builder builder)
