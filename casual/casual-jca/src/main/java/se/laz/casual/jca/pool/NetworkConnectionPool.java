@@ -45,7 +45,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
 
     public static NetworkConnectionPool of(String poolName, Address address, int poolSize, NetworkConnectionCreator networkConnectionCreator)
     {
-        Objects.requireNonNull(address, "poolName can not be null");
+        Objects.requireNonNull(poolName, "poolName can not be null");
         Objects.requireNonNull(address, "address can not be null");
         networkConnectionCreator = null == networkConnectionCreator ? NetworkConnectionPool::createNetworkConnection : networkConnectionCreator;
         return new NetworkConnectionPool(poolName, address, poolSize, networkConnectionCreator);

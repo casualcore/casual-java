@@ -220,7 +220,7 @@ public class CasualConnectionImpl implements CasualConnection
     {
         if( serviceCaller == null )
         {
-            return CasualServiceCaller.of( getManagedConnection() );
+            serviceCaller = CasualServiceCaller.of( getManagedConnection() );
         }
         return serviceCaller;
     }
