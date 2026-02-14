@@ -82,8 +82,8 @@ public class QueueDetails
         {
             return false;
         }
-        return retries == that.retries && retryDelay == that.retryDelay && enqueueEnabled == that.enqueueEnabled &&
-                dequeueEnabled == that.dequeueEnabled && Objects.equals(getName(), that.getName()) && protocolVersion == that.protocolVersion;
+        return retries == that.retries && Objects.equals(retryDelay, that.retryDelay) && Objects.equals(enqueueEnabled, that.enqueueEnabled) &&
+                Objects.equals(dequeueEnabled, that.dequeueEnabled) && Objects.equals(getName(), that.getName()) && protocolVersion == that.protocolVersion;
     }
 
     @Override
