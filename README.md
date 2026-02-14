@@ -50,3 +50,5 @@ See [casual caller documentation](https://github.com/casualcore/casual-caller) f
 [Event client](event-client.md)
 
 [Casual Test](casual-test.md)
+
+[Concurrency](concurrency.md)
