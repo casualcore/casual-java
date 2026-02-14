@@ -6,7 +6,6 @@
 
 package se.laz.casual.network.inbound;
 
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import jakarta.resource.spi.XATerminator;
@@ -29,7 +28,6 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
-@ChannelHandler.Sharable
 public final class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
 {
     private static Logger log = Logger.getLogger(CasualMessageHandler.class.getName());

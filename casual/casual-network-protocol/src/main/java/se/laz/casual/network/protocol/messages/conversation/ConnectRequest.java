@@ -75,9 +75,10 @@ public class ConnectRequest implements CasualNetworkTransmittable
                 ConversationConnectRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ConversationConnectRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
+            messageSize += ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize();
             if(timeout > 0)
             {
-                messageSize += ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize() + ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
+                messageSize += ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
             }
         }
         else
