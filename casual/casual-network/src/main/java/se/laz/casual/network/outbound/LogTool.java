@@ -65,7 +65,7 @@ public final class LogTool
             case ENQUEUE_REQUEST:
                 execution = ((CasualEnqueueRequestMessage)message.getMessage()).getExecution();
                 break;
-            case ENQUEUE_REPLY, ENQUEUE_REPLY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case ENQUEUE_REPLY, ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 execution = ((CasualEnqueueReplyMessage)message.getMessage()).getExecution();
                 break;
             case DEQUEUE_REQUEST:

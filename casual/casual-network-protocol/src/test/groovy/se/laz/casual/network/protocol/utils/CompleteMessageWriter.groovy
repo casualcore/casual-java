@@ -68,7 +68,7 @@ class CompleteMessageWriter
                                   new HeadlessCasualMessage(CasualNWMessageType.ENQUEUE_REPLY,
                                           'cHPL9BRESkGHswCG8UP8YDFdrMYYLkwSv5h376kky4c=',
                                           ProtocolVersion.VERSION_1_0, 'message.queue.enqueue.reply.%d.%d.b64'),
-                                  new HeadlessCasualMessage(CasualNWMessageType.ENQUEUE_REPLY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE,
+                                  new HeadlessCasualMessage(CasualNWMessageType.ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE,
                                           'cHPL9BRESkGHswCG8UP8YByY2UvSmkBhnYpzABnciR8AAAAe',
                                           ProtocolVersion.VERSION_1_3, 'message.queue.enqueue.reply.%d.%d.b64'),
                                   new HeadlessCasualMessage(CasualNWMessageType.DEQUEUE_REQUEST,

@@ -107,7 +107,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.ENQUEUE_REPLY:
-            case CasualNWMessageType.ENQUEUE_REPLY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case CasualNWMessageType.ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
                 CasualEnqueueReplyMessage message = Mock(CasualEnqueueReplyMessage){
                     getExecution() >> execution
                 }
