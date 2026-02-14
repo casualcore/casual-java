@@ -73,12 +73,9 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         CasualEncoderUtils.writeUUID(execution, partialContent);
         List<byte[]> l = new ArrayList<>();
         l.add(partialContent.array());
-        if(!messages.isEmpty())
-        {
-            byte[] hasValue = new byte[1];
-            hasValue[0] = 1;
-            l.add(hasValue);
-        }
+        byte[] hasValue = new byte[1];
+        hasValue[0] = (byte)(messages.isEmpty() ? 0 : 1);
+        l.add(hasValue);
         for(DequeueMessage m : messages)
         {
             l.addAll(m.toNetworkBytes());

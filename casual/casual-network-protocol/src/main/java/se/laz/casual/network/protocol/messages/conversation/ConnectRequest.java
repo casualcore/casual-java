@@ -55,7 +55,9 @@ public class ConnectRequest implements CasualNetworkTransmittable
     @Override
     public CasualNWMessageType getType()
     {
-        return CasualNWMessageType.CONVERSATION_CONNECT;
+        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)
+                ? CasualNWMessageType.CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE
+                : CasualNWMessageType.CONVERSATION_CONNECT;
     }
 
     @Override

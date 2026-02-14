@@ -38,7 +38,9 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
     @Override
     public CasualNWMessageType getType()
     {
-        return CasualNWMessageType.ENQUEUE_REPLY;
+        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)
+                ? CasualNWMessageType.ENQUEUE_REPLY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE
+                : CasualNWMessageType.ENQUEUE_REPLY;
     }
 
     @Override
@@ -51,7 +53,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         CasualEncoderUtils.writeUUID(id, b);
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-            CasualEncoderUtils.writeInt(code.getValue());
+            b.putInt(code.getValue());
         }
         List<byte[]> l = new ArrayList<>();
         l.add(b.array());
