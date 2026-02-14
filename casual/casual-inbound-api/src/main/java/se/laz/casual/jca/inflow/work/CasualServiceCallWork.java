@@ -90,9 +90,10 @@ public final class CasualServiceCallWork implements Work
         }
     }
 
+    @SuppressWarnings("try")
     private void issueCallNoReply()
     {
-        try
+        try(InboundThreadLocal inboundThreadLocal = InboundThreadLocal.of(new InboundThreadContext(spanId, message.getServiceName(), message.getExecution())))
         {
             callService();
         }

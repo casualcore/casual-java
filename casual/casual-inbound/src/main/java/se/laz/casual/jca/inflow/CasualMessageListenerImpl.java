@@ -157,7 +157,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
             });
         }
         boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
-        SpanId spanId = ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion) ? SpanId.of() : null;
+        SpanId spanId = SpanId.of();
         CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage(), isTpNoReply, protocolVersion, spanId);
 
         try

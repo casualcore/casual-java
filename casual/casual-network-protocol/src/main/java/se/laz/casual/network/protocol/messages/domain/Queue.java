@@ -150,7 +150,7 @@ public final class Queue
     @Override
     public int hashCode()
     {
-        return Objects.hash(getName(), getRetries(), getRetryDelay(), isEnqueueEnabled(), isDequeueEnabled());
+        return Objects.hash(name, retries, retryDelay, enqueueEnabled, dequeueEnabled);
     }
 
     @Override
