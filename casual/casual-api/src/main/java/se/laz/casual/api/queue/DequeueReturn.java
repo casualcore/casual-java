@@ -66,6 +66,14 @@ public class DequeueReturn
         return Objects.hash(queueMessage, errorState, errorCode);
     }
 
+    @Override
+    public String toString()
+    {
+        return "DequeueReturn{" + "queueMessage=" + queueMessage +
+                ", errorState=" + errorState.name() + '(' + errorState.getValue() + ')' +
+                "}";
+    }
+
     public static final class Builder
     {
         private QueueMessage queueMessage;

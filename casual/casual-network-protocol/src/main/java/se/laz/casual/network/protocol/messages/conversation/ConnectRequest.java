@@ -10,7 +10,6 @@ import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
-import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.api.xa.XID;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
@@ -91,15 +90,6 @@ public class ConnectRequest implements CasualNetworkTransmittable
     public static ConnectRequestBuilder createBuilder()
     {
         return new ConnectRequestBuilder();
-    }
-
-    public long getParentSpan()
-    {
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
-        {
-            return parentSpan;
-        }
-        throw new CasualProtocolException("parent span does not exist in protocol version: " + protocolVersion);
     }
 
     public String getParentName()

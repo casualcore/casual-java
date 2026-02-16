@@ -94,7 +94,7 @@ public class SpanId
     {
         return "SpanId{" +
                 "spanId=" + asUnsignedLong() +
-                "hex=" + asHex() +
+                ", hex=" + asHex() +
                 '}';
     }
 }
