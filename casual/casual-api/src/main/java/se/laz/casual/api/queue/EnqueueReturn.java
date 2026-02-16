@@ -59,9 +59,11 @@ public class EnqueueReturn
     @Override
     public String toString()
     {
-        return "EnqueueReturn{" + "id=" + id +
-                ", errorState=" + errorState.name() + '(' + errorState.getValue() + ')' +
-                "}";
+        return "EnqueueReturn{" +
+                "id=" + id +
+                ", errorState=" + errorState +
+                ", errorCode=" + errorCode +
+                '}';
     }
 
     @Override

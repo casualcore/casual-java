@@ -5,7 +5,6 @@
  */
 package se.laz.casual.api.queue;
 
-import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.ProtocolVersion;
 
 import java.util.Objects;
@@ -35,17 +34,6 @@ public class QueueDetails
         this(builder.name, builder.retries, builder.protocolVersion, builder.retryDelay, builder.enqueueEnabled, builder.dequeueEnabled);
     }
 
-    public static QueueDetails of(String name, long retries, ProtocolVersion protocolVersion)
-    {
-        Objects.requireNonNull(name, "name can not be null");
-        Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
-        return QueueDetails.createBuilder()
-                .withName(name)
-                .withRetries(retries)
-                .withProtocolVersion(protocolVersion)
-                .build();
-    }
-
     public String getName()
     {
         return name;
@@ -56,16 +44,28 @@ public class QueueDetails
         return retries;
     }
 
+    /**
+     * Only available in protocol version >= 1.4
+     * @return retry delay
+     */
     public Optional<Long> getRetryDelay()
     {
         return Optional.ofNullable(retryDelay);
     }
 
+    /**
+     * Only available in protocol version >= 1.4
+     * @return true if enqueue is enabled
+     */
     public Optional<Boolean> isEnqueueEnabled()
     {
         return Optional.ofNullable(enqueueEnabled);
     }
 
+    /**
+     * Only available in protocol version >= 1.4
+     * @return true if dequeue is enabled
+     */
     public Optional<Boolean> isDequeueEnabled()
     {
         return Optional.ofNullable(dequeueEnabled);
@@ -163,16 +163,6 @@ public class QueueDetails
         {
             Objects.requireNonNull(name, "name can not be null");
             Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
-            if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion) &&
-                    (null != retryDelay || null != enqueueEnabled || null != dequeueEnabled))
-            {
-                throw new CasualProtocolException("retryDelay, enqueueEnabled, dequeueEnabled are not available for protocol version " + protocolVersion);
-            }
-            if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion) &&
-                    (null == retryDelay || null == enqueueEnabled || null == dequeueEnabled))
-            {
-                throw new CasualProtocolException("retryDelay, enqueueEnabled, dequeueEnabled should be provided for " + ProtocolVersion.VERSION_1_4);
-            }
             return new QueueDetails(this);
         }
     }

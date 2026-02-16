@@ -89,8 +89,11 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
                               .withEnqueueEnabled(queue.isEnqueueEnabled())
                               .withDequeueEnabled(queue.isDequeueEnabled())
                               .build()
-                : QueueDetails.of(queue.getName(), queue.getRetries(), protocolVersion);
-
+                : QueueDetails.createBuilder()
+                              .withName(queue.getName())
+                              .withRetries(queue.getRetries())
+                              .withProtocolVersion(protocolVersion)
+                              .build();
     }
 
     private ServiceDetails toServiceDetails(Service service)

@@ -53,30 +53,17 @@ public class DequeueReturn
     @Override
     public boolean equals(Object o)
     {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof DequeueReturn that))
         {
             return false;
         }
-        DequeueReturn dequeueReturn = (DequeueReturn) o;
-        return Objects.equals(queueMessage, dequeueReturn.queueMessage) && errorState.equals(dequeueReturn.getErrorState());
+        return Objects.equals(queueMessage, that.queueMessage) && errorState == that.errorState && errorCode == that.errorCode;
     }
 
     @Override
     public int hashCode()
     {
-        return queueMessage.hashCode() + Integer.hashCode(errorState.getValue());
-    }
-
-    @Override
-    public String toString()
-    {
-        return "DequeueReturn{" + "queueMessage=" + queueMessage +
-                ", errorState=" + errorState.name() + '(' + errorState.getValue() + ')' +
-                "}";
+        return Objects.hash(queueMessage, errorState, errorCode);
     }
 
     public static final class Builder

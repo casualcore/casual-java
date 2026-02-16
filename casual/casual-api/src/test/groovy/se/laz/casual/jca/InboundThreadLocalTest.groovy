@@ -35,13 +35,10 @@ class InboundThreadLocalTest extends Specification
         altExecution = UUID.randomUUID()
         testContext = new InboundThreadContext(testSpanId, "testParent", testExecution)
         altContext = new InboundThreadContext(altSpanId, "altParent", altExecution)
-    }
 
-    def cleanup()
-    {
-        // Ensure clean thread state after each test
+        // ensure clean thread state before each test
         InboundThreadLocal.getContext().ifPresent { ctx ->
-            new InboundThreadLocal(ctx).close()
+           new InboundThreadLocal(ctx).close()
         }
     }
 
@@ -141,7 +138,6 @@ class InboundThreadLocalTest extends Specification
        def results = Collections.synchronizedMap([:] as Map<String, InboundThreadContext>)
 
        when:
-       // Thread 1: sets its OWN context (no inheritance needed here)
        new Thread({
           try (def threadLocal = InboundThreadLocal.of(altContext)) {
              def ctx = InboundThreadLocal.getContext().get()
@@ -154,7 +150,6 @@ class InboundThreadLocalTest extends Specification
           latch.countDown()
        } as Runnable).start()
 
-       // Thread 2: nothing set → must be null
        new Thread({
           def ctx = InboundThreadLocal.getContext().orElse(null)
           results["thread2"] = ctx

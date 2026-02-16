@@ -24,6 +24,19 @@ class EnqueueReturnTest extends Specification {
         then:
         enqueueReturn.getId().get() == someUuid
         enqueueReturn.getErrorState() == stateOk
+        enqueueReturn.getErrorCode().isEmpty()
+
+        when:
+        EnqueueReturn anotherEnqueueReturn = EnqueueReturn.createBuilder().withId(someUuid).withErrorState(stateOk).build()
+        then:
+        enqueueReturn == anotherEnqueueReturn
+
+        when:
+        EnqueueReturn notEqual = EnqueueReturn.createBuilder().withId(someUuid).withErrorState(ErrorState.TPENOENT).build()
+
+        then:
+        enqueueReturn != notEqual
+
     }
 
     def "build non-ok variant"()
@@ -36,6 +49,7 @@ class EnqueueReturnTest extends Specification {
         then:
         !enqueueReturn.getId().isPresent()
         enqueueReturn.getErrorState() == stateTpenoent
+        enqueueReturn.getErrorCode().isEmpty()
     }
 
     def "buildable variants"(UUID uuid, ErrorState errorState)
