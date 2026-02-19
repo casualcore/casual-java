@@ -15,7 +15,6 @@ import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 import se.laz.casual.jca.inflow.CasualMessageListener;
-import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage;
@@ -25,7 +24,6 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
 import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public final class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
@@ -35,9 +33,9 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
     private final XATerminator xaTerminator;
     private final WorkManager workManager;
     private final CasualInboundTransactionRegistry inboundTransactionRegistry;
-    private final Supplier<ProtocolVersion> valueHolder;
+    private final ProtocolVersionValueHolder valueHolder;
 
-    private CasualMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, Supplier<ProtocolVersion> valueHolder)
+    private CasualMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersionValueHolder valueHolder)
     {
         this.factory = factory;
         this.xaTerminator = xaTerminator;
@@ -46,7 +44,7 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
         this.valueHolder = valueHolder;
     }
 
-    public static CasualMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, Supplier<ProtocolVersion> valueHolder)
+    public static CasualMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersionValueHolder valueHolder)
     {
         Objects.requireNonNull(factory, "factory can not be null");
         Objects.requireNonNull(xaTerminator, "xaTerminator can not be null");
@@ -78,7 +76,7 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
                 listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry, valueHolder.get());
                 break;
             case DOMAIN_CONNECT_REQUEST:
-                listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, ctx.channel());
+                listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, ctx.channel(), valueHolder);
                 break;
             case DOMAIN_DISCONNECT_REPLY:
                 listener.domainDisconnectReply((CasualNWMessage<DomainDisconnectReplyMessage>)message);

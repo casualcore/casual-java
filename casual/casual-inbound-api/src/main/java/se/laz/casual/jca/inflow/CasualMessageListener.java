@@ -19,6 +19,8 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
 
+import java.util.function.Consumer;
+
 /**
  * CasualMessageListener Inbound Message Listener.
  *
@@ -30,10 +32,11 @@ public interface CasualMessageListener
    /**
     * Process the Domain Connect request and write the resulting response to the {@link Channel}.
     *
-    * @param message received.
-    * @param channel for response.
+    * @param message         received.
+    * @param channel         for response.
+    * @param protocolVersion used to set the protocol version for this connection
     */
-   void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel);
+   void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel, Consumer<ProtocolVersion> protocolVersion);
 
     /**
      * Notification that end point received domain disconnect request

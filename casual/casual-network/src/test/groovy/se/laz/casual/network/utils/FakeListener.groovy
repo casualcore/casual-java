@@ -23,6 +23,7 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage
 
 import java.lang.reflect.Method
+import java.util.function.Consumer
 
 class FakeListener implements MessageEndpoint, CasualMessageListener
 {
@@ -42,7 +43,7 @@ class FakeListener implements MessageEndpoint, CasualMessageListener
     }
 
     @Override
-    void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel) {
+    void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel, Consumer<ProtocolVersion> protocolVersion) {
 
     }
 

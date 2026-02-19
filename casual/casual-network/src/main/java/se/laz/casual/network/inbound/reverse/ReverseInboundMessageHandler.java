@@ -15,7 +15,7 @@ import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 import se.laz.casual.jca.inflow.CasualMessageListener;
-import se.laz.casual.network.ProtocolVersion;
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage;
@@ -27,7 +27,6 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public final class ReverseInboundMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
@@ -38,25 +37,25 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
     private final XATerminator xaTerminator;
     private final WorkManager workManager;
     private final CasualInboundTransactionRegistry inboundTransactionRegistry;
-    private final Supplier<ProtocolVersion> protocolVersionSupplier;
+    private final ProtocolVersionValueHolder valueHolder;
 
-    private ReverseInboundMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, Supplier<ProtocolVersion> protocolVersionSupplier)
+    private ReverseInboundMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersionValueHolder valueHolder)
     {
         this.factory = factory;
         this.xaTerminator = xaTerminator;
         this.workManager = workManager;
         this.inboundTransactionRegistry = inboundTransactionRegistry;
-        this.protocolVersionSupplier = protocolVersionSupplier;
+        this.valueHolder = valueHolder;
     }
 
-    public static ReverseInboundMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, Supplier<ProtocolVersion> protocolVersionSupplier)
+    public static ReverseInboundMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersionValueHolder valueHolder)
     {
         Objects.requireNonNull(factory, "factory can not be null");
         Objects.requireNonNull(xaTerminator, "xaTerminator can not be null");
         Objects.requireNonNull(workManager, "workManager can not be null");
         Objects.requireNonNull(inboundTransactionRegistry, "inboundTransactionRegistry can not be null");
-        Objects.requireNonNull(protocolVersionSupplier, "protocolVersionSupplier can not be null");
-        return new ReverseInboundMessageHandler(factory, xaTerminator, workManager, inboundTransactionRegistry, protocolVersionSupplier);
+        Objects.requireNonNull(valueHolder, "valueHolder can not be null");
+        return new ReverseInboundMessageHandler(factory, xaTerminator, workManager, inboundTransactionRegistry, valueHolder);
     }
 
     @SuppressWarnings("unchecked")
@@ -78,16 +77,16 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
                 executor.execute(() -> listener.requestRollback((CasualNWMessage<CasualTransactionResourceRollbackRequestMessage>)message, ctx.channel(), xaTerminator, inboundTransactionRegistry));
                 break;
             case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
-                listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry, protocolVersionSupplier.get());
+                listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry, valueHolder.get());
                 break;
             case DOMAIN_CONNECT_REQUEST:
-                listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, ctx.channel());
+                listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, ctx.channel(), valueHolder);
                 break;
             case DOMAIN_DISCONNECT_REPLY:
                 listener.domainDisconnectReply((CasualNWMessage<DomainDisconnectReplyMessage>)message);
                 break;
             case DOMAIN_DISCOVERY_REQUEST:
-                listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel(), protocolVersionSupplier.get());
+                listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel(), valueHolder.get());
                 break;
             default:
                 log.warning("Message type not supported: " + message.getType());

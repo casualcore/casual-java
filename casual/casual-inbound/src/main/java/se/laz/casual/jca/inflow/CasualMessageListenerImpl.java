@@ -56,6 +56,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -72,14 +73,14 @@ public class CasualMessageListenerImpl implements CasualMessageListener
 {
     private static Logger log = Logger.getLogger(CasualMessageListenerImpl.class.getName());
     @Override
-    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel)
+    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel, Consumer<ProtocolVersion> protocolVersion)
     {
         log.finest(() -> "domainConnectRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
         log.info(()-> "domainConnectRequest(). client" + channel + " asking for protocol version(s)" + message.getMessage().getProtocols());
         log.info(()-> "domainConnectRequest(). supported protocols: " + ProtocolVersion.supportedVersions());
         Long matchedProtocolVersion = ProtocolMatcher.match(message.getMessage().getProtocols());
         log.info(() -> "domainConnectRequest(). matched protocol version: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
-
+        protocolVersion.accept(ProtocolVersion.unmarshall(matchedProtocolVersion));
         if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_1.getVersion())
         {
             // should be notified when RA is deactivated
@@ -145,7 +146,9 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     @Override
     public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersion protocolVersion)
     {
-        log.finest(() -> "serviceCallRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
+        log.finest(() -> "serviceCallRequest(). " +
+                PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message +
+                " protocolVersion: " + protocolVersion);
 
         Xid xid = message.getMessage().getXid();
         if(tpNoReplyOutOfProtocol( message, isServiceCallTransactional( xid )))

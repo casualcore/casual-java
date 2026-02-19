@@ -116,7 +116,7 @@ class CasualMessageListenerImplTest extends Specification
         )
 
         when:
-        instance.domainConnectRequest( message, channel )
+        instance.domainConnectRequest(message, channel, valueHolder)
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualDomainConnectReplyMessage> reply = inboundHandler.getMsg()
 

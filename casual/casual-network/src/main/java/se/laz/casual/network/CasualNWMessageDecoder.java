@@ -10,12 +10,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
-import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.network.inbound.ProtocolVersionValueHolder;
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
-import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
 
 import java.util.List;
@@ -77,16 +75,7 @@ public class CasualNWMessageDecoder extends ByteToMessageDecoder
         {
             byte[] messageBytes = new byte[(int)header.getPayloadSize()];
             in.readBytes(messageBytes);
-            Optional<CasualNWMessage<?>> maybeMessage = Optional.of( CasualMessageDecoder.read(messageBytes, header, protocolVersionValueHolder) );
-            maybeMessage.ifPresent(msg -> {
-                if(msg.getType() == CasualNWMessageType.DOMAIN_CONNECT_REQUEST &&
-                        msg.getMessage() instanceof  CasualDomainConnectRequestMessage connectReqMsg)
-                {
-                    ProtocolVersion protocolVersion = ProtocolVersion.unmarshall(ProtocolMatcher.match(connectReqMsg.getProtocols()));
-                    protocolVersionValueHolder.accept(protocolVersion);
-                }
-            });
-            return maybeMessage;
+            return Optional.of( CasualMessageDecoder.read(messageBytes, header, protocolVersionValueHolder) );
         }
         catch(Exception e)
         {
