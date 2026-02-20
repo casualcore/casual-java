@@ -9,6 +9,7 @@ package se.laz.casual.network.protocol.decoding.decoders.conversation;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.api.util.Pair;
+import se.laz.casual.jca.SpanId;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
@@ -81,10 +82,10 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
             timeout = ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
             currentOffset += ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
         }
-        long parentSpan = 0;
+        SpanId parentSpan = null;
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-            parentSpan = ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.PARENT_SPAN_SIZE.getNetworkSize()).getLong();
+            parentSpan = SpanId.of(Arrays.copyOfRange(data, currentOffset, currentOffset + ConversationConnectRequestSizes.PARENT_SPAN_SIZE.getNetworkSize()));
             currentOffset += ConversationConnectRequestSizes.PARENT_SPAN_SIZE.getNetworkSize();
         }
 

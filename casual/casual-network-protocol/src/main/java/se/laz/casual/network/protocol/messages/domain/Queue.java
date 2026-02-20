@@ -144,13 +144,13 @@ public final class Queue
             return false;
         }
         return retries == queue.retries && retryDelay == queue.retryDelay && enqueueEnabled == queue.enqueueEnabled &&
-                dequeueEnabled == queue.dequeueEnabled && Objects.equals(getName(), queue.getName());
+                dequeueEnabled == queue.dequeueEnabled && Objects.equals(getName(), queue.getName()) && protocolVersion == queue.protocolVersion;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(name, retries, retryDelay, enqueueEnabled, dequeueEnabled);
+        return Objects.hash(name, retries, retryDelay, enqueueEnabled, dequeueEnabled, protocolVersion);
     }
 
     @Override

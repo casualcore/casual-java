@@ -11,6 +11,7 @@ import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.api.xa.XID;
+import se.laz.casual.jca.SpanId;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationConnectRequestSizes;
@@ -29,7 +30,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
 {
     private final UUID execution;
     private final String serviceName;
-    private final long parentSpan;
+    private final SpanId parentSpan;
     private final ProtocolVersion protocolVersion;
     private long timeout;
     private final String parentName;
@@ -39,7 +40,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
 
     // private constructor, only used by the builder of this class
     @SuppressWarnings("squid:S00107")
-    private ConnectRequest(UUID execution, String serviceName, long timeout, long parentSpan, String parentName, Xid xid, Duplex duplex, ServiceBuffer serviceBuffer, ProtocolVersion protocolVersion)
+    private ConnectRequest(UUID execution, String serviceName, long timeout, SpanId parentSpan, String parentName, Xid xid, Duplex duplex, ServiceBuffer serviceBuffer, ProtocolVersion protocolVersion)
     {
         this.execution = execution;
         this.serviceName = serviceName;
@@ -127,7 +128,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
         private UUID execution;
         private String serviceName;
         private long timeout;
-        private long parentSpan;
+        private SpanId parentSpan;
         private String parentName = "";
         private Xid xid;
         private Duplex duplex;
@@ -155,7 +156,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
             return this;
         }
 
-        public ConnectRequestBuilder setParentSpan(long parentSpan)
+        public ConnectRequestBuilder setParentSpan(SpanId parentSpan)
         {
             this.parentSpan = parentSpan;
             return this;
@@ -216,7 +217,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
             {
                 b.putLong(timeout);
             }
-            b.putLong(parentSpan);
+            b.put(parentSpan.getId());
         }
         else
         {

@@ -80,10 +80,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         {
             l.addAll(m.toNetworkBytes());
         }
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
-        {
-            l.add(ByteBuffer.allocate(DequeueReplySizes.CODE.getNetworkSize()).putInt(code.getValue()).array());
-        }
+        l.add(ByteBuffer.allocate(DequeueReplySizes.CODE.getNetworkSize()).putInt(code.getValue()).array());
         return l;
     }
 

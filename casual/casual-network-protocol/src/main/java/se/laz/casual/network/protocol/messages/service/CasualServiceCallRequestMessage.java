@@ -326,10 +326,10 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         l.add(serviceNameBytes);
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
+            byte hasValue = (byte)((timeout > 0) ? 1 : 0);
+            l.add(CasualEncoderUtils.writeByte(hasValue));
             if(timeout > 0)
             {
-                byte hasValue = 1;
-                l.add(CasualEncoderUtils.writeByte(hasValue));
                 l.add(CasualEncoderUtils.writeLong(timeout));
             }
             l.add(parentSpan.getId());
