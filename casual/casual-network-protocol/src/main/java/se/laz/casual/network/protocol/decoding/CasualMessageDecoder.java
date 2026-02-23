@@ -65,6 +65,7 @@ public final class CasualMessageDecoder
 
     public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final byte[] data, CasualNWMessageHeader header, Supplier<ProtocolVersion> protocolVersionSupplier)
     {
+        MessageVerifier.verifyMessageTypeByProtocolVersion(header.getType(), protocolVersionSupplier);
         NetworkDecoder<T> networkReader = getDecoder( header.getType(), protocolVersionSupplier );
         return readMessage( data, header, networkReader );
     }
