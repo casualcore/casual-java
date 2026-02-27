@@ -26,6 +26,9 @@ import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SE
 import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SERVICE_CALL_REQUEST;
 import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE;
 
+// it is not brain overload
+// we do not want a default case here
+@SuppressWarnings({"java:S3776", "java:S131"})
 public final class MessageVerifier
 {
     private MessageVerifier()
