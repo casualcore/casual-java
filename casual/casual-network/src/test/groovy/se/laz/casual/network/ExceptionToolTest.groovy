@@ -5,6 +5,7 @@
  */
 package se.laz.casual.network
 
+import io.netty.handler.codec.DecoderException
 import se.laz.casual.api.CasualRuntimeException
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import spock.lang.Specification
@@ -163,5 +164,35 @@ class ExceptionToolTest extends Specification
         then:
         result.isPresent()
         result.get() == protocolException
+    }
+
+    def 'findProtocolException - found when wrapped in netty DecoderException'()
+    {
+        given:
+        def protocolException = new CasualProtocolException('Message type 3100 is not supported by protocol version VERSION_1_4')
+        def casualDecoderException = new CasualDecoderException(protocolException, UUID.randomUUID())
+        def nettyDecoderException = new DecoderException(casualDecoderException)
+
+        when:
+        def result = ExceptionTool.findProtocolException(nettyDecoderException)
+
+        then:
+        result.isPresent()
+        result.get() == protocolException
+    }
+
+    def 'findDecoderException - found when wrapped in netty DecoderException'()
+    {
+        given:
+        def protocolException = new CasualProtocolException('Message type 3100 is not supported by protocol version VERSION_1_4')
+        def casualDecoderException = new CasualDecoderException(protocolException, UUID.randomUUID())
+        def nettyDecoderException = new DecoderException(casualDecoderException)
+
+        when:
+        def result = ExceptionTool.findDecoderException(nettyDecoderException)
+
+        then:
+        result.isPresent()
+        result.get() == casualDecoderException
     }
 }
