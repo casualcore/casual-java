@@ -45,8 +45,8 @@ public class QueueDetails
     }
 
     /**
-     * Only available in protocol version >= 1.4
-     * @return retry delay
+     * Only available in gw protocol version >= 1.4
+     * @return the retry delay, if available
      */
     public Optional<Long> getRetryDelay()
     {
@@ -54,8 +54,8 @@ public class QueueDetails
     }
 
     /**
-     * Only available in protocol version >= 1.4
-     * @return true if enqueue is enabled
+     * Only available in gw protocol version >= 1.4
+     * @return whether enqueue is enabled, if available
      */
     public Optional<Boolean> isEnqueueEnabled()
     {
@@ -63,8 +63,8 @@ public class QueueDetails
     }
 
     /**
-     * Only available in protocol version >= 1.4
-     * @return true if dequeue is enabled
+     * Only available in gw protocol version >= 1.4
+     * @return whether dequeue is enabled, if available
      */
     public Optional<Boolean> isDequeueEnabled()
     {

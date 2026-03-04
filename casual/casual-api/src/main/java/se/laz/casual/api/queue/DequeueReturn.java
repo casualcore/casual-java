@@ -37,8 +37,8 @@ public class DequeueReturn
     }
 
     /**
-     * Only available when using protocol version >= 1.3
-     * @return
+     * Only available when using gw protocol version >= 1.3
+     * @return the error code, if available
      */
     public Optional<QueueErrorCode> getErrorCode()
     {

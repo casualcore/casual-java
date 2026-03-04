@@ -49,6 +49,7 @@ public interface CasualMessageListener
     * Process the Domain Discovery request and write the resulting response to the {@link Channel}.
     * @param message received.
     * @param channel for the response.
+    * @param protocolVersion the gw protocol version for this connection.
     */
    void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel, ProtocolVersion protocolVersion );
 
@@ -60,7 +61,7 @@ public interface CasualMessageListener
     * @param channel                    for the response.
     * @param workManager                for managing long running execution.
     * @param inboundTransactionRegistry the inbound transaction registry
-    * @param protocolVersion
+    * @param protocolVersion the gw protocol version for this connection.
     */
    void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersion protocolVersion);
 

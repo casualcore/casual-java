@@ -38,7 +38,7 @@ public class EnqueueReturn
 
     /**
      * Only available when using gw protocol version >= 1.3
-     * @return
+     * @return the error code, if available
      */
     public Optional<QueueErrorCode> getErrorCode()
     {
