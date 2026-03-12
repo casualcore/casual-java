@@ -161,18 +161,17 @@ class InboundThreadLocalTest extends Specification
         SpanId.of(999) | "validName"   | UUID.randomUUID()
     }
 
-    def 'does not propagate to pooled thread if not wrapped'()
+    def 'does not propagate to pooled thread if not wrapped - using Runnable'()
     {
        given:
        def capturedInAsync = new AtomicReference<InboundThreadContext>()
        when:
        try (def ignored = InboundThreadLocal.of(testContext)) {
           def executor = Executors.newFixedThreadPool(2)
-
-          executor.submit({
+          Runnable work = {
              capturedInAsync.set(InboundThreadLocal.getContext().orElse(null))
-          } as Runnable)
-
+          }
+          executor.submit(work)
           executor.shutdown()
           executor.awaitTermination(5, TimeUnit.SECONDS)
        }
@@ -182,7 +181,7 @@ class InboundThreadLocalTest extends Specification
        InboundThreadLocal.getContext().isEmpty()
     }
 
-   def 'does propagate to pooled thread when wrapped'()
+   def 'does propagate to pooled thread when wrapped - using Runnable'()
    {
       given:
       def capturedInAsync = new AtomicReference<InboundThreadContext>()
@@ -247,7 +246,6 @@ class InboundThreadLocalTest extends Specification
             return context
          }
       }
-
       Callable<InboundThreadContext> wrappedCallable = Concurrent.wrap(work)
       def future = executor.submit(wrappedCallable)
       def result = future.get(5, TimeUnit.SECONDS)
