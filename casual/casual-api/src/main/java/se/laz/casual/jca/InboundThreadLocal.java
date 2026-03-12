@@ -43,4 +43,8 @@ public class InboundThreadLocal implements AutoCloseable
     {
         return Optional.ofNullable(THREAD_LOCAL.get());
     }
+    public static void remove()
+    {
+        THREAD_LOCAL.remove();
+    }
 }

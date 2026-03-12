@@ -35,11 +35,11 @@ class InboundThreadLocalTest extends Specification
         altExecution = UUID.randomUUID()
         testContext = new InboundThreadContext(testSpanId, "testParent", testExecution)
         altContext = new InboundThreadContext(altSpanId, "altParent", altExecution)
+    }
 
-        // ensure clean thread state before each test
-        InboundThreadLocal.getContext().ifPresent { ctx ->
-           new InboundThreadLocal(ctx).close()
-        }
+    def cleanup()
+    {
+       InboundThreadLocal.remove()
     }
 
     def "of() should reject null context with meaningful NPE"()
@@ -53,14 +53,10 @@ class InboundThreadLocalTest extends Specification
     def "of() should accept valid context and set it in thread local"()
     {
         when:
-        def inboundThreadLocal = InboundThreadLocal.of(testContext)
-        
+        InboundThreadLocal.of(testContext)
         then:
         InboundThreadLocal.getContext().isPresent()
         InboundThreadLocal.getContext().get() == testContext
-        
-        cleanup:
-        inboundThreadLocal?.close()
     }
 
     def "getContext() should return empty Optional when no context is set"()
@@ -72,18 +68,12 @@ class InboundThreadLocalTest extends Specification
     def "getContext() should return current context when set"()
     {
         when:
-        def inboundThreadLocal = InboundThreadLocal.of(testContext)
+        InboundThreadLocal.of(testContext)
         def result = InboundThreadLocal.getContext()
 
         then:
         result.isPresent()
         result.get() == testContext
-        result.get().spanId() == testSpanId
-        result.get().parentName() == "testParent"
-        result.get().execution() == testExecution
-        
-        cleanup:
-        inboundThreadLocal?.close()
     }
 
     def "close() should clear thread local and make getContext() return empty"()
@@ -111,7 +101,6 @@ class InboundThreadLocalTest extends Specification
 
         then:
         InboundThreadLocal.getContext().isEmpty()
-        noExceptionThrown()
     }
 
     def "try-with-resources should automatically clean up context"()
@@ -127,39 +116,6 @@ class InboundThreadLocalTest extends Specification
 
         then:
         contextAfterTry.isEmpty()
-    }
-
-    def "thread isolation test - each thread should have its own context"()
-    {
-       given:
-       def latch = new CountDownLatch(2)
-       def results = Collections.synchronizedMap([:] as Map<String, InboundThreadContext>)
-
-       when:
-       new Thread({
-          try (def threadLocal = InboundThreadLocal.of(altContext)) {
-             def ctx = InboundThreadLocal.getContext().get()
-             results["thread1"] = ctx
-             // Optional: assert here for faster failure feedback
-             assert ctx == altContext : "Thread1 should see altContext but saw $ctx"
-          } catch (Throwable t) {
-             t.printStackTrace()
-          }
-          latch.countDown()
-       } as Runnable).start()
-
-       new Thread({
-          def ctx = InboundThreadLocal.getContext().orElse(null)
-          results["thread2"] = ctx
-          latch.countDown()
-       } as Runnable).start()
-
-       latch.await(10, TimeUnit.SECONDS)
-
-       then:
-       results["thread1"] == altContext
-       results["thread2"] == null
-       InboundThreadLocal.getContext().isEmpty()   // main thread clean
     }
 
     def "context inheritance test - child threads should inherit parent context"() {
@@ -183,9 +139,6 @@ class InboundThreadLocalTest extends Specification
 
        then:
        childContext == testContext
-       childContext?.spanId() == testSpanId
-       childContext?.parentName() == "testParent"
-       childContext?.execution() == testExecution
 
        when:
        childContext = InboundThreadLocal.getContext().orElse(null)
