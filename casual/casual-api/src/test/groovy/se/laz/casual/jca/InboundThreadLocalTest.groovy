@@ -46,10 +46,8 @@ class InboundThreadLocalTest extends Specification
     {
         when:
         InboundThreadLocal.of(null)
-
         then:
-        NullPointerException e = thrown()
-        e != null  // Just verify NPE is thrown, message format may vary
+        thrown NullPointerException
     }
 
     def "of() should accept valid context and set it in thread local"()
@@ -68,7 +66,7 @@ class InboundThreadLocalTest extends Specification
     def "getContext() should return empty Optional when no context is set"()
     {
         expect:
-        !InboundThreadLocal.getContext().isPresent()
+        InboundThreadLocal.getContext().isEmpty()
     }
 
     def "getContext() should return current context when set"()
@@ -98,7 +96,7 @@ class InboundThreadLocalTest extends Specification
         inboundThreadLocal.close()
 
         then:
-        !InboundThreadLocal.getContext().isPresent()
+        InboundThreadLocal.getContext().isEmpty()
     }
 
     def "close() should be idempotent - multiple calls should be safe"()
@@ -112,7 +110,7 @@ class InboundThreadLocalTest extends Specification
         inboundThreadLocal.close()
 
         then:
-        !InboundThreadLocal.getContext().isPresent()
+        InboundThreadLocal.getContext().isEmpty()
         noExceptionThrown()
     }
 
@@ -128,7 +126,7 @@ class InboundThreadLocalTest extends Specification
         contextAfterTry = InboundThreadLocal.getContext()
 
         then:
-        !contextAfterTry.isPresent()
+        contextAfterTry.isEmpty()
     }
 
     def "thread isolation test - each thread should have its own context"()
