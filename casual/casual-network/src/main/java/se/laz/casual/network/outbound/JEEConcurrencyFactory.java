@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 package se.laz.casual.network.outbound;
 
-import jakarta.enterprise.concurrent.ManagedExecutorService;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.CasualResourceAdapterException;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
@@ -40,6 +40,8 @@ public class JEEConcurrencyFactory
 
     /** Fallback ScheduledExecutorService that is used when nothing is found through jndi */
     private static ScheduledExecutorService sharedScheduledExecutor;
+    /** Fallback ExecutorService that is used when nothing is found through jndi */
+    private static ExecutorService sharedExecutorService;
 
     private JEEConcurrencyFactory()
     {}
@@ -47,14 +49,17 @@ public class JEEConcurrencyFactory
     /**
      * Gets default managed executor service - on jboss
      * On wls it will throw CasualResourceAdapterException unless a direct JNDI-name is configured
+     *
+     * If configured to run unmanaged, we use the shared executor service
+     * This is needed for conversation handling
      * @return an ExecutorService
      */
-    public static ManagedExecutorService getManagedExecutorService()
+    public static ExecutorService getManagedExecutorService()
     {
         boolean unmanaged = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED );
         if(unmanaged)
         {
-            return null;
+            return getSharedExecutorService();
         }
         String name = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME );
         try
@@ -74,6 +79,15 @@ public class JEEConcurrencyFactory
                 throw new CasualResourceAdapterException("failed lookup for: " + name + "\n outbound will not function!", e);
             }
         }
+    }
+
+    private static ExecutorService getSharedExecutorService()
+    {
+        if(null == sharedExecutorService)
+        {
+            sharedExecutorService = Executors.newCachedThreadPool();
+        }
+        return sharedExecutorService;
     }
 
     /**

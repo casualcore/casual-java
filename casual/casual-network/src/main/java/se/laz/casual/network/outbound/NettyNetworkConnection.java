@@ -14,7 +14,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LoggingHandler;
-import jakarta.enterprise.concurrent.ManagedExecutorService;
 import se.laz.casual.api.conversation.ConversationClose;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
@@ -45,6 +44,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -58,7 +58,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private final ConversationMessageStorage conversationMessageStorage;
     private final Channel channel;
     private final AtomicBoolean connected = new AtomicBoolean(true);
-    private final Supplier<ManagedExecutorService> managedExecutorService;
+    private final Supplier<ExecutorService> executorServiceSupplier;
     private final ErrorInformer errorInformer;
     private DomainId domainId;
     private ProtocolVersion protocolVersion;
@@ -69,14 +69,14 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                                    Correlator correlator,
                                    Channel channel,
                                    ConversationMessageStorage conversationMessageStorage,
-                                   Supplier<ManagedExecutorService> managedExecutorService,
+                                   Supplier<ExecutorService> executorServiceSupplier,
                                    ErrorInformer errorInformer)
     {
         this.ci = ci;
         this.correlator = correlator;
         this.channel = channel;
         this.conversationMessageStorage = conversationMessageStorage;
-        this.managedExecutorService = managedExecutorService;
+        this.executorServiceSupplier = executorServiceSupplier;
         this.errorInformer = errorInformer;
     }
 
@@ -218,7 +218,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         maybeMessage.ifPresent(future::complete);
         if(!future.isDone())
         {
-            managedExecutorService.get().execute(() -> future.complete(conversationMessageStorage.takeFirst(corrid)));
+            executorServiceSupplier.get().execute(() -> future.complete(conversationMessageStorage.takeFirst(corrid)));
         }
         return future;
     }
