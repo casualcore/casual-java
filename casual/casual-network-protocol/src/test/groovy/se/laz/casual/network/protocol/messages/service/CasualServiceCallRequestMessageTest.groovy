@@ -15,12 +15,9 @@ import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.utils.ByteUtils
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import spock.lang.Shared
 import spock.lang.Specification
-
-import java.nio.ByteBuffer
 
 class CasualServiceCallRequestMessageTest extends Specification
 {
@@ -122,20 +119,10 @@ class CasualServiceCallRequestMessageTest extends Specification
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().serviceBuffer.payload
         if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
         {
-          resurrectedMsg.getMessage().getParentSpan().asUnsignedLong() == parentSpan
+          resurrectedMsg.getMessage().getParentSpan() == parentSpan
         }
         where:
         protocolVersion << ProtocolVersion.values()
-    }
-
-    def collectServicePayload(List<byte[]> bytes)
-    {
-        ByteBuffer b = ByteBuffer.allocate((int)ByteUtils.sumNumberOfBytes(bytes))
-        bytes.stream()
-             .forEach({d -> b.put(d)})
-        List<byte[]> l = new ArrayList<>()
-        l.add(b.array())
-        return l
     }
 
 }

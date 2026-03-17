@@ -8,6 +8,8 @@ package se.laz.casual.jca
 
 import spock.lang.Specification
 
+import java.nio.ByteBuffer
+
 class SpanIdTest extends Specification
 {
    def 'sanity'()
@@ -16,18 +18,27 @@ class SpanIdTest extends Specification
       def spanId = SpanId.of(value)
       def spanIdTwo = SpanId.of(value)
       then:
-      spanId.asUnsignedLong() == value
-      spanId.equals(spanIdTwo)
+      spanId.asHex().length() == 16
+      spanId == spanIdTwo
       where:
-      value << (1L .. 100L)
+      value << (1L .. 100L).collect { long v ->
+         ByteBuffer.allocate(8).putLong(v).array()
+      }
    }
 
    def 'auto construction'()
    {
       when:
-      SpanId.of()
+      def spanId = SpanId.of()
       then:
-      noExceptionThrown()
+      spanId.asHex().length() == 16
+   }
+
+   def "generated SpanIds are unique"() {
+      given:
+      def hexIds = (1L..100L).collect { SpanId.of().asHex() }
+      expect:
+      hexIds.toSet().size() == hexIds.size()
    }
 
 }

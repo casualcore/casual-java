@@ -29,8 +29,8 @@ class InboundThreadLocalTest extends Specification
 
     def setup()
     {
-        testSpanId = SpanId.of(42L)
-        altSpanId = SpanId.of(24L)
+        testSpanId = SpanId.of()
+        altSpanId = SpanId.of()
         testExecution = UUID.randomUUID()
         altExecution = UUID.randomUUID()
         testContext = new InboundThreadContext(testSpanId, "testParent", testExecution)
@@ -157,8 +157,8 @@ class InboundThreadLocalTest extends Specification
         context.execution() == execution
         where:
         spanId         | parentName    | execution
-        SpanId.of(1L)  | "test"        | UUID.randomUUID()
-        SpanId.of(999) | "validName"   | UUID.randomUUID()
+        SpanId.of()    | "test"        | UUID.randomUUID()
+        SpanId.of()    | "validName"   | UUID.randomUUID()
     }
 
     def 'does not propagate to pooled thread if not wrapped - using Runnable'()

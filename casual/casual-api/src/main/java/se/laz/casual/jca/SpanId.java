@@ -6,6 +6,7 @@
 package se.laz.casual.jca;
 
 import java.util.Arrays;
+import java.util.HexFormat;
 import java.util.Objects;
 import java.util.Random;
 
@@ -15,6 +16,7 @@ public class SpanId
     @SuppressWarnings({"java:S2245", "java:S2119"})
     private static final Random RANDOM = new Random();
     private static final int ID_LENGTH = 8;
+    private static final byte[] ALL_ZERO = new byte[ID_LENGTH];
     private final byte[] id;
 
     private SpanId(byte[] bytes)
@@ -35,18 +37,12 @@ public class SpanId
     public static SpanId of()
     {
         byte[] bytes = new byte[ID_LENGTH];
-        RANDOM.nextBytes(bytes);
-        return new SpanId(bytes);
-    }
-
-    public static SpanId of(long value)
-    {
-        byte[] bytes = new byte[ID_LENGTH];
-        for (int i = ID_LENGTH - 1; i >= 0; i--)
+        do
         {
-            bytes[i] = (byte) (value & 0xFF);
-            value >>>= 8;
+            RANDOM.nextBytes(bytes);
         }
+        while(Arrays.equals(bytes, ALL_ZERO));
+        // since all zeroes is not a valid span id
         return new SpanId(bytes);
     }
 
@@ -57,17 +53,7 @@ public class SpanId
 
     public String asHex()
     {
-        return String.format("%016x", asUnsignedLong());
-    }
-
-    public long asUnsignedLong()
-    {
-        long value = 0;
-        for (byte b : id)
-        {
-            value = (value << 8) | (b & 0xFFL);
-        }
-        return value;
+        return HexFormat.of().formatHex(id);
     }
 
     @Override
@@ -93,8 +79,7 @@ public class SpanId
     public String toString()
     {
         return "SpanId{" +
-                "spanId=" + asUnsignedLong() +
-                ", hex=" + asHex() +
+                "id=" + asHex() +
                 '}';
     }
 }
