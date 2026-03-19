@@ -10,6 +10,13 @@ import java.util.HexFormat;
 import java.util.Objects;
 import java.util.Random;
 
+/**
+ * SpanId represents a unique identifier for a span in a distributed tracing system.
+ * It is used to correlate events across different services and processes.
+ *
+ * Consists of a random 64-bit identifier - guaranteed to be all non-zero.
+ * Can produce a 16-hex-character lowercase string representation.
+ */
 public class SpanId
 {
     // java:S2245 - pseudo randomness is fine here
