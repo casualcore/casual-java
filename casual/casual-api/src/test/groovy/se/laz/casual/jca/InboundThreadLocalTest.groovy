@@ -332,6 +332,48 @@ class InboundThreadLocalTest extends Specification
       InboundThreadLocal.getContext().isEmpty()
    }
 
+    def 'context survives multiple pooled concurrent tasks from different outer scope'()
+    {
+        given:
+        def captured1 = new AtomicReference<InboundThreadContext>()
+        def captured2 = new AtomicReference<InboundThreadContext>()
+        def captured3 = new AtomicReference<InboundThreadContext>()
+        def captured4 = new AtomicReference<InboundThreadContext>()
+        def captured5 = new AtomicReference<InboundThreadContext>()
+
+        def executor = Executors.newFixedThreadPool(3)
+        InboundThreadContext testContext2 = new InboundThreadContext( SpanId.of(), "bob", UUID.randomUUID(  ) )
+
+        when:
+        try (def ignored = InboundThreadLocal.of(testContext))
+        {
+            executor.submit(Concurrent.wrap( { captured1.set(InboundThreadLocal.getContext().orElse(null)) }))
+            executor.submit(Concurrent.wrap( { captured2.set(InboundThreadLocal.getContext().orElse(null)) }))
+        }
+
+        try (def ignored = InboundThreadLocal.of(testContext2))
+        {
+            executor.submit(Concurrent.wrap( { captured3.set(InboundThreadLocal.getContext().orElse(null)) }))
+            executor.submit(Concurrent.wrap( { captured4.set(InboundThreadLocal.getContext().orElse(null)) }))
+        }
+
+        try (def ignored = InboundThreadLocal.of(testContext))
+        {
+            executor.submit(Concurrent.wrap( { captured5.set(InboundThreadLocal.getContext().orElse(null)) }))
+        }
+
+        executor.shutdown()
+        executor.awaitTermination(5, TimeUnit.SECONDS)
+
+        then:
+        captured1.get() == testContext
+        captured2.get() == testContext
+        captured3.get() == testContext2
+        captured4.get() == testContext2
+        captured5.get() == testContext
+        InboundThreadLocal.getContext().isEmpty()
+    }
+
    def 'double close is safe and idempotent'()
    {
       when:

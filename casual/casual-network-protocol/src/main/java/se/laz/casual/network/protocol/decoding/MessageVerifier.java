@@ -10,6 +10,10 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.ProtocolVersion;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.CONVERSATION_CONNECT;
@@ -26,112 +30,82 @@ import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SE
 import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SERVICE_CALL_REQUEST;
 import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE;
 
-// it is not brain overload
-// we do not want a default case here
-@SuppressWarnings({"java:S3776", "java:S131"})
+/**
+ * Verficiation of network messages to ensure messages sent after protocol handshake are as expected.
+ * <br>
+ * For example version 1.3 service call should not return version 1.2 service reply.
+ */
 public final class MessageVerifier
 {
+
+    /**
+     *  Map containing message types that have changed in newer gateway protocol versions, with a set of the protocol versions in which the message type is that are valid.
+     *  Absence from the map means that the message type is valid in all versions.
+     *  NB: When adding a new protocol version, ensure to update the existing entries in the map to include the newest protocol version where applicable.
+     */
+    private final static Map<CasualNWMessageType, Set<ProtocolVersion>> messageProtocolVersions;
+
+    static
+    {
+        messageProtocolVersions = new HashMap<>();
+        //1.0 - 1.3
+        messageProtocolVersions.put( DOMAIN_DISCOVERY_REPLY, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3 ) );
+        // 1.4 -
+        messageProtocolVersions.put( DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR, createSet( ProtocolVersion.VERSION_1_4 ) );
+
+        // 1.2 -
+        messageProtocolVersions.put( DOMAIN_DISCOVERY_TOPOLOGY_UPDATE, createSet( ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
+
+        // 1.0 - 1.2
+        messageProtocolVersions.put( SERVICE_CALL_REQUEST, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2 ) );
+        // 1.3 -
+        messageProtocolVersions.put( SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
+
+        // 1.0 - 1.2
+        messageProtocolVersions.put( SERVICE_CALL_REPLY, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2 ) );
+        // 1.3 -
+        messageProtocolVersions.put( SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
+
+
+        // 1.0 - 1.2
+        messageProtocolVersions.put( ENQUEUE_REPLY, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2 ) );
+        // 1.3 -
+        messageProtocolVersions.put( ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
+
+
+        // 1.0 - 1.2
+        messageProtocolVersions.put( DEQUEUE_REPLY, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2 ) );
+        // 1.3 -
+        messageProtocolVersions.put( DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
+
+        // 1.0 - 1.2
+        messageProtocolVersions.put( CONVERSATION_CONNECT, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2 ) );
+        // 1.3 -
+        messageProtocolVersions.put( CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
+    }
+
+    private static Set<ProtocolVersion> createSet( ProtocolVersion... versions )
+    {
+        return new HashSet<>( Set.of( versions ) );
+    }
+
     private MessageVerifier()
     {}
 
-    public static void verifyMessageTypeByProtocolVersion(CasualNWMessageType messageType, Supplier<ProtocolVersion> protocolVersion)
+    /**
+     * Verify that the network message is valid for the specified protocol version.
+     *
+     * @param messageType to verify.
+     * @param protocolVersion to verify against.
+     */
+    public static void verifyMessageTypeByProtocolVersion( CasualNWMessageType messageType, Supplier<ProtocolVersion> protocolVersion )
     {
-        // we check the protocol version and message type for messages that are available in different versions
-        switch(messageType)
+        if( messageProtocolVersions.containsKey( messageType ) )
         {
-            // 1.0 - 1.3
-            case DOMAIN_DISCOVERY_REPLY:
-                if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  DOMAIN_DISCOVERY_REPLY.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.4 -
-            case DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR:
-                if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.2 -
-            case DOMAIN_DISCOVERY_TOPOLOGY_UPDATE:
-                if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneTwo(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  DOMAIN_DISCOVERY_TOPOLOGY_UPDATE.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.0 - 1.2
-            case SERVICE_CALL_REQUEST:
-                if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  SERVICE_CALL_REQUEST.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.3 -
-            case SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
-                if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.0 - 1.2
-            case SERVICE_CALL_REPLY:
-                if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  SERVICE_CALL_REPLY.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.3 -
-            case SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
-                if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.0 - 1.2
-            case ENQUEUE_REPLY:
-                if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  ENQUEUE_REPLY.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.3 -
-            case ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
-                if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.0 - 1.2
-            case DEQUEUE_REPLY:
-                if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  DEQUEUE_REPLY.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.3 -
-            case DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
-                if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.0 - 1.2
-            case CONVERSATION_CONNECT:
-                if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  CONVERSATION_CONNECT.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
-            // 1.3 -
-            case CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
-                if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion.get()))
-                {
-                    throw new CasualProtocolException("Message type " +  CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-                }
-                break;
+            if( ! messageProtocolVersions.get( messageType ).contains( protocolVersion.get() ) )
+            {
+                throw new CasualProtocolException("Message type " +  messageType.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
+            }
         }
-
     }
-
 }
