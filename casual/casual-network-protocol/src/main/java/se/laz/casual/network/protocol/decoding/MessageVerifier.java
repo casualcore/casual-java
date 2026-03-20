@@ -31,7 +31,7 @@ import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SE
 import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE;
 
 /**
- * Verficiation of network messages to ensure messages sent after protocol handshake are as expected.
+ * Verification of network messages to ensure messages sent after protocol handshake are as expected.
  * <br>
  * For example version 1.3 service call should not return version 1.2 service reply.
  */
