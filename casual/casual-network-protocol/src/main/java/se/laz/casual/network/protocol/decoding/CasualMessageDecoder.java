@@ -85,7 +85,7 @@ public final class CasualMessageDecoder
                 return (NetworkDecoder<T>) DomainDisconnectReplyMessageDecoder.of();
             case DOMAIN_DISCOVERY_TOPOLOGY_UPDATE:
                 // it was introduced in protocol version 1.2
-                if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneTwo(protocolVersionSupplier.get()))
+                if(!ProtocolVersion.isGreaterOrEqualToOneTwo(protocolVersionSupplier.get()))
                 {
                     throw new UnsupportedOperationException("DOMAIN_DISCOVERY_TOPOLOGY_UPDATE is not available in protocol version : " + protocolVersionSupplier.get());
                 }

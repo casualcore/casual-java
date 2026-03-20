@@ -70,7 +70,7 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
         currentOffset += serviceNameLen;
 
         boolean hasTimeout = true;
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             byte value = ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize()).get();
             currentOffset += ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize();
@@ -83,7 +83,7 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
             currentOffset += ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
         }
         SpanId parentSpan = null;
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             parentSpan = SpanId.of(Arrays.copyOfRange(data, currentOffset, currentOffset + ConversationConnectRequestSizes.PARENT_SPAN_SIZE.getNetworkSize()));
             currentOffset += ConversationConnectRequestSizes.PARENT_SPAN_SIZE.getNetworkSize();

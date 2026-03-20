@@ -227,7 +227,7 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setTimeout(timeout.toNanos())
                 .setXatmiFlags(flags)
                 .setProtocolVersion(protocolVersion);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion()))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion()))
         {
             serviceRequestMessageBuilder.setParentSpan(outboundContext.span());
         }

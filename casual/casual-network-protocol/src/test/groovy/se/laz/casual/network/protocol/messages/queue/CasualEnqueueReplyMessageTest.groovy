@@ -36,7 +36,7 @@ class CasualEnqueueReplyMessageTest extends Specification
                                                   .withExecution(UUID.randomUUID())
                                                   .withId(UUID.randomUUID())
                                                   .withProtocolVersion(protocolVersion)
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            requestMsgBuilder.withCode(QueueErrorCode.OK)
         }

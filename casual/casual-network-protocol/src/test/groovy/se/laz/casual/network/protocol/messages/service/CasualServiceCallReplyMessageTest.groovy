@@ -62,7 +62,7 @@ class CasualServiceCallReplyMessageTest extends Specification
                                                .setTransactionState(transactionState)
                                                .setServiceBuffer(serviceBuffer)
                                                .setProtocolVersion(protocolVersion)
-        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            msgBuilder.setXid(nullXID)
         }
@@ -71,7 +71,7 @@ class CasualServiceCallReplyMessageTest extends Specification
         msg.getExecution() == execution
         msg.getError() == callError
         msg.getUserDefinedCode() == userError
-        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            msg.getXid() == nullXID
         }
@@ -93,7 +93,7 @@ class CasualServiceCallReplyMessageTest extends Specification
                 .setServiceBuffer(serviceBuffer)
                 .setProtocolVersion(protocolVersion)
 
-        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            requestMsgBuilder.setXid(nullXID)
         }
@@ -111,7 +111,7 @@ class CasualServiceCallReplyMessageTest extends Specification
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().getServiceBuffer().payload
-        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            resurrectedMsg.getMessage().getXid() == nullXID
         }
@@ -129,7 +129,7 @@ class CasualServiceCallReplyMessageTest extends Specification
                 .setTransactionState(TransactionState.ROLLBACK_ONLY)
                 .setServiceBuffer(emptyServiceBuffer)
                 .setProtocolVersion(protocolVersion)
-        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            requestMsgBuilder.setXid(nullXID)
         }

@@ -106,17 +106,17 @@ public enum ProtocolVersion
          return protocolVersion.version >= ProtocolVersion.VERSION_1_1.version;
     }
 
-    public static boolean isProtocolVersionGreaterOrEqualToOneThree(ProtocolVersion protocolVersion)
+    public static boolean isGreaterOrEqualToOneThree(ProtocolVersion protocolVersion)
     {
         return protocolVersion.version >=  ProtocolVersion.VERSION_1_3.version;
     }
 
-    public static boolean isProtocolVersionGreaterOrEqualToOneFour(ProtocolVersion protocolVersion)
+    public static boolean isGreaterOrEqualToOneFour(ProtocolVersion protocolVersion)
     {
         return protocolVersion.version >= ProtocolVersion.VERSION_1_4.version;
     }
 
-    public static boolean isProtocolVersionGreaterOrEqualToOneTwo(ProtocolVersion protocolVersion)
+    public static boolean isGreaterOrEqualToOneTwo(ProtocolVersion protocolVersion)
     {
         return protocolVersion.version >= ProtocolVersion.VERSION_1_2.version;
     }

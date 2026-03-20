@@ -52,10 +52,34 @@ class EnqueueReturnTest extends Specification {
         enqueueReturn.getErrorCode().isEmpty()
     }
 
+    def 'equality'()
+    {
+       when:
+       EnqueueReturn enqueueReturnOne = EnqueueReturn.createBuilder()
+               .withId(uuidOne)
+               .withErrorState(errorStateOne)
+               .withErrorCode(errorCodeOne)
+               .build()
+       EnqueueReturn enqueueReturnTwo = EnqueueReturn.createBuilder()
+               .withId(uuidTwo)
+               .withErrorState(errorStateTwo)
+               .withErrorCode(errorCodeTwo)
+               .build()
+       then:
+       (enqueueReturnOne == enqueueReturnTwo) == expectedResult
+       where:
+       uuidOne            | uuidTwo           | errorStateOne       | errorStateTwo       | errorCodeOne            | errorCodeTwo      | expectedResult
+       someUuid           | someUuid          | ErrorState.OK       | ErrorState.OK       | QueueErrorCode.OK       | QueueErrorCode.OK | true
+       UUID.randomUUID()  | someUuid          | ErrorState.OK       | ErrorState.OK       | QueueErrorCode.OK       | QueueErrorCode.OK | false
+       someUuid           | UUID.randomUUID() | ErrorState.OK       | ErrorState.OK       | QueueErrorCode.OK       | QueueErrorCode.OK | false
+       someUuid           | someUuid          | ErrorState.TPENOENT | ErrorState.OK       | QueueErrorCode.OK       | QueueErrorCode.OK | false
+       someUuid           | someUuid          | ErrorState.OK       | ErrorState.TPENOENT | QueueErrorCode.OK       | QueueErrorCode.OK | false
+       someUuid           | someUuid          | ErrorState.OK       | ErrorState.OK       | QueueErrorCode.NO_QUEUE | QueueErrorCode.OK | false
+    }
+
     def "buildable variants"(UUID uuid, ErrorState errorState)
     {
         when:
-
         EnqueueReturn enqueueReturn = EnqueueReturn.createBuilder()
                 .withId(uuid)
                 .withErrorState(errorState)

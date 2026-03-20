@@ -64,7 +64,7 @@ class CasualServiceCallRequestMessageTest extends Specification
                .setXatmiFlags(xatmiFlags)
                .setServiceBuffer(serviceBuffer)
                .setProtocolVersion(protocolVersion)
-       if (ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+       if (ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
        {
           msgBuilder.setParentSpan(parentSpan)
        }
@@ -77,7 +77,7 @@ class CasualServiceCallRequestMessageTest extends Specification
         msg.xid == nullXID
         msg.serviceBuffer == serviceBuffer
         msg.serviceBuffer.payload == serviceBuffer.payload
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            msg.getParentSpan() == parentSpan
         }
@@ -98,7 +98,7 @@ class CasualServiceCallRequestMessageTest extends Specification
                 .setServiceBuffer(serviceBuffer)
                 .setProtocolVersion(protocolVersion)
 
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            requestMsgBuilder.setParentSpan(parentSpan)
         }
@@ -117,7 +117,7 @@ class CasualServiceCallRequestMessageTest extends Specification
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().serviceBuffer.payload
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
           resurrectedMsg.getMessage().getParentSpan() == parentSpan
         }

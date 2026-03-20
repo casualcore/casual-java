@@ -92,7 +92,7 @@ public class ServiceCallWorkListener implements WorkListener
                     .withParent(message.getParentName())
                     .withService(message.getServiceName())
                     .withOrder(Order.SEQUENTIAL);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             eventBuilder.withParentSpanId(message.getParentSpan().asHex())
                         .withSpanId(spanId.asHex());

@@ -51,52 +51,43 @@ class ProtocolVersionTest extends Specification
       ]
    }
 
-   def 'isProtocolVersionGreaterOrEqualToOneTwo true'()
+   def 'isProtocolVersionGreaterOrEqualToOneTwo'()
    {
       expect:
-      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneTwo(protocolVersion) == true
+      ProtocolVersion.isGreaterOrEqualToOneTwo(protocolVersion) == expectedOutcome
       where:
-      protocolVersion << [ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+      protocolVersion               | expectedOutcome
+      ProtocolVersion.VERSION_1_0   | false
+      ProtocolVersion.VERSION_1_1   | false
+      ProtocolVersion.VERSION_1_2   | true
+      ProtocolVersion.VERSION_1_3   | true
+      ProtocolVersion.VERSION_1_4   | true
    }
 
-   def 'isProtocolVersionGreaterOrEqualToOneTwo false'()
+   def 'isProtocolVersionGreaterOrEqualToOneThree'()
    {
       expect:
-      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneTwo(protocolVersion) == false
+      ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion) == expectedOutcome
       where:
-      protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1]
+      protocolVersion               | expectedOutcome
+      ProtocolVersion.VERSION_1_0   | false
+      ProtocolVersion.VERSION_1_1   | false
+      ProtocolVersion.VERSION_1_2   | false
+      ProtocolVersion.VERSION_1_3   | true
+      ProtocolVersion.VERSION_1_4   | true
    }
 
-   def 'isProtocolVersionGreaterOrEqualToOneThree true'()
+   def 'isProtocolVersionGreaterOrEqualToOneFour'()
    {
       expect:
-      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion) == true
+      ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion) == expectedOutcome
       where:
-      protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
-   }
-
-   def 'isProtocolVersionGreaterOrEqualToOneThree false'()
-   {
-      expect:
-      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion) == false
-      where:
-      protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2]
-   }
-
-   def 'isProtocolVersionGreaterOrEqualToOneFour true'()
-   {
-      expect:
-      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion) == true
-      where:
-      protocolVersion << [ProtocolVersion.VERSION_1_4]
-   }
-
-   def 'isProtocolVersionGreaterOrEqualToOneFour false'()
-   {
-      expect:
-      ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion) == false
-      where:
-      protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3]
+      protocolVersion               | expectedOutcome
+      ProtocolVersion.VERSION_1_0   | false
+      ProtocolVersion.VERSION_1_1   | false
+      ProtocolVersion.VERSION_1_2   | false
+      ProtocolVersion.VERSION_1_3   | false
+      ProtocolVersion.VERSION_1_4   | true
    }
 
    def 'supports domain topology change'()

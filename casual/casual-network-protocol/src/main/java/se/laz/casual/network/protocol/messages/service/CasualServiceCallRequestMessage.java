@@ -55,7 +55,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     @Override
     public CasualNWMessageType getType()
     {
-        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)
+        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
                 ? CasualNWMessageType.SERVICE_CALL_REQUEST_FROM_ONE_THREE
                 : CasualNWMessageType.SERVICE_CALL_REQUEST;
     }
@@ -73,7 +73,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
                            XIDUtils.getXIDNetworkSize(xid) +
                            ServiceCallRequestSizes.FLAGS.getNetworkSize() +
                            ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             messageSize += ServiceCallRequestSizes.HAS_VALUE.getNetworkSize();
             if(timeout > 0)
@@ -112,7 +112,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
 
     public SpanId getParentSpan()
     {
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             return parentSpan;
         }
@@ -185,7 +185,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         sb.append("execution=").append(execution);
         sb.append(", serviceName='").append(serviceName).append('\'');
         sb.append(", timeout=").append(timeout);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             sb.append(", parentSpan='").append(parentSpan.asHex()).append('\'');
         }
@@ -288,7 +288,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         CasualEncoderUtils.writeUUID(execution, b);
         b.putLong(serviceNameBytes.length)
          .put(serviceNameBytes);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             byte hasValue = (byte)((timeout > 0) ? 1: 0);
             b.put(hasValue);
@@ -324,7 +324,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         l.add(executionBuffer.array());
         l.add(CasualEncoderUtils.writeLong(serviceNameBytes.length));
         l.add(serviceNameBytes);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             byte hasValue = (byte)((timeout > 0) ? 1 : 0);
             l.add(CasualEncoderUtils.writeByte(hasValue));

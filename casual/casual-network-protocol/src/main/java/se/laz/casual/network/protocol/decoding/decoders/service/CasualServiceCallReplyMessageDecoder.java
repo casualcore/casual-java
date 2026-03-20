@@ -112,7 +112,7 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
         currentOffset += ServiceCallReplySizes.CALL_CODE.getNetworkSize();
 
         Xid xid = null;
-        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             Pair<Integer, Xid> xidInfo = CasualMessageDecoderUtils.readXid(data, currentOffset);
             currentOffset = xidInfo.first();

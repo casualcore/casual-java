@@ -55,7 +55,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
     @Override
     public CasualNWMessageType getType()
     {
-        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)
+        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
                 ? CasualNWMessageType.CONVERSATION_CONNECT_FROM_ONE_THREE
                 : CasualNWMessageType.CONVERSATION_CONNECT;
     }
@@ -73,7 +73,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
                 XIDUtils.getXIDNetworkSize(xid) +
                 ConversationConnectRequestSizes.DUPLEX.getNetworkSize() +
                 ConversationConnectRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ConversationConnectRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             messageSize += ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize();
             if(timeout > 0)
@@ -209,7 +209,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
         CasualEncoderUtils.writeUUID(execution, b);
         b.putLong(serviceNameBytes.length)
          .put(serviceNameBytes);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             byte hasValue = (byte)((timeout > 0) ? 1: 0);
             b.put(hasValue);

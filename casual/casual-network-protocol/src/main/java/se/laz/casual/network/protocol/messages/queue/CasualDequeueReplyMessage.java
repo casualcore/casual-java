@@ -38,7 +38,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
     @Override
     public CasualNWMessageType getType()
     {
-        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)
+        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
                 ? CasualNWMessageType.DEQUEUE_REPLY_FROM_ONE_THREE
                 : CasualNWMessageType.DEQUEUE_REPLY;
     }
@@ -46,7 +46,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
     @Override
     public List<byte[]> toNetworkBytes()
     {
-        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)
+        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
                 ? toNetworkBytesProtocolVersionGreaterOrEqualToOneThree()
                 : toNetworkBytesProtocolVersionLessThanOneThree();
     }
@@ -111,7 +111,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
         final StringBuilder sb = new StringBuilder("CasualDequeueReplyMessage{");
         sb.append("execution=").append(execution);
         sb.append(", messages=").append(messages);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             sb.append(", code=").append(code);
         }
@@ -136,7 +136,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
 
     public QueueErrorCode getCode()
     {
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             return code;
         }
@@ -179,7 +179,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
             Objects.requireNonNull(execution, "execution is not allowed to be null");
             Objects.requireNonNull(messages, "messages is not allowed to be null, can be empty though");
             Objects.requireNonNull(protocolVersion, "protocolVersion is not allowed to be null");
-            if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+            if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
             {
                 Objects.requireNonNull(code, "code can not be null");
                 if(messages.size() > 1)

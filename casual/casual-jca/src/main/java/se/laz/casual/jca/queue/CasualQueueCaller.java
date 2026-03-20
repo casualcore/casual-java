@@ -66,7 +66,7 @@ public class CasualQueueCaller implements CasualQueueApi
             EnqueueReturn.Builder builder = EnqueueReturn.createBuilder();
             builder.withErrorState(ErrorState.OK)
                    .withId(replyMessage.getId());
-            if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion()))
+            if(ProtocolVersion.isGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion()))
             {
                 builder.withErrorCode(replyMessage.getCode());
             }
@@ -145,7 +145,7 @@ public class CasualQueueCaller implements CasualQueueApi
         CasualDequeueReplyMessage replyMessage = networkReplyMessage.getMessage();
         List<QueueMessage> messages = Transformer.transform(replyMessage.getMessages());
         Optional<QueueMessage> maybeMessage = messages.isEmpty() ? Optional.empty() : Optional.of(messages.get(0));
-        Optional<QueueErrorCode> maybeErrorCode = ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion())
+        Optional<QueueErrorCode> maybeErrorCode = ProtocolVersion.isGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion())
                 ? Optional.of(replyMessage.getCode()) : Optional.empty();
         return Pair.of(maybeMessage, maybeErrorCode);
     }

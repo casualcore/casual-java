@@ -81,7 +81,7 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
 
         long serviceTimeout = 0;
         boolean hasTimeout = true;
-        if (ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if (ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             byte value = ByteUtils.readFully(channel, ServiceCallRequestSizes.HAS_VALUE.getNetworkSize()).get();
             hasTimeout = (value > 0);
@@ -91,7 +91,7 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
             serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
         }
         byte[] parentSpan = null;
-        if (ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if (ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             parentSpan = new byte[ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()];
             ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()).get(parentSpan);
@@ -113,7 +113,7 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         {
             builder.setTimeout(serviceTimeout);
         }
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             builder.setParentSpan(SpanId.of(parentSpan));
         }
@@ -138,7 +138,7 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         currentOffset += serviceNameLen;
 
         boolean hasTimeout = true;
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             byte value = ByteBuffer.wrap(data, currentOffset, ServiceCallRequestSizes.HAS_VALUE.getNetworkSize()).get();
             currentOffset += ServiceCallRequestSizes.HAS_VALUE.getNetworkSize();
@@ -151,7 +151,7 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
             currentOffset += ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
         }
         byte[] parentSpan = null;
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             parentSpan = new byte[ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()];
             System.arraycopy(data, currentOffset, parentSpan, 0, ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize());
@@ -192,7 +192,7 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         {
             builder.setTimeout(timeout);
         }
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             builder.setParentSpan(SpanId.of(parentSpan));
         }

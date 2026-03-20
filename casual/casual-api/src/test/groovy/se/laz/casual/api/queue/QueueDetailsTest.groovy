@@ -28,7 +28,7 @@ class QueueDetailsTest extends Specification
       then:
       details.getName() == name
       details.getRetries() == retryies
-      if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
+      if(ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
       {
          !details.getRetryDelay().isEmpty()
          !details.isDequeueEnabled().isEmpty()

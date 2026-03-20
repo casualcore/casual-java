@@ -42,7 +42,7 @@ class CasualDequeueReplyMessageTest extends Specification
         def requestMsgBuilder = CasualDequeueReplyMessage.createBuilder()
                                                   .withProtocolVersion(protocolVersion)
                                                   .withExecution(UUID.randomUUID())
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            requestMsgBuilder.withCode(QueueErrorCode.OK)
            requestMsgBuilder.withMessages(createMessages(1))
@@ -59,7 +59,7 @@ class CasualDequeueReplyMessageTest extends Specification
         then:
         networkBytes != null
         msg == syncResurrectedMsg
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            syncResurrectedMsg.getMessage().getCode() == QueueErrorCode.OK
         }

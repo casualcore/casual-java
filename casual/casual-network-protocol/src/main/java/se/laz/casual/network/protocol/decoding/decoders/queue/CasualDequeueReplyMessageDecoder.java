@@ -44,7 +44,7 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
     public CasualDequeueReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)
+        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
         ? getMessageProtocolVersionEqualOrGreaterToOneThree(b.array())
         : getMessage(b.array());
     }
@@ -52,7 +52,7 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
     @Override
     public CasualDequeueReplyMessage readChunked(final ReadableByteChannel channel)
     {
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
             return readChunkedProtocolVersionGreaterOrEqualToOneThree(channel);
         }
@@ -92,7 +92,7 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
     @Override
     public CasualDequeueReplyMessage readSingleBuffer(byte[] data)
     {
-        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion) ?
+        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion) ?
                 getMessageProtocolVersionEqualOrGreaterToOneThree(data)
                 : getMessage(data);
     }

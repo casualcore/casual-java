@@ -51,19 +51,13 @@ public class EnqueueReturn
     }
 
     @Override
-    public boolean equals(Object o)
+    public final boolean equals(Object o)
     {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof EnqueueReturn that))
         {
             return false;
         }
-        EnqueueReturn enqueueReturn = (EnqueueReturn) o;
-
-        return Objects.equals(id, enqueueReturn.id) && errorState.equals(enqueueReturn.getErrorState());
+        return Objects.equals(id, that.id) && errorState == that.errorState && errorCode == that.errorCode;
     }
 
     @Override

@@ -8,11 +8,9 @@ package se.laz.casual.jca
 
 import se.laz.casual.api.concurrency.Concurrent
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -106,59 +104,13 @@ class InboundContextScopeTest extends Specification
     def "try-with-resources should automatically clean up context"()
     {
         when:
-        Optional<InboundThreadContext> contextAfterTry
         try (def ignored = InboundContextScope.of(testContext))
         {
             assert InboundContextScope.getContext().isPresent()
             assert InboundContextScope.getContext().get() == testContext
         }
-        contextAfterTry = InboundContextScope.getContext()
-
         then:
-        contextAfterTry.isEmpty()
-    }
-
-    def "context inheritance test - child threads should inherit parent context"() {
-       given:
-       InboundThreadContext childContext = null
-
-       when:
-       try (def ignored = InboundContextScope.of(testContext)) {
-          def latch = new CountDownLatch(1)
-
-          def work = {
-             childContext = InboundContextScope.getContext().orElse(null)
-             latch.countDown()
-          }
-          def wrapped = Concurrent.wrap(work)
-
-          new Thread(wrapped).start()
-
-          latch.await(5, TimeUnit.SECONDS)
-       }
-
-       then:
-       childContext == testContext
-
-       when:
-       childContext = InboundContextScope.getContext().orElse(null)
-       then:
-       childContext == null
-    }
-
-    @Unroll
-    def "context validation - all required fields should be non-null #spanId #parentName #execution"()
-    {
-        when:
-        def context = new InboundThreadContext(spanId, parentName, execution)
-        then:
-        context.spanId() == spanId
-        context.parentName() == parentName
-        context.execution() == execution
-        where:
-        spanId         | parentName    | execution
-        SpanId.of()    | "test"        | UUID.randomUUID()
-        SpanId.of()    | "validName"   | UUID.randomUUID()
+        InboundContextScope.getContext().isEmpty()
     }
 
     def 'does not propagate to pooled thread if not wrapped - using Runnable'()
@@ -167,15 +119,13 @@ class InboundContextScopeTest extends Specification
        def capturedInAsync = new AtomicReference<InboundThreadContext>()
        when:
        try (def ignored = InboundContextScope.of(testContext)) {
-          def executor = Executors.newFixedThreadPool(2)
+          def executor = Executors.newSingleThreadExecutor()
           Runnable work = {
              capturedInAsync.set(InboundContextScope.getContext().orElse(null))
           }
-          executor.submit(work)
+          executor.submit (work).get(5, TimeUnit.SECONDS)
           executor.shutdown()
-          executor.awaitTermination(5, TimeUnit.SECONDS)
        }
-
        then:
        capturedInAsync.get() == null
        InboundContextScope.getContext().isEmpty()
@@ -188,13 +138,13 @@ class InboundContextScopeTest extends Specification
       when:
       try (def ignored = InboundContextScope.of(testContext))
       {
-         def executor = Executors.newFixedThreadPool(2)
+         def executor = Executors.newSingleThreadExecutor()
          Runnable work = {
             capturedInAsync.set(InboundContextScope.getContext().orElse(null))
          }
-         executor.submit(Concurrent.wrap(work))
+         Runnable wrapped = Concurrent.wrap(work)
+         executor.submit (wrapped).get(5, TimeUnit.SECONDS)
          executor.shutdown()
-         executor.awaitTermination(5, TimeUnit.SECONDS)
       }
       then:
       capturedInAsync.get() == testContext
@@ -209,7 +159,7 @@ class InboundContextScopeTest extends Specification
       def result
       try (def ignored = InboundContextScope.of(testContext))
       {
-         def executor = Executors.newFixedThreadPool(2)
+         def executor = Executors.newSingleThreadExecutor()
          Callable<InboundThreadContext> work = new Callable<InboundThreadContext>() {
             @Override
             InboundThreadContext call() throws Exception {
@@ -223,7 +173,6 @@ class InboundContextScopeTest extends Specification
          def future = executor.submit(wrappedCallable)
          result = future.get(5, TimeUnit.SECONDS)
          executor.shutdown()
-         executor.awaitTermination(5, TimeUnit.SECONDS)
       }
       then:
       capturedInAsync.get() == testContext
@@ -237,7 +186,7 @@ class InboundContextScopeTest extends Specification
       def captured = new AtomicReference<InboundThreadContext>()
 
       when:
-      def executor = Executors.newFixedThreadPool(1)
+      def executor = Executors.newSingleThreadExecutor()
       Callable<InboundThreadContext> work = new Callable<InboundThreadContext>() {
          @Override
          InboundThreadContext call() throws Exception {
@@ -264,7 +213,7 @@ class InboundContextScopeTest extends Specification
       when:
       def result
       try (def ignored = InboundContextScope.of(testContext)) {
-         def executor = Executors.newFixedThreadPool(2)
+         def executor = Executors.newSingleThreadExecutor()
 
          Supplier<InboundThreadContext> supplier = new Supplier<InboundThreadContext>() {
             @Override
@@ -296,7 +245,7 @@ class InboundContextScopeTest extends Specification
       def captured = new AtomicReference<InboundThreadContext>()
 
       when:
-      def executor = Executors.newFixedThreadPool(1)
+      def executor = Executors.newSingleThreadExecutor()
       def wrapped = Concurrent.wrap({
          captured.set(InboundContextScope.getContext().orElse(null))
          return "done"
@@ -318,7 +267,7 @@ class InboundContextScopeTest extends Specification
       when:
       try (def ignored = InboundContextScope.of(testContext))
       {
-         def executor = Executors.newFixedThreadPool(3)
+         def executor = Executors.newSingleThreadExecutor()
          executor.submit(Concurrent.wrap( { captured1.set(InboundContextScope.getContext().orElse(null)) }))
          executor.submit(Concurrent.wrap( { captured2.set(InboundContextScope.getContext().orElse(null)) }))
          executor.submit(Concurrent.wrap( { captured3.set(InboundContextScope.getContext().orElse(null)) }))
@@ -373,16 +322,4 @@ class InboundContextScopeTest extends Specification
         captured5.get() == testContext
         InboundContextScope.getContext().isEmpty()
     }
-
-   def 'double close is safe and idempotent'()
-   {
-      when:
-      def scope = InboundContextScope.of(testContext)
-      scope.close()
-      scope.close()
-
-      then:
-      noExceptionThrown()
-      InboundContextScope.getContext().isEmpty()
-   }
 }

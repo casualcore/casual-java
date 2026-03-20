@@ -57,7 +57,7 @@ public final class Queue
 
     public long getRetryDelay()
     {
-        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
+        if(!ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
         {
             throw new CasualProtocolException("retry delay not available in protocol version " + protocolVersion);
         }
@@ -72,7 +72,7 @@ public final class Queue
 
     public boolean isEnqueueEnabled()
     {
-        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
+        if(!ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
         {
             throw new CasualProtocolException("enqueue enabled is not available in protocol version " + protocolVersion);
         }
@@ -87,7 +87,7 @@ public final class Queue
 
     public boolean isDequeueEnabled()
     {
-        if(!ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
+        if(!ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
         {
             throw new CasualProtocolException("dequeue enabled is not available in protocol version " + protocolVersion);
         }
@@ -109,7 +109,7 @@ public final class Queue
     {
         final List<byte[]> l = new ArrayList<>();
         final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
-        final long networkSize = ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion)
+        final long networkSize = ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion)
                 ? DiscoveryReplySizes.QUEUES_ELEMENT_SIZE.getNetworkSize() + nameBytes.length + (long)DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize()
                 + DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize() + DiscoveryReplySizes.QUEUES_ELEMENT_ENQUEUE_ENABLED.getNetworkSize()
                 + DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize()
@@ -122,7 +122,7 @@ public final class Queue
         b.putLong(nameBytes.length)
          .put(nameBytes)
          .putLong(retries);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
         {
             b.putLong(retryDelay)
              .put(((enqueueEnabled) ? (byte)(1) : (byte)(0)))

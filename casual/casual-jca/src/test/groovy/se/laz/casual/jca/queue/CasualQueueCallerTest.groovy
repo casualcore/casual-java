@@ -159,7 +159,7 @@ class CasualQueueCallerTest extends Specification
                .withExecution(executionId)
                .withId(enqueueReplyId)
                .withProtocolVersion(protocolVersion);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            builder.withCode(queueErrorCode)
         }
@@ -187,7 +187,7 @@ class CasualQueueCallerTest extends Specification
         then:
         noExceptionThrown()
         enqueueReturn.getId().get() == enqueueReplyId
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion))
+        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
         {
            QueueErrorCode code = enqueueReturn.getErrorCode().orElseThrow ({new CasualRuntimeException("Missing error code")})
            code == queueErrorCode

@@ -19,7 +19,7 @@ public final class OutboundContextCreator
     {}
     public static OutboundContext create(UUID execution, ProtocolVersion protocolVersion)
     {
-        return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)
+        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
                 ? createForProtocolVersionThatSupportsSpanId(execution)
                 : createForProtocolThatDoesNotSupportSpanId(execution);
     }
