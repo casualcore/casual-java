@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Supplier
 
-class InboundThreadLocalTest extends Specification
+class InboundContextScopeTest extends Specification
 {
     InboundThreadContext testContext
     InboundThreadContext altContext
@@ -39,13 +39,13 @@ class InboundThreadLocalTest extends Specification
 
     def cleanup()
     {
-       InboundThreadLocal.remove()
+       InboundContextScope.remove()
     }
 
     def "of() should reject null context with meaningful NPE"()
     {
         when:
-        InboundThreadLocal.of(null)
+        InboundContextScope.of(null)
         then:
         thrown NullPointerException
     }
@@ -53,23 +53,23 @@ class InboundThreadLocalTest extends Specification
     def "of() should accept valid context and set it in thread local"()
     {
         when:
-        InboundThreadLocal.of(testContext)
+        InboundContextScope.of(testContext)
         then:
-        InboundThreadLocal.getContext().isPresent()
-        InboundThreadLocal.getContext().get() == testContext
+        InboundContextScope.getContext().isPresent()
+        InboundContextScope.getContext().get() == testContext
     }
 
     def "getContext() should return empty Optional when no context is set"()
     {
         expect:
-        InboundThreadLocal.getContext().isEmpty()
+        InboundContextScope.getContext().isEmpty()
     }
 
     def "getContext() should return current context when set"()
     {
         when:
-        InboundThreadLocal.of(testContext)
-        def result = InboundThreadLocal.getContext()
+        InboundContextScope.of(testContext)
+        def result = InboundContextScope.getContext()
 
         then:
         result.isPresent()
@@ -79,20 +79,20 @@ class InboundThreadLocalTest extends Specification
     def "close() should clear thread local and make getContext() return empty"()
     {
         given:
-        def inboundThreadLocal = InboundThreadLocal.of(testContext)
-        assert InboundThreadLocal.getContext().isPresent()
+        def inboundThreadLocal = InboundContextScope.of(testContext)
+        assert InboundContextScope.getContext().isPresent()
 
         when:
         inboundThreadLocal.close()
 
         then:
-        InboundThreadLocal.getContext().isEmpty()
+        InboundContextScope.getContext().isEmpty()
     }
 
     def "close() should be idempotent - multiple calls should be safe"()
     {
         given:
-        def inboundThreadLocal = InboundThreadLocal.of(testContext)
+        def inboundThreadLocal = InboundContextScope.of(testContext)
 
         when:
         inboundThreadLocal.close()
@@ -100,19 +100,19 @@ class InboundThreadLocalTest extends Specification
         inboundThreadLocal.close()
 
         then:
-        InboundThreadLocal.getContext().isEmpty()
+        InboundContextScope.getContext().isEmpty()
     }
 
     def "try-with-resources should automatically clean up context"()
     {
         when:
         Optional<InboundThreadContext> contextAfterTry
-        try (def ignored = InboundThreadLocal.of(testContext))
+        try (def ignored = InboundContextScope.of(testContext))
         {
-            assert InboundThreadLocal.getContext().isPresent()
-            assert InboundThreadLocal.getContext().get() == testContext
+            assert InboundContextScope.getContext().isPresent()
+            assert InboundContextScope.getContext().get() == testContext
         }
-        contextAfterTry = InboundThreadLocal.getContext()
+        contextAfterTry = InboundContextScope.getContext()
 
         then:
         contextAfterTry.isEmpty()
@@ -123,11 +123,11 @@ class InboundThreadLocalTest extends Specification
        InboundThreadContext childContext = null
 
        when:
-       try (def ignored = InboundThreadLocal.of(testContext)) {
+       try (def ignored = InboundContextScope.of(testContext)) {
           def latch = new CountDownLatch(1)
 
           def work = {
-             childContext = InboundThreadLocal.getContext().orElse(null)
+             childContext = InboundContextScope.getContext().orElse(null)
              latch.countDown()
           }
           def wrapped = Concurrent.wrap(work)
@@ -141,7 +141,7 @@ class InboundThreadLocalTest extends Specification
        childContext == testContext
 
        when:
-       childContext = InboundThreadLocal.getContext().orElse(null)
+       childContext = InboundContextScope.getContext().orElse(null)
        then:
        childContext == null
     }
@@ -166,10 +166,10 @@ class InboundThreadLocalTest extends Specification
        given:
        def capturedInAsync = new AtomicReference<InboundThreadContext>()
        when:
-       try (def ignored = InboundThreadLocal.of(testContext)) {
+       try (def ignored = InboundContextScope.of(testContext)) {
           def executor = Executors.newFixedThreadPool(2)
           Runnable work = {
-             capturedInAsync.set(InboundThreadLocal.getContext().orElse(null))
+             capturedInAsync.set(InboundContextScope.getContext().orElse(null))
           }
           executor.submit(work)
           executor.shutdown()
@@ -178,7 +178,7 @@ class InboundThreadLocalTest extends Specification
 
        then:
        capturedInAsync.get() == null
-       InboundThreadLocal.getContext().isEmpty()
+       InboundContextScope.getContext().isEmpty()
     }
 
    def 'does propagate to pooled thread when wrapped - using Runnable'()
@@ -186,11 +186,11 @@ class InboundThreadLocalTest extends Specification
       given:
       def capturedInAsync = new AtomicReference<InboundThreadContext>()
       when:
-      try (def ignored = InboundThreadLocal.of(testContext))
+      try (def ignored = InboundContextScope.of(testContext))
       {
          def executor = Executors.newFixedThreadPool(2)
          Runnable work = {
-            capturedInAsync.set(InboundThreadLocal.getContext().orElse(null))
+            capturedInAsync.set(InboundContextScope.getContext().orElse(null))
          }
          executor.submit(Concurrent.wrap(work))
          executor.shutdown()
@@ -198,7 +198,7 @@ class InboundThreadLocalTest extends Specification
       }
       then:
       capturedInAsync.get() == testContext
-      InboundThreadLocal.getContext().isEmpty()
+      InboundContextScope.getContext().isEmpty()
    }
 
    def 'does propagate to pooled thread when wrapped - using Callable'()
@@ -207,13 +207,13 @@ class InboundThreadLocalTest extends Specification
       def capturedInAsync = new AtomicReference<InboundThreadContext>()
       when:
       def result
-      try (def ignored = InboundThreadLocal.of(testContext))
+      try (def ignored = InboundContextScope.of(testContext))
       {
          def executor = Executors.newFixedThreadPool(2)
          Callable<InboundThreadContext> work = new Callable<InboundThreadContext>() {
             @Override
             InboundThreadContext call() throws Exception {
-               def context = InboundThreadLocal.getContext().orElse(null)
+               def context = InboundContextScope.getContext().orElse(null)
                capturedInAsync.set(context)
                return context
             }
@@ -228,7 +228,7 @@ class InboundThreadLocalTest extends Specification
       then:
       capturedInAsync.get() == testContext
       result == testContext
-      InboundThreadLocal.getContext().isEmpty()
+      InboundContextScope.getContext().isEmpty()
    }
 
    def 'wrapped Callable does nothing when no context is active'()
@@ -241,7 +241,7 @@ class InboundThreadLocalTest extends Specification
       Callable<InboundThreadContext> work = new Callable<InboundThreadContext>() {
          @Override
          InboundThreadContext call() throws Exception {
-            def context = InboundThreadLocal.getContext().orElse(null)
+            def context = InboundContextScope.getContext().orElse(null)
             captured.set(context)
             return context
          }
@@ -263,13 +263,13 @@ class InboundThreadLocalTest extends Specification
 
       when:
       def result
-      try (def ignored = InboundThreadLocal.of(testContext)) {
+      try (def ignored = InboundContextScope.of(testContext)) {
          def executor = Executors.newFixedThreadPool(2)
 
          Supplier<InboundThreadContext> supplier = new Supplier<InboundThreadContext>() {
             @Override
             InboundThreadContext get() {
-               def context = InboundThreadLocal.getContext().orElse(null)
+               def context = InboundContextScope.getContext().orElse(null)
                capturedInAsync.set(context)
                return context
             }
@@ -287,7 +287,7 @@ class InboundThreadLocalTest extends Specification
       then:
       capturedInAsync.get() == testContext
       result == testContext
-      InboundThreadLocal.getContext().isEmpty()
+      InboundContextScope.getContext().isEmpty()
    }
 
    def 'wrapped Supplier does nothing when no context is active'()
@@ -298,7 +298,7 @@ class InboundThreadLocalTest extends Specification
       when:
       def executor = Executors.newFixedThreadPool(1)
       def wrapped = Concurrent.wrap({
-         captured.set(InboundThreadLocal.getContext().orElse(null))
+         captured.set(InboundContextScope.getContext().orElse(null))
          return "done"
       } as Supplier<String>)
 
@@ -316,12 +316,12 @@ class InboundThreadLocalTest extends Specification
       def captured3 = new AtomicReference<InboundThreadContext>()
 
       when:
-      try (def ignored = InboundThreadLocal.of(testContext))
+      try (def ignored = InboundContextScope.of(testContext))
       {
          def executor = Executors.newFixedThreadPool(3)
-         executor.submit(Concurrent.wrap( { captured1.set(InboundThreadLocal.getContext().orElse(null)) }))
-         executor.submit(Concurrent.wrap( { captured2.set(InboundThreadLocal.getContext().orElse(null)) }))
-         executor.submit(Concurrent.wrap( { captured3.set(InboundThreadLocal.getContext().orElse(null)) }))
+         executor.submit(Concurrent.wrap( { captured1.set(InboundContextScope.getContext().orElse(null)) }))
+         executor.submit(Concurrent.wrap( { captured2.set(InboundContextScope.getContext().orElse(null)) }))
+         executor.submit(Concurrent.wrap( { captured3.set(InboundContextScope.getContext().orElse(null)) }))
          executor.shutdown()
          executor.awaitTermination(5, TimeUnit.SECONDS)
       }
@@ -329,7 +329,7 @@ class InboundThreadLocalTest extends Specification
       captured1.get() == testContext
       captured2.get() == testContext
       captured3.get() == testContext
-      InboundThreadLocal.getContext().isEmpty()
+      InboundContextScope.getContext().isEmpty()
    }
 
     def 'context survives multiple pooled concurrent tasks from different outer scope'()
@@ -345,21 +345,21 @@ class InboundThreadLocalTest extends Specification
         InboundThreadContext testContext2 = new InboundThreadContext( SpanId.of(), "bob", UUID.randomUUID(  ) )
 
         when:
-        try (def ignored = InboundThreadLocal.of(testContext))
+        try (def ignored = InboundContextScope.of(testContext))
         {
-            executor.submit(Concurrent.wrap( { captured1.set(InboundThreadLocal.getContext().orElse(null)) }))
-            executor.submit(Concurrent.wrap( { captured2.set(InboundThreadLocal.getContext().orElse(null)) }))
+            executor.submit(Concurrent.wrap( { captured1.set(InboundContextScope.getContext().orElse(null)) }))
+            executor.submit(Concurrent.wrap( { captured2.set(InboundContextScope.getContext().orElse(null)) }))
         }
 
-        try (def ignored = InboundThreadLocal.of(testContext2))
+        try (def ignored = InboundContextScope.of(testContext2))
         {
-            executor.submit(Concurrent.wrap( { captured3.set(InboundThreadLocal.getContext().orElse(null)) }))
-            executor.submit(Concurrent.wrap( { captured4.set(InboundThreadLocal.getContext().orElse(null)) }))
+            executor.submit(Concurrent.wrap( { captured3.set(InboundContextScope.getContext().orElse(null)) }))
+            executor.submit(Concurrent.wrap( { captured4.set(InboundContextScope.getContext().orElse(null)) }))
         }
 
-        try (def ignored = InboundThreadLocal.of(testContext))
+        try (def ignored = InboundContextScope.of(testContext))
         {
-            executor.submit(Concurrent.wrap( { captured5.set(InboundThreadLocal.getContext().orElse(null)) }))
+            executor.submit(Concurrent.wrap( { captured5.set(InboundContextScope.getContext().orElse(null)) }))
         }
 
         executor.shutdown()
@@ -371,18 +371,18 @@ class InboundThreadLocalTest extends Specification
         captured3.get() == testContext2
         captured4.get() == testContext2
         captured5.get() == testContext
-        InboundThreadLocal.getContext().isEmpty()
+        InboundContextScope.getContext().isEmpty()
     }
 
    def 'double close is safe and idempotent'()
    {
       when:
-      def scope = InboundThreadLocal.of(testContext)
+      def scope = InboundContextScope.of(testContext)
       scope.close()
       scope.close()
 
       then:
       noExceptionThrown()
-      InboundThreadLocal.getContext().isEmpty()
+      InboundContextScope.getContext().isEmpty()
    }
 }

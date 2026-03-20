@@ -15,23 +15,18 @@ public class QueueDetails
     private final String name;
     private final long retries;
     private final ProtocolVersion protocolVersion;
-    // these are only available in protocol version >= 1.4
     private final Long retryDelay;
     private final Boolean enqueueEnabled;
     private final Boolean dequeueEnabled;
-    private QueueDetails(String name, long retries, ProtocolVersion protocolVersion, Long retryDelay, Boolean enqueueEnabled, Boolean dequeueEnabled)
-    {
-        this.name = name;
-        this.retries = retries;
-        this.protocolVersion = protocolVersion;
-        this.retryDelay = retryDelay;
-        this.enqueueEnabled = enqueueEnabled;
-        this.dequeueEnabled = dequeueEnabled;
-    }
 
     private QueueDetails(Builder builder)
     {
-        this(builder.name, builder.retries, builder.protocolVersion, builder.retryDelay, builder.enqueueEnabled, builder.dequeueEnabled);
+        this.name = builder.name;
+        this.retries = builder.retries;
+        this.protocolVersion = builder.protocolVersion;
+        this.retryDelay = builder.retryDelay;
+        this.enqueueEnabled = builder.enqueueEnabled;
+        this.dequeueEnabled = builder.dequeueEnabled;
     }
 
     public String getName()
@@ -45,7 +40,7 @@ public class QueueDetails
     }
 
     /**
-     * Only available in gw protocol version >= 1.4
+     * @since protocol version 1.4
      * @return the retry delay, if available
      */
     public Optional<Long> getRetryDelay()
@@ -54,7 +49,7 @@ public class QueueDetails
     }
 
     /**
-     * Only available in gw protocol version >= 1.4
+     * @since protocol version 1.4
      * @return whether enqueue is enabled, if available
      */
     public Optional<Boolean> isEnqueueEnabled()
@@ -63,7 +58,7 @@ public class QueueDetails
     }
 
     /**
-     * Only available in gw protocol version >= 1.4
+     * @since protocol version 1.4
      * @return whether dequeue is enabled, if available
      */
     public Optional<Boolean> isDequeueEnabled()
@@ -95,18 +90,14 @@ public class QueueDetails
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder("QueueDetails{");
-        sb.append("name='").append(name).append('\'');
-        sb.append(", retries=").append(retries);
-        sb.append(", protocolVersion=").append(protocolVersion);
-        if(ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion))
-        {
-            sb.append(", retryDelay=").append(retryDelay);
-            sb.append(", enqueueEnabled=").append(enqueueEnabled);
-            sb.append(", dequeueEnabled=").append(dequeueEnabled);
-        }
-        sb.append('}');
-        return sb.toString();
+        return "QueueDetails{" +
+                "name='" + name + '\'' +
+                ", retries=" + retries +
+                ", protocolVersion=" + protocolVersion +
+                ", retryDelay=" + retryDelay +
+                ", enqueueEnabled=" + enqueueEnabled +
+                ", dequeueEnabled=" + dequeueEnabled +
+                '}';
     }
 
     public static Builder createBuilder()

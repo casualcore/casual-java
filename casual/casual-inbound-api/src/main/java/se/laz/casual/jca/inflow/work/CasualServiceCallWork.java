@@ -12,8 +12,8 @@ import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.jca.InboundContextScope;
 import se.laz.casual.jca.InboundThreadContext;
-import se.laz.casual.jca.InboundThreadLocal;
 import se.laz.casual.jca.SpanId;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
@@ -93,7 +93,7 @@ public final class CasualServiceCallWork implements Work
     @SuppressWarnings("try")
     private void issueCallNoReply()
     {
-        try(InboundThreadLocal inboundThreadLocal = InboundThreadLocal.of(new InboundThreadContext(spanId, message.getServiceName(), message.getExecution())))
+        try(InboundContextScope inboundContextScope = InboundContextScope.of(new InboundThreadContext(spanId, message.getServiceName(), message.getExecution())))
         {
             callService();
         }
@@ -116,7 +116,7 @@ public final class CasualServiceCallWork implements Work
             replyBuilder.setXid( message.getXid() );
         }
         CasualBuffer serviceResult = ServiceBuffer.empty();
-        try(InboundThreadLocal inboundThreadLocal = InboundThreadLocal.of(new InboundThreadContext(spanId, message.getServiceName(), message.getExecution())))
+        try(InboundContextScope inboundContextScope = InboundContextScope.of(new InboundThreadContext(spanId, message.getServiceName(), message.getExecution())))
         {
             InboundResponse reply = callService();
             serviceResult = reply.getBuffer();

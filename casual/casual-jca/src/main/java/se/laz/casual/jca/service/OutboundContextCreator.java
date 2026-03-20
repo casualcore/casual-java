@@ -5,8 +5,8 @@
  */
 package se.laz.casual.jca.service;
 
+import se.laz.casual.jca.InboundContextScope;
 import se.laz.casual.jca.InboundThreadContext;
-import se.laz.casual.jca.InboundThreadLocal;
 import se.laz.casual.jca.SpanId;
 import se.laz.casual.network.ProtocolVersion;
 
@@ -26,7 +26,7 @@ public final class OutboundContextCreator
 
     private static OutboundContext createForProtocolThatDoesNotSupportSpanId(UUID execution)
     {
-        Optional<InboundThreadContext> inboundThreadContext = InboundThreadLocal.getContext();
+        Optional<InboundThreadContext> inboundThreadContext = InboundContextScope.getContext();
         // we still want to propagate the inbound execution and parentName if available ( call comes from inbound)
         UUID effectiveExecution = inboundThreadContext.map(InboundThreadContext::execution)
                                                       .orElse(execution);
@@ -37,7 +37,7 @@ public final class OutboundContextCreator
 
     private static OutboundContext createForProtocolVersionThatSupportsSpanId(UUID execution)
     {
-        Optional<InboundThreadContext> inboundThreadContext = InboundThreadLocal.getContext();
+        Optional<InboundThreadContext> inboundThreadContext = InboundContextScope.getContext();
         SpanId parentSpan = inboundThreadContext.map(InboundThreadContext::spanId)
                                                 .orElse(null);
         String parentName = inboundThreadContext.map(InboundThreadContext::parentName)
