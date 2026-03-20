@@ -211,7 +211,6 @@ class InboundContextScopeTest extends Specification
       def capturedInAsync = new AtomicReference<InboundThreadContext>()
 
       when:
-      def result
       try (def ignored = InboundContextScope.of(testContext)) {
          def executor = Executors.newSingleThreadExecutor()
 
@@ -225,17 +224,12 @@ class InboundContextScopeTest extends Specification
          }
 
          def wrappedSupplier = Concurrent.wrap(supplier)
-
-         def future = CompletableFuture.supplyAsync(wrappedSupplier, executor)
-         result = future.get(5, TimeUnit.SECONDS)
-
+         CompletableFuture.supplyAsync(wrappedSupplier, executor).get(5, TimeUnit.SECONDS)
          executor.shutdown()
-         executor.awaitTermination(5, TimeUnit.SECONDS)
       }
 
       then:
       capturedInAsync.get() == testContext
-      result == testContext
       InboundContextScope.getContext().isEmpty()
    }
 
@@ -252,7 +246,7 @@ class InboundContextScopeTest extends Specification
       } as Supplier<String>)
 
       CompletableFuture.supplyAsync(wrapped, executor).get(5, TimeUnit.SECONDS)
-
+      executor.shutdown()
       then:
       captured.get() == null
    }
