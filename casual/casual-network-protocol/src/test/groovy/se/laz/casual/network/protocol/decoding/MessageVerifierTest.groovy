@@ -40,7 +40,7 @@ class MessageVerifierTest extends Specification
     def 'DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR is valid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_FROM_ONE_FOUR, () -> protocolVersion)
 
         then:
         noExceptionThrown()
@@ -53,7 +53,7 @@ class MessageVerifierTest extends Specification
     def 'DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR is invalid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_FROM_ONE_FOUR, () -> protocolVersion)
 
         then:
         thrown(CasualProtocolException)
@@ -118,7 +118,7 @@ class MessageVerifierTest extends Specification
     def 'SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is valid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REQUEST_FROM_ONE_THREE, () -> protocolVersion)
 
         then:
         noExceptionThrown()
@@ -131,7 +131,7 @@ class MessageVerifierTest extends Specification
     def 'SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is invalid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REQUEST_FROM_ONE_THREE, () -> protocolVersion)
 
         then:
         thrown(CasualProtocolException)
@@ -170,7 +170,7 @@ class MessageVerifierTest extends Specification
     def 'SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is valid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REPLY_FROM_ONE_THREE, () -> protocolVersion)
 
         then:
         noExceptionThrown()
@@ -183,7 +183,7 @@ class MessageVerifierTest extends Specification
     def 'SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is invalid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REPLY_FROM_ONE_THREE, () -> protocolVersion)
 
         then:
         thrown(CasualProtocolException)
@@ -222,7 +222,7 @@ class MessageVerifierTest extends Specification
     def 'ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is valid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.ENQUEUE_REPLY_FROM_ONE_THREE, () -> protocolVersion)
 
         then:
         noExceptionThrown()
@@ -235,7 +235,7 @@ class MessageVerifierTest extends Specification
     def 'ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is invalid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.ENQUEUE_REPLY_FROM_ONE_THREE, () -> protocolVersion)
 
         then:
         thrown(CasualProtocolException)
@@ -274,7 +274,7 @@ class MessageVerifierTest extends Specification
     def 'DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is valid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DEQUEUE_REPLY_FROM_ONE_THREE, () -> protocolVersion)
 
         then:
         noExceptionThrown()
@@ -287,7 +287,7 @@ class MessageVerifierTest extends Specification
     def 'DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is invalid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DEQUEUE_REPLY_FROM_ONE_THREE, () -> protocolVersion)
 
         then:
         thrown(CasualProtocolException)
@@ -326,7 +326,7 @@ class MessageVerifierTest extends Specification
     def 'CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is valid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.CONVERSATION_CONNECT_FROM_ONE_THREE, () -> protocolVersion)
 
         then:
         noExceptionThrown()
@@ -339,7 +339,7 @@ class MessageVerifierTest extends Specification
     def 'CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is invalid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE, () -> protocolVersion)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.CONVERSATION_CONNECT_FROM_ONE_THREE, () -> protocolVersion)
 
         then:
         thrown(CasualProtocolException)

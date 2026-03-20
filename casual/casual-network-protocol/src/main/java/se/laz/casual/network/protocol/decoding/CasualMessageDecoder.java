@@ -77,7 +77,7 @@ public final class CasualMessageDecoder
         {
             case DOMAIN_DISCOVERY_REQUEST:
                 return (NetworkDecoder<T>) CasualDomainDiscoveryRequestMessageDecoder.of();
-            case DOMAIN_DISCOVERY_REPLY, DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR:
+            case DOMAIN_DISCOVERY_REPLY, DOMAIN_DISCOVERY_REPLY_FROM_ONE_FOUR:
                 return (NetworkDecoder<T>) CasualDomainDiscoveryReplyMessageDecoder.of(protocolVersionSupplier.get());
             case DOMAIN_DISCONNECT_REQUEST:
                 return (NetworkDecoder<T>) DomainDisconnectRequestMessageDecoder.of();
@@ -94,19 +94,19 @@ public final class CasualMessageDecoder
                 return (NetworkDecoder<T>) CasualDomainConnectRequestMessageDecoder.of();
             case DOMAIN_CONNECT_REPLY:
                 return (NetworkDecoder<T>) CasualDomainConnectReplyMessageDecoder.of();
-            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_FROM_ONE_THREE:
                 CasualServiceCallRequestMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
                 return (NetworkDecoder<T>) CasualServiceCallRequestMessageDecoder.of(protocolVersionSupplier.get());
-            case SERVICE_CALL_REPLY, SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case SERVICE_CALL_REPLY, SERVICE_CALL_REPLY_FROM_ONE_THREE:
                 CasualServiceCallReplyMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
                 return (NetworkDecoder<T>) CasualServiceCallReplyMessageDecoder.of(protocolVersionSupplier.get());
             case ENQUEUE_REQUEST:
                 return (NetworkDecoder<T>) CasualEnqueueRequestMessageDecoder.of();
-            case ENQUEUE_REPLY, ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case ENQUEUE_REPLY, ENQUEUE_REPLY_FROM_ONE_THREE:
                 return (NetworkDecoder<T>) CasualEnqueueReplyMessageDecoder.of(protocolVersionSupplier.get());
             case DEQUEUE_REQUEST:
                 return (NetworkDecoder<T>) CasualDequeueRequestMessageDecoder.of();
-            case DEQUEUE_REPLY, DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case DEQUEUE_REPLY, DEQUEUE_REPLY_FROM_ONE_THREE:
                 return (NetworkDecoder<T>) CasualDequeueReplyMessageDecoder.of(protocolVersionSupplier.get());
             case PREPARE_REQUEST:
                 return (NetworkDecoder<T>) CasualTransactionResourcePrepareRequestMessageDecoder.of();
@@ -120,7 +120,7 @@ public final class CasualMessageDecoder
                 return (NetworkDecoder<T>) CasualTransactionResourceRollbackRequestMessageDecoder.of();
             case REQUEST_ROLLBACK_REPLY:
                 return (NetworkDecoder<T>) CasualTransactionResourceRollbackReplyMessageDecoder.of();
-            case CONVERSATION_CONNECT, CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case CONVERSATION_CONNECT, CONVERSATION_CONNECT_FROM_ONE_THREE:
                 return (NetworkDecoder<T>) ConnectRequestMessageDecoder.of(protocolVersionSupplier.get());
             case CONVERSATION_CONNECT_REPLY:
                 return (NetworkDecoder<T>) ConnectReplyMessageDecoder.of();

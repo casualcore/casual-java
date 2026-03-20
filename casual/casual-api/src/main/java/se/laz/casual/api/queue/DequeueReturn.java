@@ -15,7 +15,6 @@ public class DequeueReturn
 {
     private final QueueMessage queueMessage;
     private final ErrorState errorState;
-    // only available in protocol version >= 1.3
     private final QueueErrorCode errorCode;
 
     private DequeueReturn(QueueMessage queueMessage, ErrorState errorState, QueueErrorCode errorCode)
@@ -37,7 +36,7 @@ public class DequeueReturn
     }
 
     /**
-     * Only available when using gw protocol version >= 1.3
+     * @since protocol version 1.3
      * @return the error code, if available
      */
     public Optional<QueueErrorCode> getErrorCode()

@@ -51,22 +51,6 @@ public class EnqueueReturn
     }
 
     @Override
-    public int hashCode()
-    {
-        return id.hashCode() + Integer.hashCode(errorState.getValue());
-    }
-
-    @Override
-    public String toString()
-    {
-        return "EnqueueReturn{" +
-                "id=" + id +
-                ", errorState=" + errorState +
-                ", errorCode=" + errorCode +
-                '}';
-    }
-
-    @Override
     public boolean equals(Object o)
     {
         if (this == o)
@@ -80,6 +64,25 @@ public class EnqueueReturn
         EnqueueReturn enqueueReturn = (EnqueueReturn) o;
 
         return Objects.equals(id, enqueueReturn.id) && errorState.equals(enqueueReturn.getErrorState());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = Objects.hashCode(id);
+        result = 31 * result + errorState.hashCode();
+        result = 31 * result + Objects.hashCode(errorCode);
+        return result;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "EnqueueReturn{" +
+                "id=" + id +
+                ", errorState=" + errorState +
+                ", errorCode=" + errorCode +
+                '}';
     }
 
     public static final class Builder

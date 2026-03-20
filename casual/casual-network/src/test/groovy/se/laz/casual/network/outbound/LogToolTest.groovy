@@ -14,14 +14,25 @@ import se.laz.casual.network.protocol.messages.conversation.ConnectReply
 import se.laz.casual.network.protocol.messages.conversation.ConnectRequest
 import se.laz.casual.network.protocol.messages.conversation.Disconnect
 import se.laz.casual.network.protocol.messages.conversation.Request
-import se.laz.casual.network.protocol.messages.domain.*
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
+import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
+import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage
+import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpdateMessage
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueReplyMessage
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueRequestMessage
 import se.laz.casual.network.protocol.messages.queue.CasualEnqueueReplyMessage
 import se.laz.casual.network.protocol.messages.queue.CasualEnqueueRequestMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.network.protocol.messages.transaction.*
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -79,7 +90,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.DOMAIN_DISCOVERY_REPLY:
-            case CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR:
+            case CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_FROM_ONE_FOUR:
                 CasualDomainDiscoveryReplyMessage message = Mock(CasualDomainDiscoveryReplyMessage){
                     getExecution() >> execution
                 }
@@ -90,13 +101,13 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.SERVICE_CALL_REQUEST:
-            case CasualNWMessageType.SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case CasualNWMessageType.SERVICE_CALL_REQUEST_FROM_ONE_THREE:
                 CasualServiceCallRequestMessage message = Mock(CasualServiceCallRequestMessage){
                     getExecution() >> execution
                 }
                 return message
             case CasualNWMessageType.SERVICE_CALL_REPLY:
-            case CasualNWMessageType.SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case CasualNWMessageType.SERVICE_CALL_REPLY_FROM_ONE_THREE:
                 CasualServiceCallReplyMessage message = Mock(CasualServiceCallReplyMessage){
                     getExecution() >> execution
                 }
@@ -107,7 +118,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.ENQUEUE_REPLY:
-            case CasualNWMessageType.ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case CasualNWMessageType.ENQUEUE_REPLY_FROM_ONE_THREE:
                 CasualEnqueueReplyMessage message = Mock(CasualEnqueueReplyMessage){
                     getExecution() >> execution
                 }
@@ -118,7 +129,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.DEQUEUE_REPLY:
-            case CasualNWMessageType.DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case CasualNWMessageType.DEQUEUE_REPLY_FROM_ONE_THREE:
                 CasualDequeueReplyMessage message = Mock(CasualDequeueReplyMessage){
                     getExecution() >> execution
                 }
@@ -154,7 +165,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.CONVERSATION_CONNECT:
-            case CasualNWMessageType.CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case CasualNWMessageType.CONVERSATION_CONNECT_FROM_ONE_THREE:
                 ConnectRequest message = Mock(ConnectRequest){
                     getExecution() >> execution
                 }

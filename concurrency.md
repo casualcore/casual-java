@@ -1,5 +1,7 @@
 # Concurrency and Inbound Context Propagation
 
+This is since casual-java v3.4.0 due to implementing tracing functionality.
+
 When an inbound service call is received, casual-java automatically establishes a thread-local context
 (`InboundThreadContext`) on the executing thread. This context carries tracing and correlation data
 (span ID, parent service name, execution ID) that is transparently propagated to any outbound calls

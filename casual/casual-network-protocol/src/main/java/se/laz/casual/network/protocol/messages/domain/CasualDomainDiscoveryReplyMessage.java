@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -56,7 +56,7 @@ public class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmitt
     public CasualNWMessageType getType()
     {
         return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneFour(protocolVersion)
-                ? CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR
+                ? CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_FROM_ONE_FOUR
                 : CasualNWMessageType.DOMAIN_DISCOVERY_REPLY;
     }
 

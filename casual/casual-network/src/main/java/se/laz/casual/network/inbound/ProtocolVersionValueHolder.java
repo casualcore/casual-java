@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, The casual project. All rights reserved.
+ * Copyright (c) 2025 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -15,6 +15,14 @@ import java.util.function.Supplier;
 
 public class ProtocolVersionValueHolder implements Supplier<ProtocolVersion>, Consumer<ProtocolVersion>
 {
+    /**
+     * Volatile since we need to ensure visibility of the protocol version across threads ( Inbound, Reverse Inbound, Outbound)
+     * For example Inbound:
+     *  - The protocol version is written on one Netty thread (from the thread pool) when a DOMAIN_CONNECT_REQUEST message is received and handled by the message handler.
+     *  - It is read from potentially a different Netty thread when decoding subsequent incoming messages in the Netty decoder.
+     *  - Volatile ensures that the write is immediately visible to all threads holding a reference to this holder, preventing stale reads due to CPU caching / memory ordering.
+     */
+
     private volatile ProtocolVersion protocolVersion;
 
     private ProtocolVersionValueHolder()

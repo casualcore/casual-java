@@ -53,25 +53,25 @@ public final class LogTool
             case DOMAIN_DISCOVERY_REQUEST:
                 execution = ((CasualDomainDiscoveryRequestMessage)message.getMessage()).getExecution();
                 break;
-            case DOMAIN_DISCOVERY_REPLY, DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR:
+            case DOMAIN_DISCOVERY_REPLY, DOMAIN_DISCOVERY_REPLY_FROM_ONE_FOUR:
                 execution = ((CasualDomainDiscoveryReplyMessage)message.getMessage()).getExecution();
                 break;
-            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_FROM_ONE_THREE:
                 execution = ((CasualServiceCallRequestMessage)message.getMessage()).getExecution();
                 break;
-            case SERVICE_CALL_REPLY, SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case SERVICE_CALL_REPLY, SERVICE_CALL_REPLY_FROM_ONE_THREE:
                 execution = ((CasualServiceCallReplyMessage)message.getMessage()).getExecution();
                 break;
             case ENQUEUE_REQUEST:
                 execution = ((CasualEnqueueRequestMessage)message.getMessage()).getExecution();
                 break;
-            case ENQUEUE_REPLY, ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case ENQUEUE_REPLY, ENQUEUE_REPLY_FROM_ONE_THREE:
                 execution = ((CasualEnqueueReplyMessage)message.getMessage()).getExecution();
                 break;
             case DEQUEUE_REQUEST:
                 execution = ((CasualDequeueRequestMessage)message.getMessage()).getExecution();
                 break;
-            case DEQUEUE_REPLY, DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case DEQUEUE_REPLY, DEQUEUE_REPLY_FROM_ONE_THREE:
                 execution = ((CasualDequeueReplyMessage)message.getMessage()).getExecution();
                 break;
             case PREPARE_REQUEST:
@@ -92,7 +92,7 @@ public final class LogTool
             case REQUEST_ROLLBACK_REPLY:
                 execution = ((CasualTransactionResourceRollbackReplyMessage)message.getMessage()).getExecution();
                 break;
-            case CONVERSATION_CONNECT, CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE:
+            case CONVERSATION_CONNECT, CONVERSATION_CONNECT_FROM_ONE_THREE:
                 execution = ((ConnectRequest)message.getMessage()).getExecution();
                 break;
             case CONVERSATION_CONNECT_REPLY:

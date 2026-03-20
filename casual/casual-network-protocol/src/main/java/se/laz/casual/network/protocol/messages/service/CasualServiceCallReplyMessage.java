@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -55,7 +55,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     public CasualNWMessageType getType()
     {
         return ProtocolVersion.isProtocolVersionGreaterOrEqualToOneThree(protocolVersion)
-                ? CasualNWMessageType.SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE
+                ? CasualNWMessageType.SERVICE_CALL_REPLY_FROM_ONE_THREE
                 : CasualNWMessageType.SERVICE_CALL_REPLY;
     }
 

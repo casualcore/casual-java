@@ -28,13 +28,9 @@ public final class OutboundContextCreator
     {
         Optional<InboundThreadContext> inboundThreadContext = InboundThreadLocal.getContext();
         // we still want to propagate the inbound execution and parentName if available ( call comes from inbound)
-        UUID effectiveExecution = inboundThreadContext.stream()
-                                                      .map(c -> c.execution())
-                                                      .findFirst()
+        UUID effectiveExecution = inboundThreadContext.map(InboundThreadContext::execution)
                                                       .orElse(execution);
-        String parentName = inboundThreadContext.stream()
-                                                .map(c -> c.parentName())
-                                                .findAny()
+        String parentName = inboundThreadContext.map(InboundThreadContext::parentName)
                                                 .orElse("");
         return new OutboundContext(null, null, parentName, effectiveExecution);
     }
@@ -42,17 +38,11 @@ public final class OutboundContextCreator
     private static OutboundContext createForProtocolVersionThatSupportsSpanId(UUID execution)
     {
         Optional<InboundThreadContext> inboundThreadContext = InboundThreadLocal.getContext();
-        SpanId parentSpan = inboundThreadContext.stream()
-                                                .map( c -> c.spanId())
-                                                .findFirst()
+        SpanId parentSpan = inboundThreadContext.map(InboundThreadContext::spanId)
                                                 .orElse(null);
-        String parentName = inboundThreadContext.stream()
-                                                .map(c -> c.parentName())
-                                                .findAny()
+        String parentName = inboundThreadContext.map(InboundThreadContext::parentName)
                                                 .orElse("");
-        UUID effectiveExecution = inboundThreadContext.stream()
-                                                      .map(c -> c.execution())
-                                                      .findFirst()
+        UUID effectiveExecution = inboundThreadContext.map(InboundThreadContext::execution)
                                                       .orElse(execution);
         return new OutboundContext(parentSpan, SpanId.of(), parentName, effectiveExecution);
     }
