@@ -8,7 +8,6 @@ package se.laz.casual.jca.discovery
 
 import se.laz.casual.api.discovery.DiscoveryReturn
 import se.laz.casual.api.queue.QueueDetails
-import se.laz.casual.api.service.ServiceDetails
 import se.laz.casual.config.json.Domain
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
@@ -103,7 +102,7 @@ class CasualDiscoveryCallerTest extends Specification
 
     List<Queue> asQueues(List<String> queueNames, ProtocolVersion protocolVersion)
     {
-        queueNames.collect { Queue.of(it, protocolVersion) }
+        queueNames.collect { Queue.createBuilder().withName(it).withProtocolVersion( protocolVersion).build() }
     }
 
     def 'of - null managed connection throws NullPointerException'()
@@ -173,11 +172,14 @@ class CasualDiscoveryCallerTest extends Specification
                 [name: 'svc1', category: 'cat1', transactionType: TransactionType.AUTOMATIC, timeout: 1000L, hops: 0L]
         ])
         def queues = [
-                Queue.of('q1', protocolVersion)
-                     .setRetries(3L)
-                     .setRetryDelay(500L)
-                     .setEnqueueEnabled(true)
-                     .setDequeueEnabled(false)
+                Queue.createBuilder()
+                        .withName('q1')
+                        .withProtocolVersion(protocolVersion)
+                        .withRetries(3L)
+                        .withRetryDelay(500L)
+                        .withEnqueueEnabled(true)
+                        .withDequeueEnabled(false)
+                        .build()
         ]
         def reply = createDiscoveryReply(services, queues, protocolVersion)
 
@@ -219,7 +221,7 @@ class CasualDiscoveryCallerTest extends Specification
     {
         setup:
         def protocolVersion = ProtocolVersion.VERSION_1_3
-        def queues = [Queue.of('q1', protocolVersion).setRetries(5L)]
+        def queues = [Queue.createBuilder().withName('q1').withProtocolVersion(protocolVersion).withRetries(5L).build()]
         def reply = createDiscoveryReply([], queues, protocolVersion)
 
         networkConnection = Mock(NetworkConnection) {
@@ -233,8 +235,11 @@ class CasualDiscoveryCallerTest extends Specification
 
         then:
         1 * networkConnection.request(_) >> {
-            return CompletableFuture.completedFuture(reply)
+           CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
+              actualDiscoveryRequest = input
+              return CompletableFuture.completedFuture(reply)
         }
+        expect actualDiscoveryRequest, matching(expectedDiscoveryRequest)
 
         result != null
         result.getQueueDetails().size() == 1
@@ -273,6 +278,10 @@ class CasualDiscoveryCallerTest extends Specification
         def services = asServices([
                 [name: 'svc1', category: 'cat1', transactionType: TransactionType.AUTOMATIC, timeout: 0L, hops: 0L]
         ])
+        def expectedRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
+                .setServiceNames([services.get(0).name])
+                .setDomainName(Domain.getName())
+                .build()
         def reply = createDiscoveryReply(services, [], ProtocolVersion.VERSION_1_2)
 
         when:
@@ -280,8 +289,11 @@ class CasualDiscoveryCallerTest extends Specification
 
         then:
         1 * networkConnection.request(_) >> {
-            return CompletableFuture.completedFuture(reply)
+           CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
+              actualDiscoveryRequest = input
+              return CompletableFuture.completedFuture(reply)
         }
+        expect actualDiscoveryRequest, matching(expectedRequest)
 
         result != null
         result.getServiceDetails().size() == 1
@@ -293,6 +305,10 @@ class CasualDiscoveryCallerTest extends Specification
     {
         setup:
         def queues = asQueues(['q1'], ProtocolVersion.VERSION_1_2)
+        def expectedRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
+                .setQueueNames([queues.get(0).name])
+                .setDomainName(Domain.getName())
+                .build()
         def reply = createDiscoveryReply([], queues, ProtocolVersion.VERSION_1_2)
 
         when:
@@ -300,8 +316,11 @@ class CasualDiscoveryCallerTest extends Specification
 
         then:
         1 * networkConnection.request(_) >> {
-            return CompletableFuture.completedFuture(reply)
+           CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
+              actualDiscoveryRequest = input
+              return CompletableFuture.completedFuture(reply)
         }
+        expect actualDiscoveryRequest, matching(expectedRequest)
 
         result != null
         result.getServiceDetails().isEmpty()
@@ -311,16 +330,16 @@ class CasualDiscoveryCallerTest extends Specification
 
     def 'discover - network request fails, exception propagates'()
     {
-        when:
-        instance.discover(corrid, serviceNames, queueNames)
-
-        then:
-        thrown(Exception)
-        1 * networkConnection.request(_) >> {
-            CompletableFuture f = new CompletableFuture<>()
-            f.completeExceptionally(new RuntimeException('network failure'))
-            return f
-        }
+       given:
+       1 * networkConnection.request(_) >> {
+          CompletableFuture f = new CompletableFuture<>()
+          f.completeExceptionally(new RuntimeException('network failure'))
+          return f
+       }
+       when:
+       instance.discover(corrid, serviceNames, queueNames)
+       then:
+       thrown(Exception)
     }
 
     def 'discover - corrid is propagated to the network message'()

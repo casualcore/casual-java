@@ -184,16 +184,22 @@ class CasualDomainDiscoveryReplyMessageTest extends Specification
         names.each {
            if (protocolVersion.version >= ProtocolVersion.VERSION_1_4.version)
            {
-              queues << Queue.of(it.toString(), protocolVersion)
-                      .setRetries(retries)
-                      .setRetryDelay(retryDelay)
-                      .setEnqueueEnabled(enqueueEnabled)
-                      .setDequeueEnabled(dequeueEnabled)
+              queues << Queue.createBuilder()
+                      .withName(it.toString())
+                      .withProtocolVersion(protocolVersion)
+                      .withRetries(retries)
+                      .withRetryDelay(retryDelay)
+                      .withEnqueueEnabled(enqueueEnabled)
+                      .withDequeueEnabled(dequeueEnabled)
+                      .build()
            }
            else
            {
-              queues << Queue.of(it.toString(), protocolVersion)
-                      .setRetries(retries)
+              queues << Queue.createBuilder()
+                      .withName(it.toString())
+                      .withProtocolVersion(protocolVersion)
+                      .withRetries(retries)
+                      .build()
            }
         }
         return queues

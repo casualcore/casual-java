@@ -82,11 +82,9 @@ class CasualMessageListenerImplTest extends Specification
         instance = new CasualMessageListenerImpl()
         inboundHandler = TestInboundHandler.of()
         valueHolder = ProtocolVersionValueHolder.of()
-        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), inboundHandler)
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )
-
         xid = createXid()
     }
 
@@ -133,6 +131,7 @@ class CasualMessageListenerImplTest extends Specification
     def "DomainDiscoveryRequest"()
     {
         given:
+        valueHolder.accept(ProtocolVersion.VERSION_1_0)
         CasualServiceMetaData metaData = CasualServiceMetaData.newBuilder()
                 .service( new TestCasualService() )
                 .serviceMethod( String.class.getMethod("toString"))

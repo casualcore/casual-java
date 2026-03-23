@@ -141,7 +141,7 @@ class CasualQueueCallerTest extends Specification
         List<Queue> l = new ArrayList<>()
         for(String qname : queuenames)
         {
-            l.add(Queue.of(qname, ProtocolVersion.VERSION_1_2))
+            l.add(Queue.createBuilder().withName(qname).withProtocolVersion( ProtocolVersion.VERSION_1_2).build())
         }
         return l
     }
@@ -182,6 +182,7 @@ class CasualQueueCallerTest extends Specification
     {
         when:
         enqueueReply = createEnqueueReplyMessage(protocolVersion)
+        protocolVersionValueHolder = new ProtocolVersionValueHolder()
         protocolVersionValueHolder.accept(protocolVersion)
         EnqueueReturn enqueueReturn = instance.enqueue(queueInfo, QueueMessage.of(message))
         then:

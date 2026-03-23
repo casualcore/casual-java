@@ -26,17 +26,14 @@ public final class Queue
     private long retryDelay;
     private boolean enqueueEnabled;
     private boolean dequeueEnabled;
-    private Queue(String name, ProtocolVersion protocolVersion)
+    private Queue(Builder builder)
     {
-        this.name = name;
-        this.protocolVersion = protocolVersion;
-    }
-
-    public static Queue of(String name, ProtocolVersion protocolVersion)
-    {
-        Objects.requireNonNull(name, "name can not be null");
-        Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
-        return new Queue(name, protocolVersion);
+        name = builder.name;
+        protocolVersion = builder.protocolVersion;
+        retries = builder.retries;
+        retryDelay = builder.retryDelay;
+        enqueueEnabled = builder.enqueueEnabled;
+        dequeueEnabled = builder.dequeueEnabled;
     }
 
     public String getName()
@@ -49,12 +46,6 @@ public final class Queue
         return retries;
     }
 
-    public Queue setRetries(long retries)
-    {
-        this.retries = retries;
-        return this;
-    }
-
     public long getRetryDelay()
     {
         if(!ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
@@ -62,12 +53,6 @@ public final class Queue
             throw new CasualProtocolException("retry delay not available in protocol version " + protocolVersion);
         }
         return retryDelay;
-    }
-
-    public Queue setRetryDelay(long retryDelay)
-    {
-        this.retryDelay = retryDelay;
-        return this;
     }
 
     public boolean isEnqueueEnabled()
@@ -79,12 +64,6 @@ public final class Queue
         return enqueueEnabled;
     }
 
-    public Queue setEnqueueEnabled(boolean enqueueEnabled)
-    {
-        this.enqueueEnabled = enqueueEnabled;
-        return this;
-    }
-
     public boolean isDequeueEnabled()
     {
         if(!ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
@@ -92,12 +71,6 @@ public final class Queue
             throw new CasualProtocolException("dequeue enabled is not available in protocol version " + protocolVersion);
         }
         return dequeueEnabled;
-    }
-
-    public Queue setDequeueEnabled(boolean dequeueEnabled)
-    {
-        this.dequeueEnabled = dequeueEnabled;
-        return this;
     }
 
     /**
@@ -163,5 +136,72 @@ public final class Queue
                 .add("enqueueEnabled=" + enqueueEnabled)
                 .add("dequeueEnabled=" + dequeueEnabled)
                 .toString();
+    }
+
+    public static Builder createBuilder()
+    {
+        return new Builder();
+    }
+
+    public static final class Builder
+    {
+        private String name;
+        private ProtocolVersion protocolVersion;
+        private long retries;
+        private long retryDelay;
+        private boolean enqueueEnabled;
+        private boolean dequeueEnabled;
+
+        private Builder()
+        {
+        }
+
+        public static Builder newBuilder()
+        {
+            return new Builder();
+        }
+
+        public Builder withName(String name)
+        {
+            this.name = name;
+            return this;
+        }
+
+        public Builder withProtocolVersion(ProtocolVersion protocolVersion)
+        {
+            this.protocolVersion = protocolVersion;
+            return this;
+        }
+
+        public Builder withRetries(long retries)
+        {
+            this.retries = retries;
+            return this;
+        }
+
+        public Builder withRetryDelay(long retryDelay)
+        {
+            this.retryDelay = retryDelay;
+            return this;
+        }
+
+        public Builder withEnqueueEnabled(boolean enqueueEnabled)
+        {
+            this.enqueueEnabled = enqueueEnabled;
+            return this;
+        }
+
+        public Builder withDequeueEnabled(boolean dequeueEnabled)
+        {
+            this.dequeueEnabled = dequeueEnabled;
+            return this;
+        }
+
+        public Queue build()
+        {
+            Objects.requireNonNull(name, "name can not be null");
+            Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
+            return new Queue(this);
+        }
     }
 }

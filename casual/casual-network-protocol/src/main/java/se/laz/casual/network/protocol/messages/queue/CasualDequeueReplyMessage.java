@@ -108,15 +108,12 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder("CasualDequeueReplyMessage{");
-        sb.append("execution=").append(execution);
-        sb.append(", messages=").append(messages);
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
-        {
-            sb.append(", code=").append(code);
-        }
-        sb.append('}');
-        return sb.toString();
+        return "CasualDequeueReplyMessage{" +
+                "execution=" + execution +
+                ", messages=" + messages +
+                ", protocolVersion=" + protocolVersion +
+                ", code=" + code +
+                '}';
     }
 
     public static Builder createBuilder()

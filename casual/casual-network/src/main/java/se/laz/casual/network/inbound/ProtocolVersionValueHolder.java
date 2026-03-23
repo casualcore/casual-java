@@ -51,6 +51,10 @@ public class ProtocolVersionValueHolder implements Supplier<ProtocolVersion>, Co
     public void accept(ProtocolVersion protocolVersion)
     {
         Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
+        if(this.protocolVersion != null)
+        {
+            throw new CasualProtocolException("protocol version already set");
+        }
         this.protocolVersion = protocolVersion;
     }
 

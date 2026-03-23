@@ -219,8 +219,10 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         offset += nameSize;
         final long retries = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize()).getLong();
         offset += DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize();
-        final Queue q = Queue.of(name, protocolVersion)
-                             .setRetries(retries);
+        final Queue.Builder q = Queue.createBuilder()
+                                     .withName(name)
+                                     .withProtocolVersion(protocolVersion)
+                                     .withRetries(retries);
         if(ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
         {
             final long retryDelay = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize()).getLong();
@@ -229,11 +231,11 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
             offset += DiscoveryReplySizes.QUEUES_ELEMENT_ENQUEUE_ENABLED.getNetworkSize();
             boolean dequeueEnabled = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize()).get() > 0;
             offset += DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize();
-            q.setRetryDelay(retryDelay)
-             .setEnqueueEnabled(enqueueEnabled)
-             .setDequeueEnabled(dequeueEnabled);
+            q.withRetryDelay(retryDelay)
+             .withEnqueueEnabled(enqueueEnabled)
+             .withDequeueEnabled(dequeueEnabled);
         }
-        l.add(q);
+        l.add(q.build());
         return offset;
     }
 
