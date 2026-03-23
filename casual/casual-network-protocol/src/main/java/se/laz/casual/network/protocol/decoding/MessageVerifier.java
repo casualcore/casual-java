@@ -10,9 +10,8 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.network.ProtocolVersion;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -43,11 +42,11 @@ public final class MessageVerifier
      *  Absence from the map means that the message type is valid in all versions.
      *  NB: When adding a new protocol version, ensure to update the existing entries in the map to include the newest protocol version where applicable.
      */
-    private final static Map<CasualNWMessageType, Set<ProtocolVersion>> messageProtocolVersions;
+    private static final EnumMap<CasualNWMessageType, Set<ProtocolVersion>> messageProtocolVersions;
 
     static
     {
-        messageProtocolVersions = new HashMap<>();
+        messageProtocolVersions = new EnumMap<>(CasualNWMessageType.class);
         //1.0 - 1.3
         messageProtocolVersions.put( DOMAIN_DISCOVERY_REPLY, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3 ) );
         // 1.4 -
@@ -100,12 +99,10 @@ public final class MessageVerifier
      */
     public static void verifyMessageTypeByProtocolVersion( CasualNWMessageType messageType, Supplier<ProtocolVersion> protocolVersion )
     {
-        if( messageProtocolVersions.containsKey( messageType ) )
+        if( messageProtocolVersions.containsKey( messageType ) &&
+                ! messageProtocolVersions.get( messageType ).contains( protocolVersion.get() ))
         {
-            if( ! messageProtocolVersions.get( messageType ).contains( protocolVersion.get() ) )
-            {
-                throw new CasualProtocolException("Message type " +  messageType.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
-            }
+            throw new CasualProtocolException("Message type " +  messageType.getMessageId() + " is not supported by protocol version " + protocolVersion.get());
         }
     }
 }
