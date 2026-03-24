@@ -72,7 +72,7 @@ public class ConversationConnectCaller implements CasualConversationApi
         {
             connectRequestBuilder.setServiceBuffer(ServiceBuffer.of(data));
         }
-        if( managedConnection.getNetworkConnection().getProtocolVersion().isGreaterThan( VERSION_1_3 ) )
+        if( managedConnection.getNetworkConnection().getProtocolVersion().isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             connectRequestBuilder.setParentSpan(SpanId.of());
         }
