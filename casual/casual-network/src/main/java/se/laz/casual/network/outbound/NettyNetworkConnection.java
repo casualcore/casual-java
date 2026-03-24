@@ -313,12 +313,12 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 
     private boolean protocolSupportsDomainDisconnect()
     {
-        return ProtocolVersion.supportsDomainDisconnect(protocolVersion);
+        return protocolVersion.supportsDomainDisconnect();
     }
 
     private boolean protocolSupportsDomainTopologyChange()
     {
-        return ProtocolVersion.supportsDomainTopologyChange(protocolVersion);
+        return protocolVersion.supportsDomainTopologyChange();
     }
 
     private DomainId throwIfProtocolVersionNotSupportedByEIS(final UUID domainId, final String domainName)

@@ -13,13 +13,15 @@ import se.laz.casual.network.ProtocolVersion;
 import java.util.Optional;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 public final class OutboundContextCreator
 {
     private OutboundContextCreator()
     {}
     public static OutboundContext create(UUID execution, ProtocolVersion protocolVersion)
     {
-        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
                 ? createForProtocolVersionThatSupportsSpanId(execution)
                 : createForProtocolThatDoesNotSupportSpanId(execution);
     }

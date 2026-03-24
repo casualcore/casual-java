@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_4;
+
 /**
  * Created by aleph on 2017-03-07.
  */
@@ -55,7 +57,7 @@ public class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmitt
     @Override
     public CasualNWMessageType getType()
     {
-        return ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion)
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_4 )
                 ? CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_V_1_4
                 : CasualNWMessageType.DOMAIN_DISCOVERY_REPLY;
     }

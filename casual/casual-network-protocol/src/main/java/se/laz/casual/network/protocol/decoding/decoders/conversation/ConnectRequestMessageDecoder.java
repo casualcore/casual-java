@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 public final class ConnectRequestMessageDecoder implements NetworkDecoder<ConnectRequest>
 {
     private final ProtocolVersion protocolVersion;
@@ -70,7 +72,7 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
         currentOffset += serviceNameLen;
 
         boolean hasTimeout = true;
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             byte value = ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize()).get();
             currentOffset += ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize();
@@ -83,7 +85,7 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
             currentOffset += ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
         }
         SpanId parentSpan = null;
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             parentSpan = SpanId.of(Arrays.copyOfRange(data, currentOffset, currentOffset + ConversationConnectRequestSizes.PARENT_SPAN_SIZE.getNetworkSize()));
             currentOffset += ConversationConnectRequestSizes.PARENT_SPAN_SIZE.getNetworkSize();

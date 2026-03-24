@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
 {
     private final UUID execution;
@@ -38,7 +40,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
     @Override
     public CasualNWMessageType getType()
     {
-        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
                 ? CasualNWMessageType.ENQUEUE_REPLY_V_1_3
                 : CasualNWMessageType.ENQUEUE_REPLY;
     }
@@ -47,11 +49,11 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
     public List<byte[]> toNetworkBytes()
     {
         int size = CommonSizes.EXECUTION.getNetworkSize() +  CommonSizes.UUID_ID.getNetworkSize();
-        size += ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion) ?  CommonSizes.CALL_ERROR.getNetworkSize() : 0;
+        size += protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )  ?  CommonSizes.CALL_ERROR.getNetworkSize() : 0;
         ByteBuffer b = ByteBuffer.allocate(size);
         CasualEncoderUtils.writeUUID(execution, b);
         CasualEncoderUtils.writeUUID(id, b);
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             b.putInt(code.getValue());
         }
@@ -87,7 +89,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         sb.append("execution=").append(execution);
         sb.append(", id=").append(id);
         sb.append(", protocolVersion=").append(protocolVersion);
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             sb.append(", code=").append(code);
         }
@@ -112,7 +114,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
 
     public QueueErrorCode getCode()
     {
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             return code;
         }
@@ -155,7 +157,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
             Objects.requireNonNull(execution, "execution is not allowed to be null");
             Objects.requireNonNull(id, "id is not allowed to be null");
             Objects.requireNonNull(protocolVersion, "protocolVersion is not allowed to be null");
-            if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+            if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
             {
                 Objects.requireNonNull(code, "code can not be null");
             }

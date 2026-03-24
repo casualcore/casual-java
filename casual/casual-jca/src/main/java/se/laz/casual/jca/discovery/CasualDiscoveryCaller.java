@@ -27,6 +27,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_4;
+
 public class CasualDiscoveryCaller implements CasualDiscoveryApi
 {
 
@@ -80,7 +82,7 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
 
     private QueueDetails toQueueDetails(Queue queue, ProtocolVersion protocolVersion)
     {
-        return ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion)
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_4 )
                 ? QueueDetails.createBuilder()
                               .withName(queue.getName())
                               .withRetries(queue.getRetries())

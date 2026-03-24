@@ -14,6 +14,8 @@ import se.laz.casual.network.protocol.utils.TestUtils
 import spock.lang.Shared
 import spock.lang.Specification
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
+
 class CasualEnqueueReplyMessageTest extends Specification
 {
     @Shared
@@ -36,7 +38,7 @@ class CasualEnqueueReplyMessageTest extends Specification
                                                   .withExecution(UUID.randomUUID())
                                                   .withId(UUID.randomUUID())
                                                   .withProtocolVersion(protocolVersion)
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
            requestMsgBuilder.withCode(QueueErrorCode.OK)
         }

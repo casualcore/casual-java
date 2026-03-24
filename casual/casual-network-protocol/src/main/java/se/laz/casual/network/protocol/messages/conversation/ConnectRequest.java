@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 public class ConnectRequest implements CasualNetworkTransmittable
 {
     private final UUID execution;
@@ -55,7 +57,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
     @Override
     public CasualNWMessageType getType()
     {
-        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
                 ? CasualNWMessageType.CONVERSATION_CONNECT_V_1_3
                 : CasualNWMessageType.CONVERSATION_CONNECT;
     }
@@ -73,7 +75,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
                 XIDUtils.getXIDNetworkSize(xid) +
                 ConversationConnectRequestSizes.DUPLEX.getNetworkSize() +
                 ConversationConnectRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ConversationConnectRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             messageSize += ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize();
             if(timeout > 0)
@@ -209,7 +211,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
         CasualEncoderUtils.writeUUID(execution, b);
         b.putLong(serviceNameBytes.length)
          .put(serviceNameBytes);
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             byte hasValue = (byte)((timeout > 0) ? 1: 0);
             b.put(hasValue);

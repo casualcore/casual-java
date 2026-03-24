@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_4;
+
 public final class Queue
 {
     private final String name;
@@ -48,7 +50,7 @@ public final class Queue
 
     public long getRetryDelay()
     {
-        if(!ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
+        if(protocolVersion.isLessThan( VERSION_1_4 ))
         {
             throw new CasualProtocolException("retry delay not available in protocol version " + protocolVersion);
         }
@@ -57,7 +59,7 @@ public final class Queue
 
     public boolean isEnqueueEnabled()
     {
-        if(!ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
+        if(protocolVersion.isLessThan( VERSION_1_4 ))
         {
             throw new CasualProtocolException("enqueue enabled is not available in protocol version " + protocolVersion);
         }
@@ -66,7 +68,7 @@ public final class Queue
 
     public boolean isDequeueEnabled()
     {
-        if(!ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
+        if(protocolVersion.isLessThan( VERSION_1_4 ))
         {
             throw new CasualProtocolException("dequeue enabled is not available in protocol version " + protocolVersion);
         }
@@ -82,7 +84,7 @@ public final class Queue
     {
         final List<byte[]> l = new ArrayList<>();
         final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
-        final long networkSize = ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion)
+        final long networkSize = protocolVersion.isGreaterThanOrEqualTo( VERSION_1_4 )
                 ? DiscoveryReplySizes.QUEUES_ELEMENT_SIZE.getNetworkSize() + nameBytes.length + (long)DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize()
                 + DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize() + DiscoveryReplySizes.QUEUES_ELEMENT_ENQUEUE_ENABLED.getNetworkSize()
                 + DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize()
@@ -95,7 +97,7 @@ public final class Queue
         b.putLong(nameBytes.length)
          .put(nameBytes)
          .putLong(retries);
-        if(ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_4 ))
         {
             b.putLong(retryDelay)
              .put(((enqueueEnabled) ? (byte)(1) : (byte)(0)))

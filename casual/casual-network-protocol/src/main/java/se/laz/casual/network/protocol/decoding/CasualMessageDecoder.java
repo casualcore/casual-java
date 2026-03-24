@@ -42,6 +42,8 @@ import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 
 import java.util.function.Supplier;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_2;
+
 public final class CasualMessageDecoder
 {
     private static int maxSingleBufferByteSize = Integer.MAX_VALUE;
@@ -85,7 +87,7 @@ public final class CasualMessageDecoder
                 return (NetworkDecoder<T>) DomainDisconnectReplyMessageDecoder.of();
             case DOMAIN_DISCOVERY_TOPOLOGY_UPDATE:
                 // it was introduced in protocol version 1.2
-                if(!ProtocolVersion.isGreaterOrEqualToOneTwo(protocolVersionSupplier.get()))
+                if(protocolVersionSupplier.get().isLessThan( VERSION_1_2 ))
                 {
                     throw new UnsupportedOperationException("DOMAIN_DISCOVERY_TOPOLOGY_UPDATE is not available in protocol version : " + protocolVersionSupplier.get());
                 }

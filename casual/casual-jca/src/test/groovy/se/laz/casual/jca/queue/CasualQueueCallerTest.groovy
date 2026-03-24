@@ -39,6 +39,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.CompletableFuture
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
 import static se.laz.casual.test.matchers.CasualNWMessageMatchers.matching
 import static spock.util.matcher.HamcrestSupport.expect
 
@@ -159,7 +160,7 @@ class CasualQueueCallerTest extends Specification
                .withExecution(executionId)
                .withId(enqueueReplyId)
                .withProtocolVersion(protocolVersion);
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
            builder.withCode(queueErrorCode)
         }
@@ -188,7 +189,7 @@ class CasualQueueCallerTest extends Specification
         then:
         noExceptionThrown()
         enqueueReturn.getId().get() == enqueueReplyId
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
            QueueErrorCode code = enqueueReturn.getErrorCode().orElseThrow ({new CasualRuntimeException("Missing error code")})
            code == queueErrorCode

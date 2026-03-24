@@ -21,6 +21,8 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
+
 class CasualServiceCallReplyMessageTest extends Specification
 {
     @Shared
@@ -62,7 +64,7 @@ class CasualServiceCallReplyMessageTest extends Specification
                                                .setTransactionState(transactionState)
                                                .setServiceBuffer(serviceBuffer)
                                                .setProtocolVersion(protocolVersion)
-        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isLessThan( VERSION_1_3 ) )
         {
            msgBuilder.setXid(nullXID)
         }
@@ -71,7 +73,7 @@ class CasualServiceCallReplyMessageTest extends Specification
         msg.getExecution() == execution
         msg.getError() == callError
         msg.getUserDefinedCode() == userError
-        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isLessThan( VERSION_1_3 ) )
         {
            msg.getXid() == nullXID
         }
@@ -93,7 +95,7 @@ class CasualServiceCallReplyMessageTest extends Specification
                 .setServiceBuffer(serviceBuffer)
                 .setProtocolVersion(protocolVersion)
 
-        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isLessThan( VERSION_1_3 ))
         {
            requestMsgBuilder.setXid(nullXID)
         }
@@ -111,7 +113,7 @@ class CasualServiceCallReplyMessageTest extends Specification
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().getServiceBuffer().payload
-        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isLessThan( VERSION_1_3 ))
         {
            resurrectedMsg.getMessage().getXid() == nullXID
         }
@@ -129,7 +131,7 @@ class CasualServiceCallReplyMessageTest extends Specification
                 .setTransactionState(TransactionState.ROLLBACK_ONLY)
                 .setServiceBuffer(emptyServiceBuffer)
                 .setProtocolVersion(protocolVersion)
-        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isLessThan( VERSION_1_3 ))
         {
            requestMsgBuilder.setXid(nullXID)
         }

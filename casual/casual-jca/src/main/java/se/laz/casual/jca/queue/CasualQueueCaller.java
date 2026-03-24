@@ -19,7 +19,6 @@ import se.laz.casual.api.util.Pair;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.CasualManagedConnection;
-import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
@@ -37,6 +36,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
 
 public class CasualQueueCaller implements CasualQueueApi
 {
@@ -66,7 +67,7 @@ public class CasualQueueCaller implements CasualQueueApi
             EnqueueReturn.Builder builder = EnqueueReturn.createBuilder();
             builder.withErrorState(ErrorState.OK)
                    .withId(replyMessage.getId());
-            if(ProtocolVersion.isGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion()))
+            if( connection.getNetworkConnection().getProtocolVersion().isGreaterThanOrEqualTo( VERSION_1_3 ) )
             {
                 builder.withErrorCode(replyMessage.getCode());
             }
@@ -145,7 +146,7 @@ public class CasualQueueCaller implements CasualQueueApi
         CasualDequeueReplyMessage replyMessage = networkReplyMessage.getMessage();
         List<QueueMessage> messages = Transformer.transform(replyMessage.getMessages());
         Optional<QueueMessage> maybeMessage = messages.isEmpty() ? Optional.empty() : Optional.of(messages.get(0));
-        Optional<QueueErrorCode> maybeErrorCode = ProtocolVersion.isGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion())
+        Optional<QueueErrorCode> maybeErrorCode = connection.getNetworkConnection().getProtocolVersion().isGreaterThanOrEqualTo( VERSION_1_3 )
                 ? Optional.of(replyMessage.getCode()) : Optional.empty();
         return Pair.of(maybeMessage, maybeErrorCode);
     }

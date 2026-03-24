@@ -25,6 +25,8 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestM
 
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 /**
  * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
  * {@link jakarta.resource.spi.work.WorkManager} to flush the response to the netty {@link Channel}.
@@ -92,7 +94,7 @@ public class ServiceCallWorkListener implements WorkListener
                     .withParent(message.getParentName())
                     .withService(message.getServiceName())
                     .withOrder(Order.SEQUENTIAL);
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             eventBuilder.withParentSpanId(message.getParentSpan().asHex())
                         .withSpanId(spanId.asHex());

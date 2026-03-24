@@ -19,6 +19,8 @@ import spock.lang.Specification
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
+
 class CasualDequeueReplyMessageTest extends Specification
 {
     @Shared
@@ -42,7 +44,7 @@ class CasualDequeueReplyMessageTest extends Specification
         def requestMsgBuilder = CasualDequeueReplyMessage.createBuilder()
                                                   .withProtocolVersion(protocolVersion)
                                                   .withExecution(UUID.randomUUID())
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
            requestMsgBuilder.withCode(QueueErrorCode.OK)
            requestMsgBuilder.withMessages(createMessages(1))
@@ -59,7 +61,7 @@ class CasualDequeueReplyMessageTest extends Specification
         then:
         networkBytes != null
         msg == syncResurrectedMsg
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
            syncResurrectedMsg.getMessage().getCode() == QueueErrorCode.OK
         }

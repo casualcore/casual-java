@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<CasualDequeueReplyMessage>
 {
     private final ProtocolVersion protocolVersion;
@@ -44,15 +46,15 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
     public CasualDequeueReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
     {
         ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
-        ? getMessageProtocolVersionEqualOrGreaterToOneThree(b.array())
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
+                ? getMessageProtocolVersionEqualOrGreaterToOneThree(b.array())
         : getMessage(b.array());
     }
 
     @Override
     public CasualDequeueReplyMessage readChunked(final ReadableByteChannel channel)
     {
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
         {
             return readChunkedProtocolVersionGreaterOrEqualToOneThree(channel);
         }
@@ -92,7 +94,7 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
     @Override
     public CasualDequeueReplyMessage readSingleBuffer(byte[] data)
     {
-        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion) ?
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) ?
                 getMessageProtocolVersionEqualOrGreaterToOneThree(data)
                 : getMessage(data);
     }

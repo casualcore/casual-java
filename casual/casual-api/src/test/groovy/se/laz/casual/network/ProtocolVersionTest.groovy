@@ -51,49 +51,158 @@ class ProtocolVersionTest extends Specification
       ]
    }
 
-   def 'isProtocolVersionGreaterOrEqualToOneTwo'()
+   def "#protocolVersion isGreaterThanOrEqualTo #comparingVersion"()
    {
       expect:
-      ProtocolVersion.isGreaterOrEqualToOneTwo(protocolVersion) == expectedOutcome
+      protocolVersion.isGreaterThanOrEqualTo( comparingVersion ) == expectedOutcome
       where:
-      protocolVersion               | expectedOutcome
-      ProtocolVersion.VERSION_1_0   | false
-      ProtocolVersion.VERSION_1_1   | false
-      ProtocolVersion.VERSION_1_2   | true
-      ProtocolVersion.VERSION_1_3   | true
-      ProtocolVersion.VERSION_1_4   | true
+      protocolVersion               | comparingVersion | expectedOutcome
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_0 | true
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_1 | false
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_2 | false
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_3 | false
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_4 | false
+
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_0 | true
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_1 | true
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_2 | false
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_3 | false
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_4 | false
+
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_0 | true
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_1 | true
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_2 | true
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_3 | false
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_4 | false
+
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_0 | true
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_1 | true
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_2 | true
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_3 | true
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_4 | false
+
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_0 | true
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_1 | true
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_2 | true
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_3 | true
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_4 | true
    }
 
-   def 'isProtocolVersionGreaterOrEqualToOneThree'()
+   def "#protocolVersion isGreaterThan #comparingVersion"()
    {
       expect:
-      ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion) == expectedOutcome
+      protocolVersion.isGreaterThan( comparingVersion ) == expectedOutcome
       where:
-      protocolVersion               | expectedOutcome
-      ProtocolVersion.VERSION_1_0   | false
-      ProtocolVersion.VERSION_1_1   | false
-      ProtocolVersion.VERSION_1_2   | false
-      ProtocolVersion.VERSION_1_3   | true
-      ProtocolVersion.VERSION_1_4   | true
+      protocolVersion               | comparingVersion | expectedOutcome
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_0 | false
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_1 | false
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_2 | false
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_3 | false
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_4 | false
+
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_0 | true
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_1 | false
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_2 | false
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_3 | false
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_4 | false
+
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_0 | true
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_1 | true
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_2 | false
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_3 | false
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_4 | false
+
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_0 | true
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_1 | true
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_2 | true
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_3 | false
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_4 | false
+
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_0 | true
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_1 | true
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_2 | true
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_3 | true
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_4 | false
    }
 
-   def 'isProtocolVersionGreaterOrEqualToOneFour'()
+   def "#protocolVersion isLessThanOrEqualTo #comparingVersion"()
    {
       expect:
-      ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion) == expectedOutcome
+      protocolVersion.isLessThanOrEqualTo( comparingVersion ) == expectedOutcome
       where:
-      protocolVersion               | expectedOutcome
-      ProtocolVersion.VERSION_1_0   | false
-      ProtocolVersion.VERSION_1_1   | false
-      ProtocolVersion.VERSION_1_2   | false
-      ProtocolVersion.VERSION_1_3   | false
-      ProtocolVersion.VERSION_1_4   | true
+      protocolVersion               | comparingVersion | expectedOutcome
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_0 | true
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_1 | true
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_2 | true
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_3 | true
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_4 | true
+
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_0 | false
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_1 | true
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_2 | true
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_3 | true
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_4 | true
+
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_0 | false
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_1 | false
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_2 | true
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_3 | true
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_4 | true
+
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_0 | false
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_1 | false
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_2 | false
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_3 | true
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_4 | true
+
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_0 | false
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_1 | false
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_2 | false
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_3 | false
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_4 | true
+   }
+
+   def "#protocolVersion isLessThan #comparingVersion"()
+   {
+      expect:
+      protocolVersion.isLessThan( comparingVersion ) == expectedOutcome
+      where:
+      protocolVersion               | comparingVersion | expectedOutcome
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_0 | false
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_1 | true
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_2 | true
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_3 | true
+      ProtocolVersion.VERSION_1_0   | ProtocolVersion.VERSION_1_4 | true
+
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_0 | false
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_1 | false
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_2 | true
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_3 | true
+      ProtocolVersion.VERSION_1_1   | ProtocolVersion.VERSION_1_4 | true
+
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_0 | false
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_1 | false
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_2 | false
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_3 | true
+      ProtocolVersion.VERSION_1_2   | ProtocolVersion.VERSION_1_4 | true
+
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_0 | false
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_1 | false
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_2 | false
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_3 | false
+      ProtocolVersion.VERSION_1_3   | ProtocolVersion.VERSION_1_4 | true
+
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_0 | false
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_1 | false
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_2 | false
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_3 | false
+      ProtocolVersion.VERSION_1_4   | ProtocolVersion.VERSION_1_4 | false
    }
 
    def 'supports domain topology change'()
    {
       expect:
-      ProtocolVersion.supportsDomainTopologyChange(protocolVersion) == expectedOutcome
+      protocolVersion.supportsDomainTopologyChange() == expectedOutcome
       where:
       protocolVersion               | expectedOutcome
       ProtocolVersion.VERSION_1_0   | false
@@ -106,7 +215,7 @@ class ProtocolVersionTest extends Specification
    def 'supports domain disconnect'()
    {
       expect:
-      ProtocolVersion.supportsDomainDisconnect(protocolVersion) == expectedOutcome
+      protocolVersion.supportsDomainDisconnect() == expectedOutcome
       where:
       protocolVersion               | expectedOutcome
       ProtocolVersion.VERSION_1_0   | false

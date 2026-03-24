@@ -28,6 +28,8 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestM
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 /**
  * Work instance for performing inbound casual service call requests within the work manager.
  */
@@ -111,7 +113,7 @@ public final class CasualServiceCallWork implements Work
         CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
                                                                                           .setExecution( message.getExecution() )
                                                                                           .setProtocolVersion(protocolVersion);
-        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if( protocolVersion.isLessThan( VERSION_1_3 ) )
         {
             replyBuilder.setXid( message.getXid() );
         }

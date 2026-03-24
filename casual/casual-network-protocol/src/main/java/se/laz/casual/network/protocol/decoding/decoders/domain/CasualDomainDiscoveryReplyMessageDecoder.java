@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_4;
+
 /**
  * Created by aleph on 2017-03-08.
  */
@@ -114,7 +116,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         final ByteBuffer queueNameBuffer = ByteUtils.readFully(channel, (int)queueNameSizeBuffer.getLong());
         final ByteBuffer queueRetriesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize());
 
-        if(!ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
+        if(protocolVersion.isLessThan( VERSION_1_4 ))
         {
             final ByteBuffer msg = ByteBuffer.allocate(queueNameSizeBuffer.capacity() + queueNameBuffer.capacity() + queueRetriesBuffer.capacity());
             msg.put(queueNameSizeBuffer.array());
@@ -223,7 +225,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
                                      .withName(name)
                                      .withProtocolVersion(protocolVersion)
                                      .withRetries(retries);
-        if(ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_4 ))
         {
             final long retryDelay = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize()).getLong();
             offset += DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize();

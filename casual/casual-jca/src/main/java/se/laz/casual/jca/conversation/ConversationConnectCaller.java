@@ -18,7 +18,6 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.jca.ConversationConnectException;
 import se.laz.casual.jca.SpanId;
-import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.conversation.ConnectReply;
 import se.laz.casual.network.protocol.messages.conversation.ConnectRequest;
@@ -29,6 +28,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
 
 public class ConversationConnectCaller implements CasualConversationApi
 {
@@ -71,7 +72,7 @@ public class ConversationConnectCaller implements CasualConversationApi
         {
             connectRequestBuilder.setServiceBuffer(ServiceBuffer.of(data));
         }
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(managedConnection.getNetworkConnection().getProtocolVersion()))
+        if( managedConnection.getNetworkConnection().getProtocolVersion().isGreaterThan( VERSION_1_3 ) )
         {
             connectRequestBuilder.setParentSpan(SpanId.of());
         }

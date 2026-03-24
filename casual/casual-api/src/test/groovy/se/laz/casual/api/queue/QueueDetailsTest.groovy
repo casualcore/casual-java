@@ -6,10 +6,11 @@
 
 package se.laz.casual.api.queue
 
-
 import se.laz.casual.network.ProtocolVersion
 import spock.lang.Shared
 import spock.lang.Specification
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_4
 
 class QueueDetailsTest extends Specification
 {
@@ -28,7 +29,7 @@ class QueueDetailsTest extends Specification
       then:
       details.getName() == name
       details.getRetries() == retryies
-      if(ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion))
+      if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_4 ))
       {
          !details.getRetryDelay().isEmpty()
          !details.isDequeueEnabled().isEmpty()

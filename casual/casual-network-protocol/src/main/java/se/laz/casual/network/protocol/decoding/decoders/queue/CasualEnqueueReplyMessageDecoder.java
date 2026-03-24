@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -18,6 +18,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.UUID;
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
 
 public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEnqueueReplyMessage>
 {
@@ -48,7 +50,7 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
         CasualEnqueueReplyMessage.Builder builder = CasualEnqueueReplyMessage.createBuilder()
                                                                              .withExecution(execution)
                                                                              .withId(id);
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             final int callError = ByteUtils.readFully(channel, CommonSizes.CALL_ERROR.getNetworkSize()).getInt();
             builder.withCode(QueueErrorCode.unmarshal(callError));
@@ -72,7 +74,7 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
         CasualEnqueueReplyMessage.Builder builder = CasualEnqueueReplyMessage.createBuilder()
                                                                              .withExecution(execution)
                                                                              .withId(id);
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             final ByteBuffer callErrorBuffer = ByteBuffer.wrap(bytes, currentOffset, CommonSizes.CALL_ERROR.getNetworkSize());
             int callError = callErrorBuffer.getInt();

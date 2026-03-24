@@ -19,6 +19,8 @@ import se.laz.casual.network.protocol.utils.LocalByteChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
+
 class CasualServiceCallRequestMessageTest extends Specification
 {
     @Shared
@@ -64,7 +66,7 @@ class CasualServiceCallRequestMessageTest extends Specification
                .setXatmiFlags(xatmiFlags)
                .setServiceBuffer(serviceBuffer)
                .setProtocolVersion(protocolVersion)
-       if (ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+       if (protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
        {
           msgBuilder.setParentSpan(parentSpan)
        }
@@ -77,7 +79,7 @@ class CasualServiceCallRequestMessageTest extends Specification
         msg.xid == nullXID
         msg.serviceBuffer == serviceBuffer
         msg.serviceBuffer.payload == serviceBuffer.payload
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
         {
            msg.getParentSpan() == parentSpan
         }
@@ -98,7 +100,7 @@ class CasualServiceCallRequestMessageTest extends Specification
                 .setServiceBuffer(serviceBuffer)
                 .setProtocolVersion(protocolVersion)
 
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
         {
            requestMsgBuilder.setParentSpan(parentSpan)
         }
@@ -117,7 +119,7 @@ class CasualServiceCallRequestMessageTest extends Specification
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().serviceBuffer.payload
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
         {
           resurrectedMsg.getMessage().getParentSpan() == parentSpan
         }

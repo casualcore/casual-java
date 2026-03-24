@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
 
 /**
  * Created by aleph on 2017-03-28.
@@ -112,7 +114,7 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
         currentOffset += ServiceCallReplySizes.CALL_CODE.getNetworkSize();
 
         Xid xid = null;
-        if(!ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isLessThan( VERSION_1_3 ) )
         {
             Pair<Integer, Xid> xidInfo = CasualMessageDecoderUtils.readXid(data, currentOffset);
             currentOffset = xidInfo.first();

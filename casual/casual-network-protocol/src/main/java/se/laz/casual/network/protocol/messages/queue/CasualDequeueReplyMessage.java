@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
 {
     private final UUID execution;
@@ -38,7 +40,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
     @Override
     public CasualNWMessageType getType()
     {
-        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
                 ? CasualNWMessageType.DEQUEUE_REPLY_V_1_3
                 : CasualNWMessageType.DEQUEUE_REPLY;
     }
@@ -46,7 +48,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
     @Override
     public List<byte[]> toNetworkBytes()
     {
-        return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
                 ? toNetworkBytesProtocolVersionGreaterOrEqualToOneThree()
                 : toNetworkBytesProtocolVersionLessThanOneThree();
     }
@@ -133,7 +135,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
 
     public QueueErrorCode getCode()
     {
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             return code;
         }
@@ -176,7 +178,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
             Objects.requireNonNull(execution, "execution is not allowed to be null");
             Objects.requireNonNull(messages, "messages is not allowed to be null, can be empty though");
             Objects.requireNonNull(protocolVersion, "protocolVersion is not allowed to be null");
-            if(ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion))
+            if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
             {
                 Objects.requireNonNull(code, "code can not be null");
                 if(messages.size() > 1)

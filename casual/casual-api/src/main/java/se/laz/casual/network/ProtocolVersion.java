@@ -96,29 +96,33 @@ public enum ProtocolVersion
         return supportedVersionsString;
     }
 
-    public static boolean supportsDomainTopologyChange(ProtocolVersion protocolVersion)
+    public boolean supportsDomainTopologyChange()
     {
-        return protocolVersion.version >= ProtocolVersion.VERSION_1_2.version;
+        return this.isGreaterThanOrEqualTo( VERSION_1_2 );
     }
 
-    public static boolean supportsDomainDisconnect(ProtocolVersion protocolVersion)
+    public boolean supportsDomainDisconnect()
     {
-         return protocolVersion.version >= ProtocolVersion.VERSION_1_1.version;
+        return this.isGreaterThanOrEqualTo( VERSION_1_1 );
     }
 
-    public static boolean isGreaterOrEqualToOneThree(ProtocolVersion protocolVersion)
+    public boolean isGreaterThanOrEqualTo( ProtocolVersion protocolVersion )
     {
-        return protocolVersion.version >=  ProtocolVersion.VERSION_1_3.version;
+        return this.version >= protocolVersion.version;
     }
 
-    public static boolean isGreaterOrEqualToOneFour(ProtocolVersion protocolVersion)
+    public boolean isLessThanOrEqualTo( ProtocolVersion protocolVersion )
     {
-        return protocolVersion.version >= ProtocolVersion.VERSION_1_4.version;
+        return this.version <= protocolVersion.version;
     }
 
-    public static boolean isGreaterOrEqualToOneTwo(ProtocolVersion protocolVersion)
+    public boolean isGreaterThan( ProtocolVersion protocolVersion )
     {
-        return protocolVersion.version >= ProtocolVersion.VERSION_1_2.version;
+        return this.version > protocolVersion.version;
     }
 
+    public boolean isLessThan( ProtocolVersion protocolVersion )
+    {
+        return this.version < protocolVersion.version;
+    }
 }

@@ -46,6 +46,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 public class CasualServiceCaller implements CasualServiceApi
 {
     private static final Logger LOG = Logger.getLogger(CasualServiceCaller.class.getName());
@@ -227,7 +229,7 @@ public class CasualServiceCaller implements CasualServiceApi
                 .setTimeout(timeout.toNanos())
                 .setXatmiFlags(flags)
                 .setProtocolVersion(protocolVersion);
-        if(ProtocolVersion.isGreaterOrEqualToOneThree(connection.getNetworkConnection().getProtocolVersion()))
+        if(connection.getNetworkConnection().getProtocolVersion().isGreaterThanOrEqualTo( VERSION_1_3 ))
         {
             serviceRequestMessageBuilder.setParentSpan(outboundContext.span());
         }
