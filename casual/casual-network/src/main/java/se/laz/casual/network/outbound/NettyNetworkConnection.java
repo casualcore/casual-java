@@ -279,7 +279,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     {
         return protocolSupportsDomainDisconnect() && domainDisconnectHandler.hasDomainBeenDisconnected() &&
                 (message.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST ||
-                        message.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST_FROM_ONE_THREE ||
+                        message.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3 ||
                         message.getType() == CasualNWMessageType.DEQUEUE_REQUEST ||
                         message.getType() == CasualNWMessageType.ENQUEUE_REQUEST);
     }

@@ -56,7 +56,7 @@ public class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmitt
     public CasualNWMessageType getType()
     {
         return ProtocolVersion.isGreaterOrEqualToOneFour(protocolVersion)
-                ? CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_FROM_ONE_FOUR
+                ? CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_V_1_4
                 : CasualNWMessageType.DOMAIN_DISCOVERY_REPLY;
     }
 

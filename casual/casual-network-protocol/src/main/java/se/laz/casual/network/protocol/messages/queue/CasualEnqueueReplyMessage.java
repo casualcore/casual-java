@@ -39,7 +39,7 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
     public CasualNWMessageType getType()
     {
         return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
-                ? CasualNWMessageType.ENQUEUE_REPLY_FROM_ONE_THREE
+                ? CasualNWMessageType.ENQUEUE_REPLY_V_1_3
                 : CasualNWMessageType.ENQUEUE_REPLY;
     }
 

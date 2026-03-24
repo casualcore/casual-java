@@ -76,7 +76,7 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
             case REQUEST_ROLLBACK:
                 executor.execute(() -> listener.requestRollback((CasualNWMessage<CasualTransactionResourceRollbackRequestMessage>)message, ctx.channel(), xaTerminator, inboundTransactionRegistry));
                 break;
-            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_FROM_ONE_THREE:
+            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_V_1_3:
                 listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry, valueHolder.get());
                 break;
             case DOMAIN_CONNECT_REQUEST:

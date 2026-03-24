@@ -56,7 +56,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     public CasualNWMessageType getType()
     {
         return ProtocolVersion.isGreaterOrEqualToOneThree(protocolVersion)
-                ? CasualNWMessageType.SERVICE_CALL_REQUEST_FROM_ONE_THREE
+                ? CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
                 : CasualNWMessageType.SERVICE_CALL_REQUEST;
     }
 
