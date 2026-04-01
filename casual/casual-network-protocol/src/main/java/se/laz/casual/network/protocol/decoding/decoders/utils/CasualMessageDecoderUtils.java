@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -268,4 +268,8 @@ public final class CasualMessageDecoderUtils
         return l;
     }
 
+    public static byte readByte(ReadableByteChannel channel)
+    {
+        return ByteUtils.readFully(channel, 1).get();
+    }
 }

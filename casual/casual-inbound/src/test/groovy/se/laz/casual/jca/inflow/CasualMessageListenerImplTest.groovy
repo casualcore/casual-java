@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -32,6 +32,8 @@ import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
+import se.laz.casual.network.ProtocolVersion
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
@@ -71,6 +73,7 @@ class CasualMessageListenerImplTest extends Specification
     @Shared Xid xid
     @Shared String serviceName = "echo"
     @Shared TestInboundHandler inboundHandler
+    ProtocolVersionValueHolder valueHolder
 
     def setup()
     {
@@ -78,10 +81,10 @@ class CasualMessageListenerImplTest extends Specification
         ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME, domainName )
         instance = new CasualMessageListenerImpl()
         inboundHandler = TestInboundHandler.of()
-        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), inboundHandler)
+        valueHolder = ProtocolVersionValueHolder.of()
+        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), inboundHandler)
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )
-
         xid = createXid()
     }
 
@@ -111,7 +114,7 @@ class CasualMessageListenerImplTest extends Specification
         )
 
         when:
-        instance.domainConnectRequest( message, channel )
+        instance.domainConnectRequest(message, channel, valueHolder)
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualDomainConnectReplyMessage> reply = inboundHandler.getMsg()
 
@@ -128,6 +131,7 @@ class CasualMessageListenerImplTest extends Specification
     def "DomainDiscoveryRequest"()
     {
         given:
+        valueHolder.accept(ProtocolVersion.VERSION_1_0)
         CasualServiceMetaData metaData = CasualServiceMetaData.newBuilder()
                 .service( new TestCasualService() )
                 .serviceMethod( String.class.getMethod("toString"))
@@ -147,7 +151,7 @@ class CasualMessageListenerImplTest extends Specification
         )
 
         when:
-        instance.domainDiscoveryRequest( message, channel )
+        instance.domainDiscoveryRequest( message, channel, ProtocolVersion.VERSION_1_3 )
         channel.writeInbound(channel.outboundMessages().element())
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> reply = inboundHandler.getMsg()
 
@@ -164,6 +168,7 @@ class CasualMessageListenerImplTest extends Specification
     def "ServiceCallRequest"()
     {
         given:
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         CasualServiceCallWork actualWork
         long actualStartTimeout
         ExecutionContext actualExecutionContext
@@ -179,11 +184,12 @@ class CasualMessageListenerImplTest extends Specification
                         .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
                         .setXatmiFlags( Flag.of())
                         .setTimeout( timeoutDuration.toNanos() )
+                        .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                         .build()
         )
         CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, valueHolder.get())
         then:
         1 * workManager.scheduleWork( _,_,_,_ ) >> {
             CasualServiceCallWork work, long startTimeout, ExecutionContext executionContext, WorkListener workListener ->
@@ -209,6 +215,7 @@ class CasualMessageListenerImplTest extends Specification
     def "ServiceCallRequest with null xid calls service work without transaction context."()
     {
         given:
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         xid = XID.NULL_XID
         CasualServiceCallWork actualWork
 
@@ -220,11 +227,12 @@ class CasualMessageListenerImplTest extends Specification
                         .setServiceName( serviceName )
                         .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
                         .setXatmiFlags( Flag.of())
+                        .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                         .build()
         )
         CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, valueHolder.get())
 
         then:
         1 * workManager.scheduleWork(_, _, _, _) >> {
@@ -243,6 +251,7 @@ class CasualMessageListenerImplTest extends Specification
     def "ServiceCallRequest TPNOREPLY, non transactional"()
     {
        given:
+       valueHolder.accept(ProtocolVersion.VERSION_1_2)
        CasualServiceCallWork actualWork
        long actualStartTimeout
        ExecutionContext actualExecutionContext
@@ -258,11 +267,12 @@ class CasualMessageListenerImplTest extends Specification
                       .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
                       .setXatmiFlags( Flag.of(AtmiFlags.TPNOREPLY))
                       .setTimeout( timeoutDuration.toNanos() )
+                       .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                       .build()
        )
        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
        when:
-       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
+       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, valueHolder.get())
 
        then:
        1 * workManager.scheduleWork( _,_,_,_ ) >> {
@@ -286,6 +296,7 @@ class CasualMessageListenerImplTest extends Specification
     def "ServiceCallRequest TPNOREPLY, transactional - out of protocol, call will be issued but non transactional"()
     {
        given:
+       valueHolder.accept(ProtocolVersion.VERSION_1_2)
        CasualServiceCallWork actualWork
        long actualStartTimeout
        ExecutionContext actualExecutionContext
@@ -301,11 +312,12 @@ class CasualMessageListenerImplTest extends Specification
                        .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
                        .setXatmiFlags( Flag.of(AtmiFlags.TPNOREPLY))
                        .setTimeout( timeoutDuration.toNanos() )
+                       .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                        .build()
        )
        CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
        when:
-       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
+       instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, valueHolder.get())
 
        then:
        1 * workManager.scheduleWork( _,_,_,_ ) >> {
@@ -329,6 +341,7 @@ class CasualMessageListenerImplTest extends Specification
     def "ServiceCallRequest startWork throws exception, wrapped and thrown."()
     {
         given:
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         String serviceName = "echo"
         CasualNWMessageImpl<CasualServiceCallRequestMessage> message = CasualNWMessageImpl.of( correlationId,
                 CasualServiceCallRequestMessage.createBuilder()
@@ -337,11 +350,12 @@ class CasualMessageListenerImplTest extends Specification
                         .setServiceName( serviceName )
                         .setServiceBuffer( ServiceBuffer.of( "json", JsonBuffer.of( "{\"hello\"}").getBytes() ) )
                         .setXatmiFlags( Flag.of())
+                        .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                         .build()
         )
         CasualInboundTransactionRegistry inboundTransactionRegistry = new CasualInboundTransactionRegistry()
         when:
-        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry)
+        instance.serviceCallRequest(message, channel, workManager, inboundTransactionRegistry, valueHolder.get())
 
         then:
         1 * workManager.scheduleWork( _,_,_,_ ) >> {

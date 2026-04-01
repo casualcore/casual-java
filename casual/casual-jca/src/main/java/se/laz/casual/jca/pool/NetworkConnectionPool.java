@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,7 +8,6 @@ package se.laz.casual.jca.pool;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.Address;
 import se.laz.casual.jca.CasualResourceAdapterException;
-import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.outbound.NettyConnectionInformation;
 import se.laz.casual.network.outbound.NettyConnectionInformationCreator;
@@ -46,13 +45,13 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
 
     public static NetworkConnectionPool of(String poolName, Address address, int poolSize, NetworkConnectionCreator networkConnectionCreator)
     {
-        Objects.requireNonNull(address, "poolName can not be null");
+        Objects.requireNonNull(poolName, "poolName can not be null");
         Objects.requireNonNull(address, "address can not be null");
         networkConnectionCreator = null == networkConnectionCreator ? NetworkConnectionPool::createNetworkConnection : networkConnectionCreator;
         return new NetworkConnectionPool(poolName, address, poolSize, networkConnectionCreator);
     }
 
-    public NetworkConnection getOrCreateConnection(Address address, ProtocolVersion protocolVersion, NetworkListener networkListener)
+    public NetworkConnection getOrCreateConnection(Address address, NetworkListener networkListener)
     {
         if(!this.address.equals(address))
         {
@@ -73,7 +72,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
                 connection.addListener(networkListener);
                 return connection;
             }
-            ReferenceCountedNetworkConnection connection = networkConnectionCreator.createNetworkConnection(address, protocolVersion, networkListener, this, this);
+            ReferenceCountedNetworkConnection connection = networkConnectionCreator.createNetworkConnection(address, networkListener, this, this);
             connections.addConnection(connection);
             return connection;
         }
@@ -122,9 +121,9 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
                 '}';
     }
 
-    private static ReferenceCountedNetworkConnection createNetworkConnection(Address address, ProtocolVersion protocolVersion, NetworkListener networkListener, ReferenceCountedNetworkCloseListener referenceCountedNetworkCloseListener, NetworkListener ownListener)
+    private static ReferenceCountedNetworkConnection createNetworkConnection(Address address, NetworkListener networkListener, ReferenceCountedNetworkCloseListener referenceCountedNetworkCloseListener, NetworkListener ownListener)
     {
-        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(address.getHostName(), address.getPort()), protocolVersion);
+        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(address.getHostName(), address.getPort()));
         NetworkConnection networkConnection = NettyNetworkConnection.of(ci, ownListener);
         if (networkConnection instanceof NettyNetworkConnection impl)
         {

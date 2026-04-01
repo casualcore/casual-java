@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,7 +10,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
-import se.laz.casual.network.ProtocolVersion;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -23,9 +22,9 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
     private final Class<? extends Channel> channelClass;
     private final Correlator correlator;
 
-    private NettyConnectionInformation(InetSocketAddress address, ProtocolVersion protocolVersion, UUID domainId, String domainName, Class<? extends Channel> channelClass, Correlator correlator, boolean logHandlerEnabled)
+    private NettyConnectionInformation(InetSocketAddress address, UUID domainId, String domainName, Class<? extends Channel> channelClass, Correlator correlator, boolean logHandlerEnabled)
     {
-        super(address, protocolVersion, domainId, domainName, logHandlerEnabled);
+        super(address, domainId, domainName, logHandlerEnabled);
         this.channelClass = channelClass;
         this.correlator = correlator;
     }
@@ -85,7 +84,6 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
         private InetSocketAddress address;
         private UUID domainId;
         private String domainName;
-        private ProtocolVersion protocolVersion;
         private Class<? extends Channel> channelClass;
         private Correlator correlator;
 
@@ -107,12 +105,6 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
             return this;
         }
 
-        public Builder withProtocolVersion(ProtocolVersion protocolVersion)
-        {
-            this.protocolVersion = protocolVersion;
-            return this;
-        }
-
         public Builder withChannelClass(Class<? extends Channel> channelClass)
         {
             this.channelClass = channelClass;
@@ -128,13 +120,12 @@ public final class NettyConnectionInformation extends BaseConnectionInformation
         public NettyConnectionInformation build()
         {
             Objects.requireNonNull(address, "address can not be null");
-            Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
             Objects.requireNonNull(domainId, "domainId can not be null");
             Objects.requireNonNull(domainName, "domainName can not be null");
             channelClass = (null == channelClass) ? NioSocketChannel.class : channelClass;
             correlator = (null == correlator) ? CorrelatorImpl.of() : correlator;
             boolean useLogHandler = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER );
-            return new NettyConnectionInformation(address, protocolVersion, domainId, domainName, channelClass, correlator, useLogHandler );
+            return new NettyConnectionInformation(address, domainId, domainName, channelClass, correlator, useLogHandler );
         }
     }
 }

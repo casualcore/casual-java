@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,6 +8,7 @@ package se.laz.casual.network.protocol.messages.transaction
 
 import se.laz.casual.api.xa.XAReturnCode
 import se.laz.casual.api.xa.XID
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -15,9 +16,6 @@ import se.laz.casual.network.protocol.utils.LocalByteChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
-/**
- * Created by aleph on 2017-04-03.
- */
 class CasualTransactionResourceRollbackReplyMessageTest extends Specification
 {
     @Shared
@@ -54,13 +52,15 @@ class CasualTransactionResourceRollbackReplyMessageTest extends Specification
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualTransactionResourceRollbackReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualTransactionResourceRollbackReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
 
         then:
         networkBytes != null
         networkBytes.size() == 2
         requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
 }

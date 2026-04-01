@@ -1,15 +1,17 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.queue
 
+import se.laz.casual.api.CasualRuntimeException
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.queue.DequeueReturn
 import se.laz.casual.api.queue.EnqueueReturn
 import se.laz.casual.api.queue.MessageSelector
+import se.laz.casual.api.queue.QueueErrorCode
 import se.laz.casual.api.queue.QueueInfo
 import se.laz.casual.api.queue.QueueMessage
 import se.laz.casual.api.xa.XID
@@ -19,7 +21,9 @@ import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceManager
 import se.laz.casual.jca.DomainId
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.connection.CasualConnectionException
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
@@ -35,6 +39,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.CompletableFuture
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
 import static se.laz.casual.test.matchers.CasualNWMessageMatchers.matching
 import static spock.util.matcher.HamcrestSupport.expect
 
@@ -64,7 +69,8 @@ class CasualQueueCallerTest extends Specification
     @Shared CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> actualDomainDiscoveryRequest
     @Shared def bigBaddaBoom = 'big badda boom'
     @Shared int resourceId = 42
-
+    @Shared ProtocolVersionValueHolder protocolVersionValueHolder = ProtocolVersionValueHolder.of()
+    QueueErrorCode queueErrorCode = QueueErrorCode.OK
     def setup()
     {
         mcf = Mock(CasualManagedConnectionFactory)
@@ -73,6 +79,7 @@ class CasualQueueCallerTest extends Specification
         }
         networkConnection = Mock(NetworkConnection){
            getDomainId() >> domainOne
+           getProtocolVersion() >> {protocolVersionValueHolder.get()}
         }
         connection = new CasualManagedConnection( mcf )
         connection.networkConnection =  networkConnection
@@ -124,10 +131,10 @@ class CasualQueueCallerTest extends Specification
 
     def initialiseReplies()
     {
-        enqueueReply = createEnqueueReplyMessage()
-        dequeueReply = createDequeueReplyMessage()
-        domainDiscoveryReplyFound = createDomainDiscoveryReply(asQueues([queueInfo.queueName]))
-        domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asQueues([]))
+        enqueueReply = createEnqueueReplyMessage(ProtocolVersion.VERSION_1_0)
+        dequeueReply = createDequeueReplyMessage(ProtocolVersion.VERSION_1_0)
+        domainDiscoveryReplyFound = createDomainDiscoveryReply(asQueues([queueInfo.queueName]), ProtocolVersion.VERSION_1_0)
+        domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asQueues([]), ProtocolVersion.VERSION_1_0)
     }
 
     List<Queue> asQueues(List<String> queuenames)
@@ -135,31 +142,37 @@ class CasualQueueCallerTest extends Specification
         List<Queue> l = new ArrayList<>()
         for(String qname : queuenames)
         {
-            l.add(Queue.of(qname))
+            l.add(Queue.createBuilder().withName(qname).withProtocolVersion( ProtocolVersion.VERSION_1_2).build())
         }
         return l
     }
 
-    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Queue> queues)
+    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Queue> queues, ProtocolVersion protocolVersion)
     {
         CasualNWMessageImpl.of(executionId,
-                           CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
+                           CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName, protocolVersion)
                                                             .setQueues(queues))
     }
 
-    CasualNWMessageImpl<CasualEnqueueReplyMessage> createEnqueueReplyMessage()
+    CasualNWMessageImpl<CasualEnqueueReplyMessage> createEnqueueReplyMessage(ProtocolVersion protocolVersion)
     {
+       CasualEnqueueReplyMessage.Builder builder = CasualEnqueueReplyMessage.createBuilder()
+               .withExecution(executionId)
+               .withId(enqueueReplyId)
+               .withProtocolVersion(protocolVersion);
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+           builder.withCode(queueErrorCode)
+        }
         CasualNWMessageImpl.of( executionId,
-                CasualEnqueueReplyMessage.createBuilder()
-                                         .withExecution(executionId)
-                                         .withId(enqueueReplyId)
-                                         .build())
+                builder.build())
     }
 
-    CasualNWMessageImpl<CasualDequeueReplyMessage> createDequeueReplyMessage()
+    CasualNWMessageImpl<CasualDequeueReplyMessage> createDequeueReplyMessage(ProtocolVersion protocolVersion)
     {
         CasualNWMessageImpl.of(executionId,
                 CasualDequeueReplyMessage.createBuilder()
+                                         .withProtocolVersion(protocolVersion)
                                          .withExecution(executionId)
                                          .withMessages(Arrays.asList(DequeueMessage.of(QueueMessage.of(message))))
                                          .build()
@@ -169,16 +182,30 @@ class CasualQueueCallerTest extends Specification
     def 'enqueue'()
     {
         when:
-        EnqueueReturn msgId = instance.enqueue(queueInfo, QueueMessage.of(message))
+        enqueueReply = createEnqueueReplyMessage(protocolVersion)
+        protocolVersionValueHolder = new ProtocolVersionValueHolder()
+        protocolVersionValueHolder.accept(protocolVersion)
+        EnqueueReturn enqueueReturn = instance.enqueue(queueInfo, QueueMessage.of(message))
         then:
         noExceptionThrown()
-        msgId.getId().get() == enqueueReplyId
+        enqueueReturn.getId().get() == enqueueReplyId
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+           QueueErrorCode code = enqueueReturn.getErrorCode().orElseThrow ({new CasualRuntimeException("Missing error code")})
+           code == queueErrorCode
+        }
+        else
+        {
+           enqueueReturn.getErrorCode().isEmpty()
+        }
         1 * networkConnection.request( _ ) >> {
             CasualNWMessageImpl<CasualEnqueueRequestMessage> input ->
                 actualEnqueueRequest = input
                 return CompletableFuture.completedFuture(enqueueReply)
         }
         expect actualEnqueueRequest, matching( expectedEnqueueRequest )
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
     def 'enqueue goes big badda boom'()

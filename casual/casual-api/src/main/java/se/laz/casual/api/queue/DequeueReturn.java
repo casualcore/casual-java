@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -15,12 +15,14 @@ public class DequeueReturn
 {
     private final QueueMessage queueMessage;
     private final ErrorState errorState;
+    private final QueueErrorCode errorCode;
 
-    private DequeueReturn(QueueMessage queueMessage, ErrorState errorState)
+    private DequeueReturn(QueueMessage queueMessage, ErrorState errorState, QueueErrorCode errorCode)
     {
         Objects.requireNonNull(errorState, "errorState can't be null");
         this.queueMessage = queueMessage;
         this.errorState = errorState;
+        this.errorCode = errorCode;
     }
 
     public Optional<QueueMessage> getQueueMessage()
@@ -33,6 +35,15 @@ public class DequeueReturn
         return errorState;
     }
 
+    /**
+     * @since protocol version 1.3
+     * @return the error code, if available
+     */
+    public Optional<QueueErrorCode> getErrorCode()
+    {
+        return Optional.ofNullable(errorCode);
+    }
+
     public static Builder createBuilder()
     {
         return new Builder();
@@ -41,22 +52,17 @@ public class DequeueReturn
     @Override
     public boolean equals(Object o)
     {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof DequeueReturn that))
         {
             return false;
         }
-        DequeueReturn dequeueReturn = (DequeueReturn) o;
-        return Objects.equals(queueMessage, dequeueReturn.queueMessage) && errorState.equals(dequeueReturn.getErrorState());
+        return Objects.equals(queueMessage, that.queueMessage) && errorState == that.errorState && errorCode == that.errorCode;
     }
 
     @Override
     public int hashCode()
     {
-        return queueMessage.hashCode() + Integer.hashCode(errorState.getValue());
+        return Objects.hash(queueMessage, errorState, errorCode);
     }
 
     @Override
@@ -71,6 +77,7 @@ public class DequeueReturn
     {
         private QueueMessage queueMessage;
         private ErrorState errorState;
+        private QueueErrorCode errorCode;
 
         public Builder withQueueMessage(QueueMessage queueMessage)
         {
@@ -84,9 +91,14 @@ public class DequeueReturn
             return this;
         }
 
+        public Builder withErrorCode(QueueErrorCode errorCode)
+        {
+            this.errorCode = errorCode;
+            return this;
+        }
         public DequeueReturn build()
         {
-            return new DequeueReturn(queueMessage, errorState);
+            return new DequeueReturn(queueMessage, errorState, errorCode);
         }
     }
 }

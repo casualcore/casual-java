@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,6 +11,8 @@ import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.api.xa.XID;
+import se.laz.casual.jca.SpanId;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationConnectRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
@@ -24,10 +26,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 public class ConnectRequest implements CasualNetworkTransmittable
 {
     private final UUID execution;
     private final String serviceName;
+    private final SpanId parentSpan;
+    private final ProtocolVersion protocolVersion;
     private long timeout;
     private final String parentName;
     private final Xid xid;
@@ -36,20 +42,24 @@ public class ConnectRequest implements CasualNetworkTransmittable
 
     // private constructor, only used by the builder of this class
     @SuppressWarnings("squid:S00107")
-    private ConnectRequest(UUID execution, String serviceName, long timeout, String parentName, Xid xid, Duplex duplex, ServiceBuffer serviceBuffer)
+    private ConnectRequest(UUID execution, String serviceName, long timeout, SpanId parentSpan, String parentName, Xid xid, Duplex duplex, ServiceBuffer serviceBuffer, ProtocolVersion protocolVersion)
     {
         this.execution = execution;
         this.serviceName = serviceName;
         this.timeout = timeout;
+        this.parentSpan = parentSpan;
         this.parentName = parentName;
         this.xid = xid;
         this.duplex = duplex;
         this.serviceBuffer = serviceBuffer;
+        this.protocolVersion = protocolVersion;
     }
     @Override
     public CasualNWMessageType getType()
     {
-        return CasualNWMessageType.CONVERSATION_CONNECT;
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
+                ? CasualNWMessageType.CONVERSATION_CONNECT_V_1_3
+                : CasualNWMessageType.CONVERSATION_CONNECT;
     }
 
     @Override
@@ -58,14 +68,25 @@ public class ConnectRequest implements CasualNetworkTransmittable
         final byte[] serviceNameBytes = serviceName.getBytes(StandardCharsets.UTF_8);
         final byte[] parentNameBytes = parentName.getBytes(StandardCharsets.UTF_8);
         final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
-        final long messageSize = ConversationConnectRequestSizes.EXECUTION.getNetworkSize() +
+        long messageSize = ConversationConnectRequestSizes.EXECUTION.getNetworkSize() +
                 ConversationConnectRequestSizes.CALL_DESCRIPTOR.getNetworkSize() +
                 ConversationConnectRequestSizes.SERVICE_NAME_SIZE.getNetworkSize() + serviceNameBytes.length +
-                ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize() +
                 ConversationConnectRequestSizes.PARENT_NAME_SIZE.getNetworkSize() + parentNameBytes.length +
                 XIDUtils.getXIDNetworkSize(xid) +
                 ConversationConnectRequestSizes.DUPLEX.getNetworkSize() +
                 ConversationConnectRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ConversationConnectRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+            messageSize += ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize();
+            if(timeout > 0)
+            {
+                messageSize += ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
+            }
+        }
+        else
+        {
+            messageSize += ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
+        }
         return toNetworkBytes((int)messageSize, serviceNameBytes, parentNameBytes, serviceBytes);
     }
 
@@ -109,10 +130,12 @@ public class ConnectRequest implements CasualNetworkTransmittable
         private UUID execution;
         private String serviceName;
         private long timeout;
+        private SpanId parentSpan;
         private String parentName = "";
         private Xid xid;
         private Duplex duplex;
         private ServiceBuffer serviceBuffer;
+        private ProtocolVersion protocolVersion;
 
         private ConnectRequestBuilder()
         {}
@@ -132,6 +155,12 @@ public class ConnectRequest implements CasualNetworkTransmittable
         public ConnectRequestBuilder setTimeout(long timeout)
         {
             this.timeout = timeout;
+            return this;
+        }
+
+        public ConnectRequestBuilder setParentSpan(SpanId parentSpan)
+        {
+            this.parentSpan = parentSpan;
             return this;
         }
 
@@ -159,13 +188,19 @@ public class ConnectRequest implements CasualNetworkTransmittable
             return this;
         }
 
+        public ConnectRequestBuilder setProtocolVersion(ProtocolVersion protocolVersion)
+        {
+            this.protocolVersion = protocolVersion;
+            return this;
+        }
+
         public ConnectRequest build()
         {
             if(null == serviceBuffer)
             {
                 serviceBuffer = ServiceBuffer.nullBuffer();
             }
-            return new ConnectRequest(execution, serviceName, timeout, parentName,xid, duplex, serviceBuffer);
+            return new ConnectRequest(execution, serviceName, timeout, parentSpan, parentName,xid, duplex, serviceBuffer, protocolVersion);
         }
     }
 
@@ -175,10 +210,23 @@ public class ConnectRequest implements CasualNetworkTransmittable
         ByteBuffer b = ByteBuffer.allocate(messageSize);
         CasualEncoderUtils.writeUUID(execution, b);
         b.putLong(serviceNameBytes.length)
-                .put(serviceNameBytes)
-                .putLong(timeout)
-                .putLong(parentNameBytes.length)
-                .put(parentNameBytes);
+         .put(serviceNameBytes);
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+            byte hasValue = (byte)((timeout > 0) ? 1: 0);
+            b.put(hasValue);
+            if(timeout > 0)
+            {
+                b.putLong(timeout);
+            }
+            b.put(parentSpan.getId());
+        }
+        else
+        {
+            b.putLong(timeout);
+        }
+        b.putLong(parentNameBytes.length)
+         .put(parentNameBytes);
         CasualEncoderUtils.writeXID(xid, b);
         b.putShort(duplex.getValue());
         b.putLong(serviceBytes.get(0).length).put(serviceBytes.get(0));
@@ -202,7 +250,10 @@ public class ConnectRequest implements CasualNetworkTransmittable
             return false;
         }
         ConnectRequest that = (ConnectRequest) o;
-        return timeout == that.timeout && Objects.equals(execution, that.execution) && Objects.equals(serviceName, that.serviceName) && Objects.equals(parentName, that.parentName) && Objects.equals(xid, that.xid) && Objects.equals(duplex, that.duplex);
+        return timeout == that.timeout && Objects.equals(execution, that.execution) &&
+                Objects.equals(serviceName, that.serviceName) &&
+                Objects.equals(parentName, that.parentName) && Objects.equals(parentSpan, that.parentSpan) &&
+                Objects.equals(xid, that.xid) && Objects.equals(duplex, that.duplex);
     }
 
     @Override
@@ -219,6 +270,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
                 ", serviceName='" + serviceName + '\'' +
                 ", timeout=" + timeout +
                 ", parentName='" + parentName + '\'' +
+                ", parentSpan='" + parentSpan + '\'' +
                 ", xid=" + xid +
                 ", duplex=" + duplex +
                 ", serviceBuffer=" + serviceBuffer +

@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.test.network.frombinary
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -23,17 +24,16 @@ import java.nio.ByteBuffer
 class DomainDisconnectReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/gateway_domain_disconnect_reply.1.1.7203.bin'
+    def resource = '/protocol/b64/message.gateway.domain.disconnect.reply.1001.7203.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         data != null
-        data.length == 96
     }
 
     def "get header"()
@@ -71,13 +71,15 @@ class DomainDisconnectReplyMessageTest extends Specification
                 sink.write(buffer)
         }
         when:
-        CasualNWMessageImpl<DomainDisconnectReplyMessage> msg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<DomainDisconnectReplyMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<DomainDisconnectReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<DomainDisconnectReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
         then:
         msg != null
         msg.message == resurrectedMsg.message
         msg == resurrectedMsg
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
     }
 
 }

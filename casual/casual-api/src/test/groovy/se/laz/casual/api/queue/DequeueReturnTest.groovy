@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -28,6 +28,15 @@ class DequeueReturnTest extends Specification {
         returnedMessages.isPresent()
         new String(returnedMessages.get().getPayload().getBytes().get(0)) == message
         dequeueReturn.getErrorState() == stateOk
+        dequeueReturn.getErrorCode().isEmpty()
+        when:
+        DequeueReturn dequeueReturnTwo = DequeueReturn.createBuilder().withQueueMessage(someQueueMessage).withErrorState(stateOk).build()
+        then:
+        dequeueReturn == dequeueReturnTwo
+        when:
+        DequeueReturn dequeueReturnThree = DequeueReturn.createBuilder().withQueueMessage(someQueueMessage).withErrorState(ErrorState.TPENOENT).build()
+        then:
+        dequeueReturnThree != dequeueReturn
     }
 
     def "build non-ok variant"()
@@ -39,23 +48,34 @@ class DequeueReturnTest extends Specification {
         then:
         !dequeueReturn.getQueueMessage().isPresent()
         dequeueReturn.getErrorState() == stateTpenoent
+        dequeueReturn.getErrorCode().isEmpty()
     }
 
     def "buildable variants"(QueueMessage queueMessage, ErrorState errorState)
     {
         when:
-        DequeueReturn dequeueReturn = DequeueReturn.createBuilder().withQueueMessage(queueMessage).withErrorState(errorState).build()
+        DequeueReturn dequeueReturn = DequeueReturn.createBuilder().
+                withQueueMessage(queueMessage).
+                withErrorState(errorState).
+                withErrorCode(errorCode).
+                build()
 
         then:
         noExceptionThrown()
         dequeueReturn != null
+        if(null != errorCode)
+        {
+           dequeueReturn.getErrorCode().isPresent()
+        }
 
         where:
-        queueMessage     | errorState
-        someQueueMessage | ErrorState.OK
-        null             | ErrorState.OK
-        someQueueMessage | ErrorState.TPENOENT
-        null             | ErrorState.TPENOENT
+        queueMessage     | errorState           | errorCode
+        someQueueMessage | ErrorState.OK        | null
+        null             | ErrorState.OK        | null
+        someQueueMessage | ErrorState.TPENOENT  | null
+        null             | ErrorState.TPENOENT  | null
+        someQueueMessage | ErrorState.OK        | QueueErrorCode.OK
+        null             | ErrorState.OK        | QueueErrorCode.NO_MESSAGE
     }
 
     def "not buildable variants"(QueueMessage queueMessages, ErrorState errorState)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,6 +10,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder;
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
@@ -20,16 +21,19 @@ import java.util.Optional;
 
 public class CasualNWMessageDecoder extends ByteToMessageDecoder
 {
+    private final ProtocolVersionValueHolder protocolVersionValueHolder;
     private enum State{
         READ_HEADER, READ_PAYLOAD
     }
     private CasualNWMessageHeader header;
     private State state = State.READ_HEADER;
-    private CasualNWMessageDecoder()
-    {}
-    public static CasualNWMessageDecoder of()
+    private CasualNWMessageDecoder(ProtocolVersionValueHolder protocolVersionValueHolder)
     {
-        return new CasualNWMessageDecoder();
+        this.protocolVersionValueHolder = protocolVersionValueHolder;
+    }
+    public static CasualNWMessageDecoder of(ProtocolVersionValueHolder protocolVersionValueHolder)
+    {
+        return new CasualNWMessageDecoder(protocolVersionValueHolder);
     }
 
     @Override
@@ -71,7 +75,7 @@ public class CasualNWMessageDecoder extends ByteToMessageDecoder
         {
             byte[] messageBytes = new byte[(int)header.getPayloadSize()];
             in.readBytes(messageBytes);
-            return Optional.of( CasualMessageDecoder.read(messageBytes, header) );
+            return Optional.of( CasualMessageDecoder.read(messageBytes, header, protocolVersionValueHolder) );
         }
         catch(Exception e)
         {

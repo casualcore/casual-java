@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.test.network.frombinary
 
+
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -19,23 +21,27 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
-/**
- * Created by aleph on 2017-03-17.
- */
 class CompleteCasualServiceCallRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.service.call.Request.1000.3100.bin'
+    def resource = '/protocol/b64/message.service.call.request.1000.3100.b64'
+
+    @Shared
+    def resourceProtocolVersionGreaterOrEqualToOneFour = '/protocol/b64/message.service.call.request.1003.3102.b64'
 
     @Shared
     def data
 
+    @Shared
+    def dataProtocolVersionGreaterOrEqualToOneThree
+
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
+        dataProtocolVersionGreaterOrEqualToOneThree = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersionGreaterOrEqualToOneFour))
         then:
         data != null
-        data.length == 182
+        dataProtocolVersionGreaterOrEqualToOneThree != null
     }
 
     def "get header"()
@@ -61,11 +67,11 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
         resurrectedHeader == header
     }
 
-    def "roundtrip message"()
+    def "roundtrip message #protocolVersion"()
     {
         setup:
         List<byte[]> payload = new ArrayList<>()
-        payload.add(data)
+        payload.add(binary)
         def sink = new LocalByteChannel()
         payload.each{
             bytes ->
@@ -73,15 +79,19 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
                 sink.write(buffer)
         }
         when:
-        CasualNWMessageImpl<CasualServiceCallRequestMessage> msg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
         then:
         msg != null
         msg.getMessage() == resurrectedMsg.getMessage()
         msg == resurrectedMsg
+        where:
+        binary                                        | protocolVersion
+        data                                          | ProtocolVersion.VERSION_1_0
+        data                                          | ProtocolVersion.VERSION_1_1
+        data                                          | ProtocolVersion.VERSION_1_2
+        dataProtocolVersionGreaterOrEqualToOneThree   | ProtocolVersion.VERSION_1_3
+        dataProtocolVersionGreaterOrEqualToOneThree   | ProtocolVersion.VERSION_1_4
     }
-
-
-
 }

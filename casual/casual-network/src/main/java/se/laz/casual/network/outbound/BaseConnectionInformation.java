@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.outbound;
-
-import se.laz.casual.network.ProtocolVersion;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -17,12 +15,10 @@ public abstract class BaseConnectionInformation
     private final InetSocketAddress address;
     private final UUID domainId;
     private final String domainName;
-    private ProtocolVersion protocolVersion;
     private final boolean logHandlerEnabled;
-    protected BaseConnectionInformation(final InetSocketAddress address, ProtocolVersion protocolVersion, final UUID domainId, final String domainName, boolean logHandlerEnabled)
+    protected BaseConnectionInformation(final InetSocketAddress address, final UUID domainId, final String domainName, boolean logHandlerEnabled)
     {
         this.address = address;
-        this.protocolVersion = protocolVersion;
         this.domainId = domainId;
         this.domainName = domainName;
         this.logHandlerEnabled = logHandlerEnabled;
@@ -43,11 +39,6 @@ public abstract class BaseConnectionInformation
         return domainName;
     }
 
-    public long getProtocolVersion()
-    {
-        return protocolVersion.getVersion();
-    }
-
     public boolean isLogHandlerEnabled()
     {
         return logHandlerEnabled;
@@ -65,8 +56,7 @@ public abstract class BaseConnectionInformation
             return false;
         }
         BaseConnectionInformation that = (BaseConnectionInformation) o;
-        return protocolVersion == that.protocolVersion &&
-            Objects.equals(address, that.address) &&
+        return Objects.equals(address, that.address) &&
             Objects.equals(domainId, that.domainId) &&
             Objects.equals(domainName, that.domainName);
     }
@@ -74,7 +64,7 @@ public abstract class BaseConnectionInformation
     @Override
     public int hashCode()
     {
-        return Objects.hash(address, domainId, domainName, protocolVersion);
+        return Objects.hash(address, domainId, domainName);
     }
 
     @Override
@@ -84,7 +74,6 @@ public abstract class BaseConnectionInformation
         sb.append("address=").append(address);
         sb.append(", domainId=").append(domainId);
         sb.append(", domainName='").append(domainName).append('\'');
-        sb.append(", protocolVersion=").append(protocolVersion);
         sb.append('}');
         return sb.toString();
     }

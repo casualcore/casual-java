@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,6 +8,9 @@ package se.laz.casual.network.protocol.messages.queue;
 
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
+import se.laz.casual.api.queue.QueueErrorCode;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 
@@ -17,27 +20,43 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
 {
     private final UUID execution;
     private final UUID id;
-    private CasualEnqueueReplyMessage(final UUID execution, final UUID id)
+    private final ProtocolVersion protocolVersion;
+    // from 1.3
+    private final QueueErrorCode code;
+
+    private CasualEnqueueReplyMessage(final UUID execution, final UUID id, ProtocolVersion protocolVersion, QueueErrorCode code)
     {
         this.execution = execution;
         this.id = id;
+        this.code = code;
+        this.protocolVersion = protocolVersion;
     }
     @Override
     public CasualNWMessageType getType()
     {
-        return CasualNWMessageType.ENQUEUE_REPLY;
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
+                ? CasualNWMessageType.ENQUEUE_REPLY_V_1_3
+                : CasualNWMessageType.ENQUEUE_REPLY;
     }
 
     @Override
     public List<byte[]> toNetworkBytes()
     {
-        ByteBuffer b = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize() +  CommonSizes.UUID_ID.getNetworkSize());
+        int size = CommonSizes.EXECUTION.getNetworkSize() +  CommonSizes.UUID_ID.getNetworkSize();
+        size += protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )  ?  CommonSizes.CALL_ERROR.getNetworkSize() : 0;
+        ByteBuffer b = ByteBuffer.allocate(size);
         CasualEncoderUtils.writeUUID(execution, b);
         CasualEncoderUtils.writeUUID(id, b);
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+            b.putInt(code.getValue());
+        }
         List<byte[]> l = new ArrayList<>();
         l.add(b.array());
         return l;
@@ -50,19 +69,17 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         {
             return true;
         }
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof CasualEnqueueReplyMessage that))
         {
             return false;
         }
-        CasualEnqueueReplyMessage that = (CasualEnqueueReplyMessage) o;
-        return Objects.equals(execution, that.execution) &&
-            Objects.equals(id, that.id);
+        return code == that.code && Objects.equals(getExecution(), that.getExecution()) && Objects.equals(getId(), that.getId()) && protocolVersion == that.protocolVersion;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(execution, id);
+        return Objects.hash(getExecution(), getId(), protocolVersion, code);
     }
 
     @Override
@@ -71,6 +88,11 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         final StringBuilder sb = new StringBuilder("CasualEnqueueReplyMessage{");
         sb.append("execution=").append(execution);
         sb.append(", id=").append(id);
+        sb.append(", protocolVersion=").append(protocolVersion);
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+            sb.append(", code=").append(code);
+        }
         sb.append('}');
         return sb.toString();
     }
@@ -90,14 +112,21 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
         return id;
     }
 
+    public QueueErrorCode getCode()
+    {
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+            return code;
+        }
+        throw new CasualProtocolException("code is not available in protocol version " + protocolVersion);
+    }
+
     public static final class Builder
     {
         private UUID execution;
         private UUID id;
-
-        private Builder()
-        {
-        }
+        private QueueErrorCode code;
+        private ProtocolVersion protocolVersion;
 
         public Builder withExecution(final UUID execution)
         {
@@ -111,11 +140,28 @@ public class CasualEnqueueReplyMessage implements CasualNetworkTransmittable
             return this;
         }
 
+        public Builder withCode(QueueErrorCode code)
+        {
+            this.code = code;
+            return this;
+        }
+
+        public Builder withProtocolVersion(ProtocolVersion protocolVersion)
+        {
+            this.protocolVersion = protocolVersion;
+            return this;
+        }
+
         public CasualEnqueueReplyMessage build()
         {
             Objects.requireNonNull(execution, "execution is not allowed to be null");
             Objects.requireNonNull(id, "id is not allowed to be null");
-            return new CasualEnqueueReplyMessage(execution, id);
+            Objects.requireNonNull(protocolVersion, "protocolVersion is not allowed to be null");
+            if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+            {
+                Objects.requireNonNull(code, "code can not be null");
+            }
+            return new CasualEnqueueReplyMessage(execution, id, protocolVersion, code);
         }
     }
 }

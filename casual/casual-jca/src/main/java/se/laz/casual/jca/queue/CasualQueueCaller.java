@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -12,8 +12,10 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.queue.DequeueReturn;
 import se.laz.casual.api.queue.EnqueueReturn;
 import se.laz.casual.api.queue.MessageSelector;
+import se.laz.casual.api.queue.QueueErrorCode;
 import se.laz.casual.api.queue.QueueInfo;
 import se.laz.casual.api.queue.QueueMessage;
+import se.laz.casual.api.util.Pair;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.CasualManagedConnection;
@@ -31,8 +33,11 @@ import se.laz.casual.network.protocol.messages.queue.EnqueueMessage;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
 
 public class CasualQueueCaller implements CasualQueueApi
 {
@@ -56,7 +61,17 @@ public class CasualQueueCaller implements CasualQueueApi
         {
             // Always setting error state OK for now. In the future when error state is handled in the casual queue
             // protocol any error state supplied from casual should be used (same with dequeue)
-            return EnqueueReturn.createBuilder().withErrorState(ErrorState.OK).withId(makeEnqueueCall(UUID.randomUUID(), qinfo, msg)).build();
+            // This future thing should be removed in some release, however it means a new major release
+            // since it will break our already released API
+            CasualEnqueueReplyMessage replyMessage = makeEnqueueCall(UUID.randomUUID(), qinfo, msg);
+            EnqueueReturn.Builder builder = EnqueueReturn.createBuilder();
+            builder.withErrorState(ErrorState.OK)
+                   .withId(replyMessage.getId());
+            if( connection.getNetworkConnection().getProtocolVersion().isGreaterThanOrEqualTo( VERSION_1_3 ) )
+            {
+                builder.withErrorCode(replyMessage.getCode());
+            }
+            return builder.build();
         }
         catch(Exception e)
         {
@@ -71,7 +86,14 @@ public class CasualQueueCaller implements CasualQueueApi
         {
             // Always setting error state OK for now. In the future when error state is handled in the casual queue
             // protocol any error state supplied from casual should be used (same with enqueue)
-            return DequeueReturn.createBuilder().withErrorState(ErrorState.OK).withQueueMessage(makeDequeueCall(UUID.randomUUID(), qinfo, selector)).build();
+            // This future thing should be removed in some release, however it means a new major release
+            // since it will break our already released API
+            Pair<Optional<QueueMessage>, Optional<QueueErrorCode>> answer = makeDequeueCall(UUID.randomUUID(), qinfo, selector);
+            DequeueReturn.Builder builder = DequeueReturn.createBuilder();
+            builder.withErrorState(ErrorState.OK);
+            answer.first().ifPresent(builder::withQueueMessage);
+            answer.second().ifPresent(builder::withErrorCode);
+            return builder.build();
         }
         catch(Exception e)
         {
@@ -92,7 +114,7 @@ public class CasualQueueCaller implements CasualQueueApi
         }
     }
 
-    private UUID makeEnqueueCall(UUID corrid, QueueInfo qinfo, QueueMessage msg)
+    private CasualEnqueueReplyMessage makeEnqueueCall(UUID corrid, QueueInfo qinfo, QueueMessage msg)
     {
         CasualEnqueueRequestMessage requestMessage = CasualEnqueueRequestMessage.createBuilder()
                                                                                 .withExecution(UUID.randomUUID())
@@ -104,11 +126,10 @@ public class CasualQueueCaller implements CasualQueueApi
         CompletableFuture<CasualNWMessage<CasualEnqueueReplyMessage>> networkReplyMessageFuture = connection.getNetworkConnection().request(networkRequestMessage);
 
         CasualNWMessage<CasualEnqueueReplyMessage> networkReplyMessage = networkReplyMessageFuture.join();
-        CasualEnqueueReplyMessage replyMessage = networkReplyMessage.getMessage();
-        return replyMessage.getId();
+        return networkReplyMessage.getMessage();
     }
 
-    private QueueMessage makeDequeueCall(UUID corrid, QueueInfo qinfo, MessageSelector selector)
+    private Pair<Optional<QueueMessage>, Optional<QueueErrorCode>> makeDequeueCall(UUID corrid, QueueInfo qinfo, MessageSelector selector)
     {
         CasualDequeueRequestMessage requestMessage = CasualDequeueRequestMessage.createBuilder()
                                                                                 .withExecution(UUID.randomUUID())
@@ -124,7 +145,10 @@ public class CasualQueueCaller implements CasualQueueApi
         CasualNWMessage<CasualDequeueReplyMessage> networkReplyMessage = networkReplyMessageFuture.join();
         CasualDequeueReplyMessage replyMessage = networkReplyMessage.getMessage();
         List<QueueMessage> messages = Transformer.transform(replyMessage.getMessages());
-        return messages.isEmpty() ? null : messages.get(0);
+        Optional<QueueMessage> maybeMessage = messages.isEmpty() ? Optional.empty() : Optional.of(messages.get(0));
+        Optional<QueueErrorCode> maybeErrorCode = connection.getNetworkConnection().getProtocolVersion().isGreaterThanOrEqualTo( VERSION_1_3 )
+                ? Optional.of(replyMessage.getCode()) : Optional.empty();
+        return Pair.of(maybeMessage, maybeErrorCode);
     }
 
     private boolean queueExists( UUID corrid, String queueName)

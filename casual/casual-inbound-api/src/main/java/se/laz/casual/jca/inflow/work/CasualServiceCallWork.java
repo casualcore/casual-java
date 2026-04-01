@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -12,17 +12,23 @@ import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.jca.InboundContextScope;
+import se.laz.casual.jca.InboundThreadContext;
+import se.laz.casual.jca.SpanId;
 import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
 import java.util.UUID;
 import java.util.logging.Logger;
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
 
 /**
  * Work instance for performing inbound casual service call requests within the work manager.
@@ -34,19 +40,18 @@ public final class CasualServiceCallWork implements Work
     private final CasualServiceCallRequestMessage message;
     private final UUID correlationId;
     private final boolean isTpNoReply;
+    private final ProtocolVersion protocolVersion;
     private CasualNWMessage<CasualServiceCallReplyMessage> response;
     private ServiceHandler handler = null;
+    private final SpanId spanId;
 
-    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message)
-    {
-        this(correlationId, message, false);
-    }
-
-    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply)
+    public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply, ProtocolVersion protocolVersion, SpanId spanId)
     {
         this.correlationId = correlationId;
         this.message = message;
         this.isTpNoReply = isTpNoReply;
+        this.protocolVersion = protocolVersion;
+        this.spanId = spanId;
     }
 
     public CasualServiceCallRequestMessage getMessage()
@@ -87,9 +92,10 @@ public final class CasualServiceCallWork implements Work
         }
     }
 
+    @SuppressWarnings("try")
     private void issueCallNoReply()
     {
-        try
+        try(InboundContextScope inboundContextScope = InboundContextScope.of(new InboundThreadContext(spanId, message.getServiceName(), message.getExecution())))
         {
             callService();
         }
@@ -99,13 +105,20 @@ public final class CasualServiceCallWork implements Work
         }
     }
 
+    // try with resources to transport information to potential outbound thread
+    // autoclosable and is not used but needs to be there
+    @SuppressWarnings("try")
     private void issueCall()
     {
         CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()
-                                                                                          .setXid( message.getXid() )
-                                                                                          .setExecution( message.getExecution() );
+                                                                                          .setExecution( message.getExecution() )
+                                                                                          .setProtocolVersion(protocolVersion);
+        if( protocolVersion.isLessThan( VERSION_1_3 ) )
+        {
+            replyBuilder.setXid( message.getXid() );
+        }
         CasualBuffer serviceResult = ServiceBuffer.empty();
-        try
+        try(InboundContextScope inboundContextScope = InboundContextScope.of(new InboundThreadContext(spanId, message.getServiceName(), message.getExecution())))
         {
             InboundResponse reply = callService();
             serviceResult = reply.getBuffer();
@@ -126,7 +139,7 @@ public final class CasualServiceCallWork implements Work
             CasualServiceCallReplyMessage reply = replyBuilder
                     .setServiceBuffer( ServiceBuffer.of( serviceResult ) )
                     .build();
-            CasualNWMessage<CasualServiceCallReplyMessage> replyMessage = CasualNWMessageImpl.of( correlationId,reply );
+            CasualNWMessage<CasualServiceCallReplyMessage> replyMessage = CasualNWMessageImpl.of( correlationId, reply );
             this.response = replyMessage;
         }
     }

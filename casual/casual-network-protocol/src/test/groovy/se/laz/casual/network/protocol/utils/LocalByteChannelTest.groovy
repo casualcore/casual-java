@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.protocol.utils
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -63,9 +64,11 @@ class LocalByteChannelTest extends Specification
         LocalByteChannel sink = new LocalByteChannel()
         when:
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
         then:
         msg == resurrectedMsg
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
     def "readFully fail"()

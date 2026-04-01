@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,6 +8,7 @@ package se.laz.casual.network.protocol.messages.domain;
 
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryReplySizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_4;
+
 /**
  * Created by aleph on 2017-03-07.
  */
@@ -28,6 +31,7 @@ public class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmitt
     private final UUID execution;
     private final UUID domainId;
     private final String domainName;
+    private final ProtocolVersion protocolVersion;
     private List<Service> services = new ArrayList<>();
     private List<Queue> queues = new ArrayList<>();
 
@@ -37,22 +41,25 @@ public class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmitt
     // Defaults to Integer.MAX_VALUE
     private int maxMessageSize = Integer.MAX_VALUE;
 
-    private CasualDomainDiscoveryReplyMessage(final UUID execution, final UUID domainId, final String domainName)
+    private CasualDomainDiscoveryReplyMessage(final UUID execution, final UUID domainId, final String domainName, ProtocolVersion protocolVersion)
     {
         this.execution = execution;
         this.domainId = domainId;
         this.domainName = domainName;
+        this.protocolVersion = protocolVersion;
     }
 
-    public static CasualDomainDiscoveryReplyMessage of(final UUID execution, final UUID domainId, final String domainName)
+    public static CasualDomainDiscoveryReplyMessage of(final UUID execution, final UUID domainId, final String domainName, ProtocolVersion protocolVersion)
     {
-        return new CasualDomainDiscoveryReplyMessage(execution, domainId, domainName);
+        return new CasualDomainDiscoveryReplyMessage(execution, domainId, domainName, protocolVersion);
     }
 
     @Override
     public CasualNWMessageType getType()
     {
-        return CasualNWMessageType.DOMAIN_DISCOVERY_REPLY;
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_4 )
+                ? CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_V_1_4
+                : CasualNWMessageType.DOMAIN_DISCOVERY_REPLY;
     }
 
     public CasualDomainDiscoveryReplyMessage setServices(List<Service> services)

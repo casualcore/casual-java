@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.test.network.frombinary
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.messages.conversation.ConnectRequest
 import se.laz.casual.network.protocol.messages.conversation.Request
 import se.laz.casual.network.protocol.messages.parseinfo.MessageHeaderSizes
 import se.laz.casual.network.protocol.utils.LocalByteChannel
@@ -23,18 +23,16 @@ import java.nio.ByteBuffer
 class ConversationRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.conversation.Send.1000.3212.bin'
+    def resource = '/protocol/b64/message.conversation.request.1000.3212.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
-        println("len ${data.length}")
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         assert(data != null)
-        assert(data.length == 214)
     }
 
     def "get header"()
@@ -72,13 +70,15 @@ class ConversationRequestMessageTest extends Specification
              sink.write(buffer)
        }
        when:
-       CasualNWMessageImpl<Request> msg = CasualNetworkTestReader.read(sink)
+       CasualNWMessageImpl<Request> msg = CasualNetworkTestReader.read(sink, protocolVersion)
        CasualMessageEncoder.write(sink, msg)
-       CasualNWMessageImpl<Request> resurrectedMsg = CasualNetworkTestReader.read(sink)
+       CasualNWMessageImpl<Request> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
        then:
        msg != null
        msg.getMessage() == resurrectedMsg.getMessage()
        msg == resurrectedMsg
        msg.getMessage().getServiceBuffer().getPayload() == resurrectedMsg.getMessage().getServiceBuffer().getPayload()
+       where:
+       protocolVersion << ProtocolVersion.values()
     }
 }

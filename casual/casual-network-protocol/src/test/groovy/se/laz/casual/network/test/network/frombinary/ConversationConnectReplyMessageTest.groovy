@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.test.network.frombinary
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -23,17 +24,15 @@ import java.nio.ByteBuffer
 class ConversationConnectReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.conversation.connect.Reply.1000.3211.bin'
+    def resource = '/protocol/b64/message.conversation.connect.reply.1000.3211.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
-        println("len ${data.length}")
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         assert(data != null)
-        assert(data.length == 52)
     }
 
     def "get header"()
@@ -71,14 +70,14 @@ class ConversationConnectReplyMessageTest extends Specification
              sink.write(buffer)
        }
        when:
-       CasualNWMessageImpl<ConnectReply> msg = CasualNetworkTestReader.read(sink)
-       println("Msg: ${msg}")
-       println("ConnectRequest: ${msg.message}")
+       CasualNWMessageImpl<ConnectReply> msg = CasualNetworkTestReader.read(sink, protocolVersion)
        CasualMessageEncoder.write(sink, msg)
-       CasualNWMessageImpl<ConnectReply> resurrectedMsg = CasualNetworkTestReader.read(sink)
+       CasualNWMessageImpl<ConnectReply> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
        then:
        msg != null
        msg.getMessage() == resurrectedMsg.getMessage()
        msg == resurrectedMsg
+       where:
+       protocolVersion << ProtocolVersion.values()
     }
 }

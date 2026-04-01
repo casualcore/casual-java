@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -13,6 +13,7 @@ import jakarta.resource.spi.work.WorkManager
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry
 import se.laz.casual.jca.inflow.CasualMessageListener
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage
@@ -22,6 +23,7 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage
 
 import java.lang.reflect.Method
+import java.util.function.Consumer
 
 class FakeListener implements MessageEndpoint, CasualMessageListener
 {
@@ -41,7 +43,7 @@ class FakeListener implements MessageEndpoint, CasualMessageListener
     }
 
     @Override
-    void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel) {
+    void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel, Consumer<ProtocolVersion> protocolVersion) {
 
     }
 
@@ -52,12 +54,12 @@ class FakeListener implements MessageEndpoint, CasualMessageListener
    }
 
    @Override
-    void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel) {
+    void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel, ProtocolVersion protocolVersion) {
 
     }
 
     @Override
-    void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry) {
+    void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersion protocolVersion) {
 
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,7 +8,9 @@ package se.laz.casual.network.protocol.decoding;
 
 
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.MessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
@@ -38,6 +40,10 @@ import se.laz.casual.network.protocol.decoding.decoders.transaction.CasualTransa
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 
+import java.util.function.Supplier;
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_2;
+
 public final class CasualMessageDecoder
 {
     private static int maxSingleBufferByteSize = Integer.MAX_VALUE;
@@ -59,47 +65,51 @@ public final class CasualMessageDecoder
         return CasualNWMessageHeaderDecoder.fromNetworkBytes(message);
     }
 
-    public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final byte[] data, CasualNWMessageHeader header)
+    public static <T extends CasualNetworkTransmittable> CasualNWMessage<T> read(final byte[] data, CasualNWMessageHeader header, Supplier<ProtocolVersion> protocolVersionSupplier)
     {
-        NetworkDecoder<T> networkReader = getDecoder( header );
+        MessageVerifier.verifyMessageTypeByProtocolVersion(header.getType(), protocolVersionSupplier);
+        NetworkDecoder<T> networkReader = getDecoder( header.getType(), protocolVersionSupplier );
         return readMessage( data, header, networkReader );
     }
 
     @SuppressWarnings({"unchecked", "squid:MethodCyclomaticComplexity"})
-    static <T extends CasualNetworkTransmittable> NetworkDecoder<T> getDecoder(CasualNWMessageHeader header )
+    static <T extends CasualNetworkTransmittable> NetworkDecoder<T> getDecoder(CasualNWMessageType type, Supplier<ProtocolVersion> protocolVersionSupplier)
     {
-        switch(header.getType())
+        switch(type)
         {
             case DOMAIN_DISCOVERY_REQUEST:
                 return (NetworkDecoder<T>) CasualDomainDiscoveryRequestMessageDecoder.of();
-            case DOMAIN_DISCOVERY_REPLY:
-                return (NetworkDecoder<T>) CasualDomainDiscoveryReplyMessageDecoder.of();
+            case DOMAIN_DISCOVERY_REPLY, DOMAIN_DISCOVERY_REPLY_V_1_4:
+                return (NetworkDecoder<T>) CasualDomainDiscoveryReplyMessageDecoder.of(protocolVersionSupplier.get());
             case DOMAIN_DISCONNECT_REQUEST:
                 return (NetworkDecoder<T>) DomainDisconnectRequestMessageDecoder.of();
             case DOMAIN_DISCONNECT_REPLY:
                 return (NetworkDecoder<T>) DomainDisconnectReplyMessageDecoder.of();
             case DOMAIN_DISCOVERY_TOPOLOGY_UPDATE:
+                // it was introduced in protocol version 1.2
+                if(protocolVersionSupplier.get().isLessThan( VERSION_1_2 ))
+                {
+                    throw new UnsupportedOperationException("DOMAIN_DISCOVERY_TOPOLOGY_UPDATE is not available in protocol version : " + protocolVersionSupplier.get());
+                }
                 return (NetworkDecoder<T>) DomainDiscoveryTopologyUpdateMessageDecoder.of();
             case DOMAIN_CONNECT_REQUEST:
                 return (NetworkDecoder<T>) CasualDomainConnectRequestMessageDecoder.of();
             case DOMAIN_CONNECT_REPLY:
                 return (NetworkDecoder<T>) CasualDomainConnectReplyMessageDecoder.of();
-            case SERVICE_CALL_REQUEST:
-                // We may want to use some other size for chunking of service payload
+            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_V_1_3:
                 CasualServiceCallRequestMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
-                return (NetworkDecoder<T>) CasualServiceCallRequestMessageDecoder.of();
-            case SERVICE_CALL_REPLY:
-                // We may want to use some other size for chunking of service payload
+                return (NetworkDecoder<T>) CasualServiceCallRequestMessageDecoder.of(protocolVersionSupplier.get());
+            case SERVICE_CALL_REPLY, SERVICE_CALL_REPLY_V_1_3:
                 CasualServiceCallReplyMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
-                return (NetworkDecoder<T>) CasualServiceCallReplyMessageDecoder.of();
+                return (NetworkDecoder<T>) CasualServiceCallReplyMessageDecoder.of(protocolVersionSupplier.get());
             case ENQUEUE_REQUEST:
                 return (NetworkDecoder<T>) CasualEnqueueRequestMessageDecoder.of();
-            case ENQUEUE_REPLY:
-                return (NetworkDecoder<T>) CasualEnqueueReplyMessageDecoder.of();
+            case ENQUEUE_REPLY, ENQUEUE_REPLY_V_1_3:
+                return (NetworkDecoder<T>) CasualEnqueueReplyMessageDecoder.of(protocolVersionSupplier.get());
             case DEQUEUE_REQUEST:
                 return (NetworkDecoder<T>) CasualDequeueRequestMessageDecoder.of();
-            case DEQUEUE_REPLY:
-                return (NetworkDecoder<T>) CasualDequeueReplyMessageDecoder.of();
+            case DEQUEUE_REPLY, DEQUEUE_REPLY_V_1_3:
+                return (NetworkDecoder<T>) CasualDequeueReplyMessageDecoder.of(protocolVersionSupplier.get());
             case PREPARE_REQUEST:
                 return (NetworkDecoder<T>) CasualTransactionResourcePrepareRequestMessageDecoder.of();
             case PREPARE_REQUEST_REPLY:
@@ -112,8 +122,8 @@ public final class CasualMessageDecoder
                 return (NetworkDecoder<T>) CasualTransactionResourceRollbackRequestMessageDecoder.of();
             case REQUEST_ROLLBACK_REPLY:
                 return (NetworkDecoder<T>) CasualTransactionResourceRollbackReplyMessageDecoder.of();
-            case CONVERSATION_CONNECT:
-                return (NetworkDecoder<T>) ConnectRequestMessageDecoder.of();
+            case CONVERSATION_CONNECT, CONVERSATION_CONNECT_V_1_3:
+                return (NetworkDecoder<T>) ConnectRequestMessageDecoder.of(protocolVersionSupplier.get());
             case CONVERSATION_CONNECT_REPLY:
                 return (NetworkDecoder<T>) ConnectReplyMessageDecoder.of();
             case CONVERSATION_REQUEST:
@@ -121,11 +131,11 @@ public final class CasualMessageDecoder
             case CONVERSATION_DISCONNECT:
                 return (NetworkDecoder<T>) DisconnectMessageDecoder.of();
             default:
-                throw new UnsupportedOperationException("Unknown messagetype: " + header.getType());
+                throw new UnsupportedOperationException("Unknown messagetype: " + type);
         }
     }
 
-    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readMessage(final byte[] data, final CasualNWMessageHeader header, NetworkDecoder<T> nr )
+    private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readMessage(final byte[] data, final CasualNWMessageHeader header, NetworkDecoder<T> nr)
     {
         final MessageDecoder<T> reader = MessageDecoder.of(nr, getMaxSingleBufferByteSize() );
         final T msg = reader.read(data);

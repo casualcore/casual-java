@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -26,6 +26,7 @@ import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.event.ServiceCallEventStoreFactory;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.jca.RuntimeInformation;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
@@ -44,6 +45,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
 
 public class CasualServiceCaller implements CasualServiceApi
 {
@@ -113,16 +116,22 @@ public class CasualServiceCaller implements CasualServiceApi
         boolean noReply = flags.isSet(AtmiFlags.TPNOREPLY);
         final Xid xid = connection.getCurrentXid();
 
+        OutboundContext outboundContext = OutboundContextCreator.create(execution, connection.getNetworkConnection().getProtocolVersion());
+
+        String spanId = outboundContext.span() == null ? null : outboundContext.span().asHex();
+        String parentSpanId = outboundContext.parentSpan() == null ? null : outboundContext.parentSpan().asHex();
         ServiceCallEvent.Builder eventBuilder = ServiceCallEvent.createBuilder()
                 .withTransactionId(xid)
                 .withExecution(execution)
-                .withParent("")
+                .withParent(outboundContext.parentName())
                 .withService(serviceName)
                 .withPending(0)
                 .withOrder(Order.CONCURRENT)
+                .withSpanId(spanId)
+                .withParentSpanId(parentSpanId)
                 .start();
 
-        Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, xid, execution, noReply);
+        Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> maybeServiceReturnValue = makeServiceCall(corrId, serviceName, data, flags, xid, noReply, outboundContext);
         maybeServiceReturnValue.ifPresent(casualNWMessageCompletableFuture ->
                 casualNWMessageCompletableFuture.whenComplete((v, e) -> {
                             if (null != e)
@@ -207,17 +216,24 @@ public class CasualServiceCaller implements CasualServiceApi
                 '}';
     }
 
-    private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, Xid transactionId, UUID execution, boolean noReply)
+    private Optional<CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>>> makeServiceCall(UUID corrid, String serviceName, CasualBuffer data, Flag<AtmiFlags> flags, Xid transactionId, boolean noReply, OutboundContext outboundContext)
     {
         Duration timeout = Duration.of(connection.getTransactionTimeout(), ChronoUnit.SECONDS);
-        CasualServiceCallRequestMessage serviceRequestMessage = CasualServiceCallRequestMessage.createBuilder()
-                .setExecution(execution)
+        ProtocolVersion protocolVersion = connection.getNetworkConnection().getProtocolVersion();
+        CasualServiceCallRequestMessage.Builder serviceRequestMessageBuilder = CasualServiceCallRequestMessage.createBuilder()
+                .setExecution(outboundContext.execution())
                 .setServiceBuffer(ServiceBuffer.of(data))
                 .setServiceName(serviceName)
+                .setParentName(outboundContext.parentName())
                 .setXid(transactionId)
                 .setTimeout(timeout.toNanos())
-                .setXatmiFlags(flags).build();
-        CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessage);
+                .setXatmiFlags(flags)
+                .setProtocolVersion(protocolVersion);
+        if(connection.getNetworkConnection().getProtocolVersion().isGreaterThanOrEqualTo( VERSION_1_3 ))
+        {
+            serviceRequestMessageBuilder.setParentSpan(outboundContext.span());
+        }
+        CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessageBuilder.build());
         LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
 
         if(noReply)

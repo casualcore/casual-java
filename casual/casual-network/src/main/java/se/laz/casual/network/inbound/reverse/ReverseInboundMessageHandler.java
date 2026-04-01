@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -15,6 +15,7 @@ import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 import se.laz.casual.jca.inflow.CasualMessageListener;
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage;
@@ -36,22 +37,25 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
     private final XATerminator xaTerminator;
     private final WorkManager workManager;
     private final CasualInboundTransactionRegistry inboundTransactionRegistry;
+    private final ProtocolVersionValueHolder valueHolder;
 
-    private ReverseInboundMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry)
+    private ReverseInboundMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersionValueHolder valueHolder)
     {
         this.factory = factory;
         this.xaTerminator = xaTerminator;
         this.workManager = workManager;
         this.inboundTransactionRegistry = inboundTransactionRegistry;
+        this.valueHolder = valueHolder;
     }
 
-    public static ReverseInboundMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry)
+    public static ReverseInboundMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersionValueHolder valueHolder)
     {
         Objects.requireNonNull(factory, "factory can not be null");
         Objects.requireNonNull(xaTerminator, "xaTerminator can not be null");
         Objects.requireNonNull(workManager, "workManager can not be null");
         Objects.requireNonNull(inboundTransactionRegistry, "inboundTransactionRegistry can not be null");
-        return new ReverseInboundMessageHandler(factory, xaTerminator, workManager, inboundTransactionRegistry);
+        Objects.requireNonNull(valueHolder, "valueHolder can not be null");
+        return new ReverseInboundMessageHandler(factory, xaTerminator, workManager, inboundTransactionRegistry, valueHolder);
     }
 
     @SuppressWarnings("unchecked")
@@ -72,17 +76,17 @@ public final class ReverseInboundMessageHandler extends SimpleChannelInboundHand
             case REQUEST_ROLLBACK:
                 executor.execute(() -> listener.requestRollback((CasualNWMessage<CasualTransactionResourceRollbackRequestMessage>)message, ctx.channel(), xaTerminator, inboundTransactionRegistry));
                 break;
-            case SERVICE_CALL_REQUEST:
-                listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry);
+            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_V_1_3:
+                listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry, valueHolder.get());
                 break;
             case DOMAIN_CONNECT_REQUEST:
-                listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, ctx.channel());
+                listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, ctx.channel(), valueHolder);
                 break;
             case DOMAIN_DISCONNECT_REPLY:
                 listener.domainDisconnectReply((CasualNWMessage<DomainDisconnectReplyMessage>)message);
                 break;
             case DOMAIN_DISCOVERY_REQUEST:
-                listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel());
+                listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel(), valueHolder.get());
                 break;
             default:
                 log.warning("Message type not supported: " + message.getType());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,7 +10,6 @@ import io.netty.channel.Channel
 import io.netty.channel.socket.nio.NioSocketChannel
 import se.laz.casual.config.ConfigurationOptions
 import se.laz.casual.config.ConfigurationService
-import se.laz.casual.network.ProtocolVersion
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -22,8 +21,6 @@ class NettyConnectionInformationTest extends Specification
     UUID testDomainId = UUID.randomUUID()
     @Shared
     String testDomainName = 'nifty'
-    @Shared
-    long testProtocolVersion = 1000
     @Shared
     Class<? extends Channel> testChannelClass = NioSocketChannel.class
     @Shared
@@ -43,16 +40,15 @@ class NettyConnectionInformationTest extends Specification
                                                  .withDomainId(domainId)
                                                  .withDomainName(domainName)
                                                  .withAddress(address)
-                                                 .withProtocolVersion(ProtocolVersion.unmarshall(protocolVersion))
                                                  .build()
         then:
         null == instance
         thrown(NullPointerException)
         where:
-        address     | domainId       | domainName     | protocolVersion     | channelClass     | correlator
-        null        | testDomainId   | testDomainName | testProtocolVersion | testChannelClass | testCorrelator
-        testAddress | null           | testDomainName | testProtocolVersion | testChannelClass | testCorrelator
-        testAddress | testDomainId   | null           | testProtocolVersion | testChannelClass | testCorrelator
+        address     | domainId       | domainName     |  channelClass     | correlator
+        null        | testDomainId   | testDomainName |  testChannelClass | testCorrelator
+        testAddress | null           | testDomainName |  testChannelClass | testCorrelator
+        testAddress | testDomainId   | null           |  testChannelClass | testCorrelator
     }
 
     def 'ok construction - no network logging'()
@@ -64,17 +60,16 @@ class NettyConnectionInformationTest extends Specification
                 .withDomainId(domainId)
                 .withDomainName(domainName)
                 .withAddress(address)
-                .withProtocolVersion(ProtocolVersion.unmarshall(protocolVersion))
                 .build()
         then:
         null != instance
         noExceptionThrown()
         !instance.isLogHandlerEnabled()
         where:
-        address     | domainId       | domainName     |  protocolVersion     | channelClass     | correlator
-        testAddress | testDomainId   | testDomainName |  testProtocolVersion | testChannelClass | testCorrelator
-        testAddress | testDomainId   | testDomainName |  testProtocolVersion | null             | testCorrelator
-        testAddress | testDomainId   | testDomainName |  testProtocolVersion | testChannelClass | null
+        address     | domainId       | domainName     |  channelClass     | correlator
+        testAddress | testDomainId   | testDomainName |  testChannelClass | testCorrelator
+        testAddress | testDomainId   | testDomainName |  null             | testCorrelator
+        testAddress | testDomainId   | testDomainName |  testChannelClass | null
     }
 
     def 'ok construction - network logging'()
@@ -90,7 +85,6 @@ class NettyConnectionInformationTest extends Specification
                 .withDomainId(domainId)
                 .withDomainName(domainName)
                 .withAddress(address)
-                .withProtocolVersion(ProtocolVersion.unmarshall(protocolVersion))
                 .build()
 
         then:
@@ -99,10 +93,10 @@ class NettyConnectionInformationTest extends Specification
         instance.isLogHandlerEnabled()
 
         where:
-        address     | domainId       | domainName     |  protocolVersion     | channelClass     | correlator
-        testAddress | testDomainId   | testDomainName |  testProtocolVersion | testChannelClass | testCorrelator
-        testAddress | testDomainId   | testDomainName |  testProtocolVersion | null             | testCorrelator
-        testAddress | testDomainId   | testDomainName |  testProtocolVersion | testChannelClass | null
+        address     | domainId       | domainName     |  channelClass     | correlator
+        testAddress | testDomainId   | testDomainName |  testChannelClass | testCorrelator
+        testAddress | testDomainId   | testDomainName |  null             | testCorrelator
+        testAddress | testDomainId   | testDomainName |  testChannelClass | null
     }
 
 }

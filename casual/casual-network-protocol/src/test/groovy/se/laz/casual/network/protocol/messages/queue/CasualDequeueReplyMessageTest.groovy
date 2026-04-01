@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,7 +7,9 @@
 package se.laz.casual.network.protocol.messages.queue
 
 import se.laz.casual.api.buffer.type.ServiceBuffer
+import se.laz.casual.api.queue.QueueErrorCode
 import se.laz.casual.api.queue.QueueMessage
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
@@ -16,6 +18,8 @@ import spock.lang.Specification
 
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
 
 class CasualDequeueReplyMessageTest extends Specification
 {
@@ -37,17 +41,30 @@ class CasualDequeueReplyMessageTest extends Specification
     def "roundtrip"()
     {
         setup:
-        CasualDequeueReplyMessage requestMsg = CasualDequeueReplyMessage.createBuilder()
+        def requestMsgBuilder = CasualDequeueReplyMessage.createBuilder()
+                                                  .withProtocolVersion(protocolVersion)
                                                   .withExecution(UUID.randomUUID())
-                                                  .withMessages(createMessages(5))
-                                                  .build()
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+           requestMsgBuilder.withCode(QueueErrorCode.OK)
+           requestMsgBuilder.withMessages(createMessages(1))
+        }
+        else
+        {
+           requestMsgBuilder.withMessages(createMessages(5))
+        }
+        def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl<CasualDequeueReplyMessage> msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualDequeueReplyMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink)
+        CasualNWMessageImpl<CasualDequeueReplyMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink, protocolVersion)
         then:
         networkBytes != null
         msg == syncResurrectedMsg
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+           syncResurrectedMsg.getMessage().getCode() == QueueErrorCode.OK
+        }
         for( int i = 0; i < msg.getMessage().getMessages().size(); ++i)
         {
             DequeueMessage m = msg.getMessage().getMessages().get( i )
@@ -56,6 +73,8 @@ class CasualDequeueReplyMessageTest extends Specification
             Arrays.deepEquals( m.getPayload().getPayload().toArray(), am.getPayload().getPayload().toArray( ) )
             Arrays.deepEquals( m.getPayload().getPayload().toArray(), sm.getPayload().getPayload().toArray( ) )
         }
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
     def createMessages(numberOfMessages)

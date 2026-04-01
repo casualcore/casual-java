@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -16,7 +16,9 @@ public enum ProtocolVersion
 {
     VERSION_1_0(1000, "1.0", true),
     VERSION_1_1(1001, "1.1", true),
-    VERSION_1_2(1002, "1.2", true);
+    VERSION_1_2(1002, "1.2", true),
+    VERSION_1_3(1003, "1.3", true),
+    VERSION_1_4(1004, "1.4", true);
 
     private static final List<Long> supportedVersions;
     private static final List<String> supportedVersionsString;
@@ -94,4 +96,33 @@ public enum ProtocolVersion
         return supportedVersionsString;
     }
 
+    public boolean supportsDomainTopologyChange()
+    {
+        return this.isGreaterThanOrEqualTo( VERSION_1_2 );
+    }
+
+    public boolean supportsDomainDisconnect()
+    {
+        return this.isGreaterThanOrEqualTo( VERSION_1_1 );
+    }
+
+    public boolean isGreaterThanOrEqualTo( ProtocolVersion protocolVersion )
+    {
+        return this.version >= protocolVersion.version;
+    }
+
+    public boolean isLessThanOrEqualTo( ProtocolVersion protocolVersion )
+    {
+        return this.version <= protocolVersion.version;
+    }
+
+    public boolean isGreaterThan( ProtocolVersion protocolVersion )
+    {
+        return this.version > protocolVersion.version;
+    }
+
+    public boolean isLessThan( ProtocolVersion protocolVersion )
+    {
+        return this.version < protocolVersion.version;
+    }
 }

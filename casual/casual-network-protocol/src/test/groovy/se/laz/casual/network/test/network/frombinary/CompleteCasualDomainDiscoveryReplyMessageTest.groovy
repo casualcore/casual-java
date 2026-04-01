@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.test.network.frombinary
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -19,23 +20,27 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
-/**
- * Created by aleph on 2017-03-09.
- */
 class CompleteCasualDomainDiscoveryReplyMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.gateway.domain.discovery.Reply.1000.7301.bin'
+    def resource = '/protocol/b64/message.gateway.domain.discovery.reply.1000.7301.b64'
+
+    @Shared
+    def resourceProtocolVersionOneFour = '/protocol/b64/message.gateway.domain.discovery.reply.1004.7311.b64'
 
     @Shared
     def data
 
+    @Shared
+    def dataProtocolVersionOneFour
+
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
+        dataProtocolVersionOneFour = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersionOneFour))
         then:
         data != null
-        data.length == 167
+        dataProtocolVersionOneFour != null
     }
 
     def "get header"()
@@ -65,7 +70,7 @@ class CompleteCasualDomainDiscoveryReplyMessageTest extends Specification
     {
         setup:
         List<byte[]> payload = new ArrayList<>()
-        payload.add(data)
+        payload.add(binary)
         def sink = new LocalByteChannel()
         payload.each{
             bytes ->
@@ -73,13 +78,20 @@ class CompleteCasualDomainDiscoveryReplyMessageTest extends Specification
                 sink.write(buffer)
         }
         when:
-        CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> msg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
         then:
         msg != null
         msg.getMessage() == resurrectedMsg.getMessage()
         msg == resurrectedMsg
+        where:
+        binary                       | protocolVersion
+        data                         | ProtocolVersion.VERSION_1_0
+        data                         | ProtocolVersion.VERSION_1_1
+        data                         | ProtocolVersion.VERSION_1_2
+        data                         | ProtocolVersion.VERSION_1_3
+        dataProtocolVersionOneFour   | ProtocolVersion.VERSION_1_4
     }
 
 }

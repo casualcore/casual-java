@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.protocol.encoding.utils;
 
+import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.xa.XIDFormatType;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
-import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 import se.laz.casual.network.protocol.utils.XIDUtils;
 
@@ -129,5 +129,10 @@ public final class CasualEncoderUtils
         return l;
     }
 
-
+    public static byte[] writeByte(byte v)
+    {
+        ByteBuffer b = ByteBuffer.allocate(Byte.BYTES);
+        b.put(v);
+        return b.array();
+    }
 }

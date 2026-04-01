@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,6 +7,7 @@
 package se.laz.casual.network.protocol.messages.queue
 
 import se.laz.casual.api.xa.XID
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
@@ -42,9 +43,11 @@ class CasualDequeueRequestMessageTest extends Specification
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualDequeueRequestMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink)
+        CasualNWMessageImpl<CasualDequeueRequestMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink, protocolVersion)
         then:
         networkBytes != null
         msg == syncResurrectedMsg
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,6 +10,7 @@ import io.netty.channel.Channel;
 import jakarta.resource.spi.XATerminator;
 import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage;
@@ -17,6 +18,8 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestM
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage;
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage;
+
+import java.util.function.Consumer;
 
 /**
  * CasualMessageListener Inbound Message Listener.
@@ -29,10 +32,11 @@ public interface CasualMessageListener
    /**
     * Process the Domain Connect request and write the resulting response to the {@link Channel}.
     *
-    * @param message received.
-    * @param channel for response.
+    * @param message         received.
+    * @param channel         for response.
+    * @param protocolVersion used to set the protocol version for this connection
     */
-   void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel);
+   void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel, Consumer<ProtocolVersion> protocolVersion);
 
     /**
      * Notification that end point received domain disconnect request
@@ -45,8 +49,9 @@ public interface CasualMessageListener
     * Process the Domain Discovery request and write the resulting response to the {@link Channel}.
     * @param message received.
     * @param channel for the response.
+    * @param protocolVersion the gw protocol version for this connection.
     */
-   void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel );
+   void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel, ProtocolVersion protocolVersion );
 
    /**
     * Process the Service Call request making use of the provided {@link WorkManager} to handle long running executions.
@@ -56,8 +61,9 @@ public interface CasualMessageListener
     * @param channel                    for the response.
     * @param workManager                for managing long running execution.
     * @param inboundTransactionRegistry the inbound transaction registry
+    * @param protocolVersion the gw protocol version for this connection.
     */
-   void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry);
+   void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersion protocolVersion);
 
    /**
     * Process the transaction Prepare request utilising the provided {@link XATerminator}.

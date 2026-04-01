@@ -1,6 +1,44 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.4.0] - 2026-04-01
+
+### feat: Add support for casual gateway protocol versions 1.3 and 1.4 ([#197](https://github.com/casualcore/casual-java/issues/197))
+Adds full support for casual 1.7 and gateway protocol versions 1.3 and
+1.4, introducing distributed tracing via span IDs, structured queue
+error codes and extended queue discovery metadata.
+
+Compatibility tested with casual versions:
+* 1.6.18
+* 1.7.10
+* `>=` 1.8.13 (earlier issues fixed in this release)
+
+Protocol 1.3
+- Distributed tracing: Service call requests and conversation connect
+messages now carry a parentSpan (8-byte span ID), enabling end-to-end
+tracing across services. Tracing context
+propagates across thread boundaries via InboundThreadLocal and the
+Concurrent utility.
+- Queue error codes: Enqueue and dequeue replies carry a structured
+QueueErrorCode (OK, NO_MESSAGE, NO_QUEUE, ARGUMENT, SYSTEM, SIGNALED),
+surfaced via EnqueueReturn and DequeueReturn.
+- Service call reply: XID removed from wire format for >= 1.3.
+  - Dequeue reply: Limited to at most one message.
+  
+  Protocol 1.4
+
+- Extended queue discovery metadata: Discovery reply Queue objects gain
+retryDelay, enqueueEnabled, and dequeueEnabled fields, exposed via
+QueueDetails.
+  
+For testing, we have changed the binary test files to base64 encoded
+files. This data can then be retrieved via the protocol description from
+casual. Since that data is only the actual payload without the header -
+a tool that creates complete base 64 encoded messages has been added.
+
+---------
+
+
 ## [3.3.9] - 2026-01-28
 
 ### feat: updates to follow JCA version 2.1.0 ([#195](https://github.com/casualcore/casual-java/issues/195))

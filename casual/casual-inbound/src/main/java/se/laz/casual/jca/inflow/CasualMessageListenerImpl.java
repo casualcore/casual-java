@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -25,6 +25,7 @@ import se.laz.casual.api.xa.XID;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.CasualResourceAdapterException;
+import se.laz.casual.jca.SpanId;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerFactory;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandlerNotFoundException;
@@ -55,6 +56,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -71,14 +73,14 @@ public class CasualMessageListenerImpl implements CasualMessageListener
 {
     private static Logger log = Logger.getLogger(CasualMessageListenerImpl.class.getName());
     @Override
-    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel)
+    public void domainConnectRequest(CasualNWMessage<CasualDomainConnectRequestMessage> message, Channel channel, Consumer<ProtocolVersion> protocolVersion)
     {
         log.finest(() -> "domainConnectRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
         log.info(()-> "domainConnectRequest(). client" + channel + " asking for protocol version(s)" + message.getMessage().getProtocols());
         log.info(()-> "domainConnectRequest(). supported protocols: " + ProtocolVersion.supportedVersions());
         Long matchedProtocolVersion = ProtocolMatcher.match(message.getMessage().getProtocols());
         log.info(() -> "domainConnectRequest(). matched protocol version: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
-
+        protocolVersion.accept(ProtocolVersion.unmarshall(matchedProtocolVersion));
         if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_1.getVersion())
         {
             // should be notified when RA is deactivated
@@ -111,13 +113,13 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel)
+    public void domainDiscoveryRequest(CasualNWMessage<CasualDomainDiscoveryRequestMessage> message, Channel channel, ProtocolVersion protocolVersion)
     {
         log.finest(() -> "domainDiscoveryRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message);
 
         String domainName = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME );
         UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId();
-        CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), domainId, domainName );
+        CasualDomainDiscoveryReplyMessage reply = CasualDomainDiscoveryReplyMessage.of( message.getMessage().getExecution(), domainId, domainName, protocolVersion);
 
         List<Service> services = new ArrayList<>();
 
@@ -142,9 +144,11 @@ public class CasualMessageListenerImpl implements CasualMessageListener
     }
 
     @Override
-    public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry)
+    public void serviceCallRequest(CasualNWMessage<CasualServiceCallRequestMessage> message, Channel channel, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersion protocolVersion)
     {
-        log.finest(() -> "serviceCallRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message);
+        log.finest(() -> "serviceCallRequest(). " +
+                PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution(), message.getMessage().getXid()) + message +
+                " protocolVersion: " + protocolVersion);
 
         Xid xid = message.getMessage().getXid();
         if(tpNoReplyOutOfProtocol( message, isServiceCallTransactional( xid )))
@@ -156,18 +160,19 @@ public class CasualMessageListenerImpl implements CasualMessageListener
             });
         }
         boolean isTpNoReply = message.getMessage().getXatmiFlags().isSet(AtmiFlags.TPNOREPLY);
-        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage() , isTpNoReply);
+        SpanId spanId = SpanId.of();
+        CasualServiceCallWork work = new CasualServiceCallWork(message.getCorrelationId(), message.getMessage(), isTpNoReply, protocolVersion, spanId);
 
         try
         {
             if(!isTpNoReply && isServiceCallTransactional( xid ) )
             {
                 inboundTransactionRegistry.add(channel.id(), XidKey.of(xid));
-                workManager.scheduleWork(work, WorkManager.INDEFINITE, createTransactionContext(xid, message.getMessage().getTimeout()), new ServiceCallWorkListener(channel, message.getMessage()));
+                workManager.scheduleWork(work, WorkManager.INDEFINITE, createTransactionContext(xid, message.getMessage().getTimeout()), new ServiceCallWorkListener(channel, message.getMessage(), spanId, protocolVersion));
             }
             else
             {
-                workManager.scheduleWork(work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener(channel, message.getMessage(), isTpNoReply));
+                workManager.scheduleWork(work, WorkManager.INDEFINITE, null, new ServiceCallWorkListener(channel, message.getMessage(), isTpNoReply, spanId, protocolVersion));
             }
         }
         catch (WorkException e)

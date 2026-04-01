@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -220,7 +220,7 @@ public class CasualConnectionImpl implements CasualConnection
     {
         if( serviceCaller == null )
         {
-            return CasualServiceCaller.of( getManagedConnection() );
+            serviceCaller = CasualServiceCaller.of( getManagedConnection() );
         }
         return serviceCaller;
     }

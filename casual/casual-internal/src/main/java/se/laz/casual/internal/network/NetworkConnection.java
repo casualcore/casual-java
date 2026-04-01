@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,6 +11,7 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.jca.ConnectionObserver;
 import se.laz.casual.jca.DomainId;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 
 import java.util.UUID;
@@ -35,4 +36,6 @@ public interface NetworkConnection
     DomainId getDomainId();
 
     void addConnectionObserver(ConnectionObserver observer);
+
+    ProtocolVersion getProtocolVersion();
 }

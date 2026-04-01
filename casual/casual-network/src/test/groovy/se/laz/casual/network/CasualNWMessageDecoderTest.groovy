@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,13 +10,14 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.JsonBuffer
+import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
-import se.laz.casual.api.buffer.type.ServiceBuffer
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -28,13 +29,15 @@ class CasualNWMessageDecoderTest extends Specification
     def 'ok msg'()
     {
         setup:
+        ProtocolVersionValueHolder valueHolder = ProtocolVersionValueHolder.of()
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         CasualNWMessage<CasualServiceCallReplyMessage> msg = createReplyMessage()
         ByteBuf buf = Unpooled.buffer()
         for(byte[] b : msg.toNetworkBytes())
         {
             buf.writeBytes(b)
         }
-        def decoder = CasualNWMessageDecoder.of()
+        def decoder = CasualNWMessageDecoder.of(valueHolder)
         List<Object> out = new ArrayList<>()
         when:
         decoder.decode(null, buf, out)
@@ -48,13 +51,15 @@ class CasualNWMessageDecoderTest extends Specification
     def 'crap body'()
     {
         setup:
+        ProtocolVersionValueHolder valueHolder = ProtocolVersionValueHolder.of()
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         CasualNWMessage<CasualServiceCallReplyMessage> msg = createReplyMessage()
         ByteBuf buf = Unpooled.buffer()
         for(byte[] b : msg.toNetworkBytes())
         {
             buf.writeBytes(b)
         }
-        def decoder = CasualNWMessageDecoder.of()
+        def decoder = CasualNWMessageDecoder.of(valueHolder)
         List<Object> out = new ArrayList<>()
         ByteBuf crapBody = Unpooled.buffer()
         when:
@@ -78,6 +83,7 @@ class CasualNWMessageDecoderTest extends Specification
                                                                              .setXid(XID.NULL_XID)
                                                                              .setExecution(UUID.randomUUID())
                                                                              .setServiceBuffer(ServiceBuffer.of(msg))
+                                                                             .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                                                                              .build()
 
         return CasualNWMessageImpl.of(corrid, message)

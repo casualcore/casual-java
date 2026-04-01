@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+
+import static se.laz.casual.network.ExceptionTool.findDecoderException;
 
 public class ExceptionHandler extends ChannelInboundHandlerAdapter
 {
@@ -60,21 +62,6 @@ public class ExceptionHandler extends ChannelInboundHandlerAdapter
         List<UUID> l = new ArrayList<>();
         l.add(corrid);
         correlator.completeExceptionally(l, e);
-    }
-
-    private Optional<CasualDecoderException> findDecoderException(Throwable t)
-    {
-        Throwable cause;
-        Throwable result = t;
-        while(null != (cause = result.getCause()) && (result != cause))
-        {
-            if(result instanceof  CasualDecoderException exception)
-            {
-                return Optional.of(exception);
-            }
-            result = cause;
-        }
-        return Optional.empty();
     }
 
 }

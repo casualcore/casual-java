@@ -29,6 +29,7 @@ import se.laz.casual.jca.CasualResourceAdapter
 import se.laz.casual.jca.CasualResourceManager
 import se.laz.casual.jca.DomainId
 import se.laz.casual.jca.RuntimeInformation
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.messages.domain.TransactionType
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -77,6 +78,7 @@ class CasualServiceCallerTest extends Specification
         mcf = Mock(CasualManagedConnectionFactory)
         networkConnection = Mock(NetworkConnection){
            getDomainId() >> domainOne
+           getProtocolVersion() >> ProtocolVersion.VERSION_1_2
         }
         connection = new CasualManagedConnection( mcf )
         connection.networkConnection =  networkConnection
@@ -109,6 +111,7 @@ class CasualServiceCallerTest extends Specification
                 .setServiceBuffer(ServiceBuffer.of(message.getType(), message.getBytes()))
                 .setServiceName(serviceName)
                 .setXid( connection.getCurrentXid() )
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                 .build()
         expectedDomainDiscoveryRequest = CasualDomainDiscoveryRequestMessage.createBuilder()
                 .setServiceNames([serviceName])
@@ -119,8 +122,8 @@ class CasualServiceCallerTest extends Specification
     def initialiseReplies()
     {
         serviceReply = createServiceCallReplyMessage( ErrorState.OK, TransactionState.TX_ACTIVE, message )
-        domainDiscoveryReplyFound = createDomainDiscoveryReply(asServices([serviceName]))
-        domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asServices([]))
+        domainDiscoveryReplyFound = createDomainDiscoveryReply(asServices([serviceName]), ProtocolVersion.VERSION_1_3)
+        domainDiscoveryReplyNotFound = createDomainDiscoveryReply(asServices([]), ProtocolVersion.VERSION_1_3)
     }
 
     List<Service> asServices(List<String> serviceNames)
@@ -133,10 +136,10 @@ class CasualServiceCallerTest extends Specification
         return l
     }
 
-    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Service> services)
+    CasualNWMessageImpl<CasualDomainDiscoveryReplyMessage> createDomainDiscoveryReply(List<Service> services, ProtocolVersion protocolVersion)
     {
         CasualNWMessageImpl.of(executionId,
-                CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName)
+                CasualDomainDiscoveryReplyMessage.of(executionId, domainId, domainName, protocolVersion)
                                                  .setServices(services))
     }
 
@@ -149,6 +152,7 @@ class CasualServiceCallerTest extends Specification
                         .setTransactionState( transactionState )
                         .setXid( XID.NULL_XID )
                         .setServiceBuffer(ServiceBuffer.of(message))
+                        .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                         .build()
         )
     }
@@ -162,6 +166,7 @@ class CasualServiceCallerTest extends Specification
                         .setTransactionState( transactionState )
                         .setXid( XID.NULL_XID )
                         .setServiceBuffer(ServiceBuffer.empty())
+                        .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                         .build()
         )
     }

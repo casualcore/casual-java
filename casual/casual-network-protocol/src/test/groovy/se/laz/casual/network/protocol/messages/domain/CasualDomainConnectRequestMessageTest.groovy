@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.protocol.messages.domain
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import se.laz.casual.network.protocol.utils.LocalByteChannel
@@ -59,7 +60,7 @@ class CasualDomainConnectRequestMessageTest extends Specification
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualDomainConnectRequestMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink)
+        CasualNWMessageImpl<CasualDomainConnectRequestMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink, protocolVersion)
 
         then:
         networkBytes != null
@@ -67,6 +68,8 @@ class CasualDomainConnectRequestMessageTest extends Specification
         msg == syncResurrectedMsg
         domainName == syncResurrectedMsg.message.domainName
         protocols == syncResurrectedMsg.message.protocols
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
 }

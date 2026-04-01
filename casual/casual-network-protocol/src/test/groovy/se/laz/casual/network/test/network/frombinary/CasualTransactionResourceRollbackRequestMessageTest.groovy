@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.test.network.frombinary
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -19,23 +20,19 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
-/**
- * Created by aleph on 2017-04-03.
- */
 class CasualTransactionResourceRollbackRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.transaction.resource.rollback.Request.1000.5205.bin'
+    def resource = '/protocol/b64/message.transaction.resource.rollback.request.1000.5205.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         data != null
-        data.length == 116
     }
 
     def "get header"()
@@ -73,12 +70,14 @@ class CasualTransactionResourceRollbackRequestMessageTest extends Specification
                 sink.write(buffer)
         }
         when:
-        CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> msg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualTransactionResourceRollbackRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
         then:
         msg != null
         msg.getMessage() == resurrectedMsg.getMessage()
         msg == resurrectedMsg
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 }

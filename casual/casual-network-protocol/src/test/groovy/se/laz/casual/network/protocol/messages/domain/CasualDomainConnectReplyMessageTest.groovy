@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.protocol.messages.domain
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
@@ -38,11 +39,13 @@ class CasualDomainConnectReplyMessageTest extends Specification
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualDomainConnectReplyMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink)
+        CasualNWMessageImpl<CasualDomainConnectReplyMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink, protocolVersion)
         then:
         networkBytes != null
         networkBytes.size() == 2 // header + msg
         msg == syncResurrectedMsg
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
 }

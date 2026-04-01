@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -14,6 +14,7 @@ import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.CasualManagedConnection;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
@@ -25,6 +26,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_4;
 
 public class CasualDiscoveryCaller implements CasualDiscoveryApi
 {
@@ -60,15 +63,15 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
 
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
         LOG.finest(() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + "reply -> service names: " + serviceNames + " queue names: " + queueNames);
-        return toDiscoveryReturn(replyMsg.getMessage());
+        return toDiscoveryReturn(replyMsg.getMessage(), connection.getNetworkConnection().getProtocolVersion());
     }
 
-    private DiscoveryReturn toDiscoveryReturn(CasualDomainDiscoveryReplyMessage message)
+    private DiscoveryReturn toDiscoveryReturn(CasualDomainDiscoveryReplyMessage message, ProtocolVersion protocolVersion)
     {
         DiscoveryReturn.Builder builder = DiscoveryReturn.createBuilder();
         message.getQueues()
                .stream()
-               .map(this::toQueueDetails)
+               .map((Queue queue) -> toQueueDetails(queue, protocolVersion))
                .forEach(builder::addQueueDetails);
         message.getServices()
                .stream()
@@ -77,9 +80,22 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
         return builder.build();
     }
 
-    private QueueDetails toQueueDetails(Queue queue)
+    private QueueDetails toQueueDetails(Queue queue, ProtocolVersion protocolVersion)
     {
-        return QueueDetails.of(queue.getName(), queue.getRetries());
+        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_4 )
+                ? QueueDetails.createBuilder()
+                              .withName(queue.getName())
+                              .withRetries(queue.getRetries())
+                              .withProtocolVersion(protocolVersion)
+                              .withRetryDelay(queue.getRetryDelay())
+                              .withEnqueueEnabled(queue.isEnqueueEnabled())
+                              .withDequeueEnabled(queue.isDequeueEnabled())
+                              .build()
+                : QueueDetails.createBuilder()
+                              .withName(queue.getName())
+                              .withRetries(queue.getRetries())
+                              .withProtocolVersion(protocolVersion)
+                              .build();
     }
 
     private ServiceDetails toServiceDetails(Service service)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -53,25 +53,25 @@ public final class LogTool
             case DOMAIN_DISCOVERY_REQUEST:
                 execution = ((CasualDomainDiscoveryRequestMessage)message.getMessage()).getExecution();
                 break;
-            case DOMAIN_DISCOVERY_REPLY:
+            case DOMAIN_DISCOVERY_REPLY, DOMAIN_DISCOVERY_REPLY_V_1_4:
                 execution = ((CasualDomainDiscoveryReplyMessage)message.getMessage()).getExecution();
                 break;
-            case SERVICE_CALL_REQUEST:
+            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_V_1_3:
                 execution = ((CasualServiceCallRequestMessage)message.getMessage()).getExecution();
                 break;
-            case SERVICE_CALL_REPLY:
+            case SERVICE_CALL_REPLY, SERVICE_CALL_REPLY_V_1_3:
                 execution = ((CasualServiceCallReplyMessage)message.getMessage()).getExecution();
                 break;
             case ENQUEUE_REQUEST:
                 execution = ((CasualEnqueueRequestMessage)message.getMessage()).getExecution();
                 break;
-            case ENQUEUE_REPLY:
+            case ENQUEUE_REPLY, ENQUEUE_REPLY_V_1_3:
                 execution = ((CasualEnqueueReplyMessage)message.getMessage()).getExecution();
                 break;
             case DEQUEUE_REQUEST:
                 execution = ((CasualDequeueRequestMessage)message.getMessage()).getExecution();
                 break;
-            case DEQUEUE_REPLY:
+            case DEQUEUE_REPLY, DEQUEUE_REPLY_V_1_3:
                 execution = ((CasualDequeueReplyMessage)message.getMessage()).getExecution();
                 break;
             case PREPARE_REQUEST:
@@ -92,7 +92,7 @@ public final class LogTool
             case REQUEST_ROLLBACK_REPLY:
                 execution = ((CasualTransactionResourceRollbackReplyMessage)message.getMessage()).getExecution();
                 break;
-            case CONVERSATION_CONNECT:
+            case CONVERSATION_CONNECT, CONVERSATION_CONNECT_V_1_3:
                 execution = ((ConnectRequest)message.getMessage()).getExecution();
                 break;
             case CONVERSATION_CONNECT_REPLY:

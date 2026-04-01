@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.inbound;
 
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import jakarta.resource.spi.XATerminator;
@@ -27,7 +26,6 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import java.util.Objects;
 import java.util.logging.Logger;
 
-@ChannelHandler.Sharable
 public final class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
 {
     private static Logger log = Logger.getLogger(CasualMessageHandler.class.getName());
@@ -35,22 +33,25 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
     private final XATerminator xaTerminator;
     private final WorkManager workManager;
     private final CasualInboundTransactionRegistry inboundTransactionRegistry;
+    private final ProtocolVersionValueHolder valueHolder;
 
-    private CasualMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry)
+    private CasualMessageHandler(MessageEndpointFactory factory, XATerminator xaTerminator, WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersionValueHolder valueHolder)
     {
         this.factory = factory;
         this.xaTerminator = xaTerminator;
         this.workManager = workManager;
         this.inboundTransactionRegistry = inboundTransactionRegistry;
+        this.valueHolder = valueHolder;
     }
 
-    public static CasualMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry)
+    public static CasualMessageHandler of(final MessageEndpointFactory factory, final XATerminator xaTerminator, final WorkManager workManager, CasualInboundTransactionRegistry inboundTransactionRegistry, ProtocolVersionValueHolder valueHolder)
     {
         Objects.requireNonNull(factory, "factory can not be null");
         Objects.requireNonNull(xaTerminator, "xaTerminator can not be null");
         Objects.requireNonNull(workManager, "workManager can not be null");
         Objects.requireNonNull(inboundTransactionRegistry, "inboundTransactionRegistry can not be null");
-        return new CasualMessageHandler(factory, xaTerminator, workManager, inboundTransactionRegistry);
+        Objects.requireNonNull(valueHolder, "valueHolder can not be null");
+        return new CasualMessageHandler(factory, xaTerminator, workManager, inboundTransactionRegistry, valueHolder);
     }
 
     @SuppressWarnings("unchecked")
@@ -71,21 +72,20 @@ public final class CasualMessageHandler extends SimpleChannelInboundHandler<Casu
             case REQUEST_ROLLBACK:
                 listener.requestRollback((CasualNWMessage<CasualTransactionResourceRollbackRequestMessage>)message, ctx.channel(), xaTerminator, inboundTransactionRegistry);
                 break;
-            case SERVICE_CALL_REQUEST:
-                listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry);
+            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_V_1_3:
+                listener.serviceCallRequest((CasualNWMessage<CasualServiceCallRequestMessage>)message, ctx.channel(), workManager, inboundTransactionRegistry, valueHolder.get());
                 break;
             case DOMAIN_CONNECT_REQUEST:
-                listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, ctx.channel());
+                listener.domainConnectRequest((CasualNWMessage<CasualDomainConnectRequestMessage>)message, ctx.channel(), valueHolder);
                 break;
             case DOMAIN_DISCONNECT_REPLY:
                 listener.domainDisconnectReply((CasualNWMessage<DomainDisconnectReplyMessage>)message);
                 break;
             case DOMAIN_DISCOVERY_REQUEST:
-                listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel());
+                listener.domainDiscoveryRequest((CasualNWMessage<CasualDomainDiscoveryRequestMessage>)message, ctx.channel(), valueHolder.get());
                 break;
             default:
                 log.warning("Message type not supported: " + message.getType());
         }
     }
-
 }

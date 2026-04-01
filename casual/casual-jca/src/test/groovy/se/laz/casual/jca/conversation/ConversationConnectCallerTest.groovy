@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -22,7 +22,9 @@ import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceAdapter
 import se.laz.casual.jca.CasualResourceManager
 import se.laz.casual.jca.DomainId
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.connection.CasualConnectionException
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.conversation.ConnectReply
 import se.laz.casual.network.protocol.messages.conversation.ConnectRequest
@@ -50,6 +52,7 @@ class ConversationConnectCallerTest extends Specification
    @Shared ra
    @Shared workManager
    int USER_CODE_MISSING = -1
+   ProtocolVersionValueHolder protocolVersionValueHolder = ProtocolVersionValueHolder.of()
 
    def setup()
    {
@@ -59,6 +62,7 @@ class ConversationConnectCallerTest extends Specification
       mcf = Mock(CasualManagedConnectionFactory)
       networkConnection = Mock(NetworkConnection){
          getDomainId() >> domainOne
+         getProtocolVersion() >> {protocolVersionValueHolder.get()}
       }
 
       connection = new CasualManagedConnection( mcf )
@@ -91,7 +95,6 @@ class ConversationConnectCallerTest extends Specification
               .setDuplex(Duplex.SEND)
               .setXid(connection.getCurrentXid())
               .build())
-
    }
 
    def initialiseReplies()
@@ -116,6 +119,7 @@ class ConversationConnectCallerTest extends Specification
    def 'ok tpconnect'()
    {
       given:
+      protocolVersionValueHolder.accept(protocolVersion)
       1 * networkConnection.request( _ ) >> {
          CasualNWMessageImpl<ConnectRequest> input ->
             actualConnectRequest = input
@@ -136,11 +140,14 @@ class ConversationConnectCallerTest extends Specification
       expectedConnectRequest.getMessage().parentName == actualConnectRequest.getMessage().parentName
       expectedConnectRequest.getMessage().xid == actualConnectRequest.getMessage().xid
       expectedConnectRequest.getMessage().serviceBuffer.bytes == actualConnectRequest.getMessage().serviceBuffer.bytes
+      where:
+      protocolVersion << ProtocolVersion.values()
    }
 
    def 'ok tpconnect - user code missing in reply'()
    {
       given:
+      protocolVersionValueHolder.accept(protocolVersion)
       1 * networkConnection.request( _ ) >> {
          CasualNWMessageImpl<ConnectRequest> input ->
             actualConnectRequest = input
@@ -161,11 +168,14 @@ class ConversationConnectCallerTest extends Specification
       expectedConnectRequest.getMessage().parentName == actualConnectRequest.getMessage().parentName
       expectedConnectRequest.getMessage().xid == actualConnectRequest.getMessage().xid
       expectedConnectRequest.getMessage().serviceBuffer.bytes == actualConnectRequest.getMessage().serviceBuffer.bytes
+      where:
+      protocolVersion << ProtocolVersion.values()
    }
 
    def 'tpconnect TPFAIL'()
    {
       given:
+      protocolVersionValueHolder.accept(protocolVersion)
       1 * networkConnection.request( _ ) >> {
          CasualNWMessageImpl<ConnectRequest> input ->
             throw new CasualConnectionException("network gone")
@@ -174,11 +184,14 @@ class ConversationConnectCallerTest extends Specification
       instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPRECVONLY))
       then:
       thrown(CasualConnectionException)
+      where:
+      protocolVersion << ProtocolVersion.values()
    }
 
    def 'tpconnect TPFAIL not ok errorstate'()
    {
       given:
+      protocolVersionValueHolder.accept(protocolVersion)
       1 * networkConnection.request( _ ) >> {
          CasualNWMessageImpl<ConnectRequest> input ->
             return CompletableFuture.completedFuture(connectReplyFail)
@@ -187,6 +200,8 @@ class ConversationConnectCallerTest extends Specification
       TpConnectReturn connectReturn = instance.tpconnect(serviceName, message, Flag.of(AtmiFlags.TPSENDONLY))
       then:
       connectReturn.getErrorState() == ErrorState.unmarshal(connectReplyFail.getMessage().getResultCode())
+      where:
+      protocolVersion << ProtocolVersion.values()
    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,6 +7,7 @@
 package se.laz.casual.network.protocol.decoding.decoders.domain;
 
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.messages.domain.TransactionType;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
@@ -24,17 +25,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_4;
+
 /**
  * Created by aleph on 2017-03-08.
  */
 public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDecoder<CasualDomainDiscoveryReplyMessage>
 {
-    private CasualDomainDiscoveryReplyMessageDecoder()
-    {}
+    private final ProtocolVersion protocolVersion;
 
-    public static NetworkDecoder<CasualDomainDiscoveryReplyMessage> of()
+    private CasualDomainDiscoveryReplyMessageDecoder(ProtocolVersion protocolVersion)
     {
-        return new CasualDomainDiscoveryReplyMessageDecoder();
+        this.protocolVersion = protocolVersion;
+    }
+
+    public static NetworkDecoder<CasualDomainDiscoveryReplyMessage> of(ProtocolVersion protocolVersion)
+    {
+        return new CasualDomainDiscoveryReplyMessageDecoder(protocolVersion);
     }
 
     @Override
@@ -76,7 +83,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         return getMessage(data);
     }
 
-    private static List<byte[]> readService(final ReadableByteChannel channel)
+    private List<byte[]> readService(final ReadableByteChannel channel)
     {
         // A service is expected to fit into one byte[] - it is never chunked
         final ByteBuffer serviceNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_ELEMENT_NAME_SIZE.getNetworkSize());
@@ -102,22 +109,40 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         return l;
     }
 
-    private static List<byte[]> readQueue(final ReadableByteChannel channel)
+    private List<byte[]> readQueue(final ReadableByteChannel channel)
     {
         // A queue is expected to fit into one byte[] - it is never chunked
         final ByteBuffer queueNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_SIZE.getNetworkSize());
         final ByteBuffer queueNameBuffer = ByteUtils.readFully(channel, (int)queueNameSizeBuffer.getLong());
         final ByteBuffer queueRetriesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize());
-        final ByteBuffer msg = ByteBuffer.allocate(queueNameSizeBuffer.capacity() + queueNameBuffer.capacity() + queueRetriesBuffer.capacity());
+
+        if(protocolVersion.isLessThan( VERSION_1_4 ))
+        {
+            final ByteBuffer msg = ByteBuffer.allocate(queueNameSizeBuffer.capacity() + queueNameBuffer.capacity() + queueRetriesBuffer.capacity());
+            msg.put(queueNameSizeBuffer.array());
+            msg.put(queueNameBuffer.array());
+            msg.put(queueRetriesBuffer.array());
+            final List<byte[]> l = new ArrayList<>();
+            l.add(msg.array());
+            return l;
+        }
+        final ByteBuffer queueRetryDelayBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize());
+        final ByteBuffer queueEnqueueEnabledBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_ENQUEUE_ENABLED.getNetworkSize());
+        final ByteBuffer queueDequeueEnabledBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize());
+        final ByteBuffer msg = ByteBuffer.allocate(queueNameSizeBuffer.capacity() + queueNameBuffer.capacity() + queueRetriesBuffer.capacity() +
+                queueRetryDelayBuffer.capacity() + queueEnqueueEnabledBuffer.capacity() + queueDequeueEnabledBuffer.capacity());
         msg.put(queueNameSizeBuffer.array());
         msg.put(queueNameBuffer.array());
         msg.put(queueRetriesBuffer.array());
+        msg.put(queueRetryDelayBuffer.array());
+        msg.put(queueEnqueueEnabledBuffer.array());
+        msg.put(queueDequeueEnabledBuffer.array());
         final List<byte[]> l = new ArrayList<>();
         l.add(msg.array());
         return l;
     }
 
-    public static CasualDomainDiscoveryReplyMessage getMessage(final byte[] bytes)
+    public CasualDomainDiscoveryReplyMessage getMessage(final byte[] bytes)
     {
         int currentOffset = 0;
         final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, DiscoveryReplySizes.EXECUTION.getNetworkSize()));
@@ -136,12 +161,12 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         currentOffset += DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize();
         DynamicArrayIndexPair<Queue> queues = getQueues(bytes, currentOffset, numberOfQueues);
 
-        return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+        return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName, protocolVersion)
                                                 .setServices(services.getBytes())
                                                 .setQueues(queues.getBytes());
     }
 
-    private static DynamicArrayIndexPair<Service> getServices(final byte[] bytes, int currentOffset, long numberOfServices)
+    private DynamicArrayIndexPair<Service> getServices(final byte[] bytes, int currentOffset, long numberOfServices)
     {
         final List<Service> l = new ArrayList<>();
         int offset = currentOffset;
@@ -152,7 +177,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         return DynamicArrayIndexPair.of(l, offset);
     }
 
-    private static int addService(final byte[] bytes, final int currentOffset, final List<Service> l)
+    private int addService(final byte[] bytes, final int currentOffset, final List<Service> l)
     {
         int offset = currentOffset;
         final int nameSize = (int)ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.SERVICES_ELEMENT_NAME_SIZE.getNetworkSize()).getLong();
@@ -176,7 +201,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         return offset;
     }
 
-    private static DynamicArrayIndexPair<Queue> getQueues(final byte[] bytes, int currentOffset, long numberOfServices)
+    private DynamicArrayIndexPair<Queue> getQueues(final byte[] bytes, int currentOffset, long numberOfServices)
     {
         final List<Queue> l = new ArrayList<>();
         int offset = currentOffset;
@@ -187,7 +212,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         return DynamicArrayIndexPair.of(l, offset);
     }
 
-    private static int addQueue(final byte[] bytes, int currentOffset, final List<Queue> l)
+    private int addQueue(final byte[] bytes, int currentOffset, final List<Queue> l)
     {
         int offset = currentOffset;
         final int nameSize = (int)ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_SIZE.getNetworkSize()).getLong();
@@ -196,9 +221,23 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         offset += nameSize;
         final long retries = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize()).getLong();
         offset += DiscoveryReplySizes.QUEUES_ELEMENT_RETRIES.getNetworkSize();
-        final Queue q = Queue.of(name)
-                             .setRetries(retries);
-        l.add(q);
+        final Queue.Builder q = Queue.createBuilder()
+                                     .withName(name)
+                                     .withProtocolVersion(protocolVersion)
+                                     .withRetries(retries);
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_4 ))
+        {
+            final long retryDelay = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize()).getLong();
+            offset += DiscoveryReplySizes.QUEUES_ELEMENT_RETRY_DELAY.getNetworkSize();
+            boolean enqueueEnabled = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_ENQUEUE_ENABLED.getNetworkSize()).get() > 0;
+            offset += DiscoveryReplySizes.QUEUES_ELEMENT_ENQUEUE_ENABLED.getNetworkSize();
+            boolean dequeueEnabled = ByteBuffer.wrap(bytes, offset, DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize()).get() > 0;
+            offset += DiscoveryReplySizes.QUEUES_ELEMENT_DEQUEUE_ENABLED.getNetworkSize();
+            q.withRetryDelay(retryDelay)
+             .withEnqueueEnabled(enqueueEnabled)
+             .withDequeueEnabled(dequeueEnabled);
+        }
+        l.add(q.build());
         return offset;
     }
 
@@ -207,7 +246,7 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
      * @see CasualDomainDiscoveryReplyMessage::addExtraDataMultipleBuffers
      * To understand how message should be structured
      **/
-    private static CasualDomainDiscoveryReplyMessage getMessage(final List<byte[]> message)
+    private CasualDomainDiscoveryReplyMessage getMessage(final List<byte[]> message)
     {
         int currentIndex = 0;
         final UUID execution = CasualMessageDecoderUtils.getAsUUID(message.get(currentIndex++));
@@ -232,14 +271,14 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         {
             addQueue(message.get(currentIndex++), 0, queues);
         }
-        return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName)
+        return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName, protocolVersion)
                                                 .setServices(services)
                                                 .setQueues(queues);
     }
 
     //Too many params.
     @SuppressWarnings("squid:S00107")
-    private static List<byte[]> createMsg(byte[] executionBuffer, byte[] domainIdBuffer, byte[] domainNameSizeBuffer, byte[] domainNameBuffer, byte[] numberOfServicesBuffer, List<byte[]> services, byte[] numberOfQueuesBuffer, List<byte[]> queues)
+    private List<byte[]> createMsg(byte[] executionBuffer, byte[] domainIdBuffer, byte[] domainNameSizeBuffer, byte[] domainNameBuffer, byte[] numberOfServicesBuffer, List<byte[]> services, byte[] numberOfQueuesBuffer, List<byte[]> queues)
     {
         final List<byte[]> msg = new ArrayList<>();
         msg.add(executionBuffer);

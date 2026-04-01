@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -14,14 +14,25 @@ import se.laz.casual.network.protocol.messages.conversation.ConnectReply
 import se.laz.casual.network.protocol.messages.conversation.ConnectRequest
 import se.laz.casual.network.protocol.messages.conversation.Disconnect
 import se.laz.casual.network.protocol.messages.conversation.Request
-import se.laz.casual.network.protocol.messages.domain.*
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
+import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
+import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage
+import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpdateMessage
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueReplyMessage
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueRequestMessage
 import se.laz.casual.network.protocol.messages.queue.CasualEnqueueReplyMessage
 import se.laz.casual.network.protocol.messages.queue.CasualEnqueueRequestMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
-import se.laz.casual.network.protocol.messages.transaction.*
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitRequestMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourcePrepareRequestMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackReplyMessage
+import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceRollbackRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -79,6 +90,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.DOMAIN_DISCOVERY_REPLY:
+            case CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_V_1_4:
                 CasualDomainDiscoveryReplyMessage message = Mock(CasualDomainDiscoveryReplyMessage){
                     getExecution() >> execution
                 }
@@ -89,11 +101,13 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.SERVICE_CALL_REQUEST:
+            case CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3:
                 CasualServiceCallRequestMessage message = Mock(CasualServiceCallRequestMessage){
                     getExecution() >> execution
                 }
                 return message
             case CasualNWMessageType.SERVICE_CALL_REPLY:
+            case CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3:
                 CasualServiceCallReplyMessage message = Mock(CasualServiceCallReplyMessage){
                     getExecution() >> execution
                 }
@@ -104,6 +118,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.ENQUEUE_REPLY:
+            case CasualNWMessageType.ENQUEUE_REPLY_V_1_3:
                 CasualEnqueueReplyMessage message = Mock(CasualEnqueueReplyMessage){
                     getExecution() >> execution
                 }
@@ -114,6 +129,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.DEQUEUE_REPLY:
+            case CasualNWMessageType.DEQUEUE_REPLY_V_1_3:
                 CasualDequeueReplyMessage message = Mock(CasualDequeueReplyMessage){
                     getExecution() >> execution
                 }
@@ -149,6 +165,7 @@ class LogToolTest extends Specification
                 }
                 return message
             case CasualNWMessageType.CONVERSATION_CONNECT:
+            case CasualNWMessageType.CONVERSATION_CONNECT_V_1_3:
                 ConnectRequest message = Mock(ConnectRequest){
                     getExecution() >> execution
                 }

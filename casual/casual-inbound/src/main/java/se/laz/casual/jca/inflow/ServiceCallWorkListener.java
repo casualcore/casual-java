@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -17,11 +17,15 @@ import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.event.ServiceCallEventStoreFactory;
+import se.laz.casual.jca.SpanId;
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
 import java.util.UUID;
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
 
 /**
  * Work Listener to handle completion of {@link jakarta.resource.spi.work.Work} item by
@@ -32,21 +36,24 @@ public class ServiceCallWorkListener implements WorkListener
     private final Channel channel;
     private final boolean isTpNoReply;
     private final CasualServiceCallRequestMessage message;
+    private final ProtocolVersion protocolVersion;
     private ServiceCallEventPublisher eventPublisher;
-
     private final ServiceCallEvent.Builder eventBuilder;
+    private final SpanId spanId;
 
-    public ServiceCallWorkListener(Channel channel, CasualServiceCallRequestMessage message)
+    public ServiceCallWorkListener(Channel channel, CasualServiceCallRequestMessage message, SpanId spanId, ProtocolVersion protocolVersion)
     {
-        this(channel, message, false);
+        this(channel, message, false, spanId, protocolVersion);
     }
 
-    public ServiceCallWorkListener(Channel channel, CasualServiceCallRequestMessage message, boolean isTpNoReply)
+    public ServiceCallWorkListener(Channel channel, CasualServiceCallRequestMessage message, boolean isTpNoReply, SpanId spanId, ProtocolVersion protocolVersion)
     {
         this.channel = channel;
         this.message = message;
         this.isTpNoReply = isTpNoReply;
         this.eventBuilder = ServiceCallEvent.createBuilder();
+        this.spanId = spanId;
+        this.protocolVersion = protocolVersion;
     }
 
     @Override
@@ -83,10 +90,15 @@ public class ServiceCallWorkListener implements WorkListener
     private ServiceCallEvent createEvent(Work work )
     {
         eventBuilder.withTransactionId(message.getXid())
-                   .withExecution(message.getExecution())
-                   .withParent(message.getParentName())
-                   .withService(message.getServiceName())
-                   .withOrder(Order.SEQUENTIAL);
+                    .withExecution(message.getExecution())
+                    .withParent(message.getParentName())
+                    .withService(message.getServiceName())
+                    .withOrder(Order.SEQUENTIAL);
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+            eventBuilder.withParentSpanId(message.getParentSpan().asHex())
+                        .withSpanId(spanId.asHex());
+        }
         if(!isTpNoReply && work instanceof CasualServiceCallWork casualWork)
         {
             CasualServiceCallReplyMessage reply = casualWork.getResponse().getMessage();

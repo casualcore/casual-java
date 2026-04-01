@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -20,10 +20,13 @@ import se.laz.casual.api.xa.XID
 import se.laz.casual.event.Order
 import se.laz.casual.event.ServiceCallEvent
 import se.laz.casual.event.ServiceCallEventPublisher
+import se.laz.casual.jca.SpanId
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
+import se.laz.casual.network.ProtocolVersion
+import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
@@ -54,6 +57,7 @@ class ServiceCallWorkListenerTest extends Specification
     @Shared UUID execution = UUID.randomUUID()
     @Shared Xid transactionId = createXid()
     @Shared CasualServiceCallRequestMessage request
+    ProtocolVersionValueHolder valueHolder
 
     def setup()
     {
@@ -71,13 +75,15 @@ class ServiceCallWorkListenerTest extends Specification
                 .setTransactionState( TransactionState.TX_ACTIVE )
                 .setExecution( correlationId )
                 .setServiceBuffer( ServiceBuffer.of( buffer ) )
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                 .build()
         response = CasualNWMessageImpl.of( correlationId, message )
 
-
+        valueHolder = ProtocolVersionValueHolder.of()
+        valueHolder.accept(ProtocolVersion.VERSION_1_2)
         inboundHandler = TestInboundHandler.of()
-        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), inboundHandler)
-        work = new CasualServiceCallWork(correlationId, null)
+        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), inboundHandler)
+        work = new CasualServiceCallWork(correlationId, null, false, valueHolder.get(), SpanId.of())
         work.response = response
 
         request = CasualServiceCallRequestMessage.createBuilder()
@@ -85,8 +91,9 @@ class ServiceCallWorkListenerTest extends Specification
                .setParentName("")
                .setServiceName(serviceName)
                .setXid(transactionId)
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                .build()
-        instance = new ServiceCallWorkListener(channel, request)
+        instance = new ServiceCallWorkListener(channel, request, SpanId.of(), ProtocolVersion.VERSION_1_2)
         serviceCallEventPublisher = Mock(ServiceCallEventPublisher)
         instance.setEventPublisher(serviceCallEventPublisher)
     }
@@ -117,7 +124,7 @@ class ServiceCallWorkListenerTest extends Specification
    {
       setup:
       WorkEvent event = new WorkEvent( this, WorkEvent.WORK_COMPLETED, null, null )
-      instance = new ServiceCallWorkListener(channel, request, true)
+      instance = new ServiceCallWorkListener(channel, request, true, SpanId.of(), ProtocolVersion.VERSION_1_2)
       instance.setEventPublisher(serviceCallEventPublisher)
 
       when:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,19 +10,17 @@ import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.xa.XID
+import se.laz.casual.jca.SpanId
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.utils.ByteUtils
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.nio.ByteBuffer
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
 
-/**
- * Created by aleph on 2017-03-16.
- */
 class CasualServiceCallRequestMessageTest extends Specification
 {
     @Shared
@@ -43,6 +41,8 @@ class CasualServiceCallRequestMessageTest extends Specification
     def serviceType = 'application/json'
     @Shared
     def serviceBuffer
+    @Shared
+    SpanId parentSpan = SpanId.of()
 
     def setupSpec()
     {
@@ -52,19 +52,25 @@ class CasualServiceCallRequestMessageTest extends Specification
         serviceBuffer = ServiceBuffer.of(serviceType, serviceData)
     }
 
-    def "Message creation"()
-    {
-        setup:
-        when:
-        def msg = CasualServiceCallRequestMessage.createBuilder()
-                                          .setExecution(execution)
-                                          .setServiceName(serviceName)
-                                          .setTimeout(timeout)
-                                          .setParentName(parentName)
-                                          .setXid(nullXID)
-                                          .setXatmiFlags(xatmiFlags)
-                                          .setServiceBuffer(serviceBuffer)
-                                          .build()
+    def "Message creation"() {
+       setup:
+
+       when:
+       //println("protocolVersion: ${protocolVersion}")
+       def msgBuilder = CasualServiceCallRequestMessage.createBuilder()
+               .setExecution(execution)
+               .setServiceName(serviceName)
+               .setTimeout(timeout)
+               .setParentName(parentName)
+               .setXid(nullXID)
+               .setXatmiFlags(xatmiFlags)
+               .setServiceBuffer(serviceBuffer)
+               .setProtocolVersion(protocolVersion)
+       if (protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
+       {
+          msgBuilder.setParentSpan(parentSpan)
+       }
+        def msg = msgBuilder.build()
         then:
         msg.execution == execution
         msg.serviceName == serviceName
@@ -73,12 +79,18 @@ class CasualServiceCallRequestMessageTest extends Specification
         msg.xid == nullXID
         msg.serviceBuffer == serviceBuffer
         msg.serviceBuffer.payload == serviceBuffer.payload
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
+        {
+           msg.getParentSpan() == parentSpan
+        }
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()
     {
         setup:
-        def requestMsg = CasualServiceCallRequestMessage.createBuilder()
+        def requestMsgBuilder = CasualServiceCallRequestMessage.createBuilder()
                 .setExecution(execution)
                 .setServiceName(serviceName)
                 .setTimeout(timeout)
@@ -86,14 +98,20 @@ class CasualServiceCallRequestMessageTest extends Specification
                 .setXid(nullXID)
                 .setXatmiFlags(xatmiFlags)
                 .setServiceBuffer(serviceBuffer)
-                .build()
+                .setProtocolVersion(protocolVersion)
+
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
+        {
+           requestMsgBuilder.setParentSpan(parentSpan)
+        }
+        def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
 
         then:
         networkBytes != null
@@ -101,16 +119,12 @@ class CasualServiceCallRequestMessageTest extends Specification
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().serviceBuffer.payload
-    }
-
-    def collectServicePayload(List<byte[]> bytes)
-    {
-        ByteBuffer b = ByteBuffer.allocate((int)ByteUtils.sumNumberOfBytes(bytes))
-        bytes.stream()
-             .forEach({d -> b.put(d)})
-        List<byte[]> l = new ArrayList<>()
-        l.add(b.array())
-        return l
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
+        {
+          resurrectedMsg.getMessage().getParentSpan() == parentSpan
+        }
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -18,10 +18,12 @@ import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
 import se.laz.casual.event.ServiceCallEventPublisher
+import se.laz.casual.jca.SpanId
 import se.laz.casual.jca.inbound.handler.InboundRequest
 import se.laz.casual.jca.inbound.handler.InboundResponse
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler
 import se.laz.casual.jca.inflow.handler.test.TestHandler
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
 import spock.lang.Shared
@@ -70,13 +72,14 @@ class CasualServiceCallWorkTest extends Specification
                                                         json )
                                                         .getBytes() ) )
                         .setXatmiFlags( Flag.of())
+                        .setProtocolVersion(ProtocolVersion.VERSION_1_2)
                         .build()
 
         correlationId = UUID.randomUUID()
-        instance = new CasualServiceCallWork(correlationId, message)
+        instance = new CasualServiceCallWork(correlationId, message, false, ProtocolVersion.VERSION_1_2, SpanId.of())
         instance.setHandler( handler )
 
-        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true)
+        instanceTPNOREPLY = new CasualServiceCallWork( correlationId, message, true, ProtocolVersion.VERSION_1_2, SpanId.of())
         instanceTPNOREPLY.setHandler( handler )
     }
 
@@ -243,7 +246,7 @@ class CasualServiceCallWorkTest extends Specification
     def "Call Service which does not exist or is not available, returns result with TPNOENT status."()
     {
         given:
-        instance = new CasualServiceCallWork(correlationId, message)
+        instance = new CasualServiceCallWork(correlationId, message, false, ProtocolVersion.VERSION_1_2, SpanId.of())
         when:
         instance.run()
         CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()

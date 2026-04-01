@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -16,12 +16,14 @@ public class EnqueueReturn
 {
     private final UUID id;
     private final ErrorState errorState;
+    private final QueueErrorCode errorCode;
 
-    private EnqueueReturn(UUID id, ErrorState errorState)
+    private EnqueueReturn(UUID id, ErrorState errorState, QueueErrorCode errorCode)
     {
         Objects.requireNonNull(errorState, "errorState can't be null");
         this.id = id;
         this.errorState = errorState;
+        this.errorCode = errorCode;
     }
 
     public Optional<UUID> getId()
@@ -34,45 +36,54 @@ public class EnqueueReturn
         return errorState;
     }
 
+    /**
+     * Only available when using gw protocol version >= 1.3
+     * @return the error code, if available
+     */
+    public Optional<QueueErrorCode> getErrorCode()
+    {
+        return Optional.ofNullable(errorCode);
+    }
+
     public static Builder createBuilder()
     {
         return new Builder();
     }
 
     @Override
+    public final boolean equals(Object o)
+    {
+        if (!(o instanceof EnqueueReturn that))
+        {
+            return false;
+        }
+        return Objects.equals(id, that.id) && errorState == that.errorState && errorCode == that.errorCode;
+    }
+
+    @Override
     public int hashCode()
     {
-        return id.hashCode() + Integer.hashCode(errorState.getValue());
+        int result = Objects.hashCode(id);
+        result = 31 * result + errorState.hashCode();
+        result = 31 * result + Objects.hashCode(errorCode);
+        return result;
     }
 
     @Override
     public String toString()
     {
-        return "EnqueueReturn{" + "id=" + id +
-                ", errorState=" + errorState.name() + '(' + errorState.getValue() + ')' +
-                "}";
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
-        {
-            return false;
-        }
-        EnqueueReturn enqueueReturn = (EnqueueReturn) o;
-
-        return Objects.equals(id, enqueueReturn.id) && errorState.equals(enqueueReturn.getErrorState());
+        return "EnqueueReturn{" +
+                "id=" + id +
+                ", errorState=" + errorState +
+                ", errorCode=" + errorCode +
+                '}';
     }
 
     public static final class Builder
     {
         private UUID id;
         private ErrorState errorState;
+        private QueueErrorCode errorCode;
 
         public Builder withId(UUID id)
         {
@@ -86,9 +97,15 @@ public class EnqueueReturn
             return this;
         }
 
+        public Builder withErrorCode(QueueErrorCode errorCode)
+        {
+            this.errorCode = errorCode;
+            return this;
+        }
+
         public EnqueueReturn build()
         {
-            return new EnqueueReturn(id, errorState);
+            return new EnqueueReturn(id, errorState, errorCode);
         }
     }
 }

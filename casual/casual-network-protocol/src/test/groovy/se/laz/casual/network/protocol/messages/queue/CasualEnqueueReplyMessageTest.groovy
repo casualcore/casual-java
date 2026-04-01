@@ -1,16 +1,20 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.protocol.messages.queue
 
+import se.laz.casual.api.queue.QueueErrorCode
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
 import spock.lang.Shared
 import spock.lang.Specification
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
 
 class CasualEnqueueReplyMessageTest extends Specification
 {
@@ -30,18 +34,25 @@ class CasualEnqueueReplyMessageTest extends Specification
     def "roundtrip"()
     {
         setup:
-        def requestMsg = CasualEnqueueReplyMessage.createBuilder()
+        def requestMsgBuilder = CasualEnqueueReplyMessage.createBuilder()
                                                   .withExecution(UUID.randomUUID())
                                                   .withId(UUID.randomUUID())
-                                                  .build()
+                                                  .withProtocolVersion(protocolVersion)
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+           requestMsgBuilder.withCode(QueueErrorCode.OK)
+        }
+        def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualEnqueueReplyMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink)
+        CasualNWMessageImpl<CasualEnqueueReplyMessage> syncResurrectedMsg  = TestUtils.roundtripMessage(msg, syncSink, protocolVersion)
         then:
         networkBytes != null
         requestMsg == syncResurrectedMsg.getMessage()
         msg == syncResurrectedMsg
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -22,7 +22,8 @@ public enum CommonSizes
     XID_PAYLOAD(32, 32),
     TRANSACTION_RESOURCE_ID(4, 4),
     TRANSACTION_RESOURCE_FLAGS(8, 8),
-    TRANSACTION_RESOURCE_STATE(4, 4);
+    TRANSACTION_RESOURCE_STATE(4, 4),
+    CALL_ERROR(4, 4);
 
     private final int nativeSize;
     private final int networkSize;

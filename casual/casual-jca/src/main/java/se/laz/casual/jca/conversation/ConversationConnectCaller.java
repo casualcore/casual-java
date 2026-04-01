@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -17,6 +17,7 @@ import se.laz.casual.api.flags.Flag;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.jca.ConversationConnectException;
+import se.laz.casual.jca.SpanId;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.conversation.ConnectReply;
 import se.laz.casual.network.protocol.messages.conversation.ConnectRequest;
@@ -27,6 +28,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
 
 public class ConversationConnectCaller implements CasualConversationApi
 {
@@ -62,11 +65,16 @@ public class ConversationConnectCaller implements CasualConversationApi
         ConnectRequest.ConnectRequestBuilder connectRequestBuilder = ConnectRequest.createBuilder()
                 .setExecution(conversationExecution)
                 .setServiceName(serviceName)
+                .setProtocolVersion(managedConnection.getNetworkConnection().getProtocolVersion())
                 .setTimeout(timeout.toNanos())
                 .setXid(managedConnection.getCurrentXid()).setDuplex(conversationDirection.isReceive() ? Duplex.SEND : Duplex.RECEIVE);
         if(null != data)
         {
             connectRequestBuilder.setServiceBuffer(ServiceBuffer.of(data));
+        }
+        if( managedConnection.getNetworkConnection().getProtocolVersion().isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+            connectRequestBuilder.setParentSpan(SpanId.of());
         }
         ConnectRequest connectRequest = connectRequestBuilder.build();
         final UUID corrId = UUID.randomUUID();

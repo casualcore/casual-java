@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,6 +9,7 @@ package se.laz.casual.network.protocol.messages.queue
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.queue.QueueMessage
 import se.laz.casual.api.xa.XID
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
@@ -66,7 +67,7 @@ class CasualEnqueueRequestMessageTest extends Specification
         CasualNWMessageImpl<CasualEnqueueRequestMessage> msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<CasualEnqueueRequestMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink)
+        CasualNWMessageImpl<CasualEnqueueRequestMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink, protocolVersion)
         then:
         networkBytes != null
         msg == syncResurrectedMsg
@@ -76,6 +77,7 @@ class CasualEnqueueRequestMessageTest extends Specification
         EnqueueMessage sm = msg.getMessage().getMessage()
         Arrays.deepEquals( m.getPayload().getPayload().toArray(), am.getPayload().getPayload().toArray( ) )
         Arrays.deepEquals( m.getPayload().getPayload().toArray(), sm.getPayload().getPayload().toArray( ) )
-
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 }

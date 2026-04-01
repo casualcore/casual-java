@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,12 +8,16 @@ package se.laz.casual.network.inbound.reverse;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 import se.laz.casual.network.InboundDeactivatedContext;
 import se.laz.casual.network.InboundTopologyUpdateContext;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
+
+import static se.laz.casual.network.ExceptionTool.findProtocolException;
 
 public final class ReverseInboundExceptionHandler extends ChannelInboundHandlerAdapter
 {
@@ -34,7 +38,11 @@ public final class ReverseInboundExceptionHandler extends ChannelInboundHandlerA
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
     {
-        log.warning(() -> "casual reverse inbound exception caught: " + cause + " closing channel");
+        Optional<CasualProtocolException> exception = findProtocolException(cause);
+        exception.ifPresentOrElse(
+                value -> log.severe("casual reverse inbound protocol exception caught: " + cause + " This is a severe error and the channel will be closed."),
+                () -> log.warning("casual reverse inbound exception caught: " + cause + " closing channel")
+        );
         InboundDeactivatedContext.remove(ctx.channel());
         InboundTopologyUpdateContext.remove(ctx.channel());
         inboundTransactionRegistry.remove(ctx.channel().id());

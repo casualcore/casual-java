@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,6 +10,7 @@ import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.xa.XID
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
@@ -20,9 +21,8 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 
-/**
- * Created by aleph on 2017-03-28.
- */
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
+
 class CasualServiceCallReplyMessageTest extends Specification
 {
     @Shared
@@ -57,42 +57,55 @@ class CasualServiceCallReplyMessageTest extends Specification
     {
         setup:
         when:
-        def msg = CasualServiceCallReplyMessage.createBuilder()
+        def msgBuilder = CasualServiceCallReplyMessage.createBuilder()
                                                .setExecution(execution)
                                                .setError(callError)
                                                .setUserSuppliedError(userError)
-                                               .setXid(nullXID)
                                                .setTransactionState(transactionState)
                                                .setServiceBuffer(serviceBuffer)
-                                               .build()
+                                               .setProtocolVersion(protocolVersion)
+        if(protocolVersion.isLessThan( VERSION_1_3 ) )
+        {
+           msgBuilder.setXid(nullXID)
+        }
+        def msg = msgBuilder.build()
         then:
         msg.getExecution() == execution
         msg.getError() == callError
         msg.getUserDefinedCode() == userError
-        msg.getXid() == nullXID
+        if(protocolVersion.isLessThan( VERSION_1_3 ) )
+        {
+           msg.getXid() == nullXID
+        }
         msg.getTransactionState() == transactionState
         msg.getServiceBuffer() == serviceBuffer
         msg.getServiceBuffer().payload == serviceBuffer.payload
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()
     {
         setup:
-        def requestMsg = CasualServiceCallReplyMessage.createBuilder()
+        def requestMsgBuilder = CasualServiceCallReplyMessage.createBuilder()
                 .setExecution(execution)
                 .setError(callError)
                 .setUserSuppliedError(userError)
-                .setXid(nullXID)
                 .setTransactionState(transactionState)
                 .setServiceBuffer(serviceBuffer)
-                .build()
+                .setProtocolVersion(protocolVersion)
+
+        if(protocolVersion.isLessThan( VERSION_1_3 ))
+        {
+           requestMsgBuilder.setXid(nullXID)
+        }
+        def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
-
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualServiceCallReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualServiceCallReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
 
         then:
         networkBytes != null
@@ -100,32 +113,44 @@ class CasualServiceCallReplyMessageTest extends Specification
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
         requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().getServiceBuffer().payload
+        if(protocolVersion.isLessThan( VERSION_1_3 ))
+        {
+           resurrectedMsg.getMessage().getXid() == nullXID
+        }
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
     def "Roundtrip with empty service buffer"()
     {
         setup:
-        def requestMsg = CasualServiceCallReplyMessage.createBuilder()
+        def requestMsgBuilder = CasualServiceCallReplyMessage.createBuilder()
                 .setExecution(execution)
                 .setError(ErrorState.TPESVCERR)
                 .setUserSuppliedError(userError)
-                .setXid(nullXID)
                 .setTransactionState(TransactionState.ROLLBACK_ONLY)
                 .setServiceBuffer(emptyServiceBuffer)
-                .build()
+                .setProtocolVersion(protocolVersion)
+        if(protocolVersion.isLessThan( VERSION_1_3 ))
+        {
+           requestMsgBuilder.setXid(nullXID)
+        }
+        def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
 
         when:
         def networkBytes = msg.toNetworkBytes()
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualServiceCallReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualServiceCallReplyMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
 
         then:
         networkBytes != null
         requestMsg == resurrectedMsg.getMessage()
         resurrectedMsg.getMessage().getServiceBuffer().isEmpty()
         msg == resurrectedMsg
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
     def collectServicePayload(List<byte[]> bytes)

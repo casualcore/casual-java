@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -41,15 +41,16 @@ public final class CasualServer
 
     public static CasualServer of(final ConnectionInformation ci)
     {
-        CasualMessageHandler mh = CasualMessageHandler.of(ci.getFactory(), ci.getXaTerminator(), ci.getWorkManager(), ci.getInboundTransactionRegistry());
-        Channel c = init(mh, ExceptionHandler.of(ci.getInboundTransactionRegistry()), ci.getPort(), ci.isLogHandlerEnabled(), ci.isUseEpoll() );
+        Channel c = init(ci);
         return new CasualServer(c);
     }
 
-    private static Channel init(CasualMessageHandler messageHandler, ExceptionHandler exceptionHandler, int port, boolean enableLogHandler, boolean useEpoll)
+    private static Channel init(ConnectionInformation ci)
     {
+        boolean useEpoll = ci.isUseEpoll();
         EventLoopGroup workerGroup = useEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
         Class<? extends ServerChannel> channelClass = useEpoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
+        ExceptionHandler exceptionHandler = ExceptionHandler.of(ci.getInboundTransactionRegistry());
         ServerBootstrap b = new ServerBootstrap()
             .group(workerGroup)
             .channel(channelClass)
@@ -58,15 +59,17 @@ public final class CasualServer
                 @Override
                 protected void initChannel(SocketChannel ch)
                 {
-                    ch.pipeline().addLast(CasualNWMessageDecoder.of(), CasualNWMessageEncoder.of(), messageHandler, exceptionHandler);
-                    if(enableLogHandler)
+                    ProtocolVersionValueHolder protocolVersionValueHolder = ProtocolVersionValueHolder.of();
+                    CasualMessageHandler messageHandler = CasualMessageHandler.of(ci.getFactory(), ci.getXaTerminator(), ci.getWorkManager(), ci.getInboundTransactionRegistry(), protocolVersionValueHolder);
+                    ch.pipeline().addLast(CasualNWMessageDecoder.of(protocolVersionValueHolder), CasualNWMessageEncoder.of(), messageHandler, exceptionHandler);
+                    if(ci.isLogHandlerEnabled())
                     {
                         ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.INBOUND_LOGGING_LEVEL));
                         log.info(() -> "inbound network log handler enabled, using netty logging level: " + LogLevelProvider.INBOUND_LOGGING_LEVEL);
                     }
                 }
             }).childOption(ChannelOption.SO_KEEPALIVE, true);
-        return b.bind(new InetSocketAddress(port)).syncUninterruptibly().channel();
+        return b.bind(new InetSocketAddress(ci.getPort())).syncUninterruptibly().channel();
     }
 
     public boolean isActive( )

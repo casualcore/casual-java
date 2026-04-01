@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,6 +9,8 @@ package se.laz.casual.network.protocol.decoding.decoders.conversation;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.api.util.Pair;
+import se.laz.casual.jca.SpanId;
+import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.conversation.ConnectRequest;
@@ -23,14 +25,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+
 public final class ConnectRequestMessageDecoder implements NetworkDecoder<ConnectRequest>
 {
-    private ConnectRequestMessageDecoder()
-    {}
+    private final ProtocolVersion protocolVersion;
 
-    public static NetworkDecoder<ConnectRequest> of()
+    private ConnectRequestMessageDecoder(ProtocolVersion protocolVersion)
     {
-        return new ConnectRequestMessageDecoder();
+        this.protocolVersion = protocolVersion;
+    }
+
+    public static NetworkDecoder<ConnectRequest> of(ProtocolVersion protocolVersion)
+    {
+        return new ConnectRequestMessageDecoder(protocolVersion);
     }
 
     @Override
@@ -52,7 +60,7 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
         return createMessage(data);
     }
 
-    private static ConnectRequest createMessage(final byte[] data)
+    private ConnectRequest createMessage(final byte[] data)
     {
         int currentOffset = 0;
         final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ConversationConnectRequestSizes.EXECUTION.getNetworkSize()));
@@ -63,8 +71,25 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
         final String serviceName = CasualMessageDecoderUtils.getAsString(data, currentOffset, serviceNameLen);
         currentOffset += serviceNameLen;
 
-        long timeout  = ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
-        currentOffset += ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
+        boolean hasTimeout = true;
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+            byte value = ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize()).get();
+            currentOffset += ConversationConnectRequestSizes.HAS_VALUE.getNetworkSize();
+            hasTimeout = (value > 0);
+        }
+        long timeout = 0;
+        if(hasTimeout)
+        {
+            timeout = ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
+            currentOffset += ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
+        }
+        SpanId parentSpan = null;
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+            parentSpan = SpanId.of(Arrays.copyOfRange(data, currentOffset, currentOffset + ConversationConnectRequestSizes.PARENT_SPAN_SIZE.getNetworkSize()));
+            currentOffset += ConversationConnectRequestSizes.PARENT_SPAN_SIZE.getNetworkSize();
+        }
 
         final int parentNameSize = (int)ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).getLong();
         currentOffset += ConversationConnectRequestSizes.PARENT_NAME_SIZE.getNetworkSize();
@@ -95,7 +120,9 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
                 .setExecution(execution)
                 .setServiceName(serviceName)
                 .setTimeout(timeout)
+                .setParentSpan(parentSpan)
                 .setParentName(parentName)
+                .setProtocolVersion(protocolVersion)
                 .setXid(xid)
                 .setDuplex(duplex)
                 .setServiceBuffer(serviceBuffer)

@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.test.network.frombinary
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
@@ -22,17 +23,16 @@ import java.nio.ByteBuffer
 class CasualDomainConnectRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/bin/message.gateway.domain.connect.Request.1000.7200.bin'
+    def resource = '/protocol/b64/message.gateway.domain.connect.request.1000.7200.b64'
 
     @Shared
     def data
 
     def setupSpec()
     {
-        data = ResourceLoader.getResourceAsByteArray(resource)
+        data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         then:
         data != null
-        data.length == 96
     }
 
     def "get header"()
@@ -70,13 +70,15 @@ class CasualDomainConnectRequestMessageTest extends Specification
                 sink.write(buffer)
         }
         when:
-        CasualNWMessageImpl<CasualDomainConnectRequestMessage> msg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualDomainConnectRequestMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
         CasualMessageEncoder.write(sink, msg)
-        CasualNWMessageImpl<CasualDomainConnectRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink)
+        CasualNWMessageImpl<CasualDomainConnectRequestMessage> resurrectedMsg = CasualNetworkTestReader.read(sink, protocolVersion)
         then:
         msg != null
         msg.message == resurrectedMsg.message
         msg == resurrectedMsg
+        where:
+        protocolVersion << ProtocolVersion.values()
     }
 
 }

@@ -23,8 +23,8 @@ class ProtocolMatcherTest extends Specification
    {
       given:
       def matchLowest = [ProtocolVersion.VERSION_1_0.version]
-      def matchHighest = [ProtocolVersion.VERSION_1_0.version, ProtocolVersion.VERSION_1_1.version, ProtocolVersion.VERSION_1_2.version]
-      def unordered = [ProtocolVersion.VERSION_1_2.version, ProtocolVersion.VERSION_1_0.version, ProtocolVersion.VERSION_1_1.version]
+      def matchHighest = [ProtocolVersion.VERSION_1_0.version, ProtocolVersion.VERSION_1_1.version, ProtocolVersion.VERSION_1_4.version]
+      def unordered = [ProtocolVersion.VERSION_1_4.version, ProtocolVersion.VERSION_1_0.version, ProtocolVersion.VERSION_1_3.version]
       def mismatch = [999L]
       when:
       def lowest = ProtocolMatcher.match(matchLowest)
@@ -32,8 +32,8 @@ class ProtocolMatcherTest extends Specification
       def unorderedMatch = ProtocolMatcher.match(unordered)
       then:
       ProtocolVersion.VERSION_1_0 == ProtocolVersion.unmarshall(lowest)
-      ProtocolVersion.VERSION_1_2 == ProtocolVersion.unmarshall(highest)
-      ProtocolVersion.VERSION_1_2 == ProtocolVersion.unmarshall(unorderedMatch)
+      ProtocolVersion.VERSION_1_4 == ProtocolVersion.unmarshall(highest)
+      ProtocolVersion.VERSION_1_4 == ProtocolVersion.unmarshall(unorderedMatch)
       when:
       ProtocolMatcher.match(mismatch)
       then:

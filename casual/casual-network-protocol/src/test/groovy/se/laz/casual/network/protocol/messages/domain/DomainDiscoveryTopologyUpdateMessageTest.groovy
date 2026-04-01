@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2023, The casual project. All rights reserved.
+ * Copyright (c) 2023 - 2025, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.network.protocol.messages.domain
 
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import se.laz.casual.network.protocol.utils.TestUtils
@@ -38,7 +39,7 @@ class DomainDiscoveryTopologyUpdateMessageTest extends Specification
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMessage)
         when:
         def networkBytes = msg.toNetworkBytes()
-        CasualNWMessageImpl<DomainDiscoveryTopologyUpdateMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink)
+        CasualNWMessageImpl<DomainDiscoveryTopologyUpdateMessage> syncResurrectedMsg = TestUtils.roundtripMessage(msg, syncSink, protocolVersion)
 
         then:
         networkBytes != null
@@ -46,6 +47,8 @@ class DomainDiscoveryTopologyUpdateMessageTest extends Specification
         msg == syncResurrectedMsg
         domainName == syncResurrectedMsg.message.domainName
         domainsSize == syncResurrectedMsg.message.domainsSize
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
     }
 
 }
