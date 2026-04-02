@@ -1,6 +1,17 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.4.1] - 2026-04-02
+
+### feat: changes for quarkus ([#200](https://github.com/casualcore/casual-java/issues/200))
+Changes needed when running outside of a JEE application server:
+* no ManagedExecutorService used by interface type
+* for conversation, fallback to non managed executor service
+
+We also make sure that we do not try to start any new reverse inbound
+connections
+if the domain is going down.
+
 ## [3.4.0] - 2026-04-01
 
 ### feat: Add support for casual gateway protocol versions 1.3 and 1.4 ([#197](https://github.com/casualcore/casual-java/issues/197))
