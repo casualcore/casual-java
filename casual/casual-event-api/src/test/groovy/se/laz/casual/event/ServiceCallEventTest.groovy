@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,6 +10,7 @@ import se.laz.casual.api.util.PrettyPrinter
 import se.laz.casual.api.util.time.InstantUtil
 import se.laz.casual.event.Order
 import se.laz.casual.event.ServiceCallEvent
+import se.laz.casual.jca.SpanId
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -37,6 +38,12 @@ class ServiceCallEventTest extends Specification
    @Shared def code2 = ErrorState.TPENOENT
    @Shared def order1 = Order.SEQUENTIAL
    @Shared def order2 = Order.CONCURRENT
+   @Shared def span = SpanId.of()
+   @Shared def parentSpan = SpanId.of()
+   @Shared def userDefinedCode = 42L
+   @Shared def spanTwo = SpanId.of()
+   @Shared def parentSpanTwo = SpanId.of()
+   @Shared def userDefinedCodeTwo = 128L
 
    def "Create then get."()
    {
@@ -132,11 +139,25 @@ class ServiceCallEventTest extends Specification
 
       firstEntry.hashCode() == firstEntry.hashCode()
       firstEntry.hashCode() != secondEntry.hashCode()
+
+      when:
+      // with tracing and user defined code
+      firstEntry = createEntry([service: service1, parent: parent1, pid: pid1, execution: execution1, transactionId: transactionId1, pending: pending1, code: code1, order: order1,
+                                spanId: span, parentSpan: parentSpan, userDefinedCode: userDefinedCode])
+      secondEntry = createEntry([service: service2, parent: parent2, pid: pid2, execution: execution2, transactionId: transactionId2, pending: pending2, code: code2, order: order2,
+                                 spanId: spanTwo, parentSpan: parentSpanTwo, userDefinedCode: userDefinedCodeTwo])
+
+      then:
+      firstEntry == firstEntry
+      firstEntry != secondEntry
+
+      firstEntry.hashCode() == firstEntry.hashCode()
+      firstEntry.hashCode() != secondEntry.hashCode()
    }
 
    def createEntry(data)
    {
-      return ServiceCallEvent.createBuilder()
+      def builder = ServiceCallEvent.createBuilder()
               .withService(data.service)
               .withParent(data.parent)
               .withPID(data.pid)
@@ -147,7 +168,19 @@ class ServiceCallEventTest extends Specification
               .withPending(data.pending)
               .withCode(data.code)
               .withOrder(data.order)
-              .build()
+      if(data.spanId != null)
+      {
+         builder.withSpanId(data.spanId.asHex())
+      }
+      if(data.parentSpan != null)
+      {
+         builder.withSpanId(data.parentSpan.asHex())
+      }
+      if(data.userDefinedCode != null)
+      {
+         builder.withUserCode(data.userDefinedCode)
+      }
+      return builder.build()
    }
 
    def "Create event with small pauses."()

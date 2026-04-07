@@ -98,6 +98,11 @@ public class ServiceCallWorkListener implements WorkListener
         {
             eventBuilder.withParentSpanId(message.getParentSpan().asHex())
                         .withSpanId(spanId.asHex());
+            if(work instanceof CasualServiceCallWork casualWork)
+            {
+                CasualServiceCallReplyMessage reply = casualWork.getResponse().getMessage();
+                eventBuilder.withUserCode(reply.getUserDefinedCode());
+            }
         }
         if(!isTpNoReply && work instanceof CasualServiceCallWork casualWork)
         {

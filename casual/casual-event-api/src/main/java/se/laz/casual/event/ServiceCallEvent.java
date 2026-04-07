@@ -31,6 +31,7 @@ public class ServiceCallEvent
     private final String spanId;
     private final String parentSpanId;
     private final String code;
+    private final Long userDefinedCode;
 
     private ServiceCallEvent(Builder builder)
     {
@@ -46,6 +47,7 @@ public class ServiceCallEvent
         spanId = builder.spanId;
         parentSpanId = builder.parentSpanId;
         code = builder.code.name();
+        userDefinedCode = builder.userDefinedCode;
     }
 
 
@@ -109,6 +111,11 @@ public class ServiceCallEvent
         return Optional.ofNullable(parentSpanId);
     }
 
+    public Optional<Long> getUserDefinedCode()
+    {
+        return Optional.ofNullable(userDefinedCode);
+    }
+
     public static Builder createBuilder()
     {
         return new Builder();
@@ -132,6 +139,7 @@ public class ServiceCallEvent
         private Long pending;
         private ErrorState code;
         private Order order;
+        private Long userDefinedCode;
 
         public Builder withService(String service)
         {
@@ -217,6 +225,12 @@ public class ServiceCallEvent
             return this;
         }
 
+        public Builder withUserCode(long userDefinedCode)
+        {
+            this.userDefinedCode = userDefinedCode;
+            return this;
+        }
+
         public ServiceCallEvent build()
         {
             Objects.requireNonNull(service, "service can not be null");
@@ -238,6 +252,7 @@ public class ServiceCallEvent
 
             return new ServiceCallEvent(this);
         }
+
     }
 
     @Override
@@ -260,7 +275,8 @@ public class ServiceCallEvent
                 Objects.equals(getTransactionId(), that.getTransactionId()) &&
                 Objects.equals(getCode(), that.getCode()) &&
                 Objects.equals(spanId, that.spanId) &&
-                Objects.equals(parentSpanId, that.parentSpanId);
+                Objects.equals(parentSpanId, that.parentSpanId) &&
+                Objects.equals(userDefinedCode, that.userDefinedCode);
     }
 
     @Override
@@ -268,7 +284,7 @@ public class ServiceCallEvent
     {
         return Objects.hash(getService(), getParent(), getPid(), getExecution(), getTransactionId(),
                 getStart(), getEnd(), getPending(), getCode(), getOrder(),
-                spanId, parentSpanId);
+                spanId, parentSpanId, userDefinedCode);
     }
 
     @Override
@@ -287,6 +303,7 @@ public class ServiceCallEvent
                 ", spanId=" + spanId +
                 ", parentSpanId=" + parentSpanId +
                 ", code='" + code + '\'' +
+                ", userDefinedCode='" + userDefinedCode + '\'' +
                 '}';
     }
 }
