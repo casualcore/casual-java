@@ -7,7 +7,6 @@
 package se.laz.casual.jca.inflow;
 
 import io.netty.channel.Channel;
-import jakarta.resource.spi.work.Work;
 import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
 import se.laz.casual.api.flags.ErrorState;
@@ -78,7 +77,8 @@ public class ServiceCallWorkListener implements WorkListener
     public void workCompleted(WorkEvent e)
     {
         eventBuilder.end();
-        ServiceCallEvent event = createEvent( e.getWork() );
+        CasualServiceCallWork casualWork = (CasualServiceCallWork) e.getWork();
+        ServiceCallEvent event = createEvent( casualWork);
         getEventPublisher().post(event);
         if(!isTpNoReply)
         {
@@ -87,7 +87,7 @@ public class ServiceCallWorkListener implements WorkListener
         }
     }
 
-    private ServiceCallEvent createEvent(Work work )
+    private ServiceCallEvent createEvent(CasualServiceCallWork work)
     {
         eventBuilder.withTransactionId(message.getXid())
                     .withExecution(message.getExecution())
@@ -98,15 +98,15 @@ public class ServiceCallWorkListener implements WorkListener
         {
             eventBuilder.withParentSpanId(message.getParentSpan().asHex())
                         .withSpanId(spanId.asHex());
-            if(work instanceof CasualServiceCallWork casualWork)
+            if(!isTpNoReply)
             {
-                CasualServiceCallReplyMessage reply = casualWork.getResponse().getMessage();
+                CasualServiceCallReplyMessage reply = work.getResponse().getMessage();
                 eventBuilder.withUserCode(reply.getUserDefinedCode());
             }
         }
-        if(!isTpNoReply && work instanceof CasualServiceCallWork casualWork)
+        if(!isTpNoReply)
         {
-            CasualServiceCallReplyMessage reply = casualWork.getResponse().getMessage();
+            CasualServiceCallReplyMessage reply = work.getResponse().getMessage();
             eventBuilder.withCode(reply.getError());
         }
         else
