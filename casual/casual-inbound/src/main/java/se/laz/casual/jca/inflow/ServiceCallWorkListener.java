@@ -77,12 +77,11 @@ public class ServiceCallWorkListener implements WorkListener
     public void workCompleted(WorkEvent e)
     {
         eventBuilder.end();
-        CasualServiceCallWork casualWork = (CasualServiceCallWork) e.getWork();
-        ServiceCallEvent event = createEvent( casualWork);
+        CasualServiceCallWork work = (CasualServiceCallWork) e.getWork();
+        ServiceCallEvent event = createEvent(work);
         getEventPublisher().post(event);
         if(!isTpNoReply)
         {
-            CasualServiceCallWork work = (CasualServiceCallWork) e.getWork();
             channel.writeAndFlush(work.getResponse());
         }
     }
