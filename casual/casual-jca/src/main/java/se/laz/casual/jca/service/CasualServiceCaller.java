@@ -142,8 +142,12 @@ public class CasualServiceCaller implements CasualServiceApi
                             }
                             LOG.finest(() -> "service call request ok for corrid: " + PrettyPrinter.casualStringify(corrId) + SERVICE_NAME_LITERAL + serviceName);
                     eventBuilder.withCode(v.getMessage().getError())
-                            .end();
-                            getEventPublisher().post(eventBuilder.build());
+                                .end();
+                    if(connection.getNetworkConnection().getProtocolVersion().isGreaterThanOrEqualTo(VERSION_1_3))
+                    {
+                        eventBuilder.withUserCode(v.getMessage().getUserDefinedCode());
+                    }
+                    getEventPublisher().post(eventBuilder.build());
                     if(!f.isDone())
                     {
                         f.complete(Optional.of(toServiceReturn(v)));

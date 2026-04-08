@@ -1,6 +1,12 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.4.2] - 2026-04-08
+
+### feat: user defined code ([#202](https://github.com/casualcore/casual-java/issues/202))
+Service call events should include user defined code when using gateway
+protocol version `>=` 1.3
+
 ## [3.4.1] - 2026-04-02
 
 ### feat: changes for quarkus ([#200](https://github.com/casualcore/casual-java/issues/200))
