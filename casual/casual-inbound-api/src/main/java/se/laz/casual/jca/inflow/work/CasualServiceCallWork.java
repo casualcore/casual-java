@@ -26,6 +26,7 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMes
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
@@ -72,7 +73,7 @@ public final class CasualServiceCallWork implements Work
     @Override
     public void release()
     {
-        /**
+        /*
          * Currently no way to stop a service lookup or call.
          * Transaction context with which this Work is started
          * is applied with timeout that lies outside this code.
@@ -133,6 +134,13 @@ public final class CasualServiceCallWork implements Work
             replyBuilder.setError( ErrorState.TPENOENT )
                         .setTransactionState( TransactionState.ROLLBACK_ONLY );
             log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
+        }
+        catch( Throwable t)
+        {
+            replyBuilder.setError( ErrorState.TPESYSTEM )
+                        .setTransactionState( TransactionState.ROLLBACK_ONLY );
+            // This shouldn't happen with a well-behaved service handler. If it does, the handler that threw might need fixing.
+            log.log( Level.SEVERE, "An exception was thrown while handing a service call", t );
         }
         finally
         {
