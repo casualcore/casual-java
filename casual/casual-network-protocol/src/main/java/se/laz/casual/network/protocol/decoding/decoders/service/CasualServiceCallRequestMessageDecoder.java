@@ -16,12 +16,9 @@ import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallRequestSizes;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
-import se.laz.casual.network.protocol.utils.ByteUtils;
-import se.laz.casual.network.protocol.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +29,6 @@ import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
 
 public final class CasualServiceCallRequestMessageDecoder implements NetworkDecoder<CasualServiceCallRequestMessage>
 {
-    private static int maxPayloadSingleBufferByteSize = Integer.MAX_VALUE;
     private final ProtocolVersion protocolVersion;
 
     private CasualServiceCallRequestMessageDecoder(ProtocolVersion protocolVersion)
@@ -44,82 +40,6 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
     {
         Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
         return new CasualServiceCallRequestMessageDecoder(protocolVersion);
-    }
-
-    /**
-     * Number of maximum bytes before any chunk reading takes place
-     * Defaults to Integer.MAX_VALUE
-     * @return maximum number of bytes for a single buffer payload.
-     */
-    public static int getMaxPayloadSingleBufferByteSize()
-    {
-        return maxPayloadSingleBufferByteSize;
-    }
-
-    /**
-     * If not set, defaults to Integer.MAX_VALUE
-     * Can be used in testing to force chunked reading
-     * by for instance setting it to 1
-     * @param maxPayloadSingleBufferByteSize maximum number of bytes for a single buffer payload.
-     */
-    public static void setMaxPayloadSingleBufferByteSize(int maxPayloadSingleBufferByteSize)
-    {
-        CasualServiceCallRequestMessageDecoder.maxPayloadSingleBufferByteSize = maxPayloadSingleBufferByteSize;
-    }
-
-    @Override
-    public CasualServiceCallRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return createMessage(b.array());
-    }
-
-    @Override
-    public CasualServiceCallRequestMessage readChunked(final ReadableByteChannel channel)
-    {
-        final UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        final int serviceNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).getLong();
-        final String serviceName = CasualMessageDecoderUtils.readString(channel, serviceNameSize);
-
-        long serviceTimeout = 0;
-        boolean hasTimeout = true;
-        if (protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
-        {
-            byte value = ByteUtils.readFully(channel, ServiceCallRequestSizes.HAS_VALUE.getNetworkSize()).get();
-            hasTimeout = (value > 0);
-        }
-        if (hasTimeout)
-        {
-            serviceTimeout = ByteUtils.readFully(channel, ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize()).getLong();
-        }
-        byte[] parentSpan = null;
-        if (protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
-        {
-            parentSpan = new byte[ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()];
-            ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_SPAN.getNetworkSize()).get(parentSpan);
-        }
-        final int parentNameSize = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize()).getLong();
-        final String parentName = CasualMessageDecoderUtils.readString(channel, parentNameSize);
-        final Xid xid = XIDUtils.readXid(channel);
-        final int flags = (int) ByteUtils.readFully(channel, ServiceCallRequestSizes.FLAGS.getNetworkSize()).getLong();
-        final ServiceBuffer buffer = CasualMessageDecoderUtils.readServiceBuffer(channel, getMaxPayloadSingleBufferByteSize());
-        CasualServiceCallRequestMessage.Builder builder = CasualServiceCallRequestMessage.createBuilder()
-                                                                                         .setExecution(execution)
-                                                                                         .setServiceName(serviceName)
-                                                                                         .setParentName(parentName)
-                                                                                         .setProtocolVersion(protocolVersion)
-                                                                                         .setXid(xid)
-                                                                                         .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
-                                                                                         .setServiceBuffer(buffer);
-        if(hasTimeout)
-        {
-            builder.setTimeout(serviceTimeout);
-        }
-        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
-        {
-            builder.setParentSpan(SpanId.of(parentSpan));
-        }
-        return builder.build();
     }
 
     @Override

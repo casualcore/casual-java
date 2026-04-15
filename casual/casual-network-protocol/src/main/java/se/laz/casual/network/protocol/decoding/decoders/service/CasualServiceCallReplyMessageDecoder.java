@@ -15,12 +15,9 @@ import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallReplySizes;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
-import se.laz.casual.network.protocol.utils.ByteUtils;
-import se.laz.casual.network.protocol.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,7 +31,6 @@ import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
  */
 public final class CasualServiceCallReplyMessageDecoder implements NetworkDecoder<CasualServiceCallReplyMessage>
 {
-    private static int maxPayloadSingleBufferByteSize = Integer.MAX_VALUE;
     private final ProtocolVersion protocolVersion;
     private CasualServiceCallReplyMessageDecoder(ProtocolVersion protocolVersion)
     {
@@ -45,52 +41,6 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
     {
         Objects.requireNonNull(protocolVersion, "protocol version can not be null");
         return new CasualServiceCallReplyMessageDecoder(protocolVersion);
-    }
-
-    /**
-     * Number of maximum bytes before any chunk reading takes place
-     * Defaults to Integer.MAX_VALUE
-     * @return maximum number of bytes for a single buffer payload.
-     */
-    public static int getMaxPayloadSingleBufferByteSize()
-    {
-        return maxPayloadSingleBufferByteSize;
-    }
-
-    /**
-     * If not set, defaults to Integer.MAX_VALUE
-     * Can be used in testing to force chunked reading
-     * by for instance setting it to 1
-     * @param maxPayloadSingleBufferByteSize maximum number of byte for a single buffer payload.
-     */
-    public static void setMaxPayloadSingleBufferByteSize(int maxPayloadSingleBufferByteSize)
-    {
-        CasualServiceCallReplyMessageDecoder.maxPayloadSingleBufferByteSize = maxPayloadSingleBufferByteSize;
-    }
-
-    @Override
-    public CasualServiceCallReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        return createMessage(ByteUtils.readFully(channel, messageSize).array());
-    }
-
-    @Override
-    public CasualServiceCallReplyMessage readChunked(final ReadableByteChannel channel)
-    {
-        final UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        final int callError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_ERROR.getNetworkSize()).getInt();
-        final long userError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_CODE.getNetworkSize()).getLong();
-        final Xid xid = XIDUtils.readXid(channel);
-        final int transactionState = ByteUtils.readFully(channel, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize()).get();
-        final ServiceBuffer serviceBuffer = CasualMessageDecoderUtils.readServiceBuffer(channel, getMaxPayloadSingleBufferByteSize());
-        return CasualServiceCallReplyMessage.createBuilder()
-                                            .setExecution(execution)
-                                            .setError(ErrorState.unmarshal(callError))
-                                            .setUserSuppliedError(userError)
-                                            .setXid(xid)
-                                            .setTransactionState(TransactionState.unmarshal(transactionState))
-                                            .setServiceBuffer(serviceBuffer)
-                                            .build();
     }
 
     @Override

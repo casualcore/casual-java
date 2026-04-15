@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -12,12 +12,9 @@ import se.laz.casual.api.xa.XAReturnCode;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
-import se.laz.casual.network.protocol.utils.ByteUtils;
-import se.laz.casual.network.protocol.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -27,23 +24,6 @@ import java.util.UUID;
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public abstract class AbstractCasualTransactionReplyDecoder<T extends CasualNetworkTransmittable> implements NetworkDecoder<T>
 {
-    @Override
-    public T readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        return createReplyMessage(ByteUtils.readFully(channel, messageSize).array());
-    }
-
-    @Override
-    public T readChunked(final ReadableByteChannel channel)
-    {
-        final UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        final Xid xid = XIDUtils.readXid(channel);
-        final int resourceId = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize()).getInt();
-        final int xaReturnCode = ByteUtils.readFully(channel, CommonSizes.TRANSACTION_RESOURCE_STATE.getNetworkSize()).getInt();
-        final XAReturnCode r = XAReturnCode.unmarshal(xaReturnCode);
-        return createTransactionReplyMessage(execution, xid, resourceId, r);
-    }
-
     @Override
     public T readSingleBuffer(final byte[] data)
     {

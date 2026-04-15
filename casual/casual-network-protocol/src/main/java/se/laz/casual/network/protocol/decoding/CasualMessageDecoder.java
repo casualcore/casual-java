@@ -46,19 +46,8 @@ import static se.laz.casual.network.ProtocolVersion.VERSION_1_2;
 
 public final class CasualMessageDecoder
 {
-    private static int maxSingleBufferByteSize = Integer.MAX_VALUE;
     private CasualMessageDecoder()
     {}
-
-    /**
-     * Number of maximum bytes before any chunk reading takes place
-     * Defaults to Integer.MAX_VALUE
-     * @return maximum number of bytes for a single buffer payload.
-     */
-    public static int getMaxSingleBufferByteSize()
-    {
-        return maxSingleBufferByteSize;
-    }
 
     public static CasualNWMessageHeader networkHeaderToCasualHeader(final byte[] message)
     {
@@ -97,10 +86,8 @@ public final class CasualMessageDecoder
             case DOMAIN_CONNECT_REPLY:
                 return (NetworkDecoder<T>) CasualDomainConnectReplyMessageDecoder.of();
             case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_V_1_3:
-                CasualServiceCallRequestMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
                 return (NetworkDecoder<T>) CasualServiceCallRequestMessageDecoder.of(protocolVersionSupplier.get());
             case SERVICE_CALL_REPLY, SERVICE_CALL_REPLY_V_1_3:
-                CasualServiceCallReplyMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
                 return (NetworkDecoder<T>) CasualServiceCallReplyMessageDecoder.of(protocolVersionSupplier.get());
             case ENQUEUE_REQUEST:
                 return (NetworkDecoder<T>) CasualEnqueueRequestMessageDecoder.of();
@@ -137,7 +124,7 @@ public final class CasualMessageDecoder
 
     private static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readMessage(final byte[] data, final CasualNWMessageHeader header, NetworkDecoder<T> nr)
     {
-        final MessageDecoder<T> reader = MessageDecoder.of(nr, getMaxSingleBufferByteSize() );
+        final MessageDecoder<T> reader = MessageDecoder.of(nr);
         final T msg = reader.read(data);
         return CasualNWMessageImpl.of(header.getCorrelationId(), msg);
     }

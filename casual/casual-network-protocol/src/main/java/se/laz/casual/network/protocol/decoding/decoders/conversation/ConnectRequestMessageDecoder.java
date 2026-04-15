@@ -15,11 +15,9 @@ import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.conversation.ConnectRequest;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationConnectRequestSizes;
-import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,19 +37,6 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
     public static NetworkDecoder<ConnectRequest> of(ProtocolVersion protocolVersion)
     {
         return new ConnectRequestMessageDecoder(protocolVersion);
-    }
-
-    @Override
-    public ConnectRequest readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return createMessage(b.array());
-    }
-
-    @Override
-    public ConnectRequest readChunked(final ReadableByteChannel channel)
-    {
-        throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override

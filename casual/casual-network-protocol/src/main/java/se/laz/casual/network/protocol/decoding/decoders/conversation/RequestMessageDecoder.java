@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -12,10 +12,8 @@ import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationRequestSizes;
-import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,19 +30,6 @@ public final class RequestMessageDecoder implements NetworkDecoder<Request>
     public static NetworkDecoder<Request> of()
     {
         return new RequestMessageDecoder();
-    }
-
-    @Override
-    public Request readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return createMessage(b.array());
-    }
-
-    @Override
-    public Request readChunked(final ReadableByteChannel channel)
-    {
-        throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override

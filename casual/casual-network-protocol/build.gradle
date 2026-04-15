@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,6 +9,7 @@ plugins {
     id 'java-library'
     id 'jacoco'
     id 'groovy'
+    id "me.champeau.jmh" version "0.7.3"
 }
 
 defaultTasks 'build'
@@ -23,5 +24,11 @@ dependencies {
   testImplementation platform(libs.spock_bom)
   testImplementation libs.spock_core
   testImplementation libs.byte_buddy
-  testImplementation libs.objenesis     
+  testImplementation libs.objenesis
+
+    jmh 'org.openjdk.jmh:jmh-core:1.36'
+    jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
+
+    // this is the line that solves the missing /META-INF/BenchmarkList error
+    jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
 }

@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_4;
+import static se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage.Mode.SINGLE;
 
 /**
  * Created by aleph on 2017-03-07.
@@ -34,12 +35,6 @@ public class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmitt
     private final ProtocolVersion protocolVersion;
     private List<Service> services = new ArrayList<>();
     private List<Queue> queues = new ArrayList<>();
-
-    // not part of the message
-    // used for testing
-    // so that we can get chunks without having to have a huge message
-    // Defaults to Integer.MAX_VALUE
-    private int maxMessageSize = Integer.MAX_VALUE;
 
     private CasualDomainDiscoveryReplyMessage(final UUID execution, final UUID domainId, final String domainName, ProtocolVersion protocolVersion)
     {
@@ -74,12 +69,6 @@ public class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmitt
         return this;
     }
 
-    public CasualDomainDiscoveryReplyMessage setMaxMessageSize(int maxMessageSize)
-    {
-        this.maxMessageSize = maxMessageSize;
-        return this;
-    }
-
     public UUID getExecution()
     {
         return execution;
@@ -105,11 +94,6 @@ public class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmitt
         return new ArrayList<>(queues);
     }
 
-    public int getMaxMessageSize()
-    {
-        return maxMessageSize;
-    }
-
     /**
      * May return several chunks since services and queues may be legion
      * @return the network bytes.
@@ -130,8 +114,45 @@ public class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmitt
                                  DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes) +
                                  DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(queueBytes);
 
-        return (messageSize <= maxMessageSize) ? toNetworkBytesFitsInOneBuffer((int)messageSize, domainNameBytes, serviceBytes, queueBytes)
-                                               : toNetworkBytesMultipleBuffers(domainNameBytes, serviceBytes, queueBytes);
+        return switch( this.mode )
+        {
+            case MULTI_ORIGINAL -> toNetworkBytesMultipleBuffers( domainNameBytes, serviceBytes, queueBytes );
+            case MULTI_NEW -> toNetworkBytesMultipleBuffersNew( domainNameBytes, serviceBytes, queueBytes );
+            default -> toNetworkBytesFitsInOneBuffer( (int) messageSize, domainNameBytes, serviceBytes, queueBytes );
+        };
+    }
+
+    public enum Mode
+    {
+        SINGLE,
+        MULTI_ORIGINAL,
+        MULTI_NEW
+    }
+    private Mode mode = SINGLE;
+
+    public void setMode( Mode mode )
+    {
+        this.mode = mode;
+    }
+
+    private List<byte[]> toNetworkBytesMultipleBuffersNew(byte[] domainNameBytes, List<byte[]> serviceBytes, List<byte[]> queueBytes)
+    {
+        final List<byte[]> l = new ArrayList<>();
+        final int initialSize = DiscoveryReplySizes.EXECUTION.getNetworkSize() + DiscoveryReplySizes.DOMAIN_ID.getNetworkSize() +
+                DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize() + domainNameBytes.length +
+                DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize();
+        ByteBuffer b = ByteBuffer.allocate( initialSize );
+        CasualEncoderUtils.writeUUID(execution, b);
+        CasualEncoderUtils.writeUUID(domainId, b);
+        b.putLong(domainNameBytes.length);
+        b.put(domainNameBytes);
+        b.putLong(services.size());
+        l.add( b.array() );
+        l.addAll( serviceBytes );
+        b = ByteBuffer.allocate( DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize() );
+        b.putLong(queues.size());
+        l.addAll( queueBytes );
+        return l;
     }
 
     private List<byte[]> toNetworkBytesFitsInOneBuffer(int messageSize, byte[] domainNameBytes, List<byte[]> serviceBytes, List<byte[]> queueBytes)

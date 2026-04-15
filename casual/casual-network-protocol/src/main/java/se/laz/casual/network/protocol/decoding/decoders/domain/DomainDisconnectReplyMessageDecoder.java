@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,10 +10,7 @@ import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessage;
 import se.laz.casual.network.protocol.messages.parseinfo.ConnectRequestSizes;
-import se.laz.casual.network.protocol.utils.ByteUtils;
 
-import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -25,20 +22,6 @@ public final class DomainDisconnectReplyMessageDecoder implements NetworkDecoder
     public static NetworkDecoder<DomainDisconnectReplyMessage> of()
     {
         return new DomainDisconnectReplyMessageDecoder();
-    }
-
-    @Override
-    public DomainDisconnectReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
-    }
-
-    @Override
-    public DomainDisconnectReplyMessage readChunked(final ReadableByteChannel channel)
-    {
-        final UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        return DomainDisconnectReplyMessage.of(execution);
     }
 
     @Override

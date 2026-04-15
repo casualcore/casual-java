@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -27,29 +27,6 @@ public final class CasualDomainConnectRequestMessageDecoder implements NetworkDe
     public static NetworkDecoder<CasualDomainConnectRequestMessage> of()
     {
         return new CasualDomainConnectRequestMessageDecoder();
-    }
-
-    @Override
-    public CasualDomainConnectRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
-    }
-
-    @Override
-    public CasualDomainConnectRequestMessage readChunked(final ReadableByteChannel channel)
-    {
-        final UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        final UUID domainId = CasualMessageDecoderUtils.readUUID(channel);
-        final int domainNameSize = (int) ByteUtils.readFully(channel, ConnectRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize()).getLong();
-        final String domainName = CasualMessageDecoderUtils.readString(channel, domainNameSize);
-        final List<Long> protocols = readProtocols(channel);
-        return CasualDomainConnectRequestMessage.createBuilder()
-                                                .withExecution(execution)
-                                                .withDomainId(domainId)
-                                                .withDomainName(domainName)
-                                                .withProtocols(protocols)
-                                                .build();
     }
 
     @Override

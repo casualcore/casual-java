@@ -45,39 +45,6 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
     }
 
     @Override
-    public CasualDomainDiscoveryReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        return getMessage(ByteUtils.readFully(channel, messageSize).array());
-    }
-
-    @Override
-    public CasualDomainDiscoveryReplyMessage readChunked(final ReadableByteChannel channel)
-    {
-        final ByteBuffer executionBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.EXECUTION.getNetworkSize());
-        final ByteBuffer domainIdBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_ID.getNetworkSize());
-        final ByteBuffer domainNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize());
-        final ByteBuffer domainNameBuffer = ByteUtils.readFully(channel, (int) domainNameSizeBuffer.getLong());
-        final ByteBuffer numberOfServicesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize());
-        final List<byte[]> services = new ArrayList<>();
-        final long numberOfServices = numberOfServicesBuffer.getLong();
-        for (int i = 0; i < numberOfServices; ++i)
-        {
-            services.addAll(readService(channel));
-        }
-        final ByteBuffer numberOfQueuesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize());
-        final List<byte[]> queues = new ArrayList<>();
-        final long numberOfQueues = numberOfQueuesBuffer.getLong();
-        for (int i = 0; i < numberOfQueues; ++i)
-        {
-            queues.addAll(readQueue(channel));
-        }
-        return getMessage(createMsg(executionBuffer.array(), domainIdBuffer.array(),
-                                     domainNameSizeBuffer.array(), domainNameBuffer.array(),
-                                     numberOfServicesBuffer.array(), services,
-                                     numberOfQueuesBuffer.array(), queues));
-    }
-
-    @Override
     public CasualDomainDiscoveryReplyMessage readSingleBuffer(byte[] data)
     {
         return getMessage(data);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -16,7 +16,6 @@ import se.laz.casual.network.protocol.messages.parseinfo.EnqueueRequestSizes;
 import se.laz.casual.network.protocol.messages.queue.CasualEnqueueRequestMessage;
 import se.laz.casual.network.protocol.messages.queue.EnqueueMessage;
 import se.laz.casual.network.protocol.utils.ByteUtils;
-import se.laz.casual.network.protocol.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
@@ -32,28 +31,6 @@ public class CasualEnqueueRequestMessageDecoder implements NetworkDecoder<Casual
     public static CasualEnqueueRequestMessageDecoder of()
     {
         return new CasualEnqueueRequestMessageDecoder();
-    }
-
-    @Override
-    public CasualEnqueueRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
-    }
-
-    @Override
-    public CasualEnqueueRequestMessage readChunked(final ReadableByteChannel channel)
-    {
-        UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        int queueNameSize = (int) ByteUtils.readFully(channel, EnqueueRequestSizes.NAME_SIZE.getNetworkSize()).getLong();
-        String queueName = CasualMessageDecoderUtils.readString(channel, queueNameSize);
-        Xid xid = XIDUtils.readXid(channel);
-        return CasualEnqueueRequestMessage.createBuilder()
-                                          .withExecution(execution)
-                                          .withQueueName(queueName)
-                                          .withXid(xid)
-                                          .withMessage(readEnqueueMessage(channel))
-                                          .build();
     }
 
     @Override

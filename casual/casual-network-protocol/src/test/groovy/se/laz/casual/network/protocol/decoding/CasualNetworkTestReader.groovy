@@ -7,7 +7,6 @@
 package se.laz.casual.network.protocol.decoding
 
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
-import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.decoders.MessageDecoder
@@ -19,7 +18,7 @@ import se.laz.casual.network.protocol.utils.ByteUtils
 
 import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
-import java.util.function.Supplier;
+import java.util.function.Supplier
 
 class CasualNetworkTestReader
 {
@@ -49,16 +48,9 @@ class CasualNetworkTestReader
 
     static <T extends CasualNetworkTransmittable> CasualNWMessage<T> readMessage(final ReadableByteChannel channel, final CasualNWMessageHeader header, NetworkDecoder<T> nr )
     {
-        final MessageDecoder<T> reader = MessageDecoder.of(nr, CasualMessageDecoder.getMaxSingleBufferByteSize() )
-        final T msg = reader.read(channel, header.getPayloadSize())
+        final MessageDecoder<T> reader = MessageDecoder.of(nr)
+        final ByteBuffer b = ByteUtils.readFully(channel, (int)header.getPayloadSize())
+        final T msg = reader.read(b.array())
         return CasualNWMessageImpl.of(header.getCorrelationId(), msg)
     }
-
-    static <T extends CasualNetworkTransmittable> T readMessage(CasualNWMessageType type, ReadableByteChannel channel, long messageSize, ProtocolVersion protocolVersion)
-    {
-       NetworkDecoder<T> networkReader = CasualMessageDecoder.getDecoder(type, () -> protocolVersion)
-       final MessageDecoder<T> reader = MessageDecoder.of(networkReader, CasualMessageDecoder.getMaxSingleBufferByteSize() )
-       return reader.read(channel, messageSize)
-    }
-
 }
