@@ -13,10 +13,10 @@ public enum ServiceCallRequestSizes
 {
     CALL_DESCRIPTOR(4, 8),
     SERVICE_NAME_SIZE(8, 8),
-    HAS_VALUE(1,1),
+    HAS_VALUE(1,1),// since v1.3
     SERVICE_TIMEOUT(8, 8),
     PARENT_SPAN(8,8),// since v1.3
-    PARENT_NAME_SIZE(8, 8),// since v1.3
+    PARENT_NAME_SIZE(8, 8),
 
     FLAGS(8, 8),
     BUFFER_TYPE_NAME_SIZE(8, 8),
