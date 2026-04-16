@@ -102,13 +102,14 @@ public class ServiceCallWorkListener implements WorkListener
     @Override
     public void workStarted(WorkEvent e)
     {
-        log.finest(() -> "Work started in %d ms with corrid %s".formatted(e.getStartDuration(), getCasualCorrelationId(getCasualServiceCallWork(e))));
+        log.finest(() -> "Work started in %d ms with corrid=%s".formatted(e.getStartDuration(), getCasualCorrelationId(getCasualServiceCallWork(e))));
         eventBuilder.start();
     }
 
     @Override
     public void workCompleted(WorkEvent e)
     {
+        log.finest(() -> "Work completed %s exception, corrid=%s".formatted(e.getException() == null ? "without" : "with", getCasualCorrelationId(getCasualServiceCallWork(e))));
         eventBuilder.end();
         if (e.getException() != null)
         {
@@ -158,7 +159,11 @@ public class ServiceCallWorkListener implements WorkListener
         }
         else
         {
-            eventBuilder.withCode(ErrorState.OK);
+            eventBuilder.withCode(
+                    work != null && !work.failedUnexpectedly()
+                    ? ErrorState.OK
+                    : ErrorState.TPESYSTEM
+            );
         }
         return eventBuilder.build();
     }

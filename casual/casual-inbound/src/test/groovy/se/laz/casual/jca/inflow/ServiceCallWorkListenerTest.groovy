@@ -8,6 +8,7 @@ package se.laz.casual.jca.inflow
 
 import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
+import jakarta.resource.spi.work.Work
 import jakarta.resource.spi.work.WorkCompletedException
 import jakarta.resource.spi.work.WorkEvent
 import jakarta.resource.spi.work.WorkException
@@ -143,6 +144,33 @@ class ServiceCallWorkListenerTest extends Specification
       }
       0 * channel.writeAndFlush(_ as CasualServiceCallReplyMessage)
    }
+
+    def "TPNOREPLY, WorkCompleted correct ErrorState is reported in ServiceCallEvent"(Boolean failedUnexpectedly, ErrorState expectedErrorState)
+    {
+        setup:
+        CasualServiceCallWork work = new CasualServiceCallWork(UUID.randomUUID(), request, true, ProtocolVersion.VERSION_1_2, SpanId.of())
+        work.workFailedUnexpectedly = failedUnexpectedly
+        WorkEvent event = new WorkEvent(this, WorkEvent.WORK_COMPLETED, work, null)
+        instance = new ServiceCallWorkListener(channel, request, true, SpanId.of(), ProtocolVersion.VERSION_1_2)
+        instance.setEventPublisher(serviceCallEventPublisher)
+        String receivedErrorCode = null;
+
+        when:
+        instance.workStarted(Mock(WorkEvent))
+        instance.workCompleted(event)
+
+        then:
+        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent serviceCallEvent ->
+            receivedErrorCode = serviceCallEvent.getCode()
+        }
+
+        receivedErrorCode == expectedErrorState.name()
+
+        where:
+        failedUnexpectedly | expectedErrorState
+        false              | ErrorState.OK
+        true               | ErrorState.TPESYSTEM
+    }
 
     Xid createXid()
     {

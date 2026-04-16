@@ -275,4 +275,28 @@ class CasualServiceCallWorkTest extends Specification
         then:
         reply.getMessage().getError() == ErrorState.TPESYSTEM
     }
+
+    def "Call service with TPNOREPLY where service handler throws an exception, return result with TPESYSTEM status."()
+    {
+        given:
+        CasualServiceCallRequestMessage messageThrows = CasualServiceCallRequestMessage.createBuilder()
+                .setXid( XID.NULL_XID)
+                .setExecution(UUID.randomUUID())
+                .setServiceName( TestHandler.SERVICE_THROWS )
+                .setServiceBuffer( ServiceBuffer.of( "json",
+                        JsonBuffer.of(
+                                json )
+                                .getBytes() ) )
+                .setXatmiFlags( Flag.of())
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
+                .build()
+
+        instance = new CasualServiceCallWork(correlationId, messageThrows, true, ProtocolVersion.VERSION_1_2, SpanId.of())
+
+        when:
+        instance.run()
+
+        then:
+        noExceptionThrown()
+    }
 }

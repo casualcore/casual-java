@@ -45,6 +45,7 @@ public final class CasualServiceCallWork implements Work
     private CasualNWMessage<CasualServiceCallReplyMessage> response;
     private ServiceHandler handler = null;
     private final SpanId spanId;
+    private boolean workFailedUnexpectedly = false;
 
     public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply, ProtocolVersion protocolVersion, SpanId spanId)
     {
@@ -104,6 +105,12 @@ public final class CasualServiceCallWork implements Work
         {
             log.warning( ()-> "ServiceHandler not available for: " + message.getServiceName() );
         }
+        catch( Throwable t)
+        {
+            workFailedUnexpectedly = true;
+            // This shouldn't happen with a well-behaved service handler. If it does, the handler that threw might need fixing.
+            log.log( Level.SEVERE, "An exception was thrown while handing a TPNOREPLY service call", t );
+        }
     }
 
     // try with resources to transport information to potential outbound thread
@@ -137,6 +144,7 @@ public final class CasualServiceCallWork implements Work
         }
         catch( Throwable t)
         {
+            workFailedUnexpectedly = true;
             replyBuilder.setError( ErrorState.TPESYSTEM )
                         .setTransactionState( TransactionState.ROLLBACK_ONLY );
             // This shouldn't happen with a well-behaved service handler. If it does, the handler that threw might need fixing.
@@ -173,4 +181,8 @@ public final class CasualServiceCallWork implements Work
         this.handler = handler;
     }
 
+    public boolean failedUnexpectedly()
+    {
+        return workFailedUnexpectedly;
+    }
 }
