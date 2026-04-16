@@ -26,6 +26,8 @@ dependencies {
   testImplementation libs.byte_buddy
   testImplementation libs.objenesis
 
+    jmh project(":casual:casual-network")
+
     jmh 'org.openjdk.jmh:jmh-core:1.36'
     jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
 

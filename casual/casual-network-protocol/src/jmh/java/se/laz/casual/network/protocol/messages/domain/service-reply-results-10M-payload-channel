@@ -1,0 +1,356 @@
+1:55:11 PM: Executing ':casual:casual-network-protocol:se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.main()'…
+
+> Task :casual:casual-fielded-annotations:compileJava UP-TO-DATE
+> Task :casual:casual-fielded-annotations:compileGroovy NO-SOURCE
+> Task :casual:casual-fielded-annotations:processResources NO-SOURCE
+> Task :casual:casual-fielded-annotations:classes UP-TO-DATE
+> Task :casual:casual-fielded-annotations:jar UP-TO-DATE
+> Task :casual:casual-api:compileJava UP-TO-DATE
+> Task :casual:casual-api:compileGroovy NO-SOURCE
+> Task :casual:casual-api:processResources UP-TO-DATE
+> Task :casual:casual-api:classes UP-TO-DATE
+> Task :casual:casual-api:jar UP-TO-DATE
+> Task :casual:casual-event-api:compileJava UP-TO-DATE
+> Task :casual:casual-event-api:compileGroovy NO-SOURCE
+> Task :casual:casual-event-api:processResources UP-TO-DATE
+> Task :casual:casual-event-api:classes UP-TO-DATE
+> Task :casual:casual-event-api:jar UP-TO-DATE
+> Task :casual:casual-inbound-handler-api:compileJava UP-TO-DATE
+> Task :casual:casual-inbound-handler-api:compileGroovy NO-SOURCE
+> Task :casual:casual-inbound-handler-api:processResources UP-TO-DATE
+> Task :casual:casual-inbound-handler-api:classes UP-TO-DATE
+> Task :casual:casual-inbound-handler-api:jar UP-TO-DATE
+> Task :casual:casual-network-protocol:compileJava UP-TO-DATE
+> Task :casual:casual-network-protocol:compileGroovy NO-SOURCE
+> Task :casual:casual-network-protocol:processResources NO-SOURCE
+> Task :casual:casual-network-protocol:classes UP-TO-DATE
+> Task :casual:casual-network-protocol:jar UP-TO-DATE
+> Task :casual:casual-inbound-api:compileJava UP-TO-DATE
+> Task :casual:casual-inbound-api:compileGroovy NO-SOURCE
+> Task :casual:casual-inbound-api:processResources NO-SOURCE
+> Task :casual:casual-inbound-api:classes UP-TO-DATE
+> Task :casual:casual-inbound-api:jar UP-TO-DATE
+> Task :casual:casual-internal:compileJava UP-TO-DATE
+> Task :casual:casual-internal:compileGroovy NO-SOURCE
+> Task :casual:casual-internal:processResources NO-SOURCE
+> Task :casual:casual-internal:classes UP-TO-DATE
+> Task :casual:casual-internal:jar UP-TO-DATE
+> Task :casual:casual-network:compileJava UP-TO-DATE
+> Task :casual:casual-network:compileGroovy NO-SOURCE
+> Task :casual:casual-network:processResources NO-SOURCE
+> Task :casual:casual-network:classes UP-TO-DATE
+> Task :casual:casual-network:jar UP-TO-DATE
+> Task :casual:casual-network-protocol:compileTestJava NO-SOURCE
+> Task :casual:casual-network-protocol:compileTestGroovy UP-TO-DATE
+> Task :casual:casual-network-protocol:processTestResources UP-TO-DATE
+> Task :casual:casual-network-protocol:testClasses UP-TO-DATE
+> Task :casual:casual-network-protocol:compileJmhJava
+> Task :casual:casual-network-protocol:compileJmhGroovy NO-SOURCE
+> Task :casual:casual-network-protocol:processJmhResources NO-SOURCE
+> Task :casual:casual-network-protocol:jmhClasses
+
+> Task :casual:casual-network-protocol:se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.main()
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl
+# Parameters: (mode = single, test = toNetworkBytes)
+
+# Run progress: 0.00% complete, ETA 00:10:30
+# Fork: 1 of 1
+# Warmup Iteration   1: 363.752 ops/s
+# Warmup Iteration   2: 367.692 ops/s
+Iteration   1: 369.690 ops/s
+Iteration   2: 369.842 ops/s
+Iteration   3: 370.293 ops/s
+Iteration   4: 369.884 ops/s
+Iteration   5: 368.441 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl":
+  369.630 ±(99.9%) 2.701 ops/s [Average]
+  (min, avg, max) = (368.441, 369.630, 370.293), stdev = 0.701
+  CI (99.9%): [366.929, 372.331] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl
+# Parameters: (mode = single, test = Unpooled.buffer())
+
+# Run progress: 11.11% complete, ETA 00:09:26
+# Fork: 1 of 1
+# Warmup Iteration   1: 179.242 ops/s
+# Warmup Iteration   2: 177.711 ops/s
+Iteration   1: 178.444 ops/s
+Iteration   2: 178.454 ops/s
+Iteration   3: 178.336 ops/s
+Iteration   4: 179.057 ops/s
+Iteration   5: 178.797 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl":
+  178.618 ±(99.9%) 1.158 ops/s [Average]
+  (min, avg, max) = (178.336, 178.618, 179.057), stdev = 0.301
+  CI (99.9%): [177.460, 179.775] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl
+# Parameters: (mode = single, test = channel)
+
+# Run progress: 22.22% complete, ETA 00:08:15
+# Fork: 1 of 1
+# Warmup Iteration   1: 159.384 ops/s
+# Warmup Iteration   2: 161.412 ops/s
+Iteration   1: 161.999 ops/s
+Iteration   2: 162.631 ops/s
+Iteration   3: 162.810 ops/s
+Iteration   4: 163.424 ops/s
+Iteration   5: 163.444 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl":
+  162.861 ±(99.9%) 2.323 ops/s [Average]
+  (min, avg, max) = (161.999, 162.861, 163.444), stdev = 0.603
+  CI (99.9%): [160.539, 165.184] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl
+# Parameters: (mode = multi-original, test = toNetworkBytes)
+
+# Run progress: 33.33% complete, ETA 00:07:04
+# Fork: 1 of 1
+# Warmup Iteration   1: 1009120.443 ops/s
+# Warmup Iteration   2: 1071236.846 ops/s
+Iteration   1: 1072419.359 ops/s
+Iteration   2: 1038002.335 ops/s
+Iteration   3: 1052186.855 ops/s
+Iteration   4: 1038270.739 ops/s
+Iteration   5: 1048467.863 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl":
+  1049869.430 ±(99.9%) 54155.707 ops/s [Average]
+  (min, avg, max) = (1038002.335, 1049869.430, 1072419.359), stdev = 14064.065
+  CI (99.9%): [995713.723, 1104025.137] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl
+# Parameters: (mode = multi-original, test = Unpooled.buffer())
+
+# Run progress: 44.44% complete, ETA 00:05:53
+# Fork: 1 of 1
+# Warmup Iteration   1: 335.879 ops/s
+# Warmup Iteration   2: 341.561 ops/s
+Iteration   1: 347.460 ops/s
+Iteration   2: 346.896 ops/s
+Iteration   3: 348.034 ops/s
+Iteration   4: 346.685 ops/s
+Iteration   5: 346.830 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl":
+  347.181 ±(99.9%) 2.158 ops/s [Average]
+  (min, avg, max) = (346.685, 347.181, 348.034), stdev = 0.560
+  CI (99.9%): [345.023, 349.339] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl
+# Parameters: (mode = multi-original, test = channel)
+
+# Run progress: 55.56% complete, ETA 00:04:42
+# Fork: 1 of 1
+# Warmup Iteration   1: 304.996 ops/s
+# Warmup Iteration   2: 313.969 ops/s
+Iteration   1: 315.749 ops/s
+Iteration   2: 314.238 ops/s
+Iteration   3: 314.144 ops/s
+Iteration   4: 314.328 ops/s
+Iteration   5: 315.310 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl":
+  314.754 ±(99.9%) 2.802 ops/s [Average]
+  (min, avg, max) = (314.144, 314.754, 315.749), stdev = 0.728
+  CI (99.9%): [311.951, 317.556] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl
+# Parameters: (mode = multi-new, test = toNetworkBytes)
+
+# Run progress: 66.67% complete, ETA 00:03:32
+# Fork: 1 of 1
+# Warmup Iteration   1: 1412913.441 ops/s
+# Warmup Iteration   2: 1294302.155 ops/s
+Iteration   1: 1312506.529 ops/s
+Iteration   2: 1305839.158 ops/s
+Iteration   3: 1241852.878 ops/s
+Iteration   4: 1252439.494 ops/s
+Iteration   5: 1302318.654 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl":
+  1282991.342 ±(99.9%) 127602.558 ops/s [Average]
+  (min, avg, max) = (1241852.878, 1282991.342, 1312506.529), stdev = 33137.979
+  CI (99.9%): [1155388.784, 1410593.900] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl
+# Parameters: (mode = multi-new, test = Unpooled.buffer())
+
+# Run progress: 77.78% complete, ETA 00:02:21
+# Fork: 1 of 1
+# Warmup Iteration   1: 342.233 ops/s
+# Warmup Iteration   2: 346.579 ops/s
+Iteration   1: 346.041 ops/s
+Iteration   2: 344.692 ops/s
+Iteration   3: 346.755 ops/s
+Iteration   4: 347.993 ops/s
+Iteration   5: 347.290 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl":
+  346.554 ±(99.9%) 4.864 ops/s [Average]
+  (min, avg, max) = (344.692, 346.554, 347.993), stdev = 1.263
+  CI (99.9%): [341.690, 351.418] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 10 s each
+# Measurement: 5 iterations, 10 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl
+# Parameters: (mode = multi-new, test = channel)
+
+# Run progress: 88.89% complete, ETA 00:01:10
+# Fork: 1 of 1
+# Warmup Iteration   1: 302.308 ops/s
+# Warmup Iteration   2: 312.955 ops/s
+Iteration   1: 315.236 ops/s
+Iteration   2: 314.928 ops/s
+Iteration   3: 316.083 ops/s
+Iteration   4: 315.444 ops/s
+Iteration   5: 314.631 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.singleImpl":
+  315.264 ±(99.9%) 2.125 ops/s [Average]
+  (min, avg, max) = (314.631, 315.264, 316.083), stdev = 0.552
+  CI (99.9%): [313.139, 317.389] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:10:36
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+NOTE: Current JVM experimentally supports Compiler Blackholes, and they are in use. Please exercise
+extra caution when trusting the results, look into the generated code to check the benchmark still
+works, and factor in a small probability of new VM bugs. Additionally, while comparisons between
+different JVMs are already problematic, the performance difference caused by different Blackhole
+modes can be very significant. Please make sure you use the consistent Blackhole mode for comparisons.
+
+Benchmark                                         (mode)             (test)   Mode  Cnt        Score        Error  Units
+ServiceReplyNetworkBytesTests.singleImpl          single     toNetworkBytes  thrpt    5      369.630 ±      2.701  ops/s
+ServiceReplyNetworkBytesTests.singleImpl          single  Unpooled.buffer()  thrpt    5      178.618 ±      1.158  ops/s
+ServiceReplyNetworkBytesTests.singleImpl          single            channel  thrpt    5      162.861 ±      2.323  ops/s
+ServiceReplyNetworkBytesTests.singleImpl  multi-original     toNetworkBytes  thrpt    5  1049869.430 ±  54155.707  ops/s
+ServiceReplyNetworkBytesTests.singleImpl  multi-original  Unpooled.buffer()  thrpt    5      347.181 ±      2.158  ops/s
+ServiceReplyNetworkBytesTests.singleImpl  multi-original            channel  thrpt    5      314.754 ±      2.802  ops/s
+ServiceReplyNetworkBytesTests.singleImpl       multi-new     toNetworkBytes  thrpt    5  1282991.342 ± 127602.558  ops/s
+ServiceReplyNetworkBytesTests.singleImpl       multi-new  Unpooled.buffer()  thrpt    5      346.554 ±      4.864  ops/s
+ServiceReplyNetworkBytesTests.singleImpl       multi-new            channel  thrpt    5      315.264 ±      2.125  ops/s
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.6/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 10m 38s
+23 actionable tasks: 2 executed, 21 up-to-date
+2:05:50 PM: Execution finished ':casual:casual-network-protocol:se.laz.casual.network.protocol.messages.domain.ServiceReplyNetworkBytesTests.main()'.

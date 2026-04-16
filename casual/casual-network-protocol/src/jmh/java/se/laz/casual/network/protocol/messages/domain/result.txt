@@ -34,7 +34,7 @@
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Throughput, ops/time
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = single, test = toNetworkBytes)
 
 # Run progress: 0.00% complete, ETA 00:21:00
@@ -48,7 +48,7 @@ Iteration   4: 351118.333 ops/s
 Iteration   5: 352539.392 ops/s
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   350399.265 ±(99.9%) 6089.347 ops/s [Average]
   (min, avg, max) = (348453.309, 350399.265, 352539.392), stdev = 1581.384
   CI (99.9%): [344309.917, 356488.612] (assumes normal distribution)
@@ -64,7 +64,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Throughput, ops/time
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = single, test = WriteableChannel)
 
 # Run progress: 5.56% complete, ETA 00:20:06
@@ -78,7 +78,7 @@ Iteration   4: 300635.346 ops/s
 Iteration   5: 302430.203 ops/s
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   300789.342 ±(99.9%) 3595.256 ops/s [Average]
   (min, avg, max) = (300181.719, 300789.342, 302430.203), stdev = 933.677
   CI (99.9%): [297194.086, 304384.598] (assumes normal distribution)
@@ -94,7 +94,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Throughput, ops/time
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = single, test = Unpooled.buffer())
 
 # Run progress: 11.11% complete, ETA 00:18:54
@@ -108,7 +108,7 @@ Iteration   4: 355141.467 ops/s
 Iteration   5: 356874.926 ops/s
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   354897.958 ±(99.9%) 5294.455 ops/s [Average]
   (min, avg, max) = (353572.518, 354897.958, 356874.926), stdev = 1374.953
   CI (99.9%): [349603.502, 360192.413] (assumes normal distribution)
@@ -124,7 +124,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Throughput, ops/time
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-original, test = toNetworkBytes)
 
 # Run progress: 16.67% complete, ETA 00:17:42
@@ -138,7 +138,7 @@ Iteration   4: 323918.622 ops/s
 Iteration   5: 319936.870 ops/s
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   322188.400 ±(99.9%) 5906.465 ops/s [Average]
   (min, avg, max) = (319936.870, 322188.400, 323918.622), stdev = 1533.890
   CI (99.9%): [316281.935, 328094.865] (assumes normal distribution)
@@ -154,7 +154,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Throughput, ops/time
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-original, test = WriteableChannel)
 
 # Run progress: 22.22% complete, ETA 00:16:31
@@ -168,7 +168,7 @@ Iteration   4: 216378.073 ops/s
 Iteration   5: 217764.475 ops/s
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   218861.144 ±(99.9%) 6797.837 ops/s [Average]
   (min, avg, max) = (216378.073, 218861.144, 220594.532), stdev = 1765.377
   CI (99.9%): [212063.307, 225658.982] (assumes normal distribution)
@@ -184,7 +184,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Throughput, ops/time
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-original, test = Unpooled.buffer())
 
 # Run progress: 27.78% complete, ETA 00:15:20
@@ -198,7 +198,7 @@ Iteration   4: 311001.949 ops/s
 Iteration   5: 308109.531 ops/s
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   309426.848 ±(99.9%) 7209.776 ops/s [Average]
   (min, avg, max) = (307874.099, 309426.848, 311885.008), stdev = 1872.356
   CI (99.9%): [302217.072, 316636.625] (assumes normal distribution)
@@ -214,7 +214,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Throughput, ops/time
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-new, test = toNetworkBytes)
 
 # Run progress: 33.33% complete, ETA 00:14:09
@@ -228,7 +228,7 @@ Iteration   4: 376858.977 ops/s
 Iteration   5: 377645.667 ops/s
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   375537.801 ±(99.9%) 6765.742 ops/s [Average]
   (min, avg, max) = (373172.644, 375537.801, 377645.667), stdev = 1757.042
   CI (99.9%): [368772.059, 382303.543] (assumes normal distribution)
@@ -244,7 +244,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Throughput, ops/time
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-new, test = WriteableChannel)
 
 # Run progress: 38.89% complete, ETA 00:12:58
@@ -258,7 +258,7 @@ Iteration   4: 262844.211 ops/s
 Iteration   5: 263765.861 ops/s
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   260557.027 ±(99.9%) 26827.240 ops/s [Average]
   (min, avg, max) = (248311.625, 260557.027, 265649.090), stdev = 6966.949
   CI (99.9%): [233729.787, 287384.266] (assumes normal distribution)
@@ -274,7 +274,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Throughput, ops/time
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-new, test = Unpooled.buffer())
 
 # Run progress: 44.44% complete, ETA 00:11:47
@@ -288,7 +288,7 @@ Iteration   4: 303495.713 ops/s
 Iteration   5: 301335.277 ops/s
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   303934.549 ±(99.9%) 6192.933 ops/s [Average]
   (min, avg, max) = (301335.277, 303934.549, 305203.556), stdev = 1608.285
   CI (99.9%): [297741.616, 310127.482] (assumes normal distribution)
@@ -304,7 +304,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Average time, time/op
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = single, test = toNetworkBytes)
 
 # Run progress: 50.00% complete, ETA 00:10:37
@@ -318,7 +318,7 @@ Iteration   4: ≈ 10⁻⁶ s/op
 Iteration   5: ≈ 10⁻⁶ s/op
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   ≈ 10⁻⁶ s/op
 
 
@@ -332,7 +332,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Average time, time/op
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = single, test = WriteableChannel)
 
 # Run progress: 55.56% complete, ETA 00:09:26
@@ -346,7 +346,7 @@ Iteration   4: ≈ 10⁻⁵ s/op
 Iteration   5: ≈ 10⁻⁵ s/op
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   ≈ 10⁻⁵ s/op
 
 
@@ -360,7 +360,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Average time, time/op
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = single, test = Unpooled.buffer())
 
 # Run progress: 61.11% complete, ETA 00:08:15
@@ -374,7 +374,7 @@ Iteration   4: ≈ 10⁻⁵ s/op
 Iteration   5: ≈ 10⁻⁵ s/op
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   ≈ 10⁻⁵ s/op
 
 
@@ -388,7 +388,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Average time, time/op
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-original, test = toNetworkBytes)
 
 # Run progress: 66.67% complete, ETA 00:07:04
@@ -402,7 +402,7 @@ Iteration   4: ≈ 10⁻⁶ s/op
 Iteration   5: ≈ 10⁻⁶ s/op
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   ≈ 10⁻⁶ s/op
 
 
@@ -416,7 +416,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Average time, time/op
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-original, test = WriteableChannel)
 
 # Run progress: 72.22% complete, ETA 00:05:53
@@ -430,7 +430,7 @@ Iteration   4: ≈ 10⁻⁵ s/op
 Iteration   5: ≈ 10⁻⁵ s/op
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   ≈ 10⁻⁵ s/op
 
 
@@ -444,7 +444,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Average time, time/op
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-original, test = Unpooled.buffer())
 
 # Run progress: 77.78% complete, ETA 00:04:43
@@ -458,7 +458,7 @@ Iteration   4: ≈ 10⁻⁵ s/op
 Iteration   5: ≈ 10⁻⁵ s/op
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   ≈ 10⁻⁵ s/op
 
 
@@ -472,7 +472,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Average time, time/op
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-new, test = toNetworkBytes)
 
 # Run progress: 83.33% complete, ETA 00:03:32
@@ -486,7 +486,7 @@ Iteration   4: ≈ 10⁻⁶ s/op
 Iteration   5: ≈ 10⁻⁶ s/op
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   ≈ 10⁻⁶ s/op
 
 
@@ -500,7 +500,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Average time, time/op
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-new, test = WriteableChannel)
 
 # Run progress: 88.89% complete, ETA 00:02:21
@@ -514,7 +514,7 @@ Iteration   4: ≈ 10⁻⁵ s/op
 Iteration   5: ≈ 10⁻⁵ s/op
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   ≈ 10⁻⁵ s/op
 
 
@@ -528,7 +528,7 @@ Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleI
 # Timeout: 10 min per iteration
 # Threads: 1 thread, will synchronize iterations
 # Benchmark mode: Average time, time/op
-# Benchmark: se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl
+# Benchmark: se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl
 # Parameters: (mode = multi-new, test = Unpooled.buffer())
 
 # Run progress: 94.44% complete, ETA 00:01:10
@@ -542,7 +542,7 @@ Iteration   4: ≈ 10⁻⁶ s/op
 Iteration   5: ≈ 10⁻⁶ s/op
 
 
-Result "se.laz.casual.network.protocol.messages.domain.NetworkBytesTests.singleImpl":
+Result "se.laz.casual.network.protocol.messages.domain.DomainDiscoveryNetworkBytesTests.singleImpl":
   ≈ 10⁻⁶ s/op
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,6 +11,8 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -63,6 +65,25 @@ public class CasualNWMessageImpl<T extends CasualNetworkTransmittable> implement
         completeMessage.addAll(payload);
         return completeMessage;
     }
+
+    @Override
+    public List<ByteBuffer> toNetworkByteBuffers()
+    {
+        final List<ByteBuffer> payload = message.toNetworkByteBuffers();
+        final long payloadSize = payload.stream().map( Buffer::capacity ).reduce(0,( sum, v) -> sum += v);
+
+        CasualNWMessageHeader header = CasualNWMessageHeader.createBuilder()
+                .setCorrelationId(getCorrelationId())
+                .setType(getType())
+                .setPayloadSize(payloadSize)
+                .build();
+        final List<ByteBuffer> completeMessage = new ArrayList<>();
+        completeMessage.add(header.toNetworkByteBuffer());
+        completeMessage.addAll(payload);
+        return completeMessage;
+
+    }
+
     @Override
     public UUID getCorrelationId()
     {

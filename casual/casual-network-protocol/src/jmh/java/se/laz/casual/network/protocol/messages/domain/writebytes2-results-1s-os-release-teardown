@@ -1,0 +1,542 @@
+4:21:04 PM: Executing ':casual:casual-network-protocol:se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.main()'…
+
+> Task :casual:casual-fielded-annotations:compileJava UP-TO-DATE
+> Task :casual:casual-fielded-annotations:compileGroovy NO-SOURCE
+> Task :casual:casual-fielded-annotations:processResources NO-SOURCE
+> Task :casual:casual-fielded-annotations:classes UP-TO-DATE
+> Task :casual:casual-fielded-annotations:jar UP-TO-DATE
+> Task :casual:casual-api:compileJava UP-TO-DATE
+> Task :casual:casual-api:compileGroovy NO-SOURCE
+> Task :casual:casual-api:processResources UP-TO-DATE
+> Task :casual:casual-api:classes UP-TO-DATE
+> Task :casual:casual-api:jar UP-TO-DATE
+> Task :casual:casual-event-api:compileJava UP-TO-DATE
+> Task :casual:casual-event-api:compileGroovy NO-SOURCE
+> Task :casual:casual-event-api:processResources UP-TO-DATE
+> Task :casual:casual-event-api:classes UP-TO-DATE
+> Task :casual:casual-event-api:jar UP-TO-DATE
+> Task :casual:casual-inbound-handler-api:compileJava UP-TO-DATE
+> Task :casual:casual-inbound-handler-api:compileGroovy NO-SOURCE
+> Task :casual:casual-inbound-handler-api:processResources UP-TO-DATE
+> Task :casual:casual-inbound-handler-api:classes UP-TO-DATE
+> Task :casual:casual-inbound-handler-api:jar UP-TO-DATE
+> Task :casual:casual-network-protocol:compileJava UP-TO-DATE
+> Task :casual:casual-network-protocol:compileGroovy NO-SOURCE
+> Task :casual:casual-network-protocol:processResources NO-SOURCE
+> Task :casual:casual-network-protocol:classes UP-TO-DATE
+> Task :casual:casual-network-protocol:jar UP-TO-DATE
+> Task :casual:casual-inbound-api:compileJava UP-TO-DATE
+> Task :casual:casual-inbound-api:compileGroovy NO-SOURCE
+> Task :casual:casual-inbound-api:processResources NO-SOURCE
+> Task :casual:casual-inbound-api:classes UP-TO-DATE
+> Task :casual:casual-inbound-api:jar UP-TO-DATE
+> Task :casual:casual-internal:compileJava UP-TO-DATE
+> Task :casual:casual-internal:compileGroovy NO-SOURCE
+> Task :casual:casual-internal:processResources NO-SOURCE
+> Task :casual:casual-internal:classes UP-TO-DATE
+> Task :casual:casual-internal:jar UP-TO-DATE
+> Task :casual:casual-network:compileJava UP-TO-DATE
+> Task :casual:casual-network:compileGroovy NO-SOURCE
+> Task :casual:casual-network:processResources NO-SOURCE
+> Task :casual:casual-network:classes UP-TO-DATE
+> Task :casual:casual-network:jar UP-TO-DATE
+> Task :casual:casual-network-protocol:compileTestJava NO-SOURCE
+> Task :casual:casual-network-protocol:compileTestGroovy UP-TO-DATE
+> Task :casual:casual-network-protocol:processTestResources UP-TO-DATE
+> Task :casual:casual-network-protocol:testClasses UP-TO-DATE
+> Task :casual:casual-network-protocol:compileJmhJava
+> Task :casual:casual-network-protocol:compileJmhGroovy NO-SOURCE
+> Task :casual:casual-network-protocol:processJmhResources NO-SOURCE
+> Task :casual:casual-network-protocol:jmhClasses
+
+> Task :casual:casual-network-protocol:se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.main()
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 1, size = 1024)
+
+# Run progress: 0.00% complete, ETA 00:01:45
+# Fork: 1 of 1
+# Warmup Iteration   1: 20258036.283 ops/s
+# Warmup Iteration   2: 21981425.647 ops/s
+Iteration   1: 22381536.123 ops/s
+Iteration   2: 22825935.715 ops/s
+Iteration   3: 22378036.401 ops/s
+Iteration   4: 22877708.437 ops/s
+Iteration   5: 22592241.809 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  22611091.697 ±(99.9%) 912465.085 ops/s [Average]
+  (min, avg, max) = (22378036.401, 22611091.697, 22877708.437), stdev = 236964.285
+  CI (99.9%): [21698626.612, 23523556.781] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 1, size = 1024000)
+
+# Run progress: 6.67% complete, ETA 00:01:42
+# Fork: 1 of 1
+# Warmup Iteration   1: 20451.810 ops/s
+# Warmup Iteration   2: 22919.179 ops/s
+Iteration   1: 22143.406 ops/s
+Iteration   2: 22808.988 ops/s
+Iteration   3: 22597.210 ops/s
+Iteration   4: 22687.395 ops/s
+Iteration   5: 22864.460 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  22620.292 ±(99.9%) 1102.119 ops/s [Average]
+  (min, avg, max) = (22143.406, 22620.292, 22864.460), stdev = 286.217
+  CI (99.9%): [21518.173, 23722.411] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 1, size = 10240000)
+
+# Run progress: 13.33% complete, ETA 00:01:34
+# Fork: 1 of 1
+# Warmup Iteration   1: 937.522 ops/s
+# Warmup Iteration   2: 1034.165 ops/s
+Iteration   1: 1052.868 ops/s
+Iteration   2: 972.388 ops/s
+Iteration   3: 1033.815 ops/s
+Iteration   4: 998.809 ops/s
+Iteration   5: 1067.994 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  1025.175 ±(99.9%) 151.069 ops/s [Average]
+  (min, avg, max) = (972.388, 1025.175, 1067.994), stdev = 39.232
+  CI (99.9%): [874.106, 1176.243] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 2, size = 1024)
+
+# Run progress: 20.00% complete, ETA 00:01:27
+# Fork: 1 of 1
+# Warmup Iteration   1: 16217677.982 ops/s
+# Warmup Iteration   2: 19078163.878 ops/s
+Iteration   1: 19367824.563 ops/s
+Iteration   2: 19517402.031 ops/s
+Iteration   3: 19534986.355 ops/s
+Iteration   4: 20178018.080 ops/s
+Iteration   5: 19278211.671 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  19575288.540 ±(99.9%) 1360800.866 ops/s [Average]
+  (min, avg, max) = (19278211.671, 19575288.540, 20178018.080), stdev = 353395.664
+  CI (99.9%): [18214487.674, 20936089.406] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 2, size = 1024000)
+
+# Run progress: 26.67% complete, ETA 00:01:20
+# Fork: 1 of 1
+# Warmup Iteration   1: 21852.323 ops/s
+# Warmup Iteration   2: 22522.716 ops/s
+Iteration   1: 23541.731 ops/s
+Iteration   2: 23369.587 ops/s
+Iteration   3: 24156.334 ops/s
+Iteration   4: 23095.058 ops/s
+Iteration   5: 22884.865 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  23409.515 ±(99.9%) 1877.514 ops/s [Average]
+  (min, avg, max) = (22884.865, 23409.515, 24156.334), stdev = 487.584
+  CI (99.9%): [21532.001, 25287.028] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 2, size = 10240000)
+
+# Run progress: 33.33% complete, ETA 00:01:12
+# Fork: 1 of 1
+# Warmup Iteration   1: 1011.998 ops/s
+# Warmup Iteration   2: 1056.251 ops/s
+Iteration   1: 1056.145 ops/s
+Iteration   2: 1052.894 ops/s
+Iteration   3: 1013.177 ops/s
+Iteration   4: 1046.852 ops/s
+Iteration   5: 1040.229 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  1041.859 ±(99.9%) 66.027 ops/s [Average]
+  (min, avg, max) = (1013.177, 1041.859, 1056.145), stdev = 17.147
+  CI (99.9%): [975.832, 1107.886] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 4, size = 1024)
+
+# Run progress: 40.00% complete, ETA 00:01:05
+# Fork: 1 of 1
+# Warmup Iteration   1: 12919747.001 ops/s
+# Warmup Iteration   2: 14144767.434 ops/s
+Iteration   1: 13744592.675 ops/s
+Iteration   2: 13851298.956 ops/s
+Iteration   3: 14917144.521 ops/s
+Iteration   4: 15289886.999 ops/s
+Iteration   5: 14560536.875 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  14472692.005 ±(99.9%) 2575416.175 ops/s [Average]
+  (min, avg, max) = (13744592.675, 14472692.005, 15289886.999), stdev = 668827.402
+  CI (99.9%): [11897275.831, 17048108.180] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 4, size = 1024000)
+
+# Run progress: 46.67% complete, ETA 00:00:58
+# Fork: 1 of 1
+# Warmup Iteration   1: 20858.843 ops/s
+# Warmup Iteration   2: 22307.731 ops/s
+Iteration   1: 22628.540 ops/s
+Iteration   2: 22417.875 ops/s
+Iteration   3: 22709.407 ops/s
+Iteration   4: 23094.033 ops/s
+Iteration   5: 23426.396 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  22855.250 ±(99.9%) 1548.885 ops/s [Average]
+  (min, avg, max) = (22417.875, 22855.250, 23426.396), stdev = 402.240
+  CI (99.9%): [21306.365, 24404.135] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 4, size = 10240000)
+
+# Run progress: 53.33% complete, ETA 00:00:50
+# Fork: 1 of 1
+# Warmup Iteration   1: 962.249 ops/s
+# Warmup Iteration   2: 1045.730 ops/s
+Iteration   1: 1043.575 ops/s
+Iteration   2: 1029.324 ops/s
+Iteration   3: 1037.632 ops/s
+Iteration   4: 1042.727 ops/s
+Iteration   5: 1041.666 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  1038.985 ±(99.9%) 22.570 ops/s [Average]
+  (min, avg, max) = (1029.324, 1038.985, 1043.575), stdev = 5.861
+  CI (99.9%): [1016.415, 1061.555] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 8, size = 1024)
+
+# Run progress: 60.00% complete, ETA 00:00:43
+# Fork: 1 of 1
+# Warmup Iteration   1: 9232260.149 ops/s
+# Warmup Iteration   2: 9529903.841 ops/s
+Iteration   1: 9419669.879 ops/s
+Iteration   2: 10160466.254 ops/s
+Iteration   3: 9680328.191 ops/s
+Iteration   4: 9370479.775 ops/s
+Iteration   5: 9070308.230 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  9540250.466 ±(99.9%) 1574175.150 ops/s [Average]
+  (min, avg, max) = (9070308.230, 9540250.466, 10160466.254), stdev = 408808.287
+  CI (99.9%): [7966075.316, 11114425.615] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 8, size = 1024000)
+
+# Run progress: 66.67% complete, ETA 00:00:36
+# Fork: 1 of 1
+# Warmup Iteration   1: 22046.593 ops/s
+# Warmup Iteration   2: 22718.522 ops/s
+Iteration   1: 23010.796 ops/s
+Iteration   2: 23061.219 ops/s
+Iteration   3: 22640.370 ops/s
+Iteration   4: 18426.833 ops/s
+Iteration   5: 22490.914 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  21926.027 ±(99.9%) 7589.560 ops/s [Average]
+  (min, avg, max) = (18426.833, 21926.027, 23061.219), stdev = 1970.985
+  CI (99.9%): [14336.466, 29515.587] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 8, size = 10240000)
+
+# Run progress: 73.33% complete, ETA 00:00:29
+# Fork: 1 of 1
+# Warmup Iteration   1: 1030.964 ops/s
+# Warmup Iteration   2: 1047.060 ops/s
+Iteration   1: 821.305 ops/s
+Iteration   2: 994.181 ops/s
+Iteration   3: 988.634 ops/s
+Iteration   4: 1011.631 ops/s
+Iteration   5: 1002.075 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  963.565 ±(99.9%) 308.033 ops/s [Average]
+  (min, avg, max) = (821.305, 963.565, 1011.631), stdev = 79.995
+  CI (99.9%): [655.532, 1271.598] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 16, size = 1024)
+
+# Run progress: 80.00% complete, ETA 00:00:21
+# Fork: 1 of 1
+# Warmup Iteration   1: 5236435.315 ops/s
+# Warmup Iteration   2: 5733069.413 ops/s
+Iteration   1: 5512394.619 ops/s
+Iteration   2: 5400298.932 ops/s
+Iteration   3: 5717921.664 ops/s
+Iteration   4: 5155430.839 ops/s
+Iteration   5: 5837294.412 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  5524668.093 ±(99.9%) 1031506.644 ops/s [Average]
+  (min, avg, max) = (5155430.839, 5524668.093, 5837294.412), stdev = 267879.000
+  CI (99.9%): [4493161.449, 6556174.738] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 16, size = 1024000)
+
+# Run progress: 86.67% complete, ETA 00:00:14
+# Fork: 1 of 1
+# Warmup Iteration   1: 21265.268 ops/s
+# Warmup Iteration   2: 17665.868 ops/s
+Iteration   1: 21539.968 ops/s
+Iteration   2: 21097.106 ops/s
+Iteration   3: 22392.929 ops/s
+Iteration   4: 22229.148 ops/s
+Iteration   5: 22225.311 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  21896.892 ±(99.9%) 2136.463 ops/s [Average]
+  (min, avg, max) = (21097.106, 21896.892, 22392.929), stdev = 554.833
+  CI (99.9%): [19760.429, 24033.356] (assumes normal distribution)
+
+
+# JMH version: 1.36
+# VM version: JDK 17.0.18, OpenJDK 64-Bit Server VM, 17.0.18+8-Ubuntu-124.04.1
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 1 s each
+# Measurement: 5 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl
+# Parameters: (count = 16, size = 10240000)
+
+# Run progress: 93.33% complete, ETA 00:00:07
+# Fork: 1 of 1
+# Warmup Iteration   1: 1002.550 ops/s
+# Warmup Iteration   2: 977.220 ops/s
+Iteration   1: 978.615 ops/s
+Iteration   2: 1005.207 ops/s
+Iteration   3: 1001.894 ops/s
+Iteration   4: 1014.290 ops/s
+Iteration   5: 981.707 ops/s
+
+
+Result "se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.singleImpl":
+  996.343 ±(99.9%) 59.653 ops/s [Average]
+  (min, avg, max) = (978.615, 996.343, 1014.290), stdev = 15.492
+  CI (99.9%): [936.690, 1055.995] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:01:49
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+NOTE: Current JVM experimentally supports Compiler Blackholes, and they are in use. Please exercise
+extra caution when trusting the results, look into the generated code to check the benchmark still
+works, and factor in a small probability of new VM bugs. Additionally, while comparisons between
+different JVMs are already problematic, the performance difference caused by different Blackhole
+modes can be very significant. Please make sure you use the consistent Blackhole mode for comparisons.
+
+Benchmark                    (count)    (size)   Mode  Cnt         Score         Error  Units
+WriteBytes2Tests.singleImpl        1      1024  thrpt    5  22611091.697 ±  912465.085  ops/s
+WriteBytes2Tests.singleImpl        1   1024000  thrpt    5     22620.292 ±    1102.119  ops/s
+WriteBytes2Tests.singleImpl        1  10240000  thrpt    5      1025.175 ±     151.069  ops/s
+WriteBytes2Tests.singleImpl        2      1024  thrpt    5  19575288.540 ± 1360800.866  ops/s
+WriteBytes2Tests.singleImpl        2   1024000  thrpt    5     23409.515 ±    1877.514  ops/s
+WriteBytes2Tests.singleImpl        2  10240000  thrpt    5      1041.859 ±      66.027  ops/s
+WriteBytes2Tests.singleImpl        4      1024  thrpt    5  14472692.005 ± 2575416.175  ops/s
+WriteBytes2Tests.singleImpl        4   1024000  thrpt    5     22855.250 ±    1548.885  ops/s
+WriteBytes2Tests.singleImpl        4  10240000  thrpt    5      1038.985 ±      22.570  ops/s
+WriteBytes2Tests.singleImpl        8      1024  thrpt    5   9540250.466 ± 1574175.150  ops/s
+WriteBytes2Tests.singleImpl        8   1024000  thrpt    5     21926.027 ±    7589.560  ops/s
+WriteBytes2Tests.singleImpl        8  10240000  thrpt    5       963.565 ±     308.033  ops/s
+WriteBytes2Tests.singleImpl       16      1024  thrpt    5   5524668.093 ± 1031506.644  ops/s
+WriteBytes2Tests.singleImpl       16   1024000  thrpt    5     21896.892 ±    2136.463  ops/s
+WriteBytes2Tests.singleImpl       16  10240000  thrpt    5       996.343 ±      59.653  ops/s
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.6/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 51s
+23 actionable tasks: 2 executed, 21 up-to-date
+4:22:56 PM: Execution finished ':casual:casual-network-protocol:se.laz.casual.network.protocol.messages.domain.WriteBytes2Tests.main()'.

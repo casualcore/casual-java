@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -56,11 +56,16 @@ public final class CasualNWMessageHeader
 
     public byte[] toNetworkBytes()
     {
+        return toNetworkByteBuffer().array();
+    }
+
+    public ByteBuffer toNetworkByteBuffer()
+    {
         final ByteBuffer byteBuffer = ByteBuffer.allocate(MessageHeaderSizes.getHeaderNetworkSize());
         return byteBuffer.putLong(CasualNWMessageType.marshal(type))
-                  .putLong(correlationId.getMostSignificantBits())
-                  .putLong(correlationId.getLeastSignificantBits())
-                  .putLong(payloadSize).array();
+                .putLong(correlationId.getMostSignificantBits())
+                .putLong(correlationId.getLeastSignificantBits())
+                .putLong(payloadSize);
     }
 
 

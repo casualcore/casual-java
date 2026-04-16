@@ -65,7 +65,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private DomainDisconnectHandler domainDisconnectHandler;
     private DomainDiscoveryTopologyChangedHandler domainDiscoveryTopologyChangedHandler;
 
-    private NettyNetworkConnection(BaseConnectionInformation ci,
+    public NettyNetworkConnection(BaseConnectionInformation ci,
                                    Correlator correlator,
                                    Channel channel,
                                    ConversationMessageStorage conversationMessageStorage,

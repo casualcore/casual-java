@@ -6,6 +6,7 @@
 
 package se.laz.casual.api.network.protocol.messages;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
@@ -16,4 +17,8 @@ public interface CasualNetworkTransmittable
 {
     CasualNWMessageType getType();
     List<byte[]> toNetworkBytes();
+    default List<ByteBuffer> toNetworkByteBuffers()
+    {
+        return toNetworkBytes().stream().map( ByteBuffer::wrap ).toList();
+    }
 }

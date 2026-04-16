@@ -74,8 +74,52 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         {
             messageSize += XIDUtils.getXIDNetworkSize(xid);
         }
-        return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceBytes)
-                                                    : toNetworkBytesMultipleBuffers(serviceBuffer);
+
+        return switch( this.mode )
+        {
+            case MULTI_ORIGINAL -> toNetworkBytesMultipleBuffers( serviceBuffer );
+            case MULTI_NEW -> toNetworkBytesNew( (int)messageSize, serviceBytes );
+            default -> toNetworkBytesFitsInOneBuffer( (int)messageSize, serviceBytes );
+        };
+//        return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceBytes)
+//                                                    : toNetworkBytesMultipleBuffers(serviceBuffer);
+    }
+
+    @Override
+    public List<ByteBuffer> toNetworkByteBuffers()
+    {
+        //System.out.println( "inside" );
+        final List<ByteBuffer> serviceBytes = serviceBuffer.toNetworkByteBuffer();
+
+        long messageSize = ServiceCallReplySizes.EXECUTION.getNetworkSize() +
+                ServiceCallReplySizes.CALL_ERROR.getNetworkSize() + ServiceCallReplySizes.CALL_CODE.getNetworkSize() +
+                ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize() +
+                ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize()
+            + ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize();
+        if(protocolVersion.isLessThan( VERSION_1_3 ) )
+        {
+            messageSize += XIDUtils.getXIDNetworkSize(xid);
+        }
+
+        return switch( this.mode )
+        {
+            case MULTI_NEW -> toNetworkByteBuffersNew( (int) messageSize, serviceBytes );
+            default -> toNetworkBytes().stream().map( ByteBuffer::wrap ).toList();
+        };
+
+    }
+
+    public enum Mode
+    {
+        SINGLE,
+        MULTI_ORIGINAL,
+        MULTI_NEW
+    }
+    private Mode mode = Mode.SINGLE;
+
+    public void setMode( CasualServiceCallReplyMessage.Mode mode )
+    {
+        this.mode = mode;
     }
 
     public UUID getExecution()
@@ -236,6 +280,70 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             msg.serviceBuffer = serviceBuffer;
             return msg;
         }
+    }
+
+    private List<ByteBuffer> toNetworkByteBuffersNew( int messageSize, List<ByteBuffer> serviceBytes )
+    {
+        //System.out.println( "inside deeper" );
+        List<ByteBuffer> l = new ArrayList<>();
+        ByteBuffer b = ByteBuffer.allocate( messageSize  );
+        //System.out.println( "buffer index: " + b.position() +" : " + b.limit() + " : " + b.capacity() );
+        CasualEncoderUtils.writeUUID(execution, b);
+        b.putInt(error.getValue())
+                .putLong(userDefinedCode);
+        if(protocolVersion.isLessThan( VERSION_1_3 ) )
+        {
+            CasualEncoderUtils.writeXID(xid, b);
+        }
+        b.put((byte) (transactionState.getId() & 0xff));
+        //System.out.println( "buffer index: " + b.position() +" : " + b.limit() + " : " + b.capacity() );
+        if (serviceBytes.isEmpty())
+        {
+            b.putLong(0);
+        }
+        else
+        {
+            b.putLong(serviceBytes.get(0).capacity() )
+                    .put(serviceBytes.get(0));
+            serviceBytes.remove(0);
+        }
+        //System.out.println( "buffer index: " + b.position() +" : " + b.limit() + " : " + b.capacity() );
+
+        b.putLong(serviceBytes.get(0).capacity());
+        //System.out.println( "b capacity: " + b.capacity() );
+        l.add( b );
+        l.addAll( serviceBytes );
+        //System.out.println( "size inside: " + l.size() );
+        return l;
+    }
+
+    private List<byte[]> toNetworkBytesNew( int messageSize, List<byte[]> serviceBytes )
+    {
+        List<byte[]> l = new ArrayList<>();
+        ByteBuffer b = ByteBuffer.allocate(messageSize-serviceBytes.get(1).length);
+        CasualEncoderUtils.writeUUID(execution, b);
+        b.putInt(error.getValue())
+                .putLong(userDefinedCode);
+        if(protocolVersion.isLessThan( VERSION_1_3 ) )
+        {
+            CasualEncoderUtils.writeXID(xid, b);
+        }
+        b.put((byte) (transactionState.getId() & 0xff));
+        if (serviceBytes.isEmpty())
+        {
+            b.putLong(0);
+        }
+        else
+        {
+            b.putLong(serviceBytes.get(0).length)
+            .put(serviceBytes.get(0));
+            serviceBytes.remove(0);
+        }
+        final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
+        b.putLong(payloadSize);
+        l.add(b.array());
+        l.addAll( serviceBytes );
+        return l;
     }
 
     private List<byte[]> toNetworkBytesFitsInOneBuffer(int messageSize, List<byte[]> serviceBytes)

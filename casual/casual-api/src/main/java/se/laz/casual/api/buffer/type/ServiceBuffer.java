@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -14,6 +14,7 @@ import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -126,6 +127,20 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
         final List<byte[]> r = new ArrayList<>();
         r.add(typeBytes);
         r.addAll(getPayload());
+        return r;
+    }
+
+    private List<ByteBuffer> getPayloadAsByteBuffer()
+    {
+        return payload.stream().map( ByteBuffer::wrap ).toList();
+    }
+
+    public List<ByteBuffer> toNetworkByteBuffer()
+    {
+        List<ByteBuffer> r = new ArrayList<>();
+        final ByteBuffer typeBuffer = ByteBuffer.wrap( type.getBytes( StandardCharsets.UTF_8 ) );
+        r.add( typeBuffer );
+        r.addAll( getPayloadAsByteBuffer() );
         return r;
     }
 

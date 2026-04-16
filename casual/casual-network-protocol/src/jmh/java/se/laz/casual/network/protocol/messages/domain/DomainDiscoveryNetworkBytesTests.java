@@ -16,6 +16,10 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.messages.domain.TransactionType;
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder;
@@ -25,12 +29,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
-public class NetworkBytesTests
+public class DomainDiscoveryNetworkBytesTests
 {
+    public static void main(String[] args) throws RunnerException
+    {
+        Options opt = new OptionsBuilder()
+                .include( DomainDiscoveryNetworkBytesTests.class.getSimpleName())
+                .forks(1)
+                .build();
+
+        new Runner(opt).run();
+    }
+
     @State( Scope.Benchmark )
     public static class ExecutionPlan
     {
@@ -38,8 +52,8 @@ public class NetworkBytesTests
         UUID domainId = UUID.randomUUID();
         String domainName = "my test domain";
 
-        List<String> serviceNames = Arrays.asList( "testService", "anotherService" );
-        List<String> queueNames = Arrays.asList( "testQueue", "anotherQueue" );
+        List<String> serviceNames = IntStream.range( 1,100 ).mapToObj( i -> "test-service-" + i ).toList();
+        List<String> queueNames = IntStream.range( 1,100 ).mapToObj( i-> "test-queue-" + i ).toList();
 
         List<Service> services = serviceNames.stream().map( it -> Service.of( it, "test", TransactionType.AUTOMATIC ) ).toList();
         List<Queue> queues = queueNames.stream().map( it -> Queue.createBuilder().withName( it ).withProtocolVersion( ProtocolVersion.VERSION_1_4 ).build() ).toList();
@@ -55,10 +69,14 @@ public class NetworkBytesTests
             return m;
         }
 
-        @Param( {"single","multi-original","multi-new"})
+        @Param( {"single",
+                //"multi-original",
+                "multi-new"})
         public String mode;
 
-        @Param( {"toNetworkBytes","WriteableChannel","Unpooled.buffer()"} )
+        @Param( {"toNetworkBytes",
+                //"WriteableChannel",
+                "Unpooled.buffer()"} )
         public String test;
 
     }
@@ -66,7 +84,7 @@ public class NetworkBytesTests
     @Benchmark
     @Fork( value = 1, warmups = 0 )
     @Warmup( iterations = 2 )
-    @BenchmarkMode( {Mode.AverageTime, Mode.Throughput} )
+    @BenchmarkMode( {Mode.Throughput} )
     public void singleImpl( ExecutionPlan plan )
     {
         setMode( plan.message, plan.mode );
