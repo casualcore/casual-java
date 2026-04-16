@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -15,12 +15,9 @@ import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.EnqueueRequestSizes;
 import se.laz.casual.network.protocol.messages.queue.CasualEnqueueRequestMessage;
 import se.laz.casual.network.protocol.messages.queue.EnqueueMessage;
-import se.laz.casual.network.protocol.utils.ByteUtils;
-import se.laz.casual.network.protocol.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -32,28 +29,6 @@ public class CasualEnqueueRequestMessageDecoder implements NetworkDecoder<Casual
     public static CasualEnqueueRequestMessageDecoder of()
     {
         return new CasualEnqueueRequestMessageDecoder();
-    }
-
-    @Override
-    public CasualEnqueueRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
-    }
-
-    @Override
-    public CasualEnqueueRequestMessage readChunked(final ReadableByteChannel channel)
-    {
-        UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        int queueNameSize = (int) ByteUtils.readFully(channel, EnqueueRequestSizes.NAME_SIZE.getNetworkSize()).getLong();
-        String queueName = CasualMessageDecoderUtils.readString(channel, queueNameSize);
-        Xid xid = XIDUtils.readXid(channel);
-        return CasualEnqueueRequestMessage.createBuilder()
-                                          .withExecution(execution)
-                                          .withQueueName(queueName)
-                                          .withXid(xid)
-                                          .withMessage(readEnqueueMessage(channel))
-                                          .build();
     }
 
     @Override
@@ -82,24 +57,6 @@ public class CasualEnqueueRequestMessageDecoder implements NetworkDecoder<Casual
                                           .withXid(xid)
                                           .withMessage(msg)
                                           .build();
-    }
-
-    private static EnqueueMessage readEnqueueMessage(final ReadableByteChannel channel)
-    {
-        UUID msgId = CasualMessageDecoderUtils.readUUID(channel);
-        int propertiesSize = (int) ByteUtils.readFully(channel, EnqueueRequestSizes.MESSAGE_PROPERTIES_SIZE.getNetworkSize()).getLong();
-        String properties = CasualMessageDecoderUtils.readString(channel, propertiesSize);
-        int replyDataSize = (int) ByteUtils.readFully(channel, EnqueueRequestSizes.MESSAGE_REPLY_SIZE.getNetworkSize()).getLong();
-        String replyData = CasualMessageDecoderUtils.readString(channel, replyDataSize);
-        long availableSinceEpoc = ByteUtils.readFully(channel, EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize()).getLong();
-        ServiceBuffer serviceBuffer = CasualMessageDecoderUtils.readServiceBuffer(channel, Integer.MAX_VALUE);
-        return EnqueueMessage.of(QueueMessage.createBuilder()
-                                             .withId(msgId)
-                                             .withCorrelationInformation(properties)
-                                             .withReplyQueue(replyData)
-                                             .withAvailableSince(availableSinceEpoc)
-                                             .withPayload(serviceBuffer)
-                                             .build());
     }
 
     private static EnqueueMessage readEnqueueMessage(final byte[] bytes, int offset)

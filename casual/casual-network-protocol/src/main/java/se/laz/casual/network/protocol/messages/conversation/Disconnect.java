@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,7 +9,7 @@ package se.laz.casual.network.protocol.messages.conversation;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
-import se.laz.casual.network.protocol.messages.parseinfo.ConversationDisconnectSizes;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -39,8 +39,7 @@ public class Disconnect implements CasualNetworkTransmittable
     @Override
     public List<byte[]> toNetworkBytes()
     {
-        final int messageSize = ConversationDisconnectSizes.EXECUTION.getNetworkSize() +
-                ConversationDisconnectSizes.EVENTS.getNetworkSize();
+        final int messageSize = CommonSizes.EXECUTION.getNetworkSize();
         return toNetworkBytes(messageSize);
     }
 

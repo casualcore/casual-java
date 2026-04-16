@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,19 +11,16 @@ package se.laz.casual.network.protocol.messages.parseinfo;
  */
 public enum DiscoveryReplySizes
 {
-    EXECUTION(16, 16),
     DOMAIN_ID(16, 16),
     DOMAIN_NAME_SIZE(8, 8),
     SERVICES_SIZE(8, 8),
     SERVICES_ELEMENT_NAME_SIZE(8, 8),
-    SERVICES_ELEMENT_NAME_DATA(128, 128),
     SERVICES_ELEMENT_CATEGORY_SIZE(8, 8),
     SERVICES_ELEMENT_TRANSACTION(2, 2),
     SERVICES_ELEMENT_TIMEOUT(8, 8),
     SERVICES_ELEMENT_HOPS(8, 8),
     QUEUES_SIZE(8, 8),
     QUEUES_ELEMENT_SIZE(8, 8),
-    QUEUES_ELEMENT_DATA(128, 128),
     QUEUES_ELEMENT_RETRIES(8, 8),
     QUEUES_ELEMENT_RETRY_DELAY(8, 8),
     QUEUES_ELEMENT_ENQUEUE_ENABLED(1, 1),

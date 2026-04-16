@@ -14,6 +14,7 @@ import se.laz.casual.api.xa.XID;
 import se.laz.casual.jca.SpanId;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationConnectRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 import se.laz.casual.network.protocol.utils.XIDUtils;
@@ -68,7 +69,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
         final byte[] serviceNameBytes = serviceName.getBytes(StandardCharsets.UTF_8);
         final byte[] parentNameBytes = parentName.getBytes(StandardCharsets.UTF_8);
         final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
-        long messageSize = ConversationConnectRequestSizes.EXECUTION.getNetworkSize() +
+        long messageSize = CommonSizes.EXECUTION.getNetworkSize() +
                 ConversationConnectRequestSizes.CALL_DESCRIPTOR.getNetworkSize() +
                 ConversationConnectRequestSizes.SERVICE_NAME_SIZE.getNetworkSize() + serviceNameBytes.length +
                 ConversationConnectRequestSizes.PARENT_NAME_SIZE.getNetworkSize() + parentNameBytes.length +

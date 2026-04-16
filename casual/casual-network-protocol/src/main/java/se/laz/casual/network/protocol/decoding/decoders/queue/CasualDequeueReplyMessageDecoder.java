@@ -17,10 +17,8 @@ import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DequeueReplySizes;
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueReplyMessage;
 import se.laz.casual.network.protocol.messages.queue.DequeueMessage;
-import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,82 +41,11 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
     }
 
     @Override
-    public CasualDequeueReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
-                ? getMessageProtocolVersionEqualOrGreaterToOneThree(b.array())
-        : getMessage(b.array());
-    }
-
-    @Override
-    public CasualDequeueReplyMessage readChunked(final ReadableByteChannel channel)
-    {
-        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
-        {
-            return readChunkedProtocolVersionGreaterOrEqualToOneThree(channel);
-        }
-        UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        int numberOfMessages = (int) ByteUtils.readFully(channel, DequeueReplySizes.NUMBER_OF_MESSAGES.getNetworkSize()).getLong();
-        List<DequeueMessage> l = new ArrayList<>();
-        for(int i = 0; i < numberOfMessages; ++i)
-        {
-            l.add(readDequeueMessage(channel));
-        }
-        return CasualDequeueReplyMessage.createBuilder()
-                                        .withProtocolVersion(protocolVersion)
-                                        .withExecution(execution)
-                                        .withMessages(l)
-                                        .build();
-    }
-
-    private CasualDequeueReplyMessage readChunkedProtocolVersionGreaterOrEqualToOneThree(final ReadableByteChannel channel)
-    {
-        UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        boolean hasValue = CasualMessageDecoderUtils.readByte(channel) > 0;
-        List<DequeueMessage> l = new ArrayList<>();
-        if(hasValue)
-        {
-            // There's only ever 1 message in v >= 1.3
-            l.add(readDequeueMessage(channel));
-        }
-        int code = ByteUtils.readFully(channel, CommonSizes.CALL_ERROR.getNetworkSize()).getInt();
-        return CasualDequeueReplyMessage.createBuilder()
-                                        .withProtocolVersion(protocolVersion)
-                                        .withExecution(execution)
-                                        .withMessages(l)
-                                        .withCode(QueueErrorCode.unmarshal(code))
-                                        .build();
-    }
-
-    @Override
     public CasualDequeueReplyMessage readSingleBuffer(byte[] data)
     {
         return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) ?
                 getMessageProtocolVersionEqualOrGreaterToOneThree(data)
                 : getMessage(data);
-    }
-
-    private static DequeueMessage readDequeueMessage(final ReadableByteChannel channel)
-    {
-        UUID msgId = CasualMessageDecoderUtils.readUUID(channel);
-        int propertiesSize = (int) ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_PROPERTIES_SIZE.getNetworkSize()).getLong();
-        String properties = CasualMessageDecoderUtils.readString(channel, propertiesSize);
-        int replyDataSize = (int) ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_REPLY_SIZE.getNetworkSize()).getLong();
-        String replyData = CasualMessageDecoderUtils.readString(channel, replyDataSize);
-        long availableSinceEpoc = ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_AVAILABLE_SINCE_EPOC.getNetworkSize()).getLong();
-        ServiceBuffer serviceBuffer = CasualMessageDecoderUtils.readServiceBuffer(channel, Integer.MAX_VALUE);
-        long redelivered = ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_REDELIVERED_COUNT.getNetworkSize()).getLong();
-        long timestampSinceEpoc = ByteUtils.readFully(channel, DequeueReplySizes.MESSAGE_TIMESTAMP_SINCE_EPOC.getNetworkSize()).getLong();
-        return DequeueMessage.of(QueueMessage.createBuilder()
-                                             .withId(msgId)
-                                             .withCorrelationInformation(properties)
-                                             .withReplyQueue(replyData)
-                                             .withAvailableSince(availableSinceEpoc)
-                                             .withTimestamp(timestampSinceEpoc)
-                                             .withRedelivered(redelivered)
-                                             .withPayload(serviceBuffer)
-                                             .build());
     }
 
     private static Pair<Integer, DequeueMessage> readDequeueMessage(final byte[] bytes, int offset)

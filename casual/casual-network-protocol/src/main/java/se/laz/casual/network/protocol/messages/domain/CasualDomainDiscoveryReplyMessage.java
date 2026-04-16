@@ -10,6 +10,7 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryReplySizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
@@ -125,7 +126,7 @@ public class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmitt
                                               .map(Queue::toNetworkBytes)
                                               .reduce(new ArrayList<>(), (s1, s2) -> { s1.addAll(s2); return s1;} );
 
-        final long messageSize = DiscoveryReplySizes.EXECUTION.getNetworkSize() + DiscoveryReplySizes.DOMAIN_ID.getNetworkSize() +
+        final long messageSize = CommonSizes.EXECUTION.getNetworkSize() + DiscoveryReplySizes.DOMAIN_ID.getNetworkSize() +
                                  DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize() + domainNameBytes.length +
                                  DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes) +
                                  DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(queueBytes);
@@ -153,7 +154,7 @@ public class CasualDomainDiscoveryReplyMessage implements CasualNetworkTransmitt
     private List<byte[]> toNetworkBytesMultipleBuffers(byte[] domainNameBytes, List<byte[]> serviceBytes, List<byte[]> queueBytes)
     {
         final List<byte[]> l = new ArrayList<>();
-        ByteBuffer executionBuffer = ByteBuffer.allocate(DiscoveryReplySizes.EXECUTION.getNetworkSize());
+        ByteBuffer executionBuffer = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize());
         CasualEncoderUtils.writeUUID(execution, executionBuffer);
         l.add(executionBuffer.array());
         ByteBuffer domainIdBuffer = ByteBuffer.allocate(DiscoveryReplySizes.DOMAIN_ID.getNetworkSize());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,6 +10,7 @@ import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.decoding.decoders.utils.DynamicArrayIndexPair;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
@@ -42,31 +43,6 @@ public final class CasualDomainDiscoveryRequestMessageDecoder implements Network
     }
 
     @Override
-    public CasualDomainDiscoveryRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
-    }
-
-    @Override
-    public CasualDomainDiscoveryRequestMessage readChunked(final ReadableByteChannel channel)
-    {
-        final UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        final UUID domainId = CasualMessageDecoderUtils.readUUID(channel);
-        final int domainNameSize = (int) ByteUtils.readFully(channel, DiscoveryRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize()).getLong();
-        final String domainName = CasualMessageDecoderUtils.readString(channel, domainNameSize);
-        final List<String> services = readServices(channel);
-        final List<String> queues = readQueues(channel);
-        return CasualDomainDiscoveryRequestMessage.createBuilder()
-                                                  .setExecution(execution)
-                                                  .setDomainId(domainId)
-                                                  .setDomainName(domainName)
-                                                  .setServiceNames(services)
-                                                  .setQueueNames(queues)
-                                                  .build();
-    }
-
-    @Override
     public CasualDomainDiscoveryRequestMessage readSingleBuffer(byte[] data)
     {
         return getMessage(data);
@@ -75,8 +51,8 @@ public final class CasualDomainDiscoveryRequestMessageDecoder implements Network
     public static CasualDomainDiscoveryRequestMessage getMessage(final byte[] bytes)
     {
         int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, DiscoveryRequestSizes.EXECUTION.getNetworkSize()));
-        currentOffset +=  DiscoveryRequestSizes.EXECUTION.getNetworkSize();
+        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
+        currentOffset +=  CommonSizes.EXECUTION.getNetworkSize();
         final UUID domainId = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, currentOffset + DiscoveryRequestSizes.DOMAIN_ID.getNetworkSize()));
         currentOffset += DiscoveryRequestSizes.DOMAIN_ID.getNetworkSize();
         final int domainNameSize = (int)ByteBuffer.wrap(bytes, currentOffset , DiscoveryRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize()).getLong();

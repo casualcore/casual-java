@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,6 +9,7 @@ package se.laz.casual.network.protocol.messages.domain;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ConnectReplySizes;
 
 import java.nio.ByteBuffer;
@@ -43,7 +44,7 @@ public class CasualDomainConnectReplyMessage implements CasualNetworkTransmittab
     public List<byte[]> toNetworkBytes()
     {
         final byte[] domainNameBytes = domainName.getBytes(StandardCharsets.UTF_8);
-        int messageSize = ConnectReplySizes.EXECUTION.getNetworkSize() + ConnectReplySizes.DOMAIN_ID.getNetworkSize() +
+        int messageSize = CommonSizes.EXECUTION.getNetworkSize() + ConnectReplySizes.DOMAIN_ID.getNetworkSize() +
             ConnectReplySizes.DOMAIN_NAME_SIZE.getNetworkSize() + domainNameBytes.length +
             ConnectReplySizes.PROTOCOL_VERSION_SIZE.getNetworkSize();
         ByteBuffer b = ByteBuffer.allocate(messageSize);

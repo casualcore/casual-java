@@ -12,10 +12,8 @@ import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.queue.CasualEnqueueReplyMessage;
-import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -33,29 +31,6 @@ public class CasualEnqueueReplyMessageDecoder implements NetworkDecoder<CasualEn
     public static CasualEnqueueReplyMessageDecoder of(ProtocolVersion protocolVersion)
     {
         return new CasualEnqueueReplyMessageDecoder(protocolVersion);
-    }
-
-    @Override
-    public CasualEnqueueReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array(), protocolVersion);
-    }
-
-    @Override
-    public CasualEnqueueReplyMessage readChunked(final ReadableByteChannel channel)
-    {
-        UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        UUID id = CasualMessageDecoderUtils.readUUID(channel);
-        CasualEnqueueReplyMessage.Builder builder = CasualEnqueueReplyMessage.createBuilder()
-                                                                             .withExecution(execution)
-                                                                             .withId(id);
-        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
-        {
-            final int callError = ByteUtils.readFully(channel, CommonSizes.CALL_ERROR.getNetworkSize()).getInt();
-            builder.withCode(QueueErrorCode.unmarshal(callError));
-        }
-        return builder.build();
     }
 
     @Override

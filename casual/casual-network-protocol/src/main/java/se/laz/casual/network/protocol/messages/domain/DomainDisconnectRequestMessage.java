@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,7 +11,7 @@ import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
-import se.laz.casual.network.protocol.messages.parseinfo.DisconnectRequestSizes;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -50,18 +50,12 @@ public class DomainDisconnectRequestMessage implements CasualNetworkTransmittabl
     @Override
     public List<byte[]> toNetworkBytes()
     {
-        int messageSize = DisconnectRequestSizes.EXECUTION.getNetworkSize();
+        int messageSize = CommonSizes.EXECUTION.getNetworkSize();
         ByteBuffer b = ByteBuffer.allocate(messageSize);
         CasualEncoderUtils.writeUUID(execution, b);
         List<byte[]> l = new ArrayList<>();
         l.add(b.array());
         return l;
-    }
-
-    @Override
-    public List<ProtocolVersion> supportedProtocolVersions()
-    {
-        return SUPPORTED_VERSIONS;
     }
 
     @Override

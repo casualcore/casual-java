@@ -15,6 +15,7 @@ import se.laz.casual.network.protocol.decoding.decoders.utils.DynamicArrayIndexP
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.Queue;
 import se.laz.casual.network.protocol.messages.domain.Service;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryReplySizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
@@ -42,39 +43,6 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
     public static NetworkDecoder<CasualDomainDiscoveryReplyMessage> of(ProtocolVersion protocolVersion)
     {
         return new CasualDomainDiscoveryReplyMessageDecoder(protocolVersion);
-    }
-
-    @Override
-    public CasualDomainDiscoveryReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        return getMessage(ByteUtils.readFully(channel, messageSize).array());
-    }
-
-    @Override
-    public CasualDomainDiscoveryReplyMessage readChunked(final ReadableByteChannel channel)
-    {
-        final ByteBuffer executionBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.EXECUTION.getNetworkSize());
-        final ByteBuffer domainIdBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_ID.getNetworkSize());
-        final ByteBuffer domainNameSizeBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize());
-        final ByteBuffer domainNameBuffer = ByteUtils.readFully(channel, (int) domainNameSizeBuffer.getLong());
-        final ByteBuffer numberOfServicesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.SERVICES_SIZE.getNetworkSize());
-        final List<byte[]> services = new ArrayList<>();
-        final long numberOfServices = numberOfServicesBuffer.getLong();
-        for (int i = 0; i < numberOfServices; ++i)
-        {
-            services.addAll(readService(channel));
-        }
-        final ByteBuffer numberOfQueuesBuffer = ByteUtils.readFully(channel, DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize());
-        final List<byte[]> queues = new ArrayList<>();
-        final long numberOfQueues = numberOfQueuesBuffer.getLong();
-        for (int i = 0; i < numberOfQueues; ++i)
-        {
-            queues.addAll(readQueue(channel));
-        }
-        return getMessage(createMsg(executionBuffer.array(), domainIdBuffer.array(),
-                                     domainNameSizeBuffer.array(), domainNameBuffer.array(),
-                                     numberOfServicesBuffer.array(), services,
-                                     numberOfQueuesBuffer.array(), queues));
     }
 
     @Override
@@ -145,8 +113,8 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
     public CasualDomainDiscoveryReplyMessage getMessage(final byte[] bytes)
     {
         int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, DiscoveryReplySizes.EXECUTION.getNetworkSize()));
-        currentOffset +=  DiscoveryReplySizes.EXECUTION.getNetworkSize();
+        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
+        currentOffset +=  CommonSizes.EXECUTION.getNetworkSize();
         final UUID domainId = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, currentOffset + DiscoveryReplySizes.DOMAIN_ID.getNetworkSize()));
         currentOffset += DiscoveryReplySizes.DOMAIN_ID.getNetworkSize();
         final int domainNameSize = (int) ByteBuffer.wrap(bytes, currentOffset , DiscoveryReplySizes.DOMAIN_NAME_SIZE.getNetworkSize()).getLong();
