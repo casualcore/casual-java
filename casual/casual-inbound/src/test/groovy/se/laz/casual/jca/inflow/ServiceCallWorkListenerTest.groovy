@@ -1,13 +1,17 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.inflow
 
+import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
+import jakarta.resource.spi.work.Work
+import jakarta.resource.spi.work.WorkCompletedException
 import jakarta.resource.spi.work.WorkEvent
+import jakarta.resource.spi.work.WorkException
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
@@ -141,10 +145,151 @@ class ServiceCallWorkListenerTest extends Specification
       0 * channel.writeAndFlush(_ as CasualServiceCallReplyMessage)
    }
 
+    def "TPNOREPLY, WorkCompleted correct ErrorState is reported in ServiceCallEvent"(Boolean failedUnexpectedly, ErrorState expectedErrorState)
+    {
+        setup:
+        CasualServiceCallWork work = new CasualServiceCallWork(UUID.randomUUID(), request, true, ProtocolVersion.VERSION_1_2, SpanId.of())
+        work.workFailedUnexpectedly = failedUnexpectedly
+        WorkEvent event = new WorkEvent(this, WorkEvent.WORK_COMPLETED, work, null)
+        instance = new ServiceCallWorkListener(channel, request, true, SpanId.of(), ProtocolVersion.VERSION_1_2)
+        instance.setEventPublisher(serviceCallEventPublisher)
+        String receivedErrorCode = null;
+
+        when:
+        instance.workStarted(Mock(WorkEvent))
+        instance.workCompleted(event)
+
+        then:
+        1 * serviceCallEventPublisher.post(_ as ServiceCallEvent) >> { ServiceCallEvent serviceCallEvent ->
+            receivedErrorCode = serviceCallEvent.getCode()
+        }
+
+        receivedErrorCode == expectedErrorState.name()
+
+        where:
+        failedUnexpectedly | expectedErrorState
+        false              | ErrorState.OK
+        true               | ErrorState.TPESYSTEM
+    }
+
     Xid createXid()
     {
         String gid = Integer.toString( ThreadLocalRandom.current().nextInt() )
         String b = Integer.toString( ThreadLocalRandom.current().nextInt() )
         return XID.of(gid.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8), 0)
+    }
+
+    def "WorkCompleted with abnormal error, WorkEvent returns with an Exception and no reply"(ProtocolVersion protocolVersion)
+    {
+        given:
+        def channel = Mock(Channel)
+        def request = createRequestMessage(protocolVersion)
+
+        def event = new WorkEvent(this, WorkEvent.WORK_COMPLETED, new CasualServiceCallWork(UUID.randomUUID(), request, false, protocolVersion, SpanId.of()), new WorkCompletedException("work failed unexpectedly", WorkException.INTERNAL))
+        def workWithNullResponse = new CasualServiceCallWork(UUID.randomUUID(), request, false, protocolVersion, SpanId.of())
+        def listener = new ServiceCallWorkListener(channel, request, SpanId.of(), protocolVersion)
+        listener.setEventPublisher(serviceCallEventPublisher)
+        CasualNWMessage written = null
+        String receivedErrorCode = null
+
+        when:
+        listener.workStarted(event)
+        listener.workCompleted(event)
+
+        then:
+        1 * channel.writeAndFlush(_) >> { args ->
+            def msg = args[0]
+            if (msg instanceof CasualNWMessage)
+            {
+                written = (CasualNWMessage) msg
+            }
+            return null
+        }
+        1 * serviceCallEventPublisher.post(_) >> { args ->
+            ServiceCallEvent callEvent = (ServiceCallEvent) args[0]
+            receivedErrorCode = callEvent.getCode()
+        }
+        noExceptionThrown()
+        written != null
+        written.getMessage() instanceof CasualServiceCallReplyMessage
+        ErrorState.TPESYSTEM.name() == receivedErrorCode
+        workWithNullResponse.getResponse() == null
+
+        where:
+        protocolVersion | _
+        ProtocolVersion.VERSION_1_0 | _
+        ProtocolVersion.VERSION_1_1 | _
+        ProtocolVersion.VERSION_1_2 | _
+        ProtocolVersion.VERSION_1_3 | _
+        ProtocolVersion.VERSION_1_4 | _
+    }
+
+    def "WorkCompleted with normal casual error, WorkEvent returns without exception and with reply"(ProtocolVersion protocolVersion)
+    {
+        given:
+        def channel = Mock(Channel)
+        def request = createRequestMessage(protocolVersion)
+        def replyBuilder = CasualServiceCallReplyMessage.createBuilder()
+                .setExecution(request.getExecution())
+                .setProtocolVersion(protocolVersion)
+                .setServiceBuffer(null)
+                .setError(ErrorState.TPESVCERR)
+        if (protocolVersion.isLessThan(ProtocolVersion.VERSION_1_3))
+        {
+            replyBuilder.setXid(request.getXid())
+        }
+        def reply = replyBuilder.build()
+
+        def workWithResponse = new CasualServiceCallWork(UUID.randomUUID(), request, false, protocolVersion, SpanId.of())
+        workWithResponse.response = CasualNWMessageImpl.of(work.getCorrelationId(), reply)
+        def event = new WorkEvent(this, WorkEvent.WORK_COMPLETED, workWithResponse, new WorkCompletedException("work failed unexpectedly", WorkException.INTERNAL))
+        def listener = new ServiceCallWorkListener(channel, request, SpanId.of(), protocolVersion)
+        listener.setEventPublisher(serviceCallEventPublisher)
+        CasualNWMessage written = null
+        String receivedErrorCode = null
+
+        when:
+        listener.workStarted(event)
+        listener.workCompleted(event)
+
+        then:
+        workWithResponse.getResponse() != null
+        1 * channel.writeAndFlush(_) >> { args ->
+            def msg = args[0]
+            if (msg instanceof CasualNWMessage)
+            {
+                written = (CasualNWMessage) msg
+            }
+            return null
+        }
+        1 * serviceCallEventPublisher.post(_) >> { args ->
+            ServiceCallEvent callEvent = (ServiceCallEvent) args[0]
+            receivedErrorCode = callEvent.getCode()
+        }
+        noExceptionThrown()
+        written != null
+        written.getMessage() instanceof CasualServiceCallReplyMessage
+        ErrorState.TPESVCERR.name() == receivedErrorCode
+        workWithResponse.getResponse() != null
+
+        where:
+        protocolVersion | _
+        ProtocolVersion.VERSION_1_0 | _
+        ProtocolVersion.VERSION_1_1 | _
+        ProtocolVersion.VERSION_1_2 | _
+        ProtocolVersion.VERSION_1_3 | _
+        ProtocolVersion.VERSION_1_4 | _
+    }
+
+    private static CasualServiceCallRequestMessage createRequestMessage(ProtocolVersion protocolVersion)
+    {
+        return CasualServiceCallRequestMessage.createBuilder()
+                .setXid(XID.NULL_XID)
+                .setExecution(UUID.randomUUID())
+                .setParentName("some-parent")
+                .setServiceName("some-service")
+                .setParentSpan(SpanId.of())
+                .setProtocolVersion(protocolVersion)
+                .build()
     }
 }
