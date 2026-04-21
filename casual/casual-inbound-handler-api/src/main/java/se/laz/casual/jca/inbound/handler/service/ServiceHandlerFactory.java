@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -84,8 +84,8 @@ public final class ServiceHandlerFactory
         StringBuilder sb = new StringBuilder("service handlers in priority order descending:");
         for(ServiceHandler handler : handlers)
         {
-            sb.append("Handler: " + handler);
-            sb.append("Priority: " + handler.getPriority());
+            sb.append("Handler: " ).append( handler );
+            sb.append("Priority: ").append( handler.getPriority() );
         }
         return sb.toString();
     }

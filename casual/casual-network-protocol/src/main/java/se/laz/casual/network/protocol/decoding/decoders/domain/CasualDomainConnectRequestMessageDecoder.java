@@ -11,10 +11,8 @@ import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecod
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ConnectRequestSizes;
-import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,18 +32,6 @@ public final class CasualDomainConnectRequestMessageDecoder implements NetworkDe
     public CasualDomainConnectRequestMessage readSingleBuffer(byte[] data)
     {
         return getMessage(data);
-    }
-
-    private List<Long> readProtocols(final ReadableByteChannel channel)
-    {
-        long numberOfProtocols = ByteUtils.readFully(channel, ConnectRequestSizes.PROTOCOL_VERSION_SIZE.getNetworkSize()).getLong();
-        List<Long> l = new ArrayList<>();
-        for(; numberOfProtocols > 0; --numberOfProtocols)
-        {
-            Long version = ByteUtils.readFully(channel, ConnectRequestSizes.PROTOCOL_ELEMENT_SIZE.getNetworkSize()).getLong();
-            l.add(version);
-        }
-        return l;
     }
 
     private CasualDomainConnectRequestMessage getMessage(final byte[] bytes)

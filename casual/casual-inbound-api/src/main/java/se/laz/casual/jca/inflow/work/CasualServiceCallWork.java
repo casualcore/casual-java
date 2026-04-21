@@ -94,7 +94,8 @@ public final class CasualServiceCallWork implements Work
         }
     }
 
-    @SuppressWarnings("try")
+    // java:S1181 - Throwable caught so service calls don't stop the server.
+    @SuppressWarnings({"try","java:S1181"})
     private void issueCallNoReply()
     {
         try(InboundContextScope inboundContextScope = InboundContextScope.of(new InboundThreadContext(spanId, message.getServiceName(), message.getExecution())))
@@ -115,7 +116,8 @@ public final class CasualServiceCallWork implements Work
 
     // try with resources to transport information to potential outbound thread
     // autoclosable and is not used but needs to be there
-    @SuppressWarnings("try")
+    // java:S1181 - Throwable caught so service calls don't stop the server.
+    @SuppressWarnings({"try", "java:S1181"})
     private void issueCall()
     {
         CasualServiceCallReplyMessage.Builder replyBuilder = CasualServiceCallReplyMessage.createBuilder()

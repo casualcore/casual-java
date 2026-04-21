@@ -12,26 +12,15 @@ import se.laz.casual.network.protocol.decoding.decoders.utils.DynamicArrayIndexP
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryRequestSizes;
-import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 
 /**
  * Created by aleph on 2017-03-02.
  */
-/**
- * sonar hates lambdas...
- * It should pick up
- * sourceCompatibility = "1.8"
- * targetCompatibility = "1.8"
- * but it seems it does not
- **/
 public final class CasualDomainDiscoveryRequestMessageDecoder implements NetworkDecoder<CasualDomainDiscoveryRequestMessage>
 {
     private CasualDomainDiscoveryRequestMessageDecoder()
@@ -72,27 +61,4 @@ public final class CasualDomainDiscoveryRequestMessageDecoder implements Network
                                                   .setQueueNames(queueNames.getBytes())
                                                   .build();
     }
-
-    private static List<String> readQueues(final ReadableByteChannel channel)
-    {
-        final List<String> queues = new ArrayList<>();
-        final long numberOfQueues = ByteUtils.readFully(channel, DiscoveryRequestSizes.QUEUES_SIZE.getNetworkSize()).getLong();
-        for(int i = 0; i < numberOfQueues; ++i)
-        {
-            queues.add(CasualMessageDecoderUtils.readString(channel));
-        }
-        return queues;
-    }
-
-    private static List<String> readServices(final ReadableByteChannel channel)
-    {
-        final long numberOfServices = ByteUtils.readFully(channel, DiscoveryRequestSizes.SERVICES_SIZE.getNetworkSize()).getLong();
-        final List<String> services = new ArrayList<>();
-        for(int i = 0; i < numberOfServices; ++i)
-        {
-            services.add(CasualMessageDecoderUtils.readString(channel));
-        }
-        return services;
-    }
-
 }

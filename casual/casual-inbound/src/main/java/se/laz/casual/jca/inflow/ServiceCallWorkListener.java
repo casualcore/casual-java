@@ -20,8 +20,8 @@ import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.event.ServiceCallEventStoreFactory;
-import se.laz.casual.jca.SpanId;
 import se.laz.casual.jca.CasualResourceAdapterException;
+import se.laz.casual.jca.SpanId;
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
@@ -246,7 +246,7 @@ public class ServiceCallWorkListener implements WorkListener
         }
         else
         {
-            throw new RuntimeException("Response already sent to casual, there seems to be a logic error");
+            throw new CasualResourceAdapterException("Response already sent to casual, there seems to be a logic error");
         }
     }
 
