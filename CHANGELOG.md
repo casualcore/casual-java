@@ -1,6 +1,20 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.4.3] - 2026-04-20
+
+### fix: Error handling for inbound ([#203](https://github.com/casualcore/casual-java/issues/203))
+Fixes several possible inbound-issues where exceptions are thrown:
+- Service handler throws, make sure a correct error code is set ensuring
+that some error response is sent to casual.
+- CasualServiceCallWork::issueCall throws outside of try, now JCA work
+listener handles thrown exception.
+
+Both fixes add better error handling and ensure the callee casual domain
+does not hang waiting for a reply (at least until a timeout is reached).
+
+Refs: [#96](https://github.com/casualcore/casual-java/issues/96) [#101](https://github.com/casualcore/casual-java/issues/101)
+
 ## [3.4.2] - 2026-04-08
 
 ### feat: user defined code ([#202](https://github.com/casualcore/casual-java/issues/202))

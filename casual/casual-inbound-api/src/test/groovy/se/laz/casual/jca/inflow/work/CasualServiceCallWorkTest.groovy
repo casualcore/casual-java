@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -252,5 +252,51 @@ class CasualServiceCallWorkTest extends Specification
         CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
         then:
         reply.getMessage().getError() == ErrorState.TPENOENT
+    }
+
+    def "Call service where service handler throws an exception, returns result with TPESYSTEM status."()
+    {
+        given:
+        CasualServiceCallRequestMessage messageThrows = CasualServiceCallRequestMessage.createBuilder()
+                .setXid( XID.NULL_XID)
+                .setExecution(UUID.randomUUID())
+                .setServiceName( TestHandler.SERVICE_THROWS )
+                .setServiceBuffer( ServiceBuffer.of( "json",
+                        JsonBuffer.of(
+                                json )
+                                .getBytes() ) )
+                .setXatmiFlags( Flag.of())
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
+                .build()
+        instance = new CasualServiceCallWork(correlationId, messageThrows, false, ProtocolVersion.VERSION_1_2, SpanId.of())
+        when:
+        instance.run()
+        CasualNWMessage<CasualServiceCallReplyMessage> reply = instance.getResponse()
+        then:
+        reply.getMessage().getError() == ErrorState.TPESYSTEM
+    }
+
+    def "Call service with TPNOREPLY where service handler throws an exception, return result with TPESYSTEM status."()
+    {
+        given:
+        CasualServiceCallRequestMessage messageThrows = CasualServiceCallRequestMessage.createBuilder()
+                .setXid( XID.NULL_XID)
+                .setExecution(UUID.randomUUID())
+                .setServiceName( TestHandler.SERVICE_THROWS )
+                .setServiceBuffer( ServiceBuffer.of( "json",
+                        JsonBuffer.of(
+                                json )
+                                .getBytes() ) )
+                .setXatmiFlags( Flag.of())
+                .setProtocolVersion(ProtocolVersion.VERSION_1_2)
+                .build()
+
+        instance = new CasualServiceCallWork(correlationId, messageThrows, true, ProtocolVersion.VERSION_1_2, SpanId.of())
+
+        when:
+        instance.run()
+
+        then:
+        noExceptionThrown()
     }
 }

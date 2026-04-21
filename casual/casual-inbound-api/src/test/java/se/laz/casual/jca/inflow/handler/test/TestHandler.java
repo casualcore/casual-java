@@ -11,29 +11,36 @@ import se.laz.casual.jca.inbound.handler.InboundRequest;
 import se.laz.casual.jca.inbound.handler.InboundResponse;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
 
+import java.util.List;
+
 public class TestHandler implements ServiceHandler
 {
     public static final String SERVICE_1 = "testService1";
+    public static final String SERVICE_THROWS = "testServiceThrows";
+
+    private static final List<String> HANDLED_SERVICES = List.of(SERVICE_1, SERVICE_THROWS);
+    private static final List<String> AVAILABLE_SERVICES = List.of(SERVICE_THROWS);
 
     @Override
     public boolean canHandleService(String serviceName)
     {
-        if( serviceName.equals( SERVICE_1 ) )
-        {
-            return true;
-        }
-        return false;
+        return HANDLED_SERVICES.contains(serviceName);
     }
 
     @Override
     public boolean isServiceAvailable(String serviceName)
     {
-        return false;
+        return AVAILABLE_SERVICES.contains(serviceName);
     }
 
     @Override
     public InboundResponse invokeService(InboundRequest request)
     {
+        if (SERVICE_THROWS.equals(request.getServiceName()))
+        {
+            throw new RuntimeException("this service throws");
+        }
+
         return null;
     }
 
