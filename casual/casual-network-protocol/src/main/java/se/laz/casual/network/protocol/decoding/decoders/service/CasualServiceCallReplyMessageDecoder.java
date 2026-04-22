@@ -13,14 +13,12 @@ import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallReplySizes;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
-import se.laz.casual.network.protocol.utils.ByteUtils;
-import se.laz.casual.network.protocol.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -69,31 +67,6 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
     }
 
     @Override
-    public CasualServiceCallReplyMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        return createMessage(ByteUtils.readFully(channel, messageSize).array());
-    }
-
-    @Override
-    public CasualServiceCallReplyMessage readChunked(final ReadableByteChannel channel)
-    {
-        final UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        final int callError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_ERROR.getNetworkSize()).getInt();
-        final long userError = ByteUtils.readFully(channel, ServiceCallReplySizes.CALL_CODE.getNetworkSize()).getLong();
-        final Xid xid = XIDUtils.readXid(channel);
-        final int transactionState = ByteUtils.readFully(channel, ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize()).get();
-        final ServiceBuffer serviceBuffer = CasualMessageDecoderUtils.readServiceBuffer(channel, getMaxPayloadSingleBufferByteSize());
-        return CasualServiceCallReplyMessage.createBuilder()
-                                            .setExecution(execution)
-                                            .setError(ErrorState.unmarshal(callError))
-                                            .setUserSuppliedError(userError)
-                                            .setXid(xid)
-                                            .setTransactionState(TransactionState.unmarshal(transactionState))
-                                            .setServiceBuffer(serviceBuffer)
-                                            .build();
-    }
-
-    @Override
     public CasualServiceCallReplyMessage readSingleBuffer(byte[] data)
     {
         return createMessage(data);
@@ -102,8 +75,8 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
     private CasualServiceCallReplyMessage createMessage(final byte[] data)
     {
         int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ServiceCallReplySizes.EXECUTION.getNetworkSize()));
-        currentOffset += ServiceCallReplySizes.EXECUTION.getNetworkSize();
+        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
+        currentOffset += CommonSizes.EXECUTION.getNetworkSize();
 
         final ByteBuffer callErrorBuffer = ByteBuffer.wrap(data, currentOffset, ServiceCallReplySizes.CALL_ERROR.getNetworkSize());
         int callError = callErrorBuffer.getInt();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -13,7 +13,15 @@ buildscript {
 }
 
 plugins {
-  id "org.sonarqube" version "7.1.0.6387"
+  id "org.sonarqube" version "7.2.3.7755"
+}
+
+sonar {
+    properties {
+        properties["sonar.host.url"] = 'http://localhost:9000'
+        properties["sonar.verbose"] = "true"
+        properties['sonar.java.source'] = 17
+    }
 }
 
 apply from: 'testsourcesets.gradle'
@@ -41,14 +49,7 @@ allprojects{
   } 
 }
 
-subprojects{  
-  sonar {
-    properties {
-        properties["sonar.host.url"] = 'http://localhost:9000'
-        properties["sonar.verbose"] = "true"
-        properties['sonar.java.source'] = 17
-     }
-  }
+subprojects{
   apply plugin: 'jacoco'
   apply from: "$rootProject.projectDir/versions.gradle"
   apply plugin: 'java-library'

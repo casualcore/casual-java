@@ -12,6 +12,7 @@ import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolExcep
 import se.laz.casual.api.queue.QueueErrorCode;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DequeueReplySizes;
 
 import java.nio.ByteBuffer;
@@ -55,7 +56,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
 
     private List<byte[]> toNetworkBytesProtocolVersionLessThanOneThree()
     {
-        ByteBuffer partialContent = ByteBuffer.allocate(DequeueReplySizes.EXECUTION.getNetworkSize() + DequeueReplySizes.NUMBER_OF_MESSAGES.getNetworkSize());
+        ByteBuffer partialContent = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize() + DequeueReplySizes.NUMBER_OF_MESSAGES.getNetworkSize());
         CasualEncoderUtils.writeUUID(execution, partialContent);
         partialContent.putLong(messages.size());
         List<byte[]> l = new ArrayList<>();
@@ -71,7 +72,7 @@ public class CasualDequeueReplyMessage implements CasualNetworkTransmittable
     {
         // note: can only carry one message as opposed to protocol version < 1.3 where
         // it can contain n number of messages
-        ByteBuffer partialContent = ByteBuffer.allocate(DequeueReplySizes.EXECUTION.getNetworkSize());
+        ByteBuffer partialContent = ByteBuffer.allocate( CommonSizes.EXECUTION.getNetworkSize());
         CasualEncoderUtils.writeUUID(execution, partialContent);
         List<byte[]> l = new ArrayList<>();
         l.add(partialContent.array());

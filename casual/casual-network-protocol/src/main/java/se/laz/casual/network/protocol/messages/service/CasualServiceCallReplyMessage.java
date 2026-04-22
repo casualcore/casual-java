@@ -15,6 +15,7 @@ import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolExcep
 import se.laz.casual.api.xa.XID;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallReplySizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 import se.laz.casual.network.protocol.utils.XIDUtils;
@@ -66,7 +67,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     {
         final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
 
-        long messageSize = ServiceCallReplySizes.EXECUTION.getNetworkSize() +
+        long messageSize = CommonSizes.EXECUTION.getNetworkSize() +
                            ServiceCallReplySizes.CALL_ERROR.getNetworkSize() + ServiceCallReplySizes.CALL_CODE.getNetworkSize() +
                            ServiceCallReplySizes.TRANSACTION_STATE.getNetworkSize() +
                            ServiceCallReplySizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallReplySizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
@@ -271,7 +272,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     private List<byte[]> toNetworkBytesMultipleBuffers(final ServiceBuffer serviceBuffer)
     {
         final List<byte[]> l = new ArrayList<>();
-        final ByteBuffer executionBuffer = ByteBuffer.allocate(ServiceCallReplySizes.EXECUTION.getNetworkSize());
+        final ByteBuffer executionBuffer = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize());
         CasualEncoderUtils.writeUUID(execution, executionBuffer);
         l.add(executionBuffer.array());
         l.add(CasualEncoderUtils.writeInt(error.getValue()));

@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2017 - 2023, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.inbound.handler.service.casual;
 
+import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionAttributeType;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.service.CasualService;
@@ -18,15 +20,13 @@ import se.laz.casual.jca.inbound.handler.buffer.BufferHandler;
 import se.laz.casual.jca.inbound.handler.buffer.BufferHandlerFactory;
 import se.laz.casual.jca.inbound.handler.buffer.InboundRequestInfo;
 import se.laz.casual.jca.inbound.handler.buffer.ServiceCallInfo;
-import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtension;
-import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionFactory;
-import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionContext;
 import se.laz.casual.jca.inbound.handler.service.ServiceHandler;
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtension;
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionContext;
+import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionFactory;
 import se.laz.casual.jca.inbound.handler.service.transaction.TransactionTypeMapperJTA;
 import se.laz.casual.network.messages.domain.TransactionType;
 
-import jakarta.ejb.Stateless;
-import jakarta.ejb.TransactionAttributeType;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -72,6 +72,8 @@ public class CasualServiceHandler implements ServiceHandler
         }
     }
 
+    // java:S1181 - Throwable caught so service calls don't stop the server.
+    @SuppressWarnings( "java:S1181" )
     @Override
     public InboundResponse invokeService(InboundRequest request)
     {

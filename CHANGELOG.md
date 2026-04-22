@@ -1,6 +1,13 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.4.4] - 2026-04-22
+
+### chore: networking cleanup ([#204](https://github.com/casualcore/casual-java/issues/204))
+Cleanup the networking code to remove unused code and reuse common
+elements.
+Bump sonar to latest version and resolve outstanding issues.
+
 ## [3.4.3] - 2026-04-20
 
 ### fix: Error handling for inbound ([#203](https://github.com/casualcore/casual-java/issues/203))

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,6 +9,7 @@ package se.laz.casual.network.protocol.messages.domain;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
@@ -60,7 +61,7 @@ public class CasualDomainDiscoveryRequestMessage implements CasualNetworkTransmi
         final List<byte[]> queueNameBytes  = queueNames.stream()
                                                        .map(s -> s.getBytes(StandardCharsets.UTF_8))
                                                        .toList();
-        final long messageSize = DiscoveryRequestSizes.EXECUTION.getNetworkSize() + DiscoveryRequestSizes.DOMAIN_ID.getNetworkSize() +
+        final long messageSize = CommonSizes.EXECUTION.getNetworkSize() + DiscoveryRequestSizes.DOMAIN_ID.getNetworkSize() +
                                  DiscoveryRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize() + domainNameBytes.length +
                                  DiscoveryRequestSizes.SERVICES_SIZE.getNetworkSize() +
                                  DiscoveryRequestSizes.SERVICES_ELEMENT_SIZE.getNetworkSize() * serviceNameBytes.size() + ByteUtils.sumNumberOfBytes(serviceNameBytes) +
@@ -262,7 +263,7 @@ public class CasualDomainDiscoveryRequestMessage implements CasualNetworkTransmi
     private List<byte[]> toNetworkBytesMultipleBuffers(byte[] domainNameBytes, List<byte[]> serviceNameBytes, List<byte[]> queueNameBytes)
     {
         List<byte[]> l = new ArrayList<>();
-        ByteBuffer executionBuffer = ByteBuffer.allocate(DiscoveryRequestSizes.EXECUTION.getNetworkSize());
+        ByteBuffer executionBuffer = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize());
         CasualEncoderUtils.writeUUID(execution, executionBuffer);
         l.add(executionBuffer.array());
         ByteBuffer domainIdBuffer = ByteBuffer.allocate(DiscoveryRequestSizes.DOMAIN_ID.getNetworkSize());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -12,12 +12,9 @@ import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecod
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DequeueRequestSizes;
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueRequestMessage;
-import se.laz.casual.network.protocol.utils.ByteUtils;
-import se.laz.casual.network.protocol.utils.XIDUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -29,34 +26,6 @@ public final class CasualDequeueRequestMessageDecoder implements NetworkDecoder<
     public static CasualDequeueRequestMessageDecoder of()
     {
         return new CasualDequeueRequestMessageDecoder();
-    }
-
-    @Override
-    public CasualDequeueRequestMessage readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return getMessage(b.array());
-    }
-
-    @Override
-    public CasualDequeueRequestMessage readChunked(final ReadableByteChannel channel)
-    {
-        UUID execution = CasualMessageDecoderUtils.readUUID(channel);
-        int queueNameSize = (int) ByteUtils.readFully(channel, DequeueRequestSizes.NAME_SIZE.getNetworkSize()).getLong();
-        String queueName = CasualMessageDecoderUtils.readString(channel, queueNameSize);
-        Xid xid = XIDUtils.readXid(channel);
-        int selectorPropertiesSize = (int) ByteUtils.readFully(channel, DequeueRequestSizes.SELECTOR_PROPERTIES_SIZE.getNetworkSize()).getLong();
-        String selectorProperties = (0 == selectorPropertiesSize) ? "" : CasualMessageDecoderUtils.readString(channel, selectorPropertiesSize);
-        UUID selectorId = CasualMessageDecoderUtils.readUUID(channel);
-        boolean block = (1 == ByteUtils.readFully(channel, DequeueRequestSizes.BLOCK.getNetworkSize()).get());
-        return CasualDequeueRequestMessage.createBuilder()
-                                          .withExecution(execution)
-                                          .withQueueName(queueName)
-                                          .withXid(xid)
-                                          .withSelectorProperties(selectorProperties)
-                                          .withSelectorUUID(selectorId)
-                                          .withBlock(block)
-                                          .build();
     }
 
     @Override

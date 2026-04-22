@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.inbound.handler.service.javaee;
 
+import jakarta.ejb.Remote;
+import jakarta.ejb.Stateless;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
 import se.laz.casual.api.service.ServiceInfo;
@@ -22,8 +24,6 @@ import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensi
 import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionContext;
 import se.laz.casual.jca.inbound.handler.service.extension.ServiceHandlerExtensionFactory;
 
-import jakarta.ejb.Remote;
-import jakarta.ejb.Stateless;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -59,6 +59,8 @@ public class JavaeeServiceHandler implements ServiceHandler
         }
     }
 
+    // java:S1181 - Throwable caught so service calls don't stop the server.
+    @SuppressWarnings( "java:S1181" )
     @Override
     public InboundResponse invokeService(InboundRequest request)
     {

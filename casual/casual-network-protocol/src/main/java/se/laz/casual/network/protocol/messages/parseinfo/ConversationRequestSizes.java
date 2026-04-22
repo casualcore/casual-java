@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,7 +11,6 @@ package se.laz.casual.network.protocol.messages.parseinfo;
  */
 public enum ConversationRequestSizes
 {
-    EXECUTION(16, 16),
     DUPLEX(2, 2),
     RESULT_CODE(4, 4),
     USER_CODE(8,8),

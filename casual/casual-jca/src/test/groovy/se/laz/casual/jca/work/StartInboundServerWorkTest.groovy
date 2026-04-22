@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -17,7 +17,6 @@ import se.laz.casual.jca.inbound.handler.test.TestServiceHandler
 import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry
 import se.laz.casual.network.inbound.CasualServer
 import se.laz.casual.network.inbound.ConnectionInformation
-import spock.lang.Shared
 import spock.lang.Specification
 
 import java.util.concurrent.CompletionService
@@ -29,10 +28,6 @@ import java.util.concurrent.TimeUnit
 
 class StartInboundServerWorkTest extends Specification
 {
-
-    @Shared
-    Integer port = 7772
-
     ExecutorService service = Executors.newFixedThreadPool( 2 )
     CompletionService<Void> completionService = new ExecutorCompletionService<>( service )
     Work instance
@@ -55,7 +50,7 @@ class StartInboundServerWorkTest extends Specification
         XATerminator xaTerminator = Mock( XATerminator )
         ci = ConnectionInformation.createBuilder()
                 .withFactory(endpointFactory)
-                .withPort( port )
+                .withPort( 0 )
                 .withWorkManager(workManager)
                 .withXaTerminator(xaTerminator)
                 .withInboundTransactionRegistry(inboundTransactionRegistry)

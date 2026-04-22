@@ -14,12 +14,11 @@ import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
 import se.laz.casual.network.protocol.messages.conversation.ConnectRequest;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationConnectRequestSizes;
-import se.laz.casual.network.protocol.utils.ByteUtils;
 
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,19 +41,6 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
     }
 
     @Override
-    public ConnectRequest readSingleBuffer(final ReadableByteChannel channel, int messageSize)
-    {
-        final ByteBuffer b = ByteUtils.readFully(channel, messageSize);
-        return createMessage(b.array());
-    }
-
-    @Override
-    public ConnectRequest readChunked(final ReadableByteChannel channel)
-    {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
     public ConnectRequest readSingleBuffer(byte[] data)
     {
         return createMessage(data);
@@ -63,8 +49,8 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
     private ConnectRequest createMessage(final byte[] data)
     {
         int currentOffset = 0;
-        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, ConversationConnectRequestSizes.EXECUTION.getNetworkSize()));
-        currentOffset += ConversationConnectRequestSizes.EXECUTION.getNetworkSize();
+        final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
+        currentOffset += CommonSizes.EXECUTION.getNetworkSize();
 
         int serviceNameLen = (int)ByteBuffer.wrap(data, currentOffset, ConversationConnectRequestSizes.SERVICE_NAME_SIZE.getNetworkSize()).getLong();
         currentOffset += ConversationConnectRequestSizes.SERVICE_NAME_SIZE.getNetworkSize();

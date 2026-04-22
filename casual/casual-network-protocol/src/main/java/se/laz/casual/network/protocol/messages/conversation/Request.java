@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,6 +11,7 @@ import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
+import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
 
@@ -72,7 +73,7 @@ public class Request implements CasualNetworkTransmittable
     public List<byte[]> toNetworkBytes()
     {
         final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
-        final long messageSize = ConversationRequestSizes.EXECUTION.getNetworkSize() +
+        final long messageSize = CommonSizes.EXECUTION.getNetworkSize() +
                 ConversationRequestSizes.DUPLEX.getNetworkSize() +
                 ConversationRequestSizes.RESULT_CODE.getNetworkSize() +
                 ConversationRequestSizes.USER_CODE.getNetworkSize() +

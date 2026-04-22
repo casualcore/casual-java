@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,9 +11,7 @@ import java.util.Optional;
 
 /**
  * Created by aleph on 2017-03-15.
- */
-
-/**
+ * <br/>
  * These are the only known types but any type is fine
  * Just means we can not display them in a good way
  */
