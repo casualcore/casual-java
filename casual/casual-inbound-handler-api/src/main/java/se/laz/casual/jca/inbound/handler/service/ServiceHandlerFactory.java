@@ -12,7 +12,9 @@ import se.laz.casual.spi.Priority;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -23,9 +25,20 @@ public final class ServiceHandlerFactory
 {
     private static final Logger LOG = Logger.getLogger(ServiceHandlerFactory.class.getName());
     private static final Map<String,ServiceHandler> serviceHandlerCache = new ConcurrentHashMap<>();
+    private static final Set<ServiceHandler> registeredHandlers = ConcurrentHashMap.newKeySet();
 
     private ServiceHandlerFactory()
     {}
+
+    /**
+     * Register a handler instance programmatically.
+     * Used by the Quarkus extension to make user handlers visible in quarkusDev.
+     */
+    public static void register(ServiceHandler handler)
+    {
+        Objects.requireNonNull(handler, "handler can not be null");
+        registeredHandlers.add(handler);
+    }
 
     /**
      * Retrieve all registered {@link ServiceHandler}s available.
@@ -34,7 +47,7 @@ public final class ServiceHandlerFactory
      */
     public static List<ServiceHandler> getHandlers()
     {
-        List<ServiceHandler> handlers = new ArrayList<>();
+        List<ServiceHandler> handlers = new ArrayList<>(registeredHandlers);
         for( ServiceHandler h: ServiceLoader.load( ServiceHandler.class ) )
         {
             handlers.add( h );

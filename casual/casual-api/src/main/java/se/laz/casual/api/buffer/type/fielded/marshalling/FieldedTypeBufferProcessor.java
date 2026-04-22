@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -13,8 +13,11 @@ import se.laz.casual.spi.Prioritise;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * marshall/unmarshall FieldedTypeBuffer
@@ -24,12 +27,23 @@ import java.util.ServiceLoader;
  */
 public final class FieldedTypeBufferProcessor
 {
+    private static final Set<FieldedMarshaller> registeredHandlers = ConcurrentHashMap.newKeySet();
     private FieldedTypeBufferProcessor()
     {}
 
+    /**
+     * Register a handler instance programmatically.
+     * Used by the Quarkus extension to make user handlers visible in quarkusDev.
+     */
+    public static void register(FieldedMarshaller handler)
+    {
+        Objects.requireNonNull(handler, "handler can not be null");
+        registeredHandlers.add(handler);
+    }
+
     private static FieldedMarshaller getMarshaller()
     {
-        List<FieldedMarshaller> marshallers = new ArrayList<>();
+        List<FieldedMarshaller> marshallers = new ArrayList<>(registeredHandlers);
         for ( FieldedMarshaller m : ServiceLoader.load( FieldedMarshaller.class ))
         {
             marshallers.add(m);

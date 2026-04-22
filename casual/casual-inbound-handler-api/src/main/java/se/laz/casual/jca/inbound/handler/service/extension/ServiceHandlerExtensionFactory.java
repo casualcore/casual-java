@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, The casual project. All rights reserved.
+ * Copyright (c) 2023 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,15 +11,27 @@ import se.laz.casual.spi.Priority;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ServiceHandlerExtensionFactory
 {
     private static final Map<String, ServiceHandlerExtension> serviceHandlerExtensionCache = new ConcurrentHashMap<>();
-
+    private static final Set<ServiceHandlerExtension> registeredHandlers = ConcurrentHashMap.newKeySet();
     private ServiceHandlerExtensionFactory()
     {}
+
+    /**
+     * Register a handler instance programmatically.
+     * Used by the Quarkus extension to make user handlers visible in quarkusDev.
+     */
+    public static void register(ServiceHandlerExtension handler)
+    {
+        Objects.requireNonNull(handler, "handler can not be null");
+        registeredHandlers.add(handler);
+    }
 
     /**
      * Get all registered {@link ServiceHandlerExtension} instances.
@@ -28,7 +40,7 @@ public class ServiceHandlerExtensionFactory
      */
     private static List<ServiceHandlerExtension> getHandlers()
     {
-        List<ServiceHandlerExtension> handlers = new ArrayList<>();
+        List<ServiceHandlerExtension> handlers = new ArrayList<>(registeredHandlers);
         for( ServiceHandlerExtension h: ServiceLoader.load( ServiceHandlerExtension.class ) )
         {
             handlers.add( h );
