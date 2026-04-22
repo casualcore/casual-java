@@ -24,40 +24,54 @@ import java.nio.ByteBuffer
 class CompleteCasualServiceCallRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/b64/message.service.call.request.1000.3100.b64'
+    String resource = '/protocol/b64/message.service.call.request.1000.3100.b64'
 
     @Shared
-    def resourceProtocolVersionGreaterOrEqualToOneFour = '/protocol/b64/message.service.call.request.1003.3102.b64'
+    String resourceProtocolVersion_1003 = '/protocol/b64/message.service.call.request.1003.3102.b64'
 
     @Shared
-    def data
+    String resourceProtocolVersion_1005 = '/protocol/b64/message.service.call.request.1005.3104.b64'
 
     @Shared
-    def dataProtocolVersionGreaterOrEqualToOneThree
+    byte[] data
+
+    @Shared
+    byte[] dataProtocolVersion_1003
+
+    @Shared
+    byte[] dataProtocolVersion_1005
 
     def setupSpec()
     {
         data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
-        dataProtocolVersionGreaterOrEqualToOneThree = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersionGreaterOrEqualToOneFour))
+        dataProtocolVersion_1003 = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersion_1003))
+        dataProtocolVersion_1005 = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersion_1005))
         then:
         data != null
-        dataProtocolVersionGreaterOrEqualToOneThree != null
+        dataProtocolVersion_1003 != null
+        dataProtocolVersion_1005 != null
     }
 
     def "get header"()
     {
         setup:
-        def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
+        def headerData = Arrays.copyOfRange(networkData, 0, MessageHeaderSizes.headerNetworkSize)
         when:
         def header = CasualMessageDecoder.networkHeaderToCasualHeader(headerData)
+
         then:
         header != null
+
+        where:
+        networkData << [
+                data, dataProtocolVersion_1003, dataProtocolVersion_1005
+        ]
     }
 
     def "roundtrip header"()
     {
         setup:
-        def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
+        def headerData = Arrays.copyOfRange(networkData, 0, MessageHeaderSizes.headerNetworkSize)
         def header = CasualMessageDecoder.networkHeaderToCasualHeader(headerData)
         when:
         def resurrectedHeader = CasualMessageDecoder.networkHeaderToCasualHeader(header.toNetworkBytes())
@@ -65,6 +79,11 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
         header != null
         resurrectedHeader != null
         resurrectedHeader == header
+
+        where:
+        networkData << [
+                data, dataProtocolVersion_1003, dataProtocolVersion_1005
+        ]
     }
 
     def "roundtrip message #protocolVersion"()
@@ -87,11 +106,12 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
         msg.getMessage() == resurrectedMsg.getMessage()
         msg == resurrectedMsg
         where:
-        binary                                        | protocolVersion
-        data                                          | ProtocolVersion.VERSION_1_0
-        data                                          | ProtocolVersion.VERSION_1_1
-        data                                          | ProtocolVersion.VERSION_1_2
-        dataProtocolVersionGreaterOrEqualToOneThree   | ProtocolVersion.VERSION_1_3
-        dataProtocolVersionGreaterOrEqualToOneThree   | ProtocolVersion.VERSION_1_4
+        binary                   | protocolVersion
+        data                     | ProtocolVersion.VERSION_1_0
+        data                     | ProtocolVersion.VERSION_1_1
+        data                     | ProtocolVersion.VERSION_1_2
+        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_3
+        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_4
+        dataProtocolVersion_1005 | ProtocolVersion.VERSION_1_5
     }
 }

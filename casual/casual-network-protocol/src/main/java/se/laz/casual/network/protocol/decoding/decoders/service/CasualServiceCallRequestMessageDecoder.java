@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.service;
 
+import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
@@ -14,6 +15,7 @@ import se.laz.casual.jca.SpanId;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.HeaderDecoder;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallRequestSizes;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
@@ -22,7 +24,9 @@ import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -125,6 +129,9 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
         serviceBufferPayload.add(payloadData);
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
+
+        currentOffset += serviceBufferPayloadSize;
+
         CasualServiceCallRequestMessage.Builder builder = CasualServiceCallRequestMessage.createBuilder()
                                                                                          .setExecution(execution)
                                                                                          .setServiceName(serviceName)
@@ -133,6 +140,17 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
                                                                                          .setXid(xid)
                                                                                          .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
                                                                                          .setServiceBuffer(serviceBuffer);
+
+        if( protocolVersion.isGreaterThanOrEqualTo( ProtocolVersion.VERSION_1_5 ) )
+        {
+            Map<String, String> headers = new HashMap<>();
+
+            currentOffset = HeaderDecoder.decodeHeaders( data, currentOffset, headers );
+
+            builder.setHeaders( headers );
+        }
+
+
         if(hasTimeout)
         {
             builder.setTimeout(timeout);
@@ -141,6 +159,12 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         {
             builder.setParentSpan(SpanId.of(parentSpan));
         }
+
+        if( currentOffset != data.length )
+        {
+            throw new CasualRuntimeException( "Network data was not fully read." );
+        }
+
         return builder.build();
     }
 

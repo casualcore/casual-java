@@ -26,8 +26,10 @@ import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.EN
 import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.ENQUEUE_REPLY_V_1_3;
 import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SERVICE_CALL_REPLY;
 import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3;
+import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5;
 import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SERVICE_CALL_REQUEST;
 import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3;
+import static se.laz.casual.api.network.protocol.messages.CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_5;
 
 /**
  * Verification of network messages to ensure messages sent after protocol handshake are as expected.
@@ -50,37 +52,40 @@ public final class MessageVerifier
         //1.0 - 1.3
         messageProtocolVersions.put( DOMAIN_DISCOVERY_REPLY, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3 ) );
         // 1.4 -
-        messageProtocolVersions.put(DOMAIN_DISCOVERY_REPLY_V_1_4, createSet( ProtocolVersion.VERSION_1_4 ) );
+        messageProtocolVersions.put(DOMAIN_DISCOVERY_REPLY_V_1_4, createSet( ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5 ) );
 
         // 1.2 -
-        messageProtocolVersions.put( DOMAIN_DISCOVERY_TOPOLOGY_UPDATE, createSet( ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
+        messageProtocolVersions.put( DOMAIN_DISCOVERY_TOPOLOGY_UPDATE, createSet( ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5 ) );
 
         // 1.0 - 1.2
         messageProtocolVersions.put( SERVICE_CALL_REQUEST, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2 ) );
-        // 1.3 -
+        // 1.3 - 1.4
         messageProtocolVersions.put(SERVICE_CALL_REQUEST_V_1_3, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
+        // 1.5 -
+        messageProtocolVersions.put( SERVICE_CALL_REQUEST_V_1_5, createSet( ProtocolVersion.VERSION_1_5 ) );
 
         // 1.0 - 1.2
         messageProtocolVersions.put( SERVICE_CALL_REPLY, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2 ) );
-        // 1.3 -
+        // 1.3 - 1.4
         messageProtocolVersions.put(SERVICE_CALL_REPLY_V_1_3, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
-
+        // 1.5
+        messageProtocolVersions.put(SERVICE_CALL_REPLY_V_1_5, createSet( ProtocolVersion.VERSION_1_5 ) );
 
         // 1.0 - 1.2
         messageProtocolVersions.put( ENQUEUE_REPLY, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2 ) );
         // 1.3 -
-        messageProtocolVersions.put(ENQUEUE_REPLY_V_1_3, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
+        messageProtocolVersions.put(ENQUEUE_REPLY_V_1_3, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5 ) );
 
 
         // 1.0 - 1.2
         messageProtocolVersions.put( DEQUEUE_REPLY, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2 ) );
         // 1.3 -
-        messageProtocolVersions.put(DEQUEUE_REPLY_V_1_3, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
+        messageProtocolVersions.put(DEQUEUE_REPLY_V_1_3, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5 ) );
 
         // 1.0 - 1.2
         messageProtocolVersions.put( CONVERSATION_CONNECT, createSet( ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2 ) );
         // 1.3 -
-        messageProtocolVersions.put(CONVERSATION_CONNECT_V_1_3, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4 ) );
+        messageProtocolVersions.put(CONVERSATION_CONNECT_V_1_3, createSet( ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5 ) );
     }
 
     private static Set<ProtocolVersion> createSet( ProtocolVersion... versions )

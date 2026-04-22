@@ -14,14 +14,12 @@ import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.utils.ByteUtils
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.nio.ByteBuffer
-
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_5
 
 class CasualServiceCallReplyMessageTest extends Specification
 {
@@ -43,6 +41,8 @@ class CasualServiceCallReplyMessageTest extends Specification
     def serviceBuffer
     @Shared
     def emptyServiceBuffer
+    @Shared
+    Map<String,String> headers = ["a":"foo","b":"bar","c":"baz"]
 
     def setupSpec()
     {
@@ -68,6 +68,10 @@ class CasualServiceCallReplyMessageTest extends Specification
         {
            msgBuilder.setXid(nullXID)
         }
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            msgBuilder.setHeaders( headers )
+        }
         def msg = msgBuilder.build()
         then:
         msg.getExecution() == execution
@@ -76,6 +80,10 @@ class CasualServiceCallReplyMessageTest extends Specification
         if(protocolVersion.isLessThan( VERSION_1_3 ) )
         {
            msg.getXid() == nullXID
+        }
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            msg.getHeaders() == headers
         }
         msg.getTransactionState() == transactionState
         msg.getServiceBuffer() == serviceBuffer
@@ -99,6 +107,10 @@ class CasualServiceCallReplyMessageTest extends Specification
         {
            requestMsgBuilder.setXid(nullXID)
         }
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            requestMsgBuilder.setHeaders( headers )
+        }
         def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
@@ -116,6 +128,10 @@ class CasualServiceCallReplyMessageTest extends Specification
         if(protocolVersion.isLessThan( VERSION_1_3 ))
         {
            resurrectedMsg.getMessage().getXid() == nullXID
+        }
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
+        {
+            resurrectedMsg.getMessage(  ).getHeaders() == headers
         }
         where:
         protocolVersion << ProtocolVersion.values()
@@ -151,16 +167,6 @@ class CasualServiceCallReplyMessageTest extends Specification
         msg == resurrectedMsg
         where:
         protocolVersion << ProtocolVersion.values()
-    }
-
-    def collectServicePayload(List<byte[]> bytes)
-    {
-        ByteBuffer b = ByteBuffer.allocate((int)ByteUtils.sumNumberOfBytes(bytes))
-        bytes.stream()
-                .forEach({d -> b.put(d)})
-        List<byte[]> l = new ArrayList<>()
-        l.add(b.array())
-        return l
     }
 
 }

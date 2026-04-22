@@ -11,7 +11,6 @@ package se.laz.casual.network.protocol.messages.parseinfo;
  */
 public enum ServiceCallRequestSizes
 {
-    CALL_DESCRIPTOR(4, 8),
     SERVICE_NAME_SIZE(8, 8),
     HAS_VALUE(1,1),// since v1.3
     SERVICE_TIMEOUT(8, 8),

@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.service;
 
+import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
@@ -13,6 +14,7 @@ import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.HeaderDecoder;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallReplySizes;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
@@ -21,11 +23,14 @@ import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_5;
 
 /**
  * Created by aleph on 2017-03-28.
@@ -119,6 +124,7 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
         // since serviceTypeName can be NULL in case there is no payload
         serviceTypeName = (0 == serviceBufferPayloadSize) ? "" : serviceTypeName;
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
+        currentOffset += serviceBufferPayloadSize;
         CasualServiceCallReplyMessage.Builder builder = CasualServiceCallReplyMessage.createBuilder()
                                                                                      .setExecution(execution)
                                                                                      .setError(ErrorState.unmarshal(callError))
@@ -126,10 +132,23 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
                                                                                      .setTransactionState(TransactionState.unmarshal(transactionState))
                                                                                      .setServiceBuffer(serviceBuffer)
                                                                                      .setProtocolVersion(protocolVersion);
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            Map<String,String> headers = new HashMap<>();
+            currentOffset = HeaderDecoder.decodeHeaders( data, currentOffset, headers );
+            builder.setHeaders( headers );
+        }
+
         if(null != xid)
         {
             builder.setXid(xid);
         }
+
+        if( currentOffset != data.length )
+        {
+            throw new CasualRuntimeException( "Network data was not fully read!" );
+        }
+
         return builder.build();
     }
 }

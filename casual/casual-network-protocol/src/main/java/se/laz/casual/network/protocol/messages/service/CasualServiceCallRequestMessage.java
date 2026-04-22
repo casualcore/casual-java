@@ -16,6 +16,7 @@ import se.laz.casual.api.xa.XID;
 import se.laz.casual.jca.SpanId;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
+import se.laz.casual.network.protocol.encoding.utils.HeaderEncoder;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallRequestSizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
@@ -25,11 +26,14 @@ import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_5;
 
 /**
  * Created by aleph on 2017-03-14.
@@ -45,6 +49,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     private Flag<AtmiFlags> xatmiFlags;
     private ServiceBuffer serviceBuffer;
     private ProtocolVersion protocolVersion;
+    private Map<String,String> headers;
 
     // not part of the message
     // used for testing
@@ -69,13 +74,22 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         final byte[] serviceNameBytes = serviceName.getBytes(StandardCharsets.UTF_8);
         final byte[] parentNameBytes = parentName.getBytes(StandardCharsets.UTF_8);
         final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
+
         long messageSize = CommonSizes.EXECUTION.getNetworkSize() +
-                           ServiceCallRequestSizes.CALL_DESCRIPTOR.getNetworkSize() +
                            ServiceCallRequestSizes.SERVICE_NAME_SIZE.getNetworkSize() + serviceNameBytes.length +
                            ServiceCallRequestSizes.PARENT_NAME_SIZE.getNetworkSize() + parentNameBytes.length +
                            XIDUtils.getXIDNetworkSize(xid) +
                            ServiceCallRequestSizes.FLAGS.getNetworkSize() +
                            ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
+        
+        final List<byte[]> headersBytes  = HeaderEncoder.convertMapToBytes( headers );
+
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
+        {
+            messageSize += CommonSizes.HEADER_SIZE.getNetworkSize() +
+                    (CommonSizes.HEADER_ELEMENT_SIZE.getNetworkSize() * (long)headersBytes.size()) + ByteUtils.sumNumberOfBytes( headersBytes );
+        }
+
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             messageSize += ServiceCallRequestSizes.HAS_VALUE.getNetworkSize();
@@ -89,8 +103,8 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         {
             messageSize += ServiceCallRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
         }
-        return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceNameBytes, parentNameBytes, serviceBytes)
-                                                    : toNetworkBytesMultipleBuffers(serviceNameBytes, parentNameBytes, serviceBuffer);
+        return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceNameBytes, parentNameBytes, serviceBytes, headersBytes)
+                                                    : toNetworkBytesMultipleBuffers(serviceNameBytes, parentNameBytes, serviceBuffer, headersBytes);
     }
 
     public static Builder createBuilder()
@@ -155,49 +169,45 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         return serviceBuffer;
     }
 
-    @Override
-    public boolean equals(Object o)
+    public Map<String,String> getHeaders()
     {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
+        return headers;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if( o == null || getClass() != o.getClass() )
         {
             return false;
         }
         CasualServiceCallRequestMessage that = (CasualServiceCallRequestMessage) o;
-        return Objects.equals(execution, that.execution) &&
-            Objects.equals(serviceName, that.serviceName) &&
-             Objects.equals(parentSpan, that.parentSpan) &&
-            Objects.equals(parentName, that.parentName) &&
-            Objects.equals(xid, that.xid) &&
-            Objects.equals(xatmiFlags, that.xatmiFlags);
+        return timeout == that.timeout && maxMessageSize == that.maxMessageSize && Objects.equals( execution, that.execution ) &&
+                Objects.equals( serviceName, that.serviceName ) && Objects.equals( parentSpan, that.parentSpan ) && Objects.equals( parentName, that.parentName ) &&
+                Objects.equals( xid, that.xid ) && Objects.equals( xatmiFlags, that.xatmiFlags ) && Objects.equals( headers, that.headers );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(execution, serviceName, parentSpan, parentName, xid, xatmiFlags);
+        return Objects.hash( execution, serviceName, timeout, parentSpan, parentName, xid, xatmiFlags, headers, maxMessageSize );
     }
 
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder("CasualServiceCallRequestMessage{");
-        sb.append("execution=").append(execution);
-        sb.append(", serviceName='").append(serviceName).append('\'');
-        sb.append(", timeout=").append(timeout);
-        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
-        {
-            sb.append(", parentSpan='").append(parentSpan.asHex()).append('\'');
-        }
-        sb.append(", parentName='").append(parentName).append('\'');
-        sb.append(", xid=").append(xid);
-        sb.append(", xatmiFlags=").append(xatmiFlags.getFlagValue());
-        sb.append(", serviceBuffer=").append(serviceBuffer);
-        sb.append('}');
-        return sb.toString();
+        return "CasualServiceCallRequestMessage{" +
+                "execution=" + execution +
+                ", serviceName='" + serviceName + '\'' +
+                ", timeout=" + timeout +
+                ", parentSpan=" + (parentSpan == null ? null : parentSpan.asHex()) +
+                ", parentName='" + parentName + '\'' +
+                ", xid=" + xid +
+                ", xatmiFlags=" + xatmiFlags +
+                ", serviceBuffer=" + serviceBuffer +
+                ", headers=" + headers +
+                ", maxMessageSize=" + maxMessageSize +
+                '}';
     }
 
     public static class Builder
@@ -212,6 +222,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         private Flag<AtmiFlags> xatmiFlags;
         private ServiceBuffer serviceBuffer;
         private ProtocolVersion protocolVersion;
+        private Map<String,String> headers = new HashMap<>();
 
         public Builder setExecution(UUID execution)
         {
@@ -267,6 +278,12 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
             return this;
         }
 
+        public Builder setHeaders( Map<String,String> headers )
+        {
+            this.headers = headers;
+            return this;
+        }
+
         public CasualServiceCallRequestMessage build()
         {
             Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
@@ -280,11 +297,12 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
             r.xatmiFlags = xatmiFlags;
             r.serviceBuffer = serviceBuffer;
             r.protocolVersion = protocolVersion;
+            r.headers = headers;
             return r;
         }
     }
 
-    private List<byte[]> toNetworkBytesFitsInOneBuffer(int messageSize, final byte[] serviceNameBytes, final byte[] parentNameBytes, final List<byte[]> serviceBytes)
+    private List<byte[]> toNetworkBytesFitsInOneBuffer(int messageSize, final byte[] serviceNameBytes, final byte[] parentNameBytes, final List<byte[]> serviceBytes, final List<byte[]> headersBytes )
     {
         List<byte[]> l = new ArrayList<>();
         ByteBuffer b = ByteBuffer.allocate(messageSize);
@@ -315,11 +333,17 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
         b.putLong(payloadSize);
         serviceBytes.forEach(b::put);
+
+        if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            HeaderEncoder.writeHeaderBytes( b, headersBytes );
+        }
+
         l.add(b.array());
         return l;
     }
 
-    private List<byte[]> toNetworkBytesMultipleBuffers(final byte[] serviceNameBytes, final byte[] parentNameBytes, final ServiceBuffer serviceBuffer)
+    private List<byte[]> toNetworkBytesMultipleBuffers(final byte[] serviceNameBytes, final byte[] parentNameBytes, final ServiceBuffer serviceBuffer, final List<byte[]> headersBytes )
     {
         final List<byte[]> l = new ArrayList<>();
         final ByteBuffer executionBuffer = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize());
@@ -348,6 +372,10 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         l.add(xidByteBuffer.array());
         l.add(CasualEncoderUtils.writeLong(xatmiFlags.getFlagValue()));
         l.addAll(CasualEncoderUtils.writeServiceBuffer(serviceBuffer));
+        if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            l.addAll( HeaderEncoder.encodeHeadersBytesAsList( headersBytes ) );
+        }
         return l;
     }
 

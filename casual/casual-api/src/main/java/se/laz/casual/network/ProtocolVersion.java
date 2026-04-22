@@ -18,7 +18,8 @@ public enum ProtocolVersion
     VERSION_1_1(1001, "1.1", true),
     VERSION_1_2(1002, "1.2", true),
     VERSION_1_3(1003, "1.3", true),
-    VERSION_1_4(1004, "1.4", true);
+    VERSION_1_4(1004, "1.4", true),
+    VERSION_1_5(1005, "1.5", true);
 
     private static final List<Long> supportedVersions;
     private static final List<String> supportedVersionsString;

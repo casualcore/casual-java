@@ -20,6 +20,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_5
 
 class CasualServiceCallRequestMessageTest extends Specification
 {
@@ -43,6 +44,8 @@ class CasualServiceCallRequestMessageTest extends Specification
     def serviceBuffer
     @Shared
     SpanId parentSpan = SpanId.of()
+    @Shared
+    Map<String,String> headers = ["a":"foo", "b":"bar","c":"baz"]
 
     def setupSpec()
     {
@@ -52,24 +55,29 @@ class CasualServiceCallRequestMessageTest extends Specification
         serviceBuffer = ServiceBuffer.of(serviceType, serviceData)
     }
 
-    def "Message creation"() {
-       setup:
+    def "Message creation"()
+    {
+        setup:
 
-       when:
-       //println("protocolVersion: ${protocolVersion}")
-       def msgBuilder = CasualServiceCallRequestMessage.createBuilder()
-               .setExecution(execution)
-               .setServiceName(serviceName)
-               .setTimeout(timeout)
-               .setParentName(parentName)
-               .setXid(nullXID)
-               .setXatmiFlags(xatmiFlags)
-               .setServiceBuffer(serviceBuffer)
-               .setProtocolVersion(protocolVersion)
-       if (protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
-       {
-          msgBuilder.setParentSpan(parentSpan)
-       }
+        when:
+        //println("protocolVersion: ${protocolVersion}")
+        def msgBuilder = CasualServiceCallRequestMessage.createBuilder()
+                .setExecution( execution )
+                .setServiceName( serviceName )
+                .setTimeout( timeout )
+                .setParentName( parentName )
+                .setXid( nullXID )
+                .setXatmiFlags( xatmiFlags )
+                .setServiceBuffer( serviceBuffer )
+                .setProtocolVersion( protocolVersion )
+        if ( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
+        {
+            msgBuilder.setParentSpan( parentSpan )
+        }
+        if ( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            msgBuilder.setHeaders( headers )
+        }
         def msg = msgBuilder.build()
         then:
         msg.execution == execution
@@ -82,6 +90,10 @@ class CasualServiceCallRequestMessageTest extends Specification
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
         {
            msg.getParentSpan() == parentSpan
+        }
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
+        {
+            msg.getHeaders() == headers
         }
         where:
         protocolVersion << ProtocolVersion.values()
@@ -104,6 +116,10 @@ class CasualServiceCallRequestMessageTest extends Specification
         {
            requestMsgBuilder.setParentSpan(parentSpan)
         }
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
+        {
+            requestMsgBuilder.setHeaders(headers)
+        }
         def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
@@ -122,6 +138,10 @@ class CasualServiceCallRequestMessageTest extends Specification
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
         {
           resurrectedMsg.getMessage().getParentSpan() == parentSpan
+        }
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
+        {
+            resurrectedMsg.getMessage().getHeaders() == headers
         }
         where:
         protocolVersion << ProtocolVersion.values()
