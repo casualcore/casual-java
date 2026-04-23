@@ -111,4 +111,31 @@ class CompleteCasualServiceCallReplyMessageTest extends Specification
         dataProtocolVersion_1005 | ProtocolVersion.VERSION_1_5
     }
 
+    def "Check message headers #protocolVersion"()
+    {
+        setup:
+        List<byte[]> payload = new ArrayList<>()
+        payload.add(binary)
+        def sink = new LocalByteChannel()
+        payload.each{
+            bytes ->
+                ByteBuffer buffer = ByteBuffer.wrap(bytes)
+                sink.write(buffer)
+        }
+        when:
+        CasualNWMessageImpl<CasualServiceCallReplyMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
+
+        then:
+        msg.getMessage(  ).getHeaders(  ) == expectedHeaders
+
+        where:
+        binary                   | protocolVersion             | expectedHeaders
+        data                     | ProtocolVersion.VERSION_1_0 | [:]
+        data                     | ProtocolVersion.VERSION_1_1 | [:]
+        data                     | ProtocolVersion.VERSION_1_2 | [:]
+        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_3 | [:]
+        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_4 | [:]
+        dataProtocolVersion_1005 | ProtocolVersion.VERSION_1_5 | ["a": "foo", "b": "bar", "c": "baz"]
+    }
+
 }
