@@ -81,7 +81,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
                            XIDUtils.getXIDNetworkSize(xid) +
                            ServiceCallRequestSizes.FLAGS.getNetworkSize() +
                            ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
-        
+
         final List<byte[]> headersBytes  = HeaderEncoder.convertMapToBytes( headers );
 
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))

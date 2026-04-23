@@ -6,7 +6,6 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.service;
 
-import se.laz.casual.api.CasualRuntimeException;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
@@ -15,6 +14,7 @@ import se.laz.casual.jca.SpanId;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.decoding.decoders.utils.HeaderDecoder;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallRequestSizes;
@@ -160,10 +160,7 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
             builder.setParentSpan(SpanId.of(parentSpan));
         }
 
-        if( currentOffset != data.length )
-        {
-            throw new CasualRuntimeException( "Network data was not fully read." );
-        }
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, data.length );
 
         return builder.build();
     }

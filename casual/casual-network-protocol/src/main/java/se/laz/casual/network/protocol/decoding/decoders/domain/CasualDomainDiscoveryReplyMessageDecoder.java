@@ -10,6 +10,7 @@ import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.messages.domain.TransactionType;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.decoding.decoders.utils.DynamicArrayIndexPair;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage;
 import se.laz.casual.network.protocol.messages.domain.Queue;
@@ -66,6 +67,9 @@ public final class CasualDomainDiscoveryReplyMessageDecoder implements NetworkDe
         final long numberOfQueues = ByteBuffer.wrap(bytes, currentOffset, DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize()).getLong();
         currentOffset += DiscoveryReplySizes.QUEUES_SIZE.getNetworkSize();
         DynamicArrayIndexPair<Queue> queues = getQueues(bytes, currentOffset, numberOfQueues);
+        currentOffset = queues.getIndex();
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, bytes.length );
 
         return CasualDomainDiscoveryReplyMessage.of(execution, domainId, domainName, protocolVersion)
                                                 .setServices(services.getBytes())

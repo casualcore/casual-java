@@ -11,7 +11,6 @@ package se.laz.casual.network.protocol.messages.parseinfo;
  */
 public enum ConversationConnectRequestSizes
 {
-    CALL_DESCRIPTOR(4, 8),
     SERVICE_NAME_SIZE(8, 8),
     SERVICE_TIMEOUT(8, 8),
     PARENT_SPAN_SIZE(8, 8),

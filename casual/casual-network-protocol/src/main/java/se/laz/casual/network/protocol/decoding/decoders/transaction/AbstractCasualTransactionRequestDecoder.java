@@ -13,6 +13,7 @@ import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable;
 import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 
 import javax.transaction.xa.Xid;
@@ -48,6 +49,10 @@ public abstract class AbstractCasualTransactionRequestDecoder<T extends CasualNe
         final ByteBuffer flagBuffer = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize());
         final int flagValue = (int)flagBuffer.getLong();
         final Flag<XAFlags> flags = new Flag.Builder<XAFlags>(flagValue).build();
+        currentOffset+= CommonSizes.TRANSACTION_RESOURCE_FLAGS.getNetworkSize();
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, data.length );
+
         return createTransactionRequestMessage(execution, xid, resourceId, flags);
     }
 

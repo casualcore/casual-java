@@ -8,6 +8,7 @@ package se.laz.casual.network.protocol.decoding.decoders.conversation;
 
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.messages.conversation.Disconnect;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 
@@ -37,6 +38,10 @@ public final class DisconnectMessageDecoder implements NetworkDecoder<Disconnect
     {
         int currentOffset = 0;
         final UUID execution = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(data, currentOffset, CommonSizes.EXECUTION.getNetworkSize()));
+        currentOffset += CommonSizes.EXECUTION.getNetworkSize();
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, data.length );
+
         return Disconnect.createBuilder()
                 .setExecution(execution)
                 .build();
