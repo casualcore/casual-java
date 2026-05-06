@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.service
 
+import se.laz.casual.api.buffer.CasualHeaders
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
@@ -45,7 +46,9 @@ class CasualServiceCallRequestMessageTest extends Specification
     @Shared
     SpanId parentSpan = SpanId.of()
     @Shared
-    Map<String,String> headers = ["a":"foo", "b":"bar","c":"baz"]
+    List<String> rawHeaders = ["a:foo", "b:bar","c:baz"]
+    @Shared
+    CasualHeaders headers
 
     def setupSpec()
     {
@@ -53,6 +56,8 @@ class CasualServiceCallRequestMessageTest extends Specification
         l.add([2,3,4] as byte[])
         serviceData = l
         serviceBuffer = ServiceBuffer.of(serviceType, serviceData)
+
+        headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build(  )
     }
 
     def "Message creation"()

@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.service;
 
+import se.laz.casual.api.buffer.CasualHeaders;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
@@ -26,9 +27,7 @@ import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -49,7 +48,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     private Flag<AtmiFlags> xatmiFlags;
     private ServiceBuffer serviceBuffer;
     private ProtocolVersion protocolVersion;
-    private Map<String,String> headers;
+    private CasualHeaders headers;
 
     // not part of the message
     // used for testing
@@ -169,7 +168,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         return serviceBuffer;
     }
 
-    public Map<String,String> getHeaders()
+    public CasualHeaders getHeaders()
     {
         return headers;
     }
@@ -222,7 +221,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         private Flag<AtmiFlags> xatmiFlags;
         private ServiceBuffer serviceBuffer;
         private ProtocolVersion protocolVersion;
-        private Map<String,String> headers = new HashMap<>();
+        private CasualHeaders headers = CasualHeaders.empty();
 
         public Builder setExecution(UUID execution)
         {
@@ -278,7 +277,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
             return this;
         }
 
-        public Builder setHeaders( Map<String,String> headers )
+        public Builder setHeaders( CasualHeaders headers )
         {
             this.headers = headers;
             return this;

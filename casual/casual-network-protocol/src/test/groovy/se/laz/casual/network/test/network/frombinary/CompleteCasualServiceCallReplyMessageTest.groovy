@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.test.network.frombinary
 
+import se.laz.casual.api.buffer.CasualHeaders
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
@@ -130,12 +131,12 @@ class CompleteCasualServiceCallReplyMessageTest extends Specification
 
         where:
         binary                   | protocolVersion             | expectedHeaders
-        data                     | ProtocolVersion.VERSION_1_0 | [:]
-        data                     | ProtocolVersion.VERSION_1_1 | [:]
-        data                     | ProtocolVersion.VERSION_1_2 | [:]
-        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_3 | [:]
-        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_4 | [:]
-        dataProtocolVersion_1005 | ProtocolVersion.VERSION_1_5 | ["a": "foo", "b": "bar", "c": "baz"]
+        data                     | ProtocolVersion.VERSION_1_0 | CasualHeaders.empty(  )
+        data                     | ProtocolVersion.VERSION_1_1 | CasualHeaders.empty(  )
+        data                     | ProtocolVersion.VERSION_1_2 | CasualHeaders.empty(  )
+        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_3 | CasualHeaders.empty(  )
+        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_4 | CasualHeaders.empty(  )
+        dataProtocolVersion_1005 | ProtocolVersion.VERSION_1_5 | CasualHeaders.newBuilder().addAll( ["a:foo", "b:bar", "c:baz"] ).build(  )
     }
 
 }

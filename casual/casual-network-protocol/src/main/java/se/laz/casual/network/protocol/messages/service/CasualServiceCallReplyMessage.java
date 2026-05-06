@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.service;
 
+import se.laz.casual.api.buffer.CasualHeaders;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
@@ -24,9 +25,7 @@ import se.laz.casual.network.protocol.utils.XIDUtils;
 import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -43,7 +42,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     private TransactionState transactionState;
     private ServiceBuffer serviceBuffer;
     private ProtocolVersion protocolVersion;
-    private Map<String,String> headers;
+    private CasualHeaders headers;
 
     // not part of the message
     // used for testing
@@ -135,7 +134,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         return maxMessageSize;
     }
 
-    public Map<String, String> getHeaders()
+    public CasualHeaders getHeaders()
     {
         return headers;
     }
@@ -191,7 +190,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         private TransactionState transactionState;
         private ServiceBuffer serviceBuffer;
         private ProtocolVersion protocolVersion;
-        private Map<String,String> headers = new HashMap<>();
+        private CasualHeaders headers = CasualHeaders.empty();
 
         public Builder setExecution(UUID execution)
         {
@@ -235,7 +234,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             return this;
         }
 
-        public Builder setHeaders( Map<String,String> headers )
+        public Builder setHeaders( CasualHeaders headers )
         {
             this.headers = headers;
             return this;

@@ -6,11 +6,12 @@
 
 package se.laz.casual.network.protocol.encoding.utils;
 
+import se.laz.casual.api.buffer.CasualHeaders;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Assist with encoding of maps of headers to casual network bytes format.
@@ -28,10 +29,10 @@ public final class HeaderEncoder
      * @param headers to convert into byte[]s.
      * @return list of key:value strings for each map entry.
      */
-    public static List<byte[]> convertMapToBytes( Map<String,String> headers )
+    public static List<byte[]> convertMapToBytes( CasualHeaders headers )
     {
-        return headers.entrySet().stream()
-                .map( (entry) -> (entry.getKey() + ":" + entry.getValue()).getBytes( StandardCharsets.UTF_8))
+        return headers.getAll().stream()
+                .map( s-> s.getBytes(StandardCharsets.UTF_8) )
                 .toList();
     }
 
@@ -56,7 +57,7 @@ public final class HeaderEncoder
     }
 
     /**
-     * Encode raw headers in the casual netowkr protocol format:
+     * Encode raw headers in the casual network protocol format:
      * <pre>
      * header.size - the size of the headers param list.
      * header.element.size - the size of each list item byte[].

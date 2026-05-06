@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.service;
 
+import se.laz.casual.api.buffer.CasualHeaders;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
@@ -23,9 +24,7 @@ import javax.transaction.xa.Xid;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -134,8 +133,9 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
                                                                                      .setProtocolVersion(protocolVersion);
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
         {
-            Map<String,String> headers = new HashMap<>();
-            currentOffset = HeaderDecoder.decodeHeaders( data, currentOffset, headers );
+            List<String> rawHeaders = new ArrayList<>();
+            currentOffset = HeaderDecoder.decodeHeaders( data, currentOffset, rawHeaders );
+            CasualHeaders headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build();
             builder.setHeaders( headers );
         }
 

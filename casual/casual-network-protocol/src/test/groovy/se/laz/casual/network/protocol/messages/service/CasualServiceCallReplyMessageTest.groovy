@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.messages.service
 
+import se.laz.casual.api.buffer.CasualHeaders
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
@@ -42,7 +43,9 @@ class CasualServiceCallReplyMessageTest extends Specification
     @Shared
     def emptyServiceBuffer
     @Shared
-    Map<String,String> headers = ["a":"foo","b":"bar","c":"baz"]
+    List<String> rawHeaders = ["a:foo","b:bar","c:baz"]
+    @Shared
+    CasualHeaders headers
 
     def setupSpec()
     {
@@ -51,6 +54,8 @@ class CasualServiceCallReplyMessageTest extends Specification
         serviceData = l
         serviceBuffer = ServiceBuffer.of(serviceType, serviceData)
         emptyServiceBuffer = ServiceBuffer.empty()
+
+        headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build(  )
     }
 
     def "Message creation"()
