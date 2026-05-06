@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,6 +8,7 @@ package se.laz.casual.api.buffer.type.fielded;
 
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.CasualBufferType;
+import se.laz.casual.api.buffer.CasualHeaders;
 import se.laz.casual.api.buffer.type.fielded.impl.FieldedDataImpl;
 import se.laz.casual.api.buffer.type.fielded.json.CasualField;
 import se.laz.casual.api.buffer.type.fielded.json.CasualFieldedLookup;
@@ -34,24 +35,39 @@ public final class FieldedTypeBuffer implements CasualBuffer
     private static final long serialVersionUID = 1L;
     private Map<String, List<FieldedData<?>>> m;
     private boolean allowNullUseDefault = false;
-    private FieldedTypeBuffer(final Map<String, List<FieldedData<?>>> m)
+    private final CasualHeaders headers;
+
+    private FieldedTypeBuffer(final Map<String, List<FieldedData<?>>> m, CasualHeaders headers )
     {
         this.m = m;
+        this.headers = headers;
     }
 
     /**
-     * Creates a new buffer
+     * Creates a new buffer with empty headers.
      * @param l fielded encoded data
      * @return a new buffer
      */
     public static FieldedTypeBuffer create(final List<byte[]> l)
     {
+        return create( l, CasualHeaders.empty() );
+    }
+
+    /**
+     * Create a new buffer with  headers.
+     * @param l fielded encoded data.
+     * @param headers the headers.
+     * @return a new buffer.
+     */
+    public static FieldedTypeBuffer create(final List<byte[]> l, CasualHeaders headers )
+    {
         Objects.requireNonNull(l, "buffer is not allowed to be null");
+        Objects.requireNonNull( headers, "headers is not allowed to be null" );
         if(l.isEmpty())
         {
             return FieldedTypeBuffer.create();
         }
-        return new FieldedTypeBuffer(FieldedTypeBufferDecoder.decode(l));
+        return new FieldedTypeBuffer(FieldedTypeBufferDecoder.decode(l), headers);
     }
 
     /**
@@ -62,18 +78,42 @@ public final class FieldedTypeBuffer implements CasualBuffer
      */
     public static FieldedTypeBuffer createAllowNullUseDefault(final List<byte[]> l)
     {
-        FieldedTypeBuffer buffer = create(l);
+        return createAllowNullUseDefault(l, CasualHeaders.empty() );
+    }
+
+    /**
+     * Creates a new buffer with headers, that allows for writing default values when a user writes a null value
+     *
+     * @param l fielded encoded data
+     * @param headers the headers.
+     * @return a new buffer
+     */
+    public static FieldedTypeBuffer createAllowNullUseDefault(final List<byte[]> l, CasualHeaders headers)
+    {
+        FieldedTypeBuffer buffer = create(l, headers );
         buffer.allowNullUseDefault = true;
         return buffer;
     }
 
+
     /**
-     * Creates a new empty buffer
+     * Creates a new empty buffer with empty headers.
      * @return a new empty buffer
      */
     public static FieldedTypeBuffer create()
     {
-        return new FieldedTypeBuffer(new HashMap<>());
+        return create( CasualHeaders.empty() );
+    }
+
+    /**
+     * Creates a new empty buffer with headers.
+     * @param headers the headers.
+     * @return a new empty buffer
+     */
+    public static FieldedTypeBuffer create( CasualHeaders headers )
+    {
+        Objects.requireNonNull( headers, "headers is null." );
+        return new FieldedTypeBuffer(new HashMap<>(), headers );
     }
 
     /**
@@ -82,7 +122,17 @@ public final class FieldedTypeBuffer implements CasualBuffer
      */
     public static FieldedTypeBuffer createAllowNullUseDefault()
     {
-        FieldedTypeBuffer buffer = create();
+        return createAllowNullUseDefault( CasualHeaders.empty() );
+    }
+
+    /**
+     * Creates a new empty buffer with headers that allows for writing default values when a user writes a null value
+     * @param headers the headers.
+     * @return a new empty buffer
+     */
+    public static FieldedTypeBuffer createAllowNullUseDefault( CasualHeaders headers )
+    {
+        FieldedTypeBuffer buffer = create(headers);
         buffer.allowNullUseDefault = true;
         return buffer;
     }
@@ -90,7 +140,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
     /**
      * Creates a copy of a buffer
      * Note that there is no deep copying going on as the keys and values are immutable
-     *
+     * <br/>
      * Allows for writing default values when a user writes a null value
      *
      * @param b the buffer to copy
@@ -112,7 +162,7 @@ public final class FieldedTypeBuffer implements CasualBuffer
     public static FieldedTypeBuffer of(FieldedTypeBuffer b)
     {
         Objects.requireNonNull(b, "buffer can not be null");
-        FieldedTypeBuffer r = FieldedTypeBuffer.create();
+        FieldedTypeBuffer r = FieldedTypeBuffer.create(b.getHeaders());
         // shallow copy, keys and values are immutable
         b.m.forEach((key, val) -> r.m.put(key, new ArrayList<>(val)));
         return r;
@@ -553,13 +603,13 @@ public final class FieldedTypeBuffer implements CasualBuffer
             return false;
         }
         FieldedTypeBuffer that = (FieldedTypeBuffer) o;
-        return Objects.equals(m, that.m);
+        return Objects.equals(m, that.m) && Objects.equals( headers, that.headers );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(m);
+        return Objects.hash(m, headers );
     }
 
     @Override
@@ -574,8 +624,13 @@ public final class FieldedTypeBuffer implements CasualBuffer
         return encode();
     }
 
+    @Override
+    public CasualHeaders getHeaders()
+    {
+        return this.headers;
+    }
 
-    public static Supplier<CasualFieldedLookupException> createNameMissingException(String name)
+    public static Supplier<CasualFieldedLookupException> createNameMissingException( String name)
     {
         return createNameMissingException(name, null);
     }

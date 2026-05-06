@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -7,6 +7,7 @@
 package se.laz.casual.api
 
 import se.laz.casual.api.buffer.CasualBuffer
+import se.laz.casual.api.buffer.CasualHeaders
 import se.laz.casual.api.buffer.ServiceReturn
 import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
@@ -52,6 +53,12 @@ class CasualServiceApiTest extends Specification
 
         @Override
         List<byte[]> getBytes()
+        {
+            return null
+        }
+
+        @Override
+        CasualHeaders getHeaders()
         {
             return null
         }

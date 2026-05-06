@@ -18,9 +18,9 @@ import java.util.Set;
 /**
  * Headers associated with casual buffers.
  * <br/>
- * Headers are defined as name:value strings.
+ * Headers are defined as key:value strings.
  * <br/>
- * Header names can occur multiple times.
+ * Header keys/names can occur multiple times.
  * <br/>
  * Therefore retrieval of a named header returns a {@link List} of values associated with the
  * named header.
@@ -28,6 +28,16 @@ import java.util.Set;
 public class CasualHeaders
 {
     private static final String COLON_SEP = ":";
+    private static final CasualHeaders EMPTY = CasualHeaders.newBuilder().build();
+
+    /**
+     * Instance of CasualHeaders without any entries - empty.
+     * @return empty instance of casual headers.
+     */
+    public static CasualHeaders empty()
+    {
+        return EMPTY;
+    }
 
     private final List<String> order;
     private final Map<String,List<String>> entries;
@@ -39,7 +49,7 @@ public class CasualHeaders
     }
 
     /**
-     * Retrieve header by name.
+     * Retrieve header by key/name.
      *
      * @param name of the header to retrieve.
      * @return all values associated with the named header.
@@ -55,7 +65,7 @@ public class CasualHeaders
     }
 
     /**
-     * Retrieve all header names present.
+     * Retrieve all header keys/names present.
      *
      * @return unique list of headers present.
      */
@@ -65,9 +75,9 @@ public class CasualHeaders
     }
 
     /**
-     * Retrieve all header name:value entries in insertion order.
+     * Retrieve all header "key:value" entries in insertion order.
      *
-     * @return List of all name:value headers.
+     * @return List of all "key:value" headers.
      */
     public List<String> getAll( )
     {
@@ -154,9 +164,9 @@ public class CasualHeaders
         private final List<String> order = new ArrayList<>();
 
         /**
-         * Add a name:value header entry.
+         * Add a "key:value" formatted string header entry.
          *
-         * @param header the name:value header entry.
+         * @param header the "key:value" header entry.
          * @return the builder.
          */
         public Builder add( String header )
@@ -171,7 +181,7 @@ public class CasualHeaders
         }
 
         /**
-         * Add a name, value header entry.
+         * Add a header entry.
          *
          * @param name of the header.
          * @param value of the header.
@@ -187,7 +197,7 @@ public class CasualHeaders
         }
 
         /**
-         * Add a list of "name:value" header entries.
+         * Add a list of "key:value" formatted string header entries.
          *
          * @param headers to add.
          * @return the builder.

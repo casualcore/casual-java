@@ -1,7 +1,14 @@
+/*
+ * Copyright (c) 2026, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.api.buffer.type
 
 
 import se.laz.casual.api.buffer.CasualBufferType
+import se.laz.casual.api.buffer.CasualHeaders
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -14,10 +21,16 @@ class CStringBufferTest extends Specification {
     def defaultCharset = Charset.defaultCharset()
     @Shared
     def nonDefaultCharset
+    @Shared
+    List<String> rawHeaders = ["a:foo","b:bar", "c:baz" ]
+    @Shared
+    CasualHeaders headers
+
 
     def setupSpec()
     {
         nonDefaultCharset = defaultCharset != StandardCharsets.UTF_8 ? StandardCharsets.UTF_8 : StandardCharsets.ISO_8859_1
+        headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build(  )
     }
 
     def 'Wrong cstring creation from null value'()
@@ -32,7 +45,7 @@ class CStringBufferTest extends Specification {
     def 'Wrong cstring creation with null charset'()
     {
         when:
-        CStringBuffer.of("Foo", null)
+        CStringBuffer.of("Foo", null as Charset)
         then:
         def e = thrown(NullPointerException)
         !e.message.empty
@@ -91,7 +104,7 @@ class CStringBufferTest extends Specification {
         byte[] b = 'Foo'.getBytes()
         Charset charset = null
         when:
-        CStringBuffer.of([b], charset)
+        CStringBuffer.of([b], charset as Charset)
         then:
         def e = thrown(NullPointerException)
         !e.message.empty
@@ -157,5 +170,52 @@ class CStringBufferTest extends Specification {
         def buffer = CStringBuffer.of(s, StandardCharsets.UTF_8)
         then:
         s == buffer.toString()
+    }
+
+    def "Default buffer does not contain any header entries."()
+    {
+        given:
+        String c = "Hi there without headers."
+
+        when:
+        CStringBuffer buffer = CStringBuffer.of( c )
+
+        then:
+        buffer.getHeaders(  ) == CasualHeaders.empty(  )
+    }
+
+    def "Create a buffer with additional headers."()
+    {
+        expect:
+        buffer.getHeaders(  ) == headers
+
+        where:
+        buffer << [
+                CStringBuffer.of( "hi", headers ),
+                CStringBuffer.of( ["hi\0".getBytes()], headers ),
+                CStringBuffer.of( "hi", defaultCharset, headers ),
+                CStringBuffer.of( ["hi\0".getBytes()], defaultCharset, headers )
+        ]
+    }
+
+    def "Create with null headers, throws NullPointerException."()
+    {
+        when:
+        CStringBuffer.of( "hi", null as CasualHeaders )
+
+        then:
+        thrown NullPointerException
+
+        when:
+        CStringBuffer.of( ["hi\0".getBytes()], null as CasualHeaders )
+
+        then:
+        thrown NullPointerException
+
+        when:
+        CStringBuffer.of( ["hi\0".getBytes()], defaultCharset, null )
+
+        then:
+        thrown NullPointerException
     }
 }

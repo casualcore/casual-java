@@ -31,6 +31,28 @@ class CasualHeadersTest extends Specification
         instance.size() == 4
     }
 
+    def "New / empty size is 0."()
+    {
+        when:
+        instance = CasualHeaders.newBuilder().build(  )
+
+        then:
+        instance.size(  ) == 0
+    }
+
+    def "Empty static instances is equal to a new empty instance."()
+    {
+        when:
+        CasualHeaders instance1 = CasualHeaders.empty()
+        CasualHeaders instance2 = CasualHeaders.newBuilder().build(  )
+
+        then:
+        instance1.equals( instance2 )
+        !instance.equals( instance1 )
+        instance1.hashCode(  ) == instance2.hashCode(  )
+        instance.hashCode(  ) != instance1.hashCode(  )
+    }
+
     def "Get headers does not exist, returns empty."()
     {
         when:
