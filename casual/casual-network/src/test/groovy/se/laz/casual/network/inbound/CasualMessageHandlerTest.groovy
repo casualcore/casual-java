@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -61,6 +61,8 @@ class CasualMessageHandlerTest extends Specification
         CasualNWMessageType.DOMAIN_CONNECT_REQUEST   | 'domainConnectRequest'
         CasualNWMessageType.DOMAIN_DISCOVERY_REQUEST | 'domainDiscoveryRequest'
         CasualNWMessageType.SERVICE_CALL_REQUEST     | 'serviceCallRequest'
+        CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3     | 'serviceCallRequest'
+        CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_5     | 'serviceCallRequest'
         CasualNWMessageType.PREPARE_REQUEST          | 'prepareRequest'
         CasualNWMessageType.COMMIT_REQUEST           | 'commitRequest'
         CasualNWMessageType.REQUEST_ROLLBACK         | 'requestRollback'
