@@ -62,9 +62,15 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     @Override
     public CasualNWMessageType getType()
     {
-        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
-                ? CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
-                : CasualNWMessageType.SERVICE_CALL_REQUEST;
+        if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5) )
+        {
+            return CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_5;
+        }
+        if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3) )
+        {
+            return CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3;
+        }
+        return CasualNWMessageType.SERVICE_CALL_REQUEST;
     }
 
     @Override

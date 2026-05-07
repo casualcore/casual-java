@@ -61,9 +61,15 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     @Override
     public CasualNWMessageType getType()
     {
-        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
-                ? CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
-                : CasualNWMessageType.SERVICE_CALL_REPLY;
+        if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5) )
+        {
+            return CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5;
+        }
+        if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3) )
+        {
+            return CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3;
+        }
+        return CasualNWMessageType.SERVICE_CALL_REPLY;
     }
 
     @Override

@@ -10,6 +10,7 @@ import se.laz.casual.api.buffer.CasualHeaders
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.xa.XID
 import se.laz.casual.jca.SpanId
 import se.laz.casual.network.ProtocolVersion
@@ -100,8 +101,17 @@ class CasualServiceCallRequestMessageTest extends Specification
         {
             msg.getHeaders() == headers
         }
+
+        msg.getType(  ) == type
+
         where:
-        protocolVersion << ProtocolVersion.values()
+        protocolVersion             | type
+        ProtocolVersion.VERSION_1_0 | CasualNWMessageType.SERVICE_CALL_REQUEST
+        ProtocolVersion.VERSION_1_1 | CasualNWMessageType.SERVICE_CALL_REQUEST
+        ProtocolVersion.VERSION_1_2 | CasualNWMessageType.SERVICE_CALL_REQUEST
+        ProtocolVersion.VERSION_1_3 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
+        ProtocolVersion.VERSION_1_4 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
+        ProtocolVersion.VERSION_1_5 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_5
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()
@@ -148,8 +158,17 @@ class CasualServiceCallRequestMessageTest extends Specification
         {
             resurrectedMsg.getMessage().getHeaders() == headers
         }
+
+        msg.getType(  ) == type
+
         where:
-        protocolVersion << ProtocolVersion.values()
+        protocolVersion             | type
+        ProtocolVersion.VERSION_1_0 | CasualNWMessageType.SERVICE_CALL_REQUEST
+        ProtocolVersion.VERSION_1_1 | CasualNWMessageType.SERVICE_CALL_REQUEST
+        ProtocolVersion.VERSION_1_2 | CasualNWMessageType.SERVICE_CALL_REQUEST
+        ProtocolVersion.VERSION_1_3 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
+        ProtocolVersion.VERSION_1_4 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
+        ProtocolVersion.VERSION_1_5 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_5
     }
 
 }

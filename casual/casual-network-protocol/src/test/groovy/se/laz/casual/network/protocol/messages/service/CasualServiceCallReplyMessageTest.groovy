@@ -10,6 +10,7 @@ import se.laz.casual.api.buffer.CasualHeaders
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.xa.XID
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
@@ -93,8 +94,17 @@ class CasualServiceCallReplyMessageTest extends Specification
         msg.getTransactionState() == transactionState
         msg.getServiceBuffer() == serviceBuffer
         msg.getServiceBuffer().payload == serviceBuffer.payload
+
+        msg.getType(  ) == type
+
         where:
-        protocolVersion << ProtocolVersion.values()
+        protocolVersion | type
+        ProtocolVersion.VERSION_1_0 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_1 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_2 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_3 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_4 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_5 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()
@@ -138,8 +148,17 @@ class CasualServiceCallReplyMessageTest extends Specification
         {
             resurrectedMsg.getMessage(  ).getHeaders() == headers
         }
+
+        msg.getType(  ) == type
+
         where:
-        protocolVersion << ProtocolVersion.values()
+        protocolVersion | type
+        ProtocolVersion.VERSION_1_0 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_1 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_2 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_3 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_4 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_5 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5
     }
 
     def "Roundtrip with empty service buffer"()
@@ -170,8 +189,17 @@ class CasualServiceCallReplyMessageTest extends Specification
         requestMsg == resurrectedMsg.getMessage()
         resurrectedMsg.getMessage().getServiceBuffer().isEmpty()
         msg == resurrectedMsg
+
+        msg.getType(  ) == type
+
         where:
-        protocolVersion << ProtocolVersion.values()
+        protocolVersion | type
+        ProtocolVersion.VERSION_1_0 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_1 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_2 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_3 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_4 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_5 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5
     }
 
 }
