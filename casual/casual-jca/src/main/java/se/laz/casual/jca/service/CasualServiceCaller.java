@@ -47,6 +47,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_5;
 
 public class CasualServiceCaller implements CasualServiceApi
 {
@@ -236,6 +237,10 @@ public class CasualServiceCaller implements CasualServiceApi
         if(connection.getNetworkConnection().getProtocolVersion().isGreaterThanOrEqualTo( VERSION_1_3 ))
         {
             serviceRequestMessageBuilder.setParentSpan(outboundContext.span());
+        }
+        if(connection.getNetworkConnection().getProtocolVersion().isGreaterThanOrEqualTo( VERSION_1_5 ))
+        {
+            serviceRequestMessageBuilder.setHeaders( data.getHeaders() );
         }
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessageBuilder.build());
         LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
