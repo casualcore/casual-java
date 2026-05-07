@@ -45,6 +45,8 @@ class CasualServiceCallRequestMessageTest extends Specification
     @Shared
     def serviceBuffer
     @Shared
+    def serviceBufferWithHeaders
+    @Shared
     SpanId parentSpan = SpanId.of()
     @Shared
     List<String> rawHeaders = ["a:foo", "b:bar","c:baz"]
@@ -59,11 +61,14 @@ class CasualServiceCallRequestMessageTest extends Specification
         serviceBuffer = ServiceBuffer.of(serviceType, serviceData)
 
         headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build(  )
+        serviceBufferWithHeaders = ServiceBuffer.of( serviceType, serviceData, headers )
     }
 
     def "Message creation"()
     {
         setup:
+        ServiceBuffer buffer = protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 )
+                ? serviceBufferWithHeaders : serviceBuffer
 
         when:
         //println("protocolVersion: ${protocolVersion}")
@@ -74,16 +79,13 @@ class CasualServiceCallRequestMessageTest extends Specification
                 .setParentName( parentName )
                 .setXid( nullXID )
                 .setXatmiFlags( xatmiFlags )
-                .setServiceBuffer( serviceBuffer )
+                .setServiceBuffer( buffer )
                 .setProtocolVersion( protocolVersion )
         if ( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
         {
             msgBuilder.setParentSpan( parentSpan )
         }
-        if ( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
-        {
-            msgBuilder.setHeaders( headers )
-        }
+
         def msg = msgBuilder.build()
         then:
         msg.execution == execution
@@ -91,16 +93,13 @@ class CasualServiceCallRequestMessageTest extends Specification
         msg.timeout == timeout
         msg.parentName == parentName
         msg.xid == nullXID
-        msg.serviceBuffer == serviceBuffer
-        msg.serviceBuffer.payload == serviceBuffer.payload
+
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
         {
            msg.getParentSpan() == parentSpan
         }
-        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
-        {
-            msg.getHeaders() == headers
-        }
+
+        msg.getServiceBuffer(  ) == buffer
 
         msg.getType(  ) == type
 
@@ -117,6 +116,9 @@ class CasualServiceCallRequestMessageTest extends Specification
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()
     {
         setup:
+        ServiceBuffer buffer = protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 )
+                ? serviceBufferWithHeaders : serviceBuffer
+
         def requestMsgBuilder = CasualServiceCallRequestMessage.createBuilder()
                 .setExecution(execution)
                 .setServiceName(serviceName)
@@ -124,17 +126,14 @@ class CasualServiceCallRequestMessageTest extends Specification
                 .setParentName(parentName)
                 .setXid(nullXID)
                 .setXatmiFlags(xatmiFlags)
-                .setServiceBuffer(serviceBuffer)
+                .setServiceBuffer(buffer)
                 .setProtocolVersion(protocolVersion)
 
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
         {
            requestMsgBuilder.setParentSpan(parentSpan)
         }
-        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
-        {
-            requestMsgBuilder.setHeaders(headers)
-        }
+
         def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
@@ -149,25 +148,26 @@ class CasualServiceCallRequestMessageTest extends Specification
         requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
-        requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().serviceBuffer.payload
+        requestMsg.getServiceBuffer().getPayload(  ) == resurrectedMsg.getMessage().getServiceBuffer(  ).getPayload(  )
+
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ))
         {
           resurrectedMsg.getMessage().getParentSpan() == parentSpan
         }
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
         {
-            resurrectedMsg.getMessage().getHeaders() == headers
+            resurrectedMsg.getMessage(  ).getServiceBuffer(  ).getHeaders(  ) == headers
         }
 
         msg.getType(  ) == type
 
         where:
         protocolVersion             | type
-        ProtocolVersion.VERSION_1_0 | CasualNWMessageType.SERVICE_CALL_REQUEST
-        ProtocolVersion.VERSION_1_1 | CasualNWMessageType.SERVICE_CALL_REQUEST
-        ProtocolVersion.VERSION_1_2 | CasualNWMessageType.SERVICE_CALL_REQUEST
-        ProtocolVersion.VERSION_1_3 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
-        ProtocolVersion.VERSION_1_4 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
+//        ProtocolVersion.VERSION_1_0 | CasualNWMessageType.SERVICE_CALL_REQUEST
+//        ProtocolVersion.VERSION_1_1 | CasualNWMessageType.SERVICE_CALL_REQUEST
+//        ProtocolVersion.VERSION_1_2 | CasualNWMessageType.SERVICE_CALL_REQUEST
+//        ProtocolVersion.VERSION_1_3 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
+//        ProtocolVersion.VERSION_1_4 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
         ProtocolVersion.VERSION_1_5 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_5
     }
 

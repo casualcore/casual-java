@@ -127,9 +127,19 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
         final byte[] payloadData = Arrays.copyOfRange(data, currentOffset, currentOffset + serviceBufferPayloadSize);
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
         serviceBufferPayload.add(payloadData);
-        final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
-
         currentOffset += serviceBufferPayloadSize;
+
+        CasualHeaders headers = CasualHeaders.empty();
+
+        if( protocolVersion.isGreaterThanOrEqualTo( ProtocolVersion.VERSION_1_5 ) )
+        {
+            List<String> rawHeaders = new ArrayList<>();
+
+            currentOffset = HeaderDecoder.decodeHeaders( data, currentOffset, rawHeaders );
+            headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build();
+        }
+
+        final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload, headers );
 
         CasualServiceCallRequestMessage.Builder builder = CasualServiceCallRequestMessage.createBuilder()
                                                                                          .setExecution(execution)
@@ -139,16 +149,6 @@ public final class CasualServiceCallRequestMessageDecoder implements NetworkDeco
                                                                                          .setXid(xid)
                                                                                          .setXatmiFlags(new Flag.Builder<AtmiFlags>(flags).build())
                                                                                          .setServiceBuffer(serviceBuffer);
-
-        if( protocolVersion.isGreaterThanOrEqualTo( ProtocolVersion.VERSION_1_5 ) )
-        {
-            List<String> rawHeaders = new ArrayList<>();
-
-            currentOffset = HeaderDecoder.decodeHeaders( data, currentOffset, rawHeaders );
-            CasualHeaders headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build();
-
-            builder.setHeaders( headers );
-        }
 
 
         if(hasTimeout)

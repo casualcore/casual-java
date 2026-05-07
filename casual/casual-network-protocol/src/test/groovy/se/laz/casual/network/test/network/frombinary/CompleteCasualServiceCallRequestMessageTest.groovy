@@ -130,7 +130,7 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
         CasualNWMessageImpl<CasualServiceCallRequestMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
 
         then:
-        msg.getMessage(  ).getHeaders(  ) == expectedHeaders
+        msg.getMessage(  ).getServiceBuffer(  ).getHeaders(  ) == expectedHeaders
 
         where:
         binary                   | protocolVersion             | expectedHeaders

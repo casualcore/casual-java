@@ -122,8 +122,17 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
         }
         // since serviceTypeName can be NULL in case there is no payload
         serviceTypeName = (0 == serviceBufferPayloadSize) ? "" : serviceTypeName;
-        final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
         currentOffset += serviceBufferPayloadSize;
+
+        CasualHeaders headers = CasualHeaders.empty();
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            List<String> rawHeaders = new ArrayList<>();
+            currentOffset = HeaderDecoder.decodeHeaders( data, currentOffset, rawHeaders );
+            headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build();
+        }
+        final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload, headers );
+
         CasualServiceCallReplyMessage.Builder builder = CasualServiceCallReplyMessage.createBuilder()
                                                                                      .setExecution(execution)
                                                                                      .setError(ErrorState.unmarshal(callError))
@@ -131,13 +140,6 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
                                                                                      .setTransactionState(TransactionState.unmarshal(transactionState))
                                                                                      .setServiceBuffer(serviceBuffer)
                                                                                      .setProtocolVersion(protocolVersion);
-        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
-        {
-            List<String> rawHeaders = new ArrayList<>();
-            currentOffset = HeaderDecoder.decodeHeaders( data, currentOffset, rawHeaders );
-            CasualHeaders headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build();
-            builder.setHeaders( headers );
-        }
 
         if(null != xid)
         {

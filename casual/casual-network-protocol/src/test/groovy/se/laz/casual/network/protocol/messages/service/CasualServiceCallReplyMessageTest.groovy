@@ -42,6 +42,8 @@ class CasualServiceCallReplyMessageTest extends Specification
     @Shared
     def serviceBuffer
     @Shared
+    def serviceBufferWithHeaders
+    @Shared
     def emptyServiceBuffer
     @Shared
     List<String> rawHeaders = ["a:foo","b:bar","c:baz"]
@@ -57,27 +59,28 @@ class CasualServiceCallReplyMessageTest extends Specification
         emptyServiceBuffer = ServiceBuffer.empty()
 
         headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build(  )
+        serviceBufferWithHeaders = ServiceBuffer.of(serviceType, serviceData, headers)
     }
 
     def "Message creation"()
     {
         setup:
+        ServiceBuffer buffer = protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 )
+                ? serviceBufferWithHeaders : serviceBuffer
+
         when:
         def msgBuilder = CasualServiceCallReplyMessage.createBuilder()
                                                .setExecution(execution)
                                                .setError(callError)
                                                .setUserSuppliedError(userError)
                                                .setTransactionState(transactionState)
-                                               .setServiceBuffer(serviceBuffer)
+                                               .setServiceBuffer(buffer)
                                                .setProtocolVersion(protocolVersion)
         if(protocolVersion.isLessThan( VERSION_1_3 ) )
         {
            msgBuilder.setXid(nullXID)
         }
-        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
-        {
-            msgBuilder.setHeaders( headers )
-        }
+
         def msg = msgBuilder.build()
         then:
         msg.getExecution() == execution
@@ -89,11 +92,11 @@ class CasualServiceCallReplyMessageTest extends Specification
         }
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
         {
-            msg.getHeaders() == headers
+            msg.getServiceBuffer(  ).getHeaders(  ) == headers
         }
         msg.getTransactionState() == transactionState
-        msg.getServiceBuffer() == serviceBuffer
-        msg.getServiceBuffer().payload == serviceBuffer.payload
+        msg.getServiceBuffer() == buffer
+        msg.getServiceBuffer().payload == buffer.payload
 
         msg.getType(  ) == type
 
@@ -110,22 +113,22 @@ class CasualServiceCallReplyMessageTest extends Specification
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()
     {
         setup:
+        ServiceBuffer buffer = protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 )
+                ? serviceBufferWithHeaders : serviceBuffer
+
         def requestMsgBuilder = CasualServiceCallReplyMessage.createBuilder()
                 .setExecution(execution)
                 .setError(callError)
                 .setUserSuppliedError(userError)
                 .setTransactionState(transactionState)
-                .setServiceBuffer(serviceBuffer)
+                .setServiceBuffer(buffer)
                 .setProtocolVersion(protocolVersion)
 
         if(protocolVersion.isLessThan( VERSION_1_3 ))
         {
            requestMsgBuilder.setXid(nullXID)
         }
-        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
-        {
-            requestMsgBuilder.setHeaders( headers )
-        }
+
         def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
@@ -139,14 +142,15 @@ class CasualServiceCallReplyMessageTest extends Specification
         requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
-        requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().getServiceBuffer().payload
+        requestMsg.getServiceBuffer().getPayload() == resurrectedMsg.getMessage().getServiceBuffer().getPayload(  )
+
         if(protocolVersion.isLessThan( VERSION_1_3 ))
         {
            resurrectedMsg.getMessage().getXid() == nullXID
         }
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
         {
-            resurrectedMsg.getMessage(  ).getHeaders() == headers
+            resurrectedMsg.getMessage(  ).getServiceBuffer(  ).getHeaders() == headers
         }
 
         msg.getType(  ) == type

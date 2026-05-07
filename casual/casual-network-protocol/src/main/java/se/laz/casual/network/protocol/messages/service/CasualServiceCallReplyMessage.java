@@ -6,7 +6,6 @@
 
 package se.laz.casual.network.protocol.messages.service;
 
-import se.laz.casual.api.buffer.CasualHeaders;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
@@ -42,7 +41,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     private TransactionState transactionState;
     private ServiceBuffer serviceBuffer;
     private ProtocolVersion protocolVersion;
-    private CasualHeaders headers;
 
     // not part of the message
     // used for testing
@@ -85,7 +83,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         {
             messageSize += XIDUtils.getXIDNetworkSize(xid);
         }
-        List<byte[]> headersBytes = HeaderEncoder.convertMapToBytes( headers );
+        List<byte[]> headersBytes = HeaderEncoder.convertMapToBytes( serviceBuffer.getHeaders() );
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
         {
             messageSize += CommonSizes.HEADER_SIZE.getNetworkSize() +
@@ -140,11 +138,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         return maxMessageSize;
     }
 
-    public CasualHeaders getHeaders()
-    {
-        return headers;
-    }
-
     @Override
     public boolean equals(Object o)
     {
@@ -161,8 +154,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             Objects.equals(execution, that.execution) &&
             error == that.error &&
             Objects.equals(xid, that.xid) &&
-            transactionState == that.transactionState &&
-            Objects.equals( headers, that.headers );
+            transactionState == that.transactionState;
     }
 
     @Override
@@ -182,7 +174,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
                 ", transactionState=" + transactionState +
                 ", serviceBuffer=" + serviceBuffer +
                 ", protocolVersion=" + protocolVersion +
-                ", headers=" + headers +
                 ", maxMessageSize=" + maxMessageSize +
                 '}';
     }
@@ -196,7 +187,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         private TransactionState transactionState;
         private ServiceBuffer serviceBuffer;
         private ProtocolVersion protocolVersion;
-        private CasualHeaders headers = CasualHeaders.empty();
 
         public Builder setExecution(UUID execution)
         {
@@ -240,12 +230,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             return this;
         }
 
-        public Builder setHeaders( CasualHeaders headers )
-        {
-            this.headers = headers;
-            return this;
-        }
-
         public CasualServiceCallReplyMessage build()
         {
             Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
@@ -262,7 +246,6 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             {
                 throw new CasualProtocolException("xid can not be set in protocol version: " + protocolVersion);
             }
-            msg.headers = headers;
             msg.transactionState = transactionState;
             msg.serviceBuffer = serviceBuffer;
             return msg;

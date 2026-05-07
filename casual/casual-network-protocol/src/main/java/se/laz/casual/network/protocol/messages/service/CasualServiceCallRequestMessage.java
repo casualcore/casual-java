@@ -6,7 +6,6 @@
 
 package se.laz.casual.network.protocol.messages.service;
 
-import se.laz.casual.api.buffer.CasualHeaders;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.AtmiFlags;
 import se.laz.casual.api.flags.Flag;
@@ -48,7 +47,6 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     private Flag<AtmiFlags> xatmiFlags;
     private ServiceBuffer serviceBuffer;
     private ProtocolVersion protocolVersion;
-    private CasualHeaders headers;
 
     // not part of the message
     // used for testing
@@ -87,7 +85,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
                            ServiceCallRequestSizes.FLAGS.getNetworkSize() +
                            ServiceCallRequestSizes.BUFFER_TYPE_NAME_SIZE.getNetworkSize() + ServiceCallRequestSizes.BUFFER_PAYLOAD_SIZE.getNetworkSize() + ByteUtils.sumNumberOfBytes(serviceBytes);
 
-        final List<byte[]> headersBytes  = HeaderEncoder.convertMapToBytes( headers );
+        final List<byte[]> headersBytes  = HeaderEncoder.convertMapToBytes( serviceBuffer.getHeaders() );
 
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
         {
@@ -174,11 +172,6 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         return serviceBuffer;
     }
 
-    public CasualHeaders getHeaders()
-    {
-        return headers;
-    }
-
     @Override
     public boolean equals( Object o )
     {
@@ -189,13 +182,13 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         CasualServiceCallRequestMessage that = (CasualServiceCallRequestMessage) o;
         return timeout == that.timeout && maxMessageSize == that.maxMessageSize && Objects.equals( execution, that.execution ) &&
                 Objects.equals( serviceName, that.serviceName ) && Objects.equals( parentSpan, that.parentSpan ) && Objects.equals( parentName, that.parentName ) &&
-                Objects.equals( xid, that.xid ) && Objects.equals( xatmiFlags, that.xatmiFlags ) && Objects.equals( headers, that.headers );
+                Objects.equals( xid, that.xid ) && Objects.equals( xatmiFlags, that.xatmiFlags );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( execution, serviceName, timeout, parentSpan, parentName, xid, xatmiFlags, headers, maxMessageSize );
+        return Objects.hash( execution, serviceName, timeout, parentSpan, parentName, xid, xatmiFlags, maxMessageSize );
     }
 
     @Override
@@ -210,7 +203,6 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
                 ", xid=" + xid +
                 ", xatmiFlags=" + xatmiFlags +
                 ", serviceBuffer=" + serviceBuffer +
-                ", headers=" + headers +
                 ", maxMessageSize=" + maxMessageSize +
                 '}';
     }
@@ -227,7 +219,6 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         private Flag<AtmiFlags> xatmiFlags;
         private ServiceBuffer serviceBuffer;
         private ProtocolVersion protocolVersion;
-        private CasualHeaders headers = CasualHeaders.empty();
 
         public Builder setExecution(UUID execution)
         {
@@ -283,12 +274,6 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
             return this;
         }
 
-        public Builder setHeaders( CasualHeaders headers )
-        {
-            this.headers = headers;
-            return this;
-        }
-
         public CasualServiceCallRequestMessage build()
         {
             Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
@@ -302,7 +287,6 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
             r.xatmiFlags = xatmiFlags;
             r.serviceBuffer = serviceBuffer;
             r.protocolVersion = protocolVersion;
-            r.headers = headers;
             return r;
         }
     }
@@ -338,6 +322,8 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
         b.putLong(payloadSize);
         serviceBytes.forEach(b::put);
+
+        //TODO: log warn if headers populated with wrong version.
 
         if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
         {
