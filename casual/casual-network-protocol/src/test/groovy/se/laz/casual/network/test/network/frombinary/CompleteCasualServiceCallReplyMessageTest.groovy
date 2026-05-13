@@ -7,6 +7,7 @@
 package se.laz.casual.network.test.network.frombinary
 
 import se.laz.casual.api.buffer.CasualHeaders
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
@@ -56,11 +57,13 @@ class CompleteCasualServiceCallReplyMessageTest extends Specification
         def header = CasualMessageDecoder.networkHeaderToCasualHeader(headerData)
         then:
         header != null
+        header.getType(  ) == type
 
         where:
-        networkData << [
-                data, dataProtocolVersion_1003, dataProtocolVersion_1005
-        ]
+        networkData              | type
+        data                     | CasualNWMessageType.SERVICE_CALL_REPLY
+        dataProtocolVersion_1003 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        dataProtocolVersion_1005 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5
     }
 
     def "roundtrip header"()
@@ -72,15 +75,16 @@ class CompleteCasualServiceCallReplyMessageTest extends Specification
         def resurrectedHeader = CasualMessageDecoder.networkHeaderToCasualHeader(header.toNetworkBytes())
         then:
         header != null
+        header.getType(  ) == type
         resurrectedHeader != null
         resurrectedHeader == header
         resurrectedHeader.payloadSize == payloadSize
 
         where:
-        networkData              | payloadSize
-        data                     | 237
-        dataProtocolVersion_1003 | 181
-        dataProtocolVersion_1005 | 228
+        networkData              | payloadSize | type
+        data                     | 237         | CasualNWMessageType.SERVICE_CALL_REPLY
+        dataProtocolVersion_1003 | 181         | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        dataProtocolVersion_1005 | 228         | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5
     }
 
     def "roundtrip message"()

@@ -6,6 +6,7 @@
 
 package se.laz.casual.api.buffer;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,10 +26,14 @@ import java.util.Set;
  * Therefore retrieval of a named header returns a {@link List} of values associated with the
  * named header.
  */
-public class CasualHeaders
+public class CasualHeaders implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final String COLON_SEP = ":";
     private static final CasualHeaders EMPTY = CasualHeaders.newBuilder().build();
+
+    private static final String NAME_IS_NULL = "Name is null.";
 
     /**
      * Instance of CasualHeaders without any entries - empty.
@@ -56,7 +61,7 @@ public class CasualHeaders
      */
     public List<String> get( String name )
     {
-        Objects.requireNonNull( name, "Name is null." );
+        Objects.requireNonNull( name, NAME_IS_NULL );
         if( !entries.containsKey( name ) )
         {
             return Collections.emptyList();
@@ -114,7 +119,7 @@ public class CasualHeaders
      */
     public boolean containsName( String name )
     {
-        Objects.requireNonNull( name, "Name is null." );
+        Objects.requireNonNull( name, NAME_IS_NULL );
         return entries.containsKey( name );
     }
 
@@ -189,7 +194,7 @@ public class CasualHeaders
          */
         public Builder add( String name, String value )
         {
-            Objects.requireNonNull( name, "Name is null." );
+            Objects.requireNonNull( name, NAME_IS_NULL );
             Objects.requireNonNull( value, "Value is null." );
             order.add( name );
             entries.computeIfAbsent( name, e -> new ArrayList<>() ).add( value );

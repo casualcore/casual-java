@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_5;
@@ -38,6 +39,8 @@ import static se.laz.casual.network.ProtocolVersion.VERSION_1_5;
  */
 public class CasualServiceCallRequestMessage implements CasualNetworkTransmittable
 {
+    private static final Logger log = Logger.getLogger( CasualServiceCallRequestMessage.class.getName() );
+
     private UUID execution;
     private String serviceName;
     private long timeout;
@@ -87,10 +90,18 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
 
         final List<byte[]> headersBytes  = HeaderEncoder.convertMapToBytes( serviceBuffer.getHeaders() );
 
+        final long headersBytesSize = ByteUtils.sumNumberOfBytes( headersBytes );
+
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
         {
             messageSize += CommonSizes.HEADER_SIZE.getNetworkSize() +
-                    (CommonSizes.HEADER_ELEMENT_SIZE.getNetworkSize() * (long)headersBytes.size()) + ByteUtils.sumNumberOfBytes( headersBytes );
+                    (CommonSizes.HEADER_ELEMENT_SIZE.getNetworkSize() * (long)headersBytes.size()) + headersBytesSize;
+        }
+        else if( headersBytesSize != 0 )
+        {
+            log.warning( ()-> "Headers provided will be lost, they are only supported with protocol version >=1.5. " +
+                    "They are not expected with connections using protocol version: " +
+                    protocolVersion.getVersionAsString() );
         }
 
         if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 ) )
@@ -322,8 +333,6 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
         final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
         b.putLong(payloadSize);
         serviceBytes.forEach(b::put);
-
-        //TODO: log warn if headers populated with wrong version.
 
         if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
         {
