@@ -6,7 +6,7 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.utils;
 
-import se.laz.casual.api.CasualRuntimeException;
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 
 public class DecoderReaderValidator
 {
@@ -18,7 +18,7 @@ public class DecoderReaderValidator
     {
         if( currentOffset != dataLength )
         {
-            throw new CasualRuntimeException( "Network data was not fully read: " + currentOffset + " of " + dataLength + "." );
+            throw new CasualProtocolException( "Network data was not fully read: " + currentOffset + " of " + dataLength + "." );
         }
     }
 }

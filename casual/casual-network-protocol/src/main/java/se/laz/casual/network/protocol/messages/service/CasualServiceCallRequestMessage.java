@@ -191,7 +191,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
             return false;
         }
         CasualServiceCallRequestMessage that = (CasualServiceCallRequestMessage) o;
-        return timeout == that.timeout && maxMessageSize == that.maxMessageSize && Objects.equals( execution, that.execution ) &&
+        return timeout == that.timeout && Objects.equals( execution, that.execution ) &&
                 Objects.equals( serviceName, that.serviceName ) && Objects.equals( parentSpan, that.parentSpan ) && Objects.equals( parentName, that.parentName ) &&
                 Objects.equals( xid, that.xid ) && Objects.equals( xatmiFlags, that.xatmiFlags );
     }
@@ -199,7 +199,7 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
     @Override
     public int hashCode()
     {
-        return Objects.hash( execution, serviceName, timeout, parentSpan, parentName, xid, xatmiFlags, maxMessageSize );
+        return Objects.hash( execution, serviceName, timeout, parentSpan, parentName, xid, xatmiFlags );
     }
 
     @Override
@@ -214,7 +214,6 @@ public class CasualServiceCallRequestMessage implements CasualNetworkTransmittab
                 ", xid=" + xid +
                 ", xatmiFlags=" + xatmiFlags +
                 ", serviceBuffer=" + serviceBuffer +
-                ", maxMessageSize=" + maxMessageSize +
                 '}';
     }
 

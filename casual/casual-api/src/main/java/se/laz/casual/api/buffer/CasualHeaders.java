@@ -35,6 +35,9 @@ public class CasualHeaders implements Serializable
 
     private static final String NAME_IS_NULL = "Name is null.";
 
+    private final List<String> order;
+    private final Map<String,List<String>> entries;
+
     /**
      * Instance of CasualHeaders without any entries - empty.
      * @return empty instance of casual headers.
@@ -43,9 +46,6 @@ public class CasualHeaders implements Serializable
     {
         return EMPTY;
     }
-
-    private final List<String> order;
-    private final Map<String,List<String>> entries;
 
     private CasualHeaders( Builder builder )
     {
