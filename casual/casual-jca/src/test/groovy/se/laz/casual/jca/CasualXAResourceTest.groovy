@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -59,7 +59,7 @@ class CasualXAResourceTest extends Specification
         }
         managedConnection = new CasualManagedConnection( Mock(CasualManagedConnectionFactory) )
         managedConnection.networkConnection = networkConnection
-        instance = new CasualXAResource( managedConnection, mcf.getResourceId() )
+        instance = new CasualXAResource(managedConnection, mcf.getResourceId(), mcf.getAddress())
 
         xid1 = XID.of( "123".getBytes(StandardCharsets.UTF_8), "321".getBytes(StandardCharsets.UTF_8), 0 )
         xid2 = XID.of( "456".getBytes(StandardCharsets.UTF_8), "654".getBytes(StandardCharsets.UTF_8), 0 )
@@ -213,6 +213,7 @@ class CasualXAResourceTest extends Specification
     def "End status resulting in no exception."()
     {
         when:
+        instance.start( xid1, 0 )
         instance.end( xid1, status )
 
         then:
@@ -229,6 +230,7 @@ class CasualXAResourceTest extends Specification
     def "End status resulting in XAException."()
     {
         when:
+        instance.start( xid1, 0)
         instance.end( xid1, status )
 
         then:
@@ -373,9 +375,12 @@ class CasualXAResourceTest extends Specification
            }
        }
        when:
-       CasualXAResource xaResourceOne = new CasualXAResource(casualManagedConnectionOne, rmIdOne)
-       CasualXAResource xaResourceTwo = new CasualXAResource(casualManagedConnectionTwo, rmIdTwo)
-       CasualXAResource xaResourceThree = new CasualXAResource(casualManagedConnectionThree, rmIdThree)
+       CasualXAResource xaResourceOne = new CasualXAResource(casualManagedConnectionOne, rmIdOne, mcf.getAddress())
+       CasualXAResource xaResourceTwo = new CasualXAResource(casualManagedConnectionTwo, rmIdTwo, mcf.getAddress())
+       CasualXAResource xaResourceThree = new CasualXAResource(casualManagedConnectionThree, rmIdThree, mcf.getAddress())
+
+       xaResourceOne.start(xid1, 0)
+       xaResourceThree.start(xid2, 0)
 
        then:
        !xaResourceOne.isSameRM(xaResourceTwo)

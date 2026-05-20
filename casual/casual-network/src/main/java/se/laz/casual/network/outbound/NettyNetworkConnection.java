@@ -163,11 +163,13 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         // always complete any outstanding requests exceptionally
         // both when the casual domain goes away or when the owner of the network connection
         // closes us, the client, directly
+        LOG.info(() -> connection + " connection close called by netty, closing");
         connection.correlator.completeAllExceptionally(new CasualConnectionException("network connection is gone"));
         if(connection.connected.get())
         {
             // only inform on casual disconnect
             // will result in a close call on the ManagedConnection ( by the application server)
+            LOG.info(() -> connection + "informing errorInformer: " + errorInformer + " about connection close");
             errorInformer.inform();
         }
     }
@@ -411,6 +413,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         final T msg = message.getMessage();
         if(msg instanceof DomainDisconnectRequestMessage requestMessage)
         {
+            LOG.info(() -> "domain disconnected: " + LogTool.asLogEntry(message));
             domainDisconnectHandler.domainDisconnected(DomainDisconnectReplyInfo.of(message.getCorrelationId(), requestMessage.getExecution()));
         }
         else if(msg instanceof DomainDiscoveryTopologyUpdateMessage)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -23,26 +23,26 @@ import se.laz.casual.network.protocol.messages.transaction.CasualTransactionReso
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
-/**
- * @author jone
- */
 public class CasualXAResource implements XAResource
 {
     private static final Logger LOG = Logger.getLogger(CasualXAResource.class.getName());
     private static final Xid[] NO_XIDS = {};
     private final CasualManagedConnection casualManagedConnection;
     private final int resourceManagerId;
+    private final Address address;
     private Xid currentXid = XID.NULL_XID;
     private boolean readOnly = false;
 
-    public CasualXAResource(final CasualManagedConnection connection, int resourceManagerId)
+    public CasualXAResource(final CasualManagedConnection connection, int resourceManagerId, Address address)
     {
         casualManagedConnection = connection;
         this.resourceManagerId = resourceManagerId;
+        this.address = address;
     }
 
     public Xid getCurrentXid()
@@ -83,7 +83,7 @@ public class CasualXAResource implements XAResource
     public void end(Xid xid, int flag) throws XAException
     {
         LOG.finest(()-> String.format("end, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, flag, XAFlags.unmarshall(flag)));
-        CasualResourceManager.getInstance().remove(domainId(), xid);
+        CasualResourceManager.getInstance().remove(address, xid);
         disassociate();
         XAFlags f = XAFlags.unmarshall(flag);
         switch(f)
@@ -118,9 +118,9 @@ public class CasualXAResource implements XAResource
     @Override
     public boolean isSameRM(XAResource xaResource) throws XAException
     {
-        if(xaResource instanceof CasualXAResource casualXAResource)
+        if (xaResource instanceof CasualXAResource casualXAResource)
         {
-            return casualXAResource.casualManagedConnection.getDomainId().equals(casualManagedConnection.getDomainId());
+            return Objects.equals(casualXAResource.address, address);
         }
         return false;
     }
@@ -132,7 +132,6 @@ public class CasualXAResource implements XAResource
         {
             return XAResource.XA_RDONLY;
         }
-
         LOG.finest(() -> String.format("trying to prepare, xid: %s ( %s )", PrettyPrinter.casualStringify(xid), xid));
         Flag<XAFlags> flags = Flag.of(XAFlags.TMNOFLAGS);
         CasualTransactionResourcePrepareRequestMessage prepareRequest = CasualTransactionResourcePrepareRequestMessage.of(UUID.randomUUID(), xid, resourceManagerId, flags);
@@ -181,15 +180,15 @@ public class CasualXAResource implements XAResource
         LOG.finest(()-> String.format("start, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, i, XAFlags.unmarshall(i)));
         readOnly = false;
         if(!(XAFlags.TMJOIN.getValue() == i || XAFlags.TMRESUME.getValue() == i) &&
-            CasualResourceManager.getInstance().isPending(domainId(), xid))
+            CasualResourceManager.getInstance().isPending(address, xid))
         {
             LOG.finest(()->"throwing XAException.XAER_DUPID");
             throw new XAException(XAException.XAER_DUPID);
         }
         associate(xid);
-        if(!CasualResourceManager.getInstance().isPending(domainId(), currentXid))
+        if(!CasualResourceManager.getInstance().isPending(address, currentXid))
         {
-            CasualResourceManager.getInstance().put(domainId(), currentXid);
+            CasualResourceManager.getInstance().put(address, currentXid);
         }
     }
 
@@ -199,11 +198,6 @@ public class CasualXAResource implements XAResource
         return "CasualXAResource{" +
             "currentXid=" + currentXid +
             '}';
-    }
-
-    private DomainId domainId()
-    {
-        return casualManagedConnection.getDomainId();
     }
 
     private void associate(Xid xid)
@@ -239,5 +233,6 @@ public class CasualXAResource implements XAResource
                 throw new XAException( transactionReturnCode.getId());
         }
     }
+
 
 }

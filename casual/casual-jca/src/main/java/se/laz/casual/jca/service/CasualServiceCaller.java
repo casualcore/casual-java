@@ -239,7 +239,6 @@ public class CasualServiceCaller implements CasualServiceApi
         }
         CasualNWMessage<CasualServiceCallRequestMessage> serviceRequestNetworkMessage = CasualNWMessageImpl.of(corrid, serviceRequestMessageBuilder.build());
         LOG.finest(() -> "issuing service call request, corrid: " + PrettyPrinter.casualStringify(corrid) + SERVICE_NAME_LITERAL + serviceName);
-
         if(noReply)
         {
             connection.getNetworkConnection().requestNoReply(serviceRequestNetworkMessage);

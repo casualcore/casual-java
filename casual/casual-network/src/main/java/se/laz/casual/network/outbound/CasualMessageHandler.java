@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -53,7 +53,15 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
             messageListener.handleMessage(msg);
             return;
         }
-        correlator.complete(msg);
+        try
+        {
+            correlator.complete(msg);
+        }
+        catch (Exception e)
+        {
+            LOG.warning(() -> "failed to correlate: " + e.getMessage() + "\n" + LogTool.asLogEntry(msg));
+            throw e;
+        }
     }
 
     private boolean isConversationalMessage(CasualNWMessageType type)
