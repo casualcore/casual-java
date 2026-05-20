@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -19,6 +19,13 @@ public interface CasualBuffer extends Serializable
      * @return the buffer type
      */
     String getType();
+
+    /**
+     * @return the headers associated with the buffer.
+     */
+    default CasualHeaders getHeaders() {
+        return CasualHeaders.empty();
+    }
 
     /**
      * @return the payload

@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.protocol.decoding.decoders.service;
 
+import se.laz.casual.api.buffer.CasualHeaders;
 import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.flags.ErrorState;
 import se.laz.casual.api.flags.TransactionState;
@@ -13,6 +14,8 @@ import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
+import se.laz.casual.network.protocol.decoding.decoders.utils.HeaderDecoder;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallReplySizes;
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage;
@@ -26,6 +29,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_5;
 
 /**
  * Created by aleph on 2017-03-28.
@@ -118,7 +122,17 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
         }
         // since serviceTypeName can be NULL in case there is no payload
         serviceTypeName = (0 == serviceBufferPayloadSize) ? "" : serviceTypeName;
-        final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
+        currentOffset += serviceBufferPayloadSize;
+
+        CasualHeaders headers = CasualHeaders.empty();
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            List<String> rawHeaders = new ArrayList<>();
+            currentOffset = HeaderDecoder.decodeHeaders( data, currentOffset, rawHeaders );
+            headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build();
+        }
+        final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload, headers );
+
         CasualServiceCallReplyMessage.Builder builder = CasualServiceCallReplyMessage.createBuilder()
                                                                                      .setExecution(execution)
                                                                                      .setError(ErrorState.unmarshal(callError))
@@ -126,10 +140,14 @@ public final class CasualServiceCallReplyMessageDecoder implements NetworkDecode
                                                                                      .setTransactionState(TransactionState.unmarshal(transactionState))
                                                                                      .setServiceBuffer(serviceBuffer)
                                                                                      .setProtocolVersion(protocolVersion);
+
         if(null != xid)
         {
             builder.setXid(xid);
         }
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, data.length );
+
         return builder.build();
     }
 }

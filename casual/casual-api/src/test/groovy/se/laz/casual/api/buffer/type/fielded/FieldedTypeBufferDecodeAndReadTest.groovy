@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,6 +10,8 @@ import se.laz.casual.api.Utils.ResourceLoader
 import se.laz.casual.api.buffer.type.fielded.json.CasualFieldedLookupException
 import spock.lang.Shared
 import spock.lang.Specification
+
+import static se.laz.casual.api.buffer.type.fielded.FieldedTypeBuffer.create
 
 class FieldedTypeBufferDecodeAndReadTest extends Specification
 {
@@ -201,6 +203,36 @@ class FieldedTypeBufferDecodeAndReadTest extends Specification
         noExceptionThrown()
         data.length == 0
         b.isEmpty() == true
+    }
+
+    def "Fielded decode check hash."()
+    {
+        given:
+        Map<String,List<FieldedData<?>>> instance1 = FieldedTypeBufferDecoder.decode([data])
+        Map<String,List<FieldedData<?>>> instance2 = FieldedTypeBufferDecoder.decode([data])
+
+        expect:
+        instance1.equals( instance2 )
+        instance2.hashCode(  ) == instance1.hashCode(  )
+    }
+
+    def "Fielded create, encode, decode check."()
+    {
+        given:
+        FieldedTypeBuffer instance = create( )
+        instance.write( "FLD_STRING1","test" )
+        FieldedTypeBuffer instance3 = create()
+        instance3.write( "FLD_STRING1","test2" )
+
+        when:
+        List<byte[]> encoded = instance.encode(  )
+        FieldedTypeBuffer decoded = create( encoded )
+
+        then:
+        instance.equals( decoded )
+        !instance.equals( instance3 )
+        instance.hashCode(  ) == decoded.hashCode(  )
+        instance.hashCode(  ) != instance3.hashCode(  )
     }
 
 }

@@ -8,6 +8,7 @@ package se.laz.casual.network.protocol.decoding.decoders.domain;
 
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ConnectRequestSizes;
@@ -54,6 +55,9 @@ public final class CasualDomainConnectRequestMessageDecoder implements NetworkDe
             protocols.add(version);
             currentOffset += ConnectRequestSizes.PROTOCOL_ELEMENT_SIZE.getNetworkSize();
         }
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, bytes.length );
+
         return CasualDomainConnectRequestMessage.createBuilder()
                                                 .withExecution(execution)
                                                 .withDomainId(domainId)

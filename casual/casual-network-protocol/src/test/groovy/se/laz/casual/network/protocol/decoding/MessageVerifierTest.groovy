@@ -27,17 +27,20 @@ class MessageVerifierTest extends Specification
         protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3]
     }
 
-    def 'DOMAIN_DISCOVERY_REPLY is invalid for protocol version 1.4'()
+    def 'DOMAIN_DISCOVERY_REPLY is invalid for protocol version #protocolVersion'()
     {
         when:
-        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DOMAIN_DISCOVERY_REPLY, () -> ProtocolVersion.VERSION_1_4)
+        MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DOMAIN_DISCOVERY_REPLY, () -> protocolVersion)
 
         then:
         thrown(CasualProtocolException)
+
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
-    def 'DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR is valid for protocol version #protocolVersion'()
+    def 'DOMAIN_DISCOVERY_REPLY_V_1_4 is valid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_V_1_4, () -> protocolVersion)
@@ -46,11 +49,11 @@ class MessageVerifierTest extends Specification
         noExceptionThrown()
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_4]
+        protocolVersion << [ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
-    def 'DOMAIN_DISCOVERY_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_FOUR is invalid for protocol version #protocolVersion'()
+    def 'DOMAIN_DISCOVERY_REPLY_V_1_4 is invalid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DOMAIN_DISCOVERY_REPLY_V_1_4, () -> protocolVersion)
@@ -72,7 +75,7 @@ class MessageVerifierTest extends Specification
         noExceptionThrown()
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << [ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
@@ -111,11 +114,11 @@ class MessageVerifierTest extends Specification
         thrown(CasualProtocolException)
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
-    def 'SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is valid for protocol version #protocolVersion'()
+    def 'SERVICE_CALL_REQUEST_V_1_3 is valid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3, () -> protocolVersion)
@@ -128,7 +131,7 @@ class MessageVerifierTest extends Specification
     }
 
     @Unroll
-    def 'SERVICE_CALL_REQUEST_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is invalid for protocol version #protocolVersion'()
+    def 'SERVICE_CALL_REQUEST_V_1_3 is invalid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3, () -> protocolVersion)
@@ -137,7 +140,7 @@ class MessageVerifierTest extends Specification
         thrown(CasualProtocolException)
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2]
+        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
@@ -163,11 +166,11 @@ class MessageVerifierTest extends Specification
         thrown(CasualProtocolException)
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
-    def 'SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is valid for protocol version #protocolVersion'()
+    def 'SERVICE_CALL_REPLY_V_1_3 is valid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3, () -> protocolVersion)
@@ -180,7 +183,7 @@ class MessageVerifierTest extends Specification
     }
 
     @Unroll
-    def 'SERVICE_CALL_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is invalid for protocol version #protocolVersion'()
+    def 'SERVICE_CALL_REPLY_V_1_3 is invalid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3, () -> protocolVersion)
@@ -189,7 +192,7 @@ class MessageVerifierTest extends Specification
         thrown(CasualProtocolException)
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2]
+        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
@@ -215,11 +218,11 @@ class MessageVerifierTest extends Specification
         thrown(CasualProtocolException)
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
-    def 'ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is valid for protocol version #protocolVersion'()
+    def 'ENQUEUE_REPLY_V_1_3 is valid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.ENQUEUE_REPLY_V_1_3, () -> protocolVersion)
@@ -228,11 +231,11 @@ class MessageVerifierTest extends Specification
         noExceptionThrown()
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
-    def 'ENQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is invalid for protocol version #protocolVersion'()
+    def 'ENQUEUE_REPLY_V_1_3 is invalid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.ENQUEUE_REPLY_V_1_3, () -> protocolVersion)
@@ -267,11 +270,11 @@ class MessageVerifierTest extends Specification
         thrown(CasualProtocolException)
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
-    def 'DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is valid for protocol version #protocolVersion'()
+    def 'DEQUEUE_REPLY_V_1_3 is valid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DEQUEUE_REPLY_V_1_3, () -> protocolVersion)
@@ -280,11 +283,11 @@ class MessageVerifierTest extends Specification
         noExceptionThrown()
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
-    def 'DEQUEUE_REPLY_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is invalid for protocol version #protocolVersion'()
+    def 'DEQUEUE_REPLY_V_1_3 is invalid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.DEQUEUE_REPLY_V_1_3, () -> protocolVersion)
@@ -319,11 +322,11 @@ class MessageVerifierTest extends Specification
         thrown(CasualProtocolException)
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
-    def 'CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is valid for protocol version #protocolVersion'()
+    def 'CONVERSATION_CONNECT_V_1_3 is valid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.CONVERSATION_CONNECT_V_1_3, () -> protocolVersion)
@@ -332,11 +335,11 @@ class MessageVerifierTest extends Specification
         noExceptionThrown()
 
         where:
-        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4]
+        protocolVersion << [ProtocolVersion.VERSION_1_3, ProtocolVersion.VERSION_1_4, ProtocolVersion.VERSION_1_5]
     }
 
     @Unroll
-    def 'CONVERSATION_CONNECT_PROTOCOL_VERSION_EQUAL_OR_GREATER_TO_ONE_THREE is invalid for protocol version #protocolVersion'()
+    def 'CONVERSATION_CONNECT_V_1_3 is invalid for protocol version #protocolVersion'()
     {
         when:
         MessageVerifier.verifyMessageTypeByProtocolVersion(CasualNWMessageType.CONVERSATION_CONNECT_V_1_3, () -> protocolVersion)

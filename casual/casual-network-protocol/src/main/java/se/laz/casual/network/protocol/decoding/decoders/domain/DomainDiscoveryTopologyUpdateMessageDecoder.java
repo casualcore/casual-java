@@ -8,6 +8,7 @@ package se.laz.casual.network.protocol.decoding.decoders.domain;
 
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpdateMessage;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DiscoveryTopologyUpdateRequestSizes;
@@ -44,6 +45,10 @@ public final class DomainDiscoveryTopologyUpdateMessageDecoder implements Networ
         final int domainNameSize = (int)ByteBuffer.wrap(bytes, currentOffset , DiscoveryTopologyUpdateRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize()).getLong();
         currentOffset += DiscoveryTopologyUpdateRequestSizes.DOMAIN_NAME_SIZE.getNetworkSize();
         final String domainName = CasualMessageDecoderUtils.getAsString(bytes, currentOffset, domainNameSize);
+        currentOffset += domainNameSize;
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, bytes.length );
+
         return DomainDiscoveryTopologyUpdateMessage.createBuilder()
                                                    .withExecution(execution)
                                                    .withDomainsSize(domainsSize)

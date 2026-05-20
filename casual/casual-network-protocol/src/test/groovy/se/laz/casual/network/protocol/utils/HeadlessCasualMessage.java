@@ -6,13 +6,12 @@
 
 package se.laz.casual.network.protocol.utils;
 
-import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
 import se.laz.casual.network.ProtocolVersion;
-import se.laz.casual.network.protocol.decoding.CasualMessageDecoder;
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -36,8 +35,10 @@ public record HeadlessCasualMessage(CasualNWMessageType type, String base64Body,
                                                             .setType(type)
                                                             .setPayloadSize(body.length)
                                                             .build();
-        CasualNWMessage<?> completeMessage = CasualMessageDecoder.read(body, header, () -> protocolVersion);
-        List<byte[]> messageBytes = completeMessage.toNetworkBytes();
+        byte[] headerBytes = header.toNetworkBytes();
+        List<byte[]> messageBytes = new ArrayList<>();
+        messageBytes.add( headerBytes );
+        messageBytes.add( body );
         ByteBuffer buffer = ByteBuffer.allocate(messageBytes.stream()
                                                             .mapToInt(bytes -> bytes.length)
                                                             .sum());

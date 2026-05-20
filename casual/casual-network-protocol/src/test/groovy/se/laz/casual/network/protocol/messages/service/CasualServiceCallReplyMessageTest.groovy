@@ -6,22 +6,22 @@
 
 package se.laz.casual.network.protocol.messages.service
 
+import se.laz.casual.api.buffer.CasualHeaders
 import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.xa.XID
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
 import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
-import se.laz.casual.network.protocol.utils.ByteUtils
 import se.laz.casual.network.protocol.utils.LocalByteChannel
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.nio.ByteBuffer
-
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_3
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_5
 
 class CasualServiceCallReplyMessageTest extends Specification
 {
@@ -42,7 +42,13 @@ class CasualServiceCallReplyMessageTest extends Specification
     @Shared
     def serviceBuffer
     @Shared
+    def serviceBufferWithHeaders
+    @Shared
     def emptyServiceBuffer
+    @Shared
+    List<String> rawHeaders = ["a:foo","b:bar","c:baz"]
+    @Shared
+    CasualHeaders headers
 
     def setupSpec()
     {
@@ -51,23 +57,30 @@ class CasualServiceCallReplyMessageTest extends Specification
         serviceData = l
         serviceBuffer = ServiceBuffer.of(serviceType, serviceData)
         emptyServiceBuffer = ServiceBuffer.empty()
+
+        headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build(  )
+        serviceBufferWithHeaders = ServiceBuffer.of(serviceType, serviceData, headers)
     }
 
     def "Message creation"()
     {
         setup:
+        ServiceBuffer buffer = protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 )
+                ? serviceBufferWithHeaders : serviceBuffer
+
         when:
         def msgBuilder = CasualServiceCallReplyMessage.createBuilder()
                                                .setExecution(execution)
                                                .setError(callError)
                                                .setUserSuppliedError(userError)
                                                .setTransactionState(transactionState)
-                                               .setServiceBuffer(serviceBuffer)
+                                               .setServiceBuffer(buffer)
                                                .setProtocolVersion(protocolVersion)
         if(protocolVersion.isLessThan( VERSION_1_3 ) )
         {
            msgBuilder.setXid(nullXID)
         }
+
         def msg = msgBuilder.build()
         then:
         msg.getExecution() == execution
@@ -77,28 +90,45 @@ class CasualServiceCallReplyMessageTest extends Specification
         {
            msg.getXid() == nullXID
         }
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            msg.getServiceBuffer(  ).getHeaders(  ) == headers
+        }
         msg.getTransactionState() == transactionState
-        msg.getServiceBuffer() == serviceBuffer
-        msg.getServiceBuffer().payload == serviceBuffer.payload
+        msg.getServiceBuffer() == buffer
+        msg.getServiceBuffer().payload == buffer.payload
+
+        msg.getType(  ) == type
+
         where:
-        protocolVersion << ProtocolVersion.values()
+        protocolVersion | type
+        ProtocolVersion.VERSION_1_0 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_1 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_2 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_3 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_4 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_5 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5
     }
 
     def "Roundtrip with message payload less than Integer.MAX_VALUE - sync"()
     {
         setup:
+        ServiceBuffer buffer = protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 )
+                ? serviceBufferWithHeaders : serviceBuffer
+
         def requestMsgBuilder = CasualServiceCallReplyMessage.createBuilder()
                 .setExecution(execution)
                 .setError(callError)
                 .setUserSuppliedError(userError)
                 .setTransactionState(transactionState)
-                .setServiceBuffer(serviceBuffer)
+                .setServiceBuffer(buffer)
                 .setProtocolVersion(protocolVersion)
 
         if(protocolVersion.isLessThan( VERSION_1_3 ))
         {
            requestMsgBuilder.setXid(nullXID)
         }
+
         def requestMsg = requestMsgBuilder.build()
         CasualNWMessageImpl msg = CasualNWMessageImpl.of(UUID.randomUUID(), requestMsg)
         def sink = new LocalByteChannel()
@@ -112,13 +142,27 @@ class CasualServiceCallReplyMessageTest extends Specification
         requestMsg == resurrectedMsg.getMessage()
         msg == resurrectedMsg
         resurrectedMsg.getMessage().getServiceBuffer().getPayload().size() == 1
-        requestMsg.serviceBuffer.payload == resurrectedMsg.getMessage().getServiceBuffer().payload
+        requestMsg.getServiceBuffer().getPayload() == resurrectedMsg.getMessage().getServiceBuffer().getPayload(  )
+
         if(protocolVersion.isLessThan( VERSION_1_3 ))
         {
            resurrectedMsg.getMessage().getXid() == nullXID
         }
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
+        {
+            resurrectedMsg.getMessage(  ).getServiceBuffer(  ).getHeaders() == headers
+        }
+
+        msg.getType(  ) == type
+
         where:
-        protocolVersion << ProtocolVersion.values()
+        protocolVersion | type
+        ProtocolVersion.VERSION_1_0 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_1 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_2 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_3 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_4 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_5 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5
     }
 
     def "Roundtrip with empty service buffer"()
@@ -149,18 +193,17 @@ class CasualServiceCallReplyMessageTest extends Specification
         requestMsg == resurrectedMsg.getMessage()
         resurrectedMsg.getMessage().getServiceBuffer().isEmpty()
         msg == resurrectedMsg
-        where:
-        protocolVersion << ProtocolVersion.values()
-    }
 
-    def collectServicePayload(List<byte[]> bytes)
-    {
-        ByteBuffer b = ByteBuffer.allocate((int)ByteUtils.sumNumberOfBytes(bytes))
-        bytes.stream()
-                .forEach({d -> b.put(d)})
-        List<byte[]> l = new ArrayList<>()
-        l.add(b.array())
-        return l
+        msg.getType(  ) == type
+
+        where:
+        protocolVersion | type
+        ProtocolVersion.VERSION_1_0 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_1 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_2 | CasualNWMessageType.SERVICE_CALL_REPLY
+        ProtocolVersion.VERSION_1_3 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_4 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
+        ProtocolVersion.VERSION_1_5 | CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5
     }
 
 }

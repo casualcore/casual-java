@@ -8,6 +8,7 @@ package se.laz.casual.network.protocol.decoding.decoders.domain;
 
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.decoding.decoders.utils.DynamicArrayIndexPair;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
@@ -53,6 +54,10 @@ public final class CasualDomainDiscoveryRequestMessageDecoder implements Network
         currentOffset = serviceNames.getIndex();
         final DynamicArrayIndexPair<String> queueNames = CasualMessageDecoderUtils.getDynamicArrayIndexPair(bytes, currentOffset, DiscoveryRequestSizes.QUEUES_SIZE.getNetworkSize(), DiscoveryRequestSizes.QUEUES_ELEMENT_SIZE.getNetworkSize(),
                 CasualMessageDecoderUtils::getAsString);
+        currentOffset = queueNames.getIndex();
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, bytes.length );
+
         return CasualDomainDiscoveryRequestMessage.createBuilder()
                                                   .setExecution(execution)
                                                   .setDomainId(domainId)

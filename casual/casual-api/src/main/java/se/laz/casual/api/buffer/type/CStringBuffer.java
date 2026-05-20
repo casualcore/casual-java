@@ -1,7 +1,14 @@
+/*
+ * Copyright (c) 2026, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
 package se.laz.casual.api.buffer.type;
 
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.CasualBufferType;
+import se.laz.casual.api.buffer.CasualHeaders;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -19,11 +26,13 @@ public class CStringBuffer implements CasualBuffer
     private static final long serialVersionUID = 1L;
     private final String charset;
     private final byte[] payload;
+    private final CasualHeaders headers;
 
-    private CStringBuffer(byte[] payload, String charset)
+    private CStringBuffer(byte[] payload, String charset, CasualHeaders headers )
     {
         this.payload = payload;
         this.charset = charset;
+        this.headers = headers;
     }
 
     /**
@@ -35,20 +44,38 @@ public class CStringBuffer implements CasualBuffer
      */
     public static CStringBuffer of(final String value)
     {
-        return of(value, Charset.defaultCharset());
+        return of(value, Charset.defaultCharset(), CasualHeaders.empty() );
+    }
+
+    /**
+     * Create a {@link CStringBuffer}
+     * with the provided headers.
+     * @param value - the string value.
+     * @param headers - the headers 
+     * @return
+     */
+    public static CStringBuffer of(final String value, CasualHeaders headers )
+    {
+        return of( value, Charset.defaultCharset(), headers );
     }
 
 
     public static CStringBuffer of(final String value, final Charset charset)
     {
+        return of( value, charset, CasualHeaders.empty() );
+    }
+
+    public static CStringBuffer of( final String value, final Charset charset, CasualHeaders headers )
+    {
         Objects.requireNonNull(value, "value should not be null!");
         Objects.requireNonNull(charset, "charset can not be null");
+        Objects.requireNonNull( headers, "headers can not be null" );
         String data = value;
         if (!data.endsWith(NULL_TERMINATOR))
         {
             data += NULL_TERMINATOR;
         }
-        return new CStringBuffer(data.getBytes(charset), charset.name());
+        return new CStringBuffer(data.getBytes(charset), charset.name(), headers );
     }
 
 
@@ -59,13 +86,24 @@ public class CStringBuffer implements CasualBuffer
      */
     public static CStringBuffer of(final List<byte[]> payload)
     {
-        return of(payload, Charset.defaultCharset());
+        return of(payload, Charset.defaultCharset(), CasualHeaders.empty() );
     }
 
-    public static CStringBuffer of(final List<byte[]> payload, final Charset charset)
+    public static CStringBuffer of(final List<byte[]> payload, CasualHeaders headers )
+    {
+        return of( payload, Charset.defaultCharset(), headers );
+    }
+
+    public static CStringBuffer of(final List<byte[]> payload, final Charset charset )
+    {
+        return of( payload, charset, CasualHeaders.empty() );
+    }
+
+    public static CStringBuffer of(final List<byte[]> payload, final Charset charset, CasualHeaders headers )
     {
         Objects.requireNonNull(payload, "payload can not be null!");
         Objects.requireNonNull(charset, "charset can not be null");
+        Objects.requireNonNull(headers, "headers cannot be null" );
         // Java string can only be created from one byte[] - ie that is the max size of a javastring
         // The payload is expected to be a null terminated c string
         if(payload.size() != 1)
@@ -77,7 +115,7 @@ public class CStringBuffer implements CasualBuffer
         {
             throw new IllegalArgumentException("the byte[] must be null terminated.");
         }
-        return new CStringBuffer(data, charset.name());
+        return new CStringBuffer(data, charset.name(), headers );
     }
 
     public Charset getCharset()
@@ -90,6 +128,13 @@ public class CStringBuffer implements CasualBuffer
     {
         return CasualBufferType.CSTRING.getName();
     }
+
+    @Override
+    public CasualHeaders getHeaders()
+    {
+        return this.headers;
+    }
+
     @Override
     public List<byte[]> getBytes()
     {

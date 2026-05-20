@@ -102,12 +102,14 @@ class LogToolTest extends Specification
                 return message
             case CasualNWMessageType.SERVICE_CALL_REQUEST:
             case CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3:
+            case CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_5:
                 CasualServiceCallRequestMessage message = Mock(CasualServiceCallRequestMessage){
                     getExecution() >> execution
                 }
                 return message
             case CasualNWMessageType.SERVICE_CALL_REPLY:
             case CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3:
+            case CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5:
                 CasualServiceCallReplyMessage message = Mock(CasualServiceCallReplyMessage){
                     getExecution() >> execution
                 }

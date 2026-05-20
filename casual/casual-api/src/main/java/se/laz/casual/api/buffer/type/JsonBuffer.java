@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -8,6 +8,7 @@ package se.laz.casual.api.buffer.type;
 
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.CasualBufferType;
+import se.laz.casual.api.buffer.CasualHeaders;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -24,33 +25,63 @@ public class JsonBuffer implements CasualBuffer
 {
     private static final long serialVersionUID = 1L;
     private final List<byte[]> payload;
-    private JsonBuffer(final List<byte[]> payload)
+    private final CasualHeaders headers;
+
+    private JsonBuffer(final List<byte[]> payload, CasualHeaders headers )
     {
         this.payload = payload;
+        this.headers = headers;
     }
 
     /**
-     * Creates a {@link JsonBuffer}
+     * Creates a {@link JsonBuffer} without headers.
+     *
      * @param payload - bytes of a JSON string
      * @return a new JsonBuffer
      */
-    public static JsonBuffer of(final List<byte[]> payload)
+    public static JsonBuffer of(final List<byte[]> payload )
     {
-        Objects.requireNonNull(payload, "payload is null, this is nonsense");
-        return new JsonBuffer(payload);
+        return of( payload, CasualHeaders.empty() );
     }
 
     /**
-     * Creates a {@link JsonBuffer}
+     * Create a {@link JsonBuffer} with the headers provided.
+     *
+     * @param payload - bytes of a JSON string.
+     * @param headers - headers for the buffer.
+     * @return a new JsonBuffer.
+     */
+    public static JsonBuffer of(final List<byte[]> payload, CasualHeaders headers )
+    {
+        Objects.requireNonNull(payload, "payload is null, this is nonsense");
+        Objects.requireNonNull( headers, "Headers is null." );
+        return new JsonBuffer(payload, headers);
+    }
+
+    /**
+     * Creates a {@link JsonBuffer} without headers.
+     *
      * @param json - a JSON string
      * @return a new JsonBuffer
      */
     public static JsonBuffer of(final String json)
     {
+        return of( json, CasualHeaders.empty() );
+    }
+
+    /**
+     * Creates a {@link JsonBuffer} with the headers provided.
+     *
+     * @param json - a JSON string
+     * @param headers - headers for the buffer.
+     * @return a new JsonBuffer
+     */
+    public static JsonBuffer of(final String json, CasualHeaders headers )
+    {
         Objects.requireNonNull(json, "json is null, this is nonsense");
         final List<byte[]> jsonPayload = new ArrayList<>();
         jsonPayload.add(toBytes(json));
-        return new JsonBuffer(jsonPayload);
+        return of( jsonPayload, headers );
     }
 
     @Override
@@ -66,6 +97,12 @@ public class JsonBuffer implements CasualBuffer
     }
 
     @Override
+    public CasualHeaders getHeaders()
+    {
+        return this.headers;
+    }
+
+    @Override
     public String toString()
     {
         return payload.stream()
@@ -77,6 +114,7 @@ public class JsonBuffer implements CasualBuffer
     {
         return json.getBytes(StandardCharsets.UTF_8);
     }
+
 
     @Override
     public boolean equals(Object o)
@@ -105,7 +143,7 @@ public class JsonBuffer implements CasualBuffer
             }
         }
 
-        return true;
+        return Objects.equals( headers, that.headers );
     }
 
     @Override
@@ -117,6 +155,8 @@ public class JsonBuffer implements CasualBuffer
         {
             result = result * 31 + Arrays.hashCode( b );
         }
+
+        result += result * 31 + headers.hashCode();
 
         return result;
     }

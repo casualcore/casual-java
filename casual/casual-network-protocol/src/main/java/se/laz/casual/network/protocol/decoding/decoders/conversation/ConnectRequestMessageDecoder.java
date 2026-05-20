@@ -13,6 +13,7 @@ import se.laz.casual.jca.SpanId;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.messages.conversation.ConnectRequest;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationConnectRequestSizes;
@@ -102,6 +103,11 @@ public final class ConnectRequestMessageDecoder implements NetworkDecoder<Connec
             serviceBufferPayload.add(payloadData);
         }
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
+
+        currentOffset += serviceBufferPayloadSize;
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, data.length );
+
         return ConnectRequest.createBuilder()
                 .setExecution(execution)
                 .setServiceName(serviceName)

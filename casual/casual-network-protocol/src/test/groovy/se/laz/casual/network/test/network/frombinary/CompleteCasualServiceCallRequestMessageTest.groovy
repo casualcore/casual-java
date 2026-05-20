@@ -6,7 +6,8 @@
 
 package se.laz.casual.network.test.network.frombinary
 
-
+import se.laz.casual.api.buffer.CasualHeaders
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
@@ -24,47 +25,70 @@ import java.nio.ByteBuffer
 class CompleteCasualServiceCallRequestMessageTest extends Specification
 {
     @Shared
-    def resource = '/protocol/b64/message.service.call.request.1000.3100.b64'
+    String resource = '/protocol/b64/message.service.call.request.1000.3100.b64'
 
     @Shared
-    def resourceProtocolVersionGreaterOrEqualToOneFour = '/protocol/b64/message.service.call.request.1003.3102.b64'
+    String resourceProtocolVersion_1003 = '/protocol/b64/message.service.call.request.1003.3102.b64'
 
     @Shared
-    def data
+    String resourceProtocolVersion_1005 = '/protocol/b64/message.service.call.request.1005.3104.b64'
 
     @Shared
-    def dataProtocolVersionGreaterOrEqualToOneThree
+    byte[] data
+
+    @Shared
+    byte[] dataProtocolVersion_1003
+
+    @Shared
+    byte[] dataProtocolVersion_1005
 
     def setupSpec()
     {
         data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
-        dataProtocolVersionGreaterOrEqualToOneThree = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersionGreaterOrEqualToOneFour))
+        dataProtocolVersion_1003 = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersion_1003))
+        dataProtocolVersion_1005 = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersion_1005))
         then:
         data != null
-        dataProtocolVersionGreaterOrEqualToOneThree != null
+        dataProtocolVersion_1003 != null
+        dataProtocolVersion_1005 != null
     }
 
     def "get header"()
     {
         setup:
-        def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
+        def headerData = Arrays.copyOfRange(networkData, 0, MessageHeaderSizes.headerNetworkSize)
         when:
         def header = CasualMessageDecoder.networkHeaderToCasualHeader(headerData)
+
         then:
         header != null
+        header.getType(  ) == type
+
+        where:
+        networkData              | type
+        data                     | CasualNWMessageType.SERVICE_CALL_REQUEST
+        dataProtocolVersion_1003 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
+        dataProtocolVersion_1005 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_5
     }
 
     def "roundtrip header"()
     {
         setup:
-        def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
+        def headerData = Arrays.copyOfRange(networkData, 0, MessageHeaderSizes.headerNetworkSize)
         def header = CasualMessageDecoder.networkHeaderToCasualHeader(headerData)
         when:
         def resurrectedHeader = CasualMessageDecoder.networkHeaderToCasualHeader(header.toNetworkBytes())
         then:
         header != null
+        header.getType(  ) == type
         resurrectedHeader != null
         resurrectedHeader == header
+
+        where:
+        networkData              | type
+        data                     | CasualNWMessageType.SERVICE_CALL_REQUEST
+        dataProtocolVersion_1003 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3
+        dataProtocolVersion_1005 | CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_5
     }
 
     def "roundtrip message #protocolVersion"()
@@ -87,11 +111,39 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
         msg.getMessage() == resurrectedMsg.getMessage()
         msg == resurrectedMsg
         where:
-        binary                                        | protocolVersion
-        data                                          | ProtocolVersion.VERSION_1_0
-        data                                          | ProtocolVersion.VERSION_1_1
-        data                                          | ProtocolVersion.VERSION_1_2
-        dataProtocolVersionGreaterOrEqualToOneThree   | ProtocolVersion.VERSION_1_3
-        dataProtocolVersionGreaterOrEqualToOneThree   | ProtocolVersion.VERSION_1_4
+        binary                   | protocolVersion
+        data                     | ProtocolVersion.VERSION_1_0
+        data                     | ProtocolVersion.VERSION_1_1
+        data                     | ProtocolVersion.VERSION_1_2
+        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_3
+        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_4
+        dataProtocolVersion_1005 | ProtocolVersion.VERSION_1_5
+    }
+
+    def "Check message headers #protocolVersion"()
+    {
+        setup:
+        List<byte[]> payload = new ArrayList<>()
+        payload.add(binary)
+        def sink = new LocalByteChannel()
+        payload.each{
+            bytes ->
+                ByteBuffer buffer = ByteBuffer.wrap(bytes)
+                sink.write(buffer)
+        }
+        when:
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> msg = CasualNetworkTestReader.read(sink, protocolVersion)
+
+        then:
+        msg.getMessage(  ).getServiceBuffer(  ).getHeaders(  ) == expectedHeaders
+
+        where:
+        binary                   | protocolVersion             | expectedHeaders
+        data                     | ProtocolVersion.VERSION_1_0 | CasualHeaders.empty(  )
+        data                     | ProtocolVersion.VERSION_1_1 | CasualHeaders.empty(  )
+        data                     | ProtocolVersion.VERSION_1_2 | CasualHeaders.empty(  )
+        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_3 | CasualHeaders.empty(  )
+        dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_4 | CasualHeaders.empty(  )
+        dataProtocolVersion_1005 | ProtocolVersion.VERSION_1_5 | CasualHeaders.newBuilder().addAll( ["a:foo", "b:bar", "c:baz"] ).build(  )
     }
 }

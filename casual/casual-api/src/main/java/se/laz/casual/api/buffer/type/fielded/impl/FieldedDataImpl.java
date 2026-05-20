@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -82,6 +82,10 @@ public final class FieldedDataImpl<T> implements FieldedData<T>
     @Override
     public int hashCode()
     {
+        if( v.getClass().isArray() )
+        {
+            return Arrays.hashCode( (byte[])v );
+        }
         return Objects.hash(v);
     }
 }

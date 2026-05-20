@@ -96,10 +96,10 @@ public final class CasualMessageDecoder
                 return (NetworkDecoder<T>) CasualDomainConnectRequestMessageDecoder.of();
             case DOMAIN_CONNECT_REPLY:
                 return (NetworkDecoder<T>) CasualDomainConnectReplyMessageDecoder.of();
-            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_V_1_3:
+            case SERVICE_CALL_REQUEST, SERVICE_CALL_REQUEST_V_1_3, SERVICE_CALL_REQUEST_V_1_5:
                 CasualServiceCallRequestMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
                 return (NetworkDecoder<T>) CasualServiceCallRequestMessageDecoder.of(protocolVersionSupplier.get());
-            case SERVICE_CALL_REPLY, SERVICE_CALL_REPLY_V_1_3:
+            case SERVICE_CALL_REPLY, SERVICE_CALL_REPLY_V_1_3, SERVICE_CALL_REPLY_V_1_5:
                 CasualServiceCallReplyMessageDecoder.setMaxPayloadSingleBufferByteSize(getMaxSingleBufferByteSize());
                 return (NetworkDecoder<T>) CasualServiceCallReplyMessageDecoder.of(protocolVersionSupplier.get());
             case ENQUEUE_REQUEST:

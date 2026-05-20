@@ -8,6 +8,7 @@ package se.laz.casual.network.protocol.decoding.decoders.conversation;
 
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.messages.conversation.ConnectReply;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationConnectReplySizes;
@@ -42,6 +43,9 @@ public final class ConnectReplyMessageDecoder implements NetworkDecoder<ConnectR
         currentOffset += CommonSizes.EXECUTION.getNetworkSize();
 
         int resultCode = ByteBuffer.wrap(data, currentOffset, ConversationConnectReplySizes.RESULT_CODE.getNetworkSize()).getInt();
+        currentOffset += ConversationConnectReplySizes.RESULT_CODE.getNetworkSize();
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, data.length );
 
         return ConnectReply.createBuilder()
                 .setExecution(execution)

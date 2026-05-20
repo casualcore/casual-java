@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
-package se.laz.casual.network.protocol.messages.service
+package se.laz.casual.api.buffer.type
 
-import se.laz.casual.api.buffer.type.ServiceBuffer
+import se.laz.casual.api.buffer.CasualHeaders
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
 import spock.lang.Shared
 import spock.lang.Specification
@@ -30,6 +30,14 @@ class ServiceBufferTest extends Specification
     @Shared List<byte[]> payload2 =  new ArrayList<>()
     @Shared List<byte[]> payload3 =  new ArrayList<>()
     @Shared List<byte[]> noPayload = new ArrayList<>()
+
+    @Shared List<String> rawHeaders = ["a:foo","b:bar", "c:baz" ]
+    @Shared CasualHeaders headers
+
+    def setupSpec()
+    {
+        headers = CasualHeaders.newBuilder().addAll( rawHeaders ).build(  )
+    }
 
     def setup()
     {
@@ -112,6 +120,48 @@ class ServiceBufferTest extends Specification
         then:
         b.isEmpty()
         ServiceBuffer.empty() == b
+    }
+
+    def "Get headers default - empty."()
+    {
+        when:
+        CasualHeaders actual = buffer.getHeaders()
+
+        then:
+        actual == CasualHeaders.empty()
+
+        where:
+        buffer << [
+                ServiceBuffer.empty(  ),
+                ServiceBuffer.nullBuffer(  ),
+                ServiceBuffer.of( type, payload ),
+                ServiceBuffer.of( CStringBuffer.of( "hi" ) )
+        ]
+    }
+
+    def "Get headers."()
+    {
+        when:
+        CasualHeaders actual = buffer.getHeaders()
+
+        then:
+        actual == expected
+
+        where:
+        buffer                                                | expected
+        ServiceBuffer.empty()                                 | CasualHeaders.empty()
+        ServiceBuffer.nullBuffer()                            | CasualHeaders.empty()
+        ServiceBuffer.of( type, payload, headers )            | headers
+        ServiceBuffer.of( CStringBuffer.of( "hi", headers ) ) | headers
+    }
+
+    def "Create with null headers, throws NullPointerException."()
+    {
+        when:
+        ServiceBuffer.of( type, payload, null )
+
+        then:
+        thrown NullPointerException
     }
 
 }

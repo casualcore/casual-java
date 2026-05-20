@@ -1,6 +1,18 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.4.5] - 2026-05-20
+
+### feat: gateway protocol version 1.5 ([#206](https://github.com/casualcore/casual-java/issues/206))
+Implementation of gateway protocol version 1.5.
+
+Added new messages for:
+* service call request
+* service call reply
+
+New `headers` in request and reply messages are available in
+`CasualHeaders` as part of `CasualBuffer` objects.
+
 ## [3.4.4] - 2026-04-22
 
 ### chore: networking cleanup ([#204](https://github.com/casualcore/casual-java/issues/204))

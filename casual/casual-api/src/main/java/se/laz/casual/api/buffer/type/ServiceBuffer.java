@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,6 +11,7 @@ package se.laz.casual.api.buffer.type;
  */
 
 import se.laz.casual.api.buffer.CasualBuffer;
+import se.laz.casual.api.buffer.CasualHeaders;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
 
 import java.io.Serializable;
@@ -26,18 +27,21 @@ import java.util.Objects;
 public final class ServiceBuffer implements CasualBuffer, Serializable
 {
     private static final long serialVersionUID = 1L;
-    private static final ServiceBuffer EMPTY_INSTANCE = new ServiceBuffer("", new ArrayList<>());
-    private static final ServiceBuffer NULL_INSTANCE = new ServiceBuffer("NULL", new ArrayList<>());
-    private String type;
-    private List<byte[]> payload;
-    private ServiceBuffer(final String type, final List<byte[]> payload)
+    private static final ServiceBuffer EMPTY_INSTANCE = new ServiceBuffer("", new ArrayList<>(), CasualHeaders.empty() );
+    private static final ServiceBuffer NULL_INSTANCE = new ServiceBuffer("NULL", new ArrayList<>(), CasualHeaders.empty() );
+    private final String type;
+    private final List<byte[]> payload;
+    private final CasualHeaders headers;
+
+    private ServiceBuffer(final String type, final List<byte[]> payload, final CasualHeaders headers )
     {
         this.type = type;
         this.payload = payload;
+        this.headers = headers;
     }
 
     /**
-     * Creates a new {@link ServiceBuffer}
+     * Creates a new {@link ServiceBuffer} without empty headers.
      * Note, since payload can be large we do not copy it - ie ownership is implicitly transferred
      * Be aware
      * @param type the type of the buffer
@@ -46,8 +50,22 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
      */
     public static ServiceBuffer of(final String type, final List<byte[]> payload)
     {
+        return of(type, payload, CasualHeaders.empty() );
+    }
+
+    /**
+     * Create a new {@link ServiceBuffer} with the provided headers.
+     *
+     * @param type the type of the buffer.
+     * @param payload the payload.
+     * @param headers the headers.
+     * @return a new Buffer.
+     */
+    public static ServiceBuffer of(final String type, final List<byte[]> payload, CasualHeaders headers )
+    {
         Objects.requireNonNull(type, "type can not be null");
         Objects.requireNonNull(payload, "bytes can not be null");
+        Objects.requireNonNull( headers, "headers can not be null" );
         if(type.isEmpty() && payload.isEmpty())
         {
             return EMPTY_INSTANCE;
@@ -56,7 +74,7 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
         {
             throw new CasualProtocolException("invalid buffer data,  type is empty but there is a payload");
         }
-        return new ServiceBuffer(type, payload);
+        return new ServiceBuffer( type, payload, headers );
     }
 
     public static ServiceBuffer empty()
@@ -89,7 +107,7 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
     public static ServiceBuffer of(final CasualBuffer b)
     {
         Objects.requireNonNull(b, "buffer can not be null");
-        return ServiceBuffer.of(b.getType(), b.getBytes());
+        return ServiceBuffer.of(b.getType(), b.getBytes(), b.getHeaders() );
     }
 
     @Override
@@ -112,6 +130,12 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
     public List<byte[]> getPayload()
     {
         return Collections.unmodifiableList(payload);
+    }
+
+    @Override
+    public CasualHeaders getHeaders()
+    {
+        return this.headers;
     }
 
     /**

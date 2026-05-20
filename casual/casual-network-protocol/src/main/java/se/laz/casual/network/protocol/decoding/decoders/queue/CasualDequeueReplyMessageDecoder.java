@@ -13,6 +13,7 @@ import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DequeueReplySizes;
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueReplyMessage;
@@ -99,6 +100,9 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
             currentOffset = p.first();
             l.add(p.second());
         }
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, bytes.length );
+
         return CasualDequeueReplyMessage.createBuilder()
                                         .withProtocolVersion(protocolVersion)
                                         .withExecution(execution)
@@ -123,6 +127,9 @@ public final class CasualDequeueReplyMessageDecoder implements NetworkDecoder<Ca
         }
         final ByteBuffer callErrorBuffer = ByteBuffer.wrap(bytes, currentOffset, CommonSizes.CALL_ERROR.getNetworkSize());
         int callError = callErrorBuffer.getInt();
+        currentOffset += CommonSizes.CALL_ERROR.getNetworkSize();
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, bytes.length );
 
         return CasualDequeueReplyMessage.createBuilder()
                                         .withProtocolVersion(protocolVersion)

@@ -9,6 +9,7 @@ package se.laz.casual.network.protocol.decoding.decoders.queue;
 import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.DequeueRequestSizes;
 import se.laz.casual.network.protocol.messages.queue.CasualDequeueRequestMessage;
@@ -53,6 +54,10 @@ public final class CasualDequeueRequestMessageDecoder implements NetworkDecoder<
         UUID selectorId = CasualMessageDecoderUtils.getAsUUID(Arrays.copyOfRange(bytes, currentOffset, currentOffset + DequeueRequestSizes.SELECTOR_ID_SIZE.getNetworkSize()));
         currentOffset += CommonSizes.EXECUTION.getNetworkSize();
         boolean block = (1 == ByteBuffer.wrap(bytes, currentOffset , DequeueRequestSizes.BLOCK.getNetworkSize()).get());
+        currentOffset += DequeueRequestSizes.BLOCK.getNetworkSize();
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, bytes.length );
+
         return CasualDequeueRequestMessage.createBuilder()
                                           .withExecution(execution)
                                           .withQueueName(queueName)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -28,33 +28,38 @@ class ConversationConnectRequestMessageTest extends Specification
     def resourceProtocolVersionOneThreeOrGreater = '/protocol/b64/message.conversation.connect.request.1003.3220.b64'
 
     @Shared
-    def data
+    byte[] data
     @Shared
-    def dataProtocolVersionOneThreeOrGreater
+    byte[] dataProtocolVersion_1003
 
     def setupSpec()
     {
         data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
-        dataProtocolVersionOneThreeOrGreater = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersionOneThreeOrGreater))
+        dataProtocolVersion_1003 = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersionOneThreeOrGreater))
         then:
         assert(data != null)
-        assert(dataProtocolVersionOneThreeOrGreater != null)
+        assert(dataProtocolVersion_1003 != null)
     }
 
     def "get header"()
     {
         setup:
-        def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
+        def headerData = Arrays.copyOfRange(networkData, 0, MessageHeaderSizes.headerNetworkSize)
         when:
         def header = CasualMessageDecoder.networkHeaderToCasualHeader(headerData)
         then:
         header != null
+
+        where:
+        networkData << [
+                data, dataProtocolVersion_1003
+        ]
     }
 
     def "roundtrip header"()
     {
         setup:
-        def headerData = Arrays.copyOfRange(data, 0, MessageHeaderSizes.headerNetworkSize)
+        def headerData = Arrays.copyOfRange(networkData, 0, MessageHeaderSizes.headerNetworkSize)
         def header = CasualMessageDecoder.networkHeaderToCasualHeader(headerData)
         when:
         def resurrectedHeader = CasualMessageDecoder.networkHeaderToCasualHeader(header.toNetworkBytes())
@@ -62,6 +67,11 @@ class ConversationConnectRequestMessageTest extends Specification
         header != null
         resurrectedHeader != null
         resurrectedHeader == header
+
+        where:
+        networkData << [
+                data, dataProtocolVersion_1003
+        ]
     }
 
     def 'roundtrip message'()
@@ -84,12 +94,13 @@ class ConversationConnectRequestMessageTest extends Specification
        msg.getMessage() == resurrectedMsg.getMessage()
        msg == resurrectedMsg
        msg.getMessage().getServiceBuffer().getPayload() == resurrectedMsg.getMessage().getServiceBuffer().getPayload()
+
        where:
-       binary                                   | protocolVersion
-       data                                   | ProtocolVersion.VERSION_1_0
-       data                                   | ProtocolVersion.VERSION_1_1
-       data                                   | ProtocolVersion.VERSION_1_2
-       dataProtocolVersionOneThreeOrGreater   | ProtocolVersion.VERSION_1_3
-       dataProtocolVersionOneThreeOrGreater   | ProtocolVersion.VERSION_1_4
+       binary                   | protocolVersion
+       data                     | ProtocolVersion.VERSION_1_0
+       data                     | ProtocolVersion.VERSION_1_1
+       data                     | ProtocolVersion.VERSION_1_2
+       dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_3
+       dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_4
     }
 }

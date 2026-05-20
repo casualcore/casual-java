@@ -70,7 +70,6 @@ public class ConnectRequest implements CasualNetworkTransmittable
         final byte[] parentNameBytes = parentName.getBytes(StandardCharsets.UTF_8);
         final List<byte[]> serviceBytes = serviceBuffer.toNetworkBytes();
         long messageSize = CommonSizes.EXECUTION.getNetworkSize() +
-                ConversationConnectRequestSizes.CALL_DESCRIPTOR.getNetworkSize() +
                 ConversationConnectRequestSizes.SERVICE_NAME_SIZE.getNetworkSize() + serviceNameBytes.length +
                 ConversationConnectRequestSizes.PARENT_NAME_SIZE.getNetworkSize() + parentNameBytes.length +
                 XIDUtils.getXIDNetworkSize(xid) +
@@ -83,6 +82,7 @@ public class ConnectRequest implements CasualNetworkTransmittable
             {
                 messageSize += ConversationConnectRequestSizes.SERVICE_TIMEOUT.getNetworkSize();
             }
+            messageSize += ConversationConnectRequestSizes.PARENT_SPAN_SIZE.getNetworkSize();
         }
         else
         {

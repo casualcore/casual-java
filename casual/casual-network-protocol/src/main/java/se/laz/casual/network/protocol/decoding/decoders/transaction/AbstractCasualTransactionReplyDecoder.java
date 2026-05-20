@@ -11,6 +11,7 @@ import se.laz.casual.api.util.Pair;
 import se.laz.casual.api.xa.XAReturnCode;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 
 import javax.transaction.xa.Xid;
@@ -49,6 +50,11 @@ public abstract class AbstractCasualTransactionReplyDecoder<T extends CasualNetw
         currentOffset += CommonSizes.TRANSACTION_RESOURCE_ID.getNetworkSize();
         final int xaReturnCode = ByteBuffer.wrap(data, currentOffset, CommonSizes.TRANSACTION_RESOURCE_STATE.getNetworkSize()).getInt();
         final XAReturnCode r = XAReturnCode.unmarshal(xaReturnCode);
+        currentOffset += CommonSizes.TRANSACTION_RESOURCE_STATE.getNetworkSize();
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, data.length );
+
+
         return createTransactionReplyMessage(execution, xid, resourceId, r);
     }
 

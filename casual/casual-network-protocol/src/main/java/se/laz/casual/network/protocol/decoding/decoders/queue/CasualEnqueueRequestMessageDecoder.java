@@ -11,6 +11,7 @@ import se.laz.casual.api.queue.QueueMessage;
 import se.laz.casual.api.util.Pair;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.EnqueueRequestSizes;
 import se.laz.casual.network.protocol.messages.queue.CasualEnqueueRequestMessage;
@@ -51,6 +52,7 @@ public class CasualEnqueueRequestMessageDecoder implements NetworkDecoder<Casual
         Xid xid = xidInfo.second();
 
         EnqueueMessage msg = readEnqueueMessage(bytes, currentOffset);
+
         return CasualEnqueueRequestMessage.createBuilder()
                                           .withExecution(execution)
                                           .withQueueName(queueName)
@@ -78,6 +80,10 @@ public class CasualEnqueueRequestMessageDecoder implements NetworkDecoder<Casual
         currentOffset += EnqueueRequestSizes.MESSAGE_AVAILABLE.getNetworkSize();
 
         Pair<Integer, ServiceBuffer> p = CasualMessageDecoderUtils.readServiceBuffer(bytes, currentOffset);
+        currentOffset = p.first();
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, bytes.length );
+
         return EnqueueMessage.of(QueueMessage.createBuilder()
                                              .withId(msgId)
                                              .withCorrelationInformation(properties)

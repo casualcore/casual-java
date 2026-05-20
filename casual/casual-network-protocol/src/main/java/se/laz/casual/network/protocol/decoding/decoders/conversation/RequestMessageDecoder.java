@@ -10,6 +10,7 @@ import se.laz.casual.api.buffer.type.ServiceBuffer;
 import se.laz.casual.api.conversation.Duplex;
 import se.laz.casual.network.protocol.decoding.decoders.NetworkDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.utils.CasualMessageDecoderUtils;
+import se.laz.casual.network.protocol.decoding.decoders.utils.DecoderReaderValidator;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ConversationRequestSizes;
@@ -64,6 +65,10 @@ public final class RequestMessageDecoder implements NetworkDecoder<Request>
         final List<byte[]> serviceBufferPayload = new ArrayList<>();
         serviceBufferPayload.add(payloadData);
         final ServiceBuffer serviceBuffer = ServiceBuffer.of(serviceTypeName, serviceBufferPayload);
+        currentOffset += serviceBufferPayloadSize;
+
+        DecoderReaderValidator.throwIfDataNotFullyRead( currentOffset, data.length );
+
         return Request.createBuilder()
                 .setExecution(execution)
                 .setDuplex(duplex)

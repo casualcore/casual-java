@@ -15,6 +15,7 @@ import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolExcep
 import se.laz.casual.api.xa.XID;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.encoding.utils.CasualEncoderUtils;
+import se.laz.casual.network.protocol.encoding.utils.HeaderEncoder;
 import se.laz.casual.network.protocol.messages.parseinfo.CommonSizes;
 import se.laz.casual.network.protocol.messages.parseinfo.ServiceCallReplySizes;
 import se.laz.casual.network.protocol.utils.ByteUtils;
@@ -28,6 +29,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static se.laz.casual.network.ProtocolVersion.VERSION_1_3;
+import static se.laz.casual.network.ProtocolVersion.VERSION_1_5;
 
 public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
 {
@@ -57,9 +59,15 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     @Override
     public CasualNWMessageType getType()
     {
-        return protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3 )
-                ? CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3
-                : CasualNWMessageType.SERVICE_CALL_REPLY;
+        if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5) )
+        {
+            return CasualNWMessageType.SERVICE_CALL_REPLY_V_1_5;
+        }
+        if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_3) )
+        {
+            return CasualNWMessageType.SERVICE_CALL_REPLY_V_1_3;
+        }
+        return CasualNWMessageType.SERVICE_CALL_REPLY;
     }
 
     @Override
@@ -75,8 +83,14 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         {
             messageSize += XIDUtils.getXIDNetworkSize(xid);
         }
-        return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceBytes)
-                                                    : toNetworkBytesMultipleBuffers(serviceBuffer);
+        List<byte[]> headersBytes = HeaderEncoder.convertMapToBytes( serviceBuffer.getHeaders() );
+        if(protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ))
+        {
+            messageSize += CommonSizes.HEADER_SIZE.getNetworkSize() +
+                    (CommonSizes.HEADER_ELEMENT_SIZE.getNetworkSize() * (long)headersBytes.size()) + ByteUtils.sumNumberOfBytes( headersBytes );
+        }
+        return (messageSize <= getMaxMessageSize()) ? toNetworkBytesFitsInOneBuffer((int)messageSize, serviceBytes, headersBytes)
+                                                    : toNetworkBytesMultipleBuffers(serviceBuffer, headersBytes);
     }
 
     public UUID getExecution()
@@ -152,18 +166,16 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder("CasualServiceCallReplyMessage{");
-        sb.append("execution=").append(execution);
-        sb.append(", error=").append(error);
-        sb.append(", userDefinedCode=").append(userDefinedCode);
-        if(protocolVersion.isLessThan( VERSION_1_3 ) )
-        {
-            sb.append(", xid=").append(xid);
-        }
-        sb.append(", transactionState=").append(transactionState);
-        sb.append(", serviceBuffer=").append(serviceBuffer);
-        sb.append('}');
-        return sb.toString();
+        return "CasualServiceCallReplyMessage{" +
+                "execution=" + execution +
+                ", error=" + error +
+                ", userDefinedCode=" + userDefinedCode +
+                ", xid=" + xid +
+                ", transactionState=" + transactionState +
+                ", serviceBuffer=" + serviceBuffer +
+                ", protocolVersion=" + protocolVersion +
+                ", maxMessageSize=" + maxMessageSize +
+                '}';
     }
 
     public static class Builder
@@ -217,6 +229,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             this.protocolVersion = protocolVersion;
             return this;
         }
+
         public CasualServiceCallReplyMessage build()
         {
             Objects.requireNonNull(protocolVersion, "protocolVersion can not be null");
@@ -239,7 +252,7 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         }
     }
 
-    private List<byte[]> toNetworkBytesFitsInOneBuffer(int messageSize, List<byte[]> serviceBytes)
+    private List<byte[]> toNetworkBytesFitsInOneBuffer(int messageSize, List<byte[]> serviceBytes, List<byte[]> headersBytes )
     {
         List<byte[]> l = new ArrayList<>();
         ByteBuffer b = ByteBuffer.allocate(messageSize);
@@ -265,11 +278,17 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
         final long payloadSize = ByteUtils.sumNumberOfBytes(serviceBytes);
         b.putLong(payloadSize);
         serviceBytes.forEach(b::put);
+
+        if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            HeaderEncoder.writeHeaderBytes( b, headersBytes );
+        }
+
         l.add(b.array());
         return l;
     }
 
-    private List<byte[]> toNetworkBytesMultipleBuffers(final ServiceBuffer serviceBuffer)
+    private List<byte[]> toNetworkBytesMultipleBuffers(final ServiceBuffer serviceBuffer, List<byte[]> headersBytes)
     {
         final List<byte[]> l = new ArrayList<>();
         final ByteBuffer executionBuffer = ByteBuffer.allocate(CommonSizes.EXECUTION.getNetworkSize());
@@ -292,6 +311,10 @@ public class CasualServiceCallReplyMessage implements CasualNetworkTransmittable
             l.add(transactionStateBuffer.array());
         }
         l.addAll(CasualEncoderUtils.writeServiceBuffer(serviceBuffer));
+        if( protocolVersion.isGreaterThanOrEqualTo( VERSION_1_5 ) )
+        {
+            l.addAll( HeaderEncoder.encodeHeadersBytesAsList( headersBytes ) );
+        }
         return l;
     }
 
