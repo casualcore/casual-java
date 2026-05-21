@@ -1,6 +1,16 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.4.6] - 2026-05-21
+
+### build: allow local publish without signing ([#208](https://github.com/casualcore/casual-java/issues/208))
+Fixes https://github.com/casualcore/casual-java/issues/207
+
+Fix to allow `publishToMavenLocal` gradle task to run if you do not have
+casual gpg key setting configured.
+
+Additional `types` for conventional commits.
+
 ## [3.4.5] - 2026-05-20
 
 ### feat: gateway protocol version 1.5 ([#206](https://github.com/casualcore/casual-java/issues/206))

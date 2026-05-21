@@ -41,12 +41,12 @@ def clean_message(msg):
 
 
 def validate_format(msg):
-    pattern = r"^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+"
+    pattern = r"^(feat|fix|build|ci|perf|docs|style|refactor|test|chore)(\(.+\))?: .+"
     if not re.match(pattern, msg):
         print(f"Error: PR title '{msg}' does not follow conventional commit format.")
         print("Format: <type>[optional scope]: <description>")
         print("Example: feat: add new feature")
-        print("Allowed types: feat, fix, docs, style, refactor, test, chore")
+        print("Allowed types: feat, fix, docs, style, refactor, test, chore, build, ci, perf")
         return False
     else:
         print(f"PR title '{msg}' is valid.")
