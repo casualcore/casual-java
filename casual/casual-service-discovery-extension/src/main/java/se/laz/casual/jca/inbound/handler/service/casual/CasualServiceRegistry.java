@@ -6,6 +6,9 @@
 
 package se.laz.casual.jca.inbound.handler.service.casual;
 
+import se.laz.casual.info.CasualInfo;
+import se.laz.casual.info.Service;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +39,10 @@ public final class CasualServiceRegistry
     public void register( CasualServiceMetaData metaData )
     {
         serviceMetaData.put( metaData.getServiceName(), metaData );
+        CasualInfo.getInstance().addInboundService(
+                new Service.Builder().name(metaData.getServiceName())
+                        .category(metaData.getServiceCategory()).build()
+        );
     }
 
     public void register( CasualServiceEntry entry )
