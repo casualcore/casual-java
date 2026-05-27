@@ -1,0 +1,48 @@
+/*
+ * Copyright (c) 2026, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
+apply plugin: 'com.github.spotbugs'
+
+spotbugs {
+    ignoreFailures = true
+    showStackTraces = true
+    showProgress = true
+    //reportLevel = Confidence.DEFAULT
+    //visitors = listOf("FindSqlInjection", "SwitchFallthrough")
+    //omitVisitors = listOf("FindNonShortCircuit")
+    //chooseVisitors = listOf("-FindNonShortCircuit", "+TestASM")
+    reportsDir = file( "build/reports/" )
+    //includeFilter = file( "include.xml" )
+    //excludeFilter = file( "exclude.xml" )
+    //baselineFile = file( "baseline.xml" )
+    //onlyAnalyze = listOf("com.foobar.MyClass", "com.foobar.mypkg.*")
+    //maxHeapSize = "1g"
+    //extraArgs = ["-sarif=" + "build/spotbugs.sarif" ]
+    //jvmArgs = ["-sarif=$buildDir/reports/spotbugs/spotbugs.sarif"]
+}
+
+
+spotbugsMain {
+    reports {
+        xml.required = true
+        html.required = true
+        sarif.required = true
+    }
+}
+
+spotbugsTest {
+    enabled = false
+}
+
+sonar{
+    properties{
+        property "sonar.java.spotbugs.reportPaths","build/reports/main.xml"
+    }
+}
+
+
+
+
