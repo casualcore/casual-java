@@ -1,10 +1,11 @@
 package se.laz.casual.info;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Static instance that contains information about inbound Casual Services.
@@ -12,28 +13,25 @@ import java.util.Optional;
  */
 public final class CasualInfo
 {
-    private static CasualInfo instance;
-    private static final Map<String, Service> inboundServices = new HashMap<>();
+    private static final CasualInfo instance = new CasualInfo();
+    private final Map<String, Service> inboundServices;
 
-    private CasualInfo() {}
-
-    public static CasualInfo getInstance() {
-        if(instance == null) {
-            instance = new CasualInfo();
-        }
-        return instance;
+    private CasualInfo() {
+        this.inboundServices = new ConcurrentHashMap<>();
     }
 
-    public void addInboundService(Service service) {
-        inboundServices.put(service.getName(), service);
+    public static void addInboundService(Service service) {
+        Objects.requireNonNull(service, "service must not be null");
+        instance.inboundServices.put(service.getName(), service);
     }
 
-    public List<Service> getServices() {
-        return new ArrayList<>(inboundServices.values());
+    public static List<Service> getServices() {
+        return new ArrayList<>(instance.inboundServices.values());
     }
 
-    public Optional<Service> getInboundService(String name)
+    public static Optional<Service> getInboundService(String name)
     {
-        return Optional.ofNullable(inboundServices.get(name));
+        Objects.requireNonNull(name, "name must not be null");
+        return Optional.ofNullable(instance.inboundServices.get(name));
     }
 }

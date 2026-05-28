@@ -23,10 +23,10 @@ class CasualInfoTest extends Specification
     def "add inbound service"()
     {
         when:
-        CasualInfo.getInstance(  ).addInboundService( service )
+        CasualInfo.addInboundService( service )
 
         then:
-        CasualInfo.getInstance(  ).getInboundService(service.getName(  )  ).isPresent(  )
-        CasualInfo.getInstance(  ).getInboundService(service.getName(  )  ).get(  ) == service
+        CasualInfo.getInboundService(service.getName(  )  ).isPresent(  )
+        CasualInfo.getInboundService(service.getName(  )  ).get(  ) == service
     }
 }

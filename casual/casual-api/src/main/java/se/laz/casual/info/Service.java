@@ -60,29 +60,14 @@ public class Service
         this.registred = registred;
     }
 
-    public void setJndiName(String jndiName)
-    {
-        this.jndiName = jndiName;
-    }
-
     public TransactionType getTransactionType()
     {
         return transactionType;
     }
 
-    public void setTransactionType(TransactionType transactionType)
-    {
-        this.transactionType = transactionType;
-    }
-
     public long getTimeout()
     {
         return timeout;
-    }
-
-    public void setTimeout(long timeout)
-    {
-        this.timeout = timeout;
     }
 
     @Override
@@ -155,6 +140,16 @@ public class Service
         public Builder jndiName(String jndiName) {
             this.jndiName = jndiName;
             return this;
+        }
+
+        public Builder newBuilder( Service src )
+        {
+            return new Builder()
+                    .name(src.getName())
+                    .category(src.getCategory())
+                    .hops(src.getHops())
+                    .registred(src.isRegistred())
+                    .jndiName(src.getJndiName());
         }
 
         public Service build() {

@@ -39,7 +39,7 @@ public final class CasualServiceRegistry
     public void register( CasualServiceMetaData metaData )
     {
         serviceMetaData.put( metaData.getServiceName(), metaData );
-        CasualInfo.getInstance().addInboundService(
+        CasualInfo.addInboundService(
                 new Service.Builder().name(metaData.getServiceName())
                         .category(metaData.getServiceCategory()).build()
         );

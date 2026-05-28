@@ -90,11 +90,13 @@ public class JndiSearchTimerEjbSingleton
                 CasualServiceRegistry.getInstance().register( found );
 
                 // Set information about a service when it has been registered:
-                Optional<Service> inboundService = CasualInfo.getInstance().getInboundService(found.getServiceName());
-                if (inboundService.isPresent()) {
-                    inboundService.get().setRegistred(true);
-                    inboundService.get().setJndiName(found.getJndiName());
-                }
+                Optional<Service> inboundService = CasualInfo.getInboundService(found.getServiceName());
+                inboundService.ifPresent( service -> CasualInfo.addInboundService(
+                        new Service.Builder().newBuilder( service )
+                                .registred( true )
+                                .jndiName( found.getJndiName() )
+                                .build()
+                ));
                 break;
             }
         }
