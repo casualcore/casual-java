@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -230,7 +230,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         InboundDeactivatedContext.domainDisconnect();
         InboundDeactivatedContext.clear();
         InboundTopologyUpdateContext.clear();
-        Predicate predicate = () -> inboundTransactionRegistry.hasPending() || CasualResourceManager.getInstance().hasPending();
+        Predicate predicate = () -> CasualInboundTransactionRegistry.hasPending() || CasualResourceManager.getInstance().hasPending();
         long sleepTimeMilliseconds = 20L;
         ShutdownBarrier shutdownBarrier = ShutdownBarrier.of(sleepTimeMilliseconds, predicate);
         shutdownBarrier.intermittentSleep();

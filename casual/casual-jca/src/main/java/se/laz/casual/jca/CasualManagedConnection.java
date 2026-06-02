@@ -260,6 +260,18 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         connectionHandles.remove(handle);
     }
 
+    /**
+     * Check if the connection is disconnecting
+     * This means that the domain that we are connected to is going down
+     * and is currently draining in flight transactions, but the actual connection
+     * is not yet gone
+     * @return true if disconnecting, false if not
+     */
+    public boolean isDomainDisconnecting()
+    {
+        return networkConnection != null && networkConnection.isDisconnecting();
+    }
+
     public WorkManager getWorkManager()
     {
         ResourceAdapter ra = mcf.getResourceAdapter();

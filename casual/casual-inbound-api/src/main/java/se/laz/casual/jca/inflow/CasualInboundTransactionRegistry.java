@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, The casual project. All rights reserved.
+ * Copyright (c) 2025 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -18,7 +18,7 @@ public class CasualInboundTransactionRegistry
 {
     private static final Logger log = Logger.getLogger(CasualInboundTransactionRegistry.class.getName());
     private static final String CHANNEL_ID_CAN_NOT_BE_NULL = "channelId can not be null";
-    private final Map<ChannelId, Set<XidKey>> transactions = new ConcurrentHashMap<>();
+    private static final Map<ChannelId, Set<XidKey>> transactions = new ConcurrentHashMap<>();
 
     public void add(ChannelId channelId, XidKey key)
     {
@@ -45,7 +45,7 @@ public class CasualInboundTransactionRegistry
         transactions.remove(channelId);
     }
 
-    public boolean hasPending()
+    public static boolean hasPending()
     {
         log.finest(() -> "# of inbound pending: " + transactions.size());
         return !transactions.isEmpty();

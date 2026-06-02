@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -38,4 +38,12 @@ public interface NetworkConnection
     void addConnectionObserver(ConnectionObserver observer);
 
     ProtocolVersion getProtocolVersion();
+
+    /**
+     * The connection is in the process of disconnecting
+     * IE the server side has sent a domain disconnect message to the client
+     *
+     * @return true if the connection is disconnecting, false if not
+     */
+    boolean isDisconnecting();
 }

@@ -146,6 +146,12 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return b.connect(ci.getAddress()).syncUninterruptibly().channel();
     }
 
+    @Override
+    public boolean isDisconnecting()
+    {
+        return protocolSupportsDomainDisconnect() && domainDisconnectHandler.hasDomainBeenDisconnected();
+    }
+
     private void setConnectionHandler(DomainDisconnectHandler domainDisconnectHandler)
     {
         Objects.requireNonNull(domainDisconnectHandler, "domainDisconnectHandler can not be null");
@@ -236,10 +242,10 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         // note: null check because it may be that we have not finished the connection phase
         // and thus no protocolVersion has yet been set
         if(null != protocolVersion
-           && hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(message))
+           && hasDomainBeenDisconnectedAndRequestIsNotXAMessage(message))
         {
             // new service calls are not ok when domain has been disconnected
-            throw new DomainDisconnectedException("Domain: " + domainId + " has disconnected, no service or queue calls allowed");
+            throw new DomainDisconnectedException("Domain: " + domainId + " has disconnected, only XA calls allowed");
         }
         LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
     }
@@ -275,13 +281,16 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return noReply ? Optional.empty() : Optional.of(f);
     }
 
-    private <T extends CasualNetworkTransmittable> boolean hasDomainBeenDisconnectedAndRequestIsServiceOrQueueCall(CasualNWMessage<T> message)
+    private <T extends CasualNetworkTransmittable> boolean hasDomainBeenDisconnectedAndRequestIsNotXAMessage(CasualNWMessage<T> message)
     {
-        return protocolSupportsDomainDisconnect() && domainDisconnectHandler.hasDomainBeenDisconnected() &&
-                (message.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST ||
-                        message.getType() == CasualNWMessageType.SERVICE_CALL_REQUEST_V_1_3 ||
-                        message.getType() == CasualNWMessageType.DEQUEUE_REQUEST ||
-                        message.getType() == CasualNWMessageType.ENQUEUE_REQUEST);
+        if(!protocolSupportsDomainDisconnect())
+        {
+            return false;
+        }
+        return domainDisconnectHandler.hasDomainBeenDisconnected() &&
+                !(message.getType() == CasualNWMessageType.PREPARE_REQUEST ||
+                        message.getType() == CasualNWMessageType.COMMIT_REQUEST ||
+                        message.getType() == CasualNWMessageType.REQUEST_ROLLBACK);
     }
 
     @Override
