@@ -5,6 +5,7 @@
  */
 
 apply plugin: 'com.github.spotbugs'
+apply plugin: 'pmd'
 
 spotbugs {
     ignoreFailures = true
@@ -16,7 +17,7 @@ spotbugs {
     //chooseVisitors = listOf("-FindNonShortCircuit", "+TestASM")
     reportsDir = file( "build/reports/" )
     //includeFilter = file( "include.xml" )
-    //excludeFilter = file( "exclude.xml" )
+    excludeFilter = file( "$rootProject.projectDir/findbugs.xml" )
     //baselineFile = file( "baseline.xml" )
     //onlyAnalyze = listOf("com.foobar.MyClass", "com.foobar.mypkg.*")
     //maxHeapSize = "1g"
@@ -37,9 +38,28 @@ spotbugsTest {
     enabled = false
 }
 
+pmd {
+    consoleOutput = true
+    ignoreFailures = true
+    rulesMinimumPriority = 5
+    ruleSetFiles( "$rootProject.projectDir/pmdrules.xml" )
+}
+
+pmdMain {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+pmdTest {
+    enabled = false
+}
+
 sonar{
     properties{
         property "sonar.java.spotbugs.reportPaths","build/reports/main.xml"
+        property "sonar.java.pmd.reportPaths","build/reports/pmd/main.xml"
     }
 }
 
