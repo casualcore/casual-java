@@ -86,7 +86,7 @@ public class JndiSearchTimerEjbSingleton
             CasualServiceEntry found = searchInApp( entry, app );
             if( found != null )
             {
-                logger.info(() -> "Found casual service: %s".formatted(found));
+                logger.info(() -> "Resolved casual service: %s".formatted(found));
                 CasualServiceRegistry.getInstance().register( found );
 
                 // Set information about a service when it has been registered:

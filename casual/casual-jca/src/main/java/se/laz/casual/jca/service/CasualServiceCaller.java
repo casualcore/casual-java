@@ -24,6 +24,8 @@ import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.event.ServiceCallEventStoreFactory;
+import se.laz.casual.info.CasualInfo;
+import se.laz.casual.info.Connection;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.jca.RuntimeInformation;
 import se.laz.casual.network.ProtocolVersion;
@@ -209,6 +211,12 @@ public class CasualServiceCaller implements CasualServiceApi
                                 .withTimeout(service.getTimeout())
                                 .withHops(service.getHops()).build()));
 
+        CasualInfo.addDiscovery(serviceDetailsList, new Connection.Builder()
+                .domainId( connection.getNetworkConnection().getDomainId() )
+                .protocolVersion( connection.getNetworkConnection().getProtocolVersion() )
+                .hostName( connection.getMcf().getHostName() )
+                .portNumber( connection.getMcf().getPortNumber() )
+                .build() );
         return serviceDetailsList;
     }
 

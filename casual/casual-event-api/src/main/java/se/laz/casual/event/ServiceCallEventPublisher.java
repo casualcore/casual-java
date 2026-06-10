@@ -5,6 +5,7 @@
  */
 package se.laz.casual.event;
 
+import se.laz.casual.info.CasualInfo;
 import se.laz.casual.jca.RuntimeInformation;
 
 import java.util.Objects;
@@ -43,6 +44,7 @@ public class ServiceCallEventPublisher
         try
         {
             handler.put(event);
+            CasualInfo.storeEvent( event.getService(), event.getOrder(), event.getStart(), event.getEnd() );
         }
         catch(Exception ee)
         {

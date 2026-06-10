@@ -9,6 +9,7 @@ package se.laz.casual.jca.discovery
 import se.laz.casual.api.discovery.DiscoveryReturn
 import se.laz.casual.api.queue.QueueDetails
 import se.laz.casual.config.json.Domain
+import se.laz.casual.info.CasualInfo
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
@@ -71,6 +72,8 @@ class CasualDiscoveryCallerTest extends Specification
         corrid = UUID.randomUUID()
         serviceNames = ['testService', 'anotherService']
         queueNames = ['testQueue', 'anotherQueue']
+        mcf.getHostName(  ) >> "somehost"
+        mcf.getPortNumber(  ) >> 8080
     }
 
     def initialiseExpectedRequests()
@@ -112,6 +115,35 @@ class CasualDiscoveryCallerTest extends Specification
 
         then:
         thrown(NullPointerException)
+    }
+
+    def 'discover - stores discovery information'()
+    {
+        setup:
+        def protocolVersion = ProtocolVersion.VERSION_1_4
+        def services = asServices([
+                [name: 'testService', category: 'test', transactionType: TransactionType.AUTOMATIC, timeout: 5000L, hops: 1L],
+                [name: 'anotherService', category: 'other', transactionType: TransactionType.JOIN, timeout: 3000L, hops: 2L]
+        ])
+        def queues = asQueues(['testQueue', 'anotherQueue'], protocolVersion)
+        def reply = createDiscoveryReply(services, queues, protocolVersion)
+
+        networkConnection = Mock(NetworkConnection) {
+            getDomainId() >> domainOne
+            getProtocolVersion() >> protocolVersion
+        }
+        connection.networkConnection = networkConnection
+
+        when:
+        instance.discover(corrid, serviceNames, queueNames)
+
+        then:
+        1 * networkConnection.request(_) >> {
+            CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> input ->
+                actualDiscoveryRequest = input
+                return CompletableFuture.completedFuture(reply)
+        }
+        CasualInfo.getOutboundServices(  ).size(  ) == 2
     }
 
     def 'discover - returns services and queues from reply, protocol version #protocolVersion'()
