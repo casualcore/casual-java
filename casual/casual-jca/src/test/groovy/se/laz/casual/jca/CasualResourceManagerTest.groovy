@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -17,7 +17,7 @@ class CasualResourceManagerTest extends Specification
 {
     @Shared CasualResourceManager instance
     @Shared Xid xid1, xid2, xid3
-    @Shared DomainId domainOne, domainTwo
+    @Shared Address domainOne, domainTwo
 
     def setup()
     {
@@ -25,8 +25,8 @@ class CasualResourceManagerTest extends Specification
         xid1 = XID.of( "123".getBytes(StandardCharsets.UTF_8), "321".getBytes(StandardCharsets.UTF_8), 0 )
         xid2 = XID.of("456".getBytes(StandardCharsets.UTF_8), "654".getBytes(StandardCharsets.UTF_8), 0 )
         xid3 = XID.of( xid1 )
-        domainOne = DomainId.of(UUID.randomUUID())
-        domainTwo = DomainId.of(UUID.randomUUID())
+        domainOne= Address.of('foo', 2134)
+        domainTwo = Address.of('bar', 4132)
     }
 
     def cleanup()

@@ -34,7 +34,7 @@ class CasualXAResourceTest extends Specification
     @Shared CasualXAResource instance
     @Shared CasualManagedConnection managedConnection
     @Shared NetworkConnection networkConnection
-    @Shared DomainId domainOne = DomainId.of(UUID.randomUUID())
+    @Shared Address domainOne = Address.of('foo', 2134)
     @Shared Xid xid1, xid2
     @Shared CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> expectedPrepareRequestMessage
     @Shared CasualNWMessageImpl<CasualTransactionResourcePrepareRequestMessage> actualPrepareRequestMessage
@@ -50,16 +50,21 @@ class CasualXAResourceTest extends Specification
 
     def setup()
     {
-        mcf = Mock(CasualManagedConnectionFactory)
-        mcf.getResourceId() >> {
-            resourceId
-        }
         networkConnection = Mock(NetworkConnection){
            getDomainId() >> domainOne
         }
-        managedConnection = new CasualManagedConnection( Mock(CasualManagedConnectionFactory) )
+        mcf = Mock(CasualManagedConnectionFactory)
+        managedConnection = new CasualManagedConnection( mcf)
         managedConnection.networkConnection = networkConnection
-        instance = new CasualXAResource(managedConnection, mcf.getResourceId(), mcf.getAddress())
+
+        mcf.getResourceId() >> resourceId
+        mcf.getAddress() >> domainOne
+        mcf.getNetworkConnectionPoolName() >> 'foo'
+        mcf.getNetworkConnectionPoolSize() >> 1
+        mcf.getHostName() >> 'foo'
+        mcf.getPortNumber() >> 2134
+
+        instance = new CasualXAResource(managedConnection, mcf.getResourceId())
 
         xid1 = XID.of( "123".getBytes(StandardCharsets.UTF_8), "321".getBytes(StandardCharsets.UTF_8), 0 )
         xid2 = XID.of( "456".getBytes(StandardCharsets.UTF_8), "654".getBytes(StandardCharsets.UTF_8), 0 )
@@ -353,31 +358,25 @@ class CasualXAResourceTest extends Specification
     {
        setup:
        def rmIdOne = 1
-       DomainId firstDomainId = DomainId.of(UUID.randomUUID())
+       Address firstAddress = Address.of('fnord', 1234)
        CasualManagedConnection casualManagedConnectionOne = Mock(CasualManagedConnection) {
-           getDomainId() >> {
-              firstDomainId
-           }
+           getAddress() >> firstAddress
        }
 
        def rmIdTwo = 2
-       DomainId secondDomainId = DomainId.of(UUID.randomUUID())
+       Address secondAddress = Address.of('foo', 1234)
        CasualManagedConnection casualManagedConnectionTwo = Mock(CasualManagedConnection) {
-           getDomainId() >> {
-              secondDomainId
-           }
+           getAddress() >> secondAddress
        }
 
        def rmIdThree = 3
        CasualManagedConnection casualManagedConnectionThree = Mock(CasualManagedConnection) {
-           getDomainId() >> {
-              firstDomainId
-           }
+           getAddress() >> firstAddress
        }
        when:
-       CasualXAResource xaResourceOne = new CasualXAResource(casualManagedConnectionOne, rmIdOne, mcf.getAddress())
-       CasualXAResource xaResourceTwo = new CasualXAResource(casualManagedConnectionTwo, rmIdTwo, mcf.getAddress())
-       CasualXAResource xaResourceThree = new CasualXAResource(casualManagedConnectionThree, rmIdThree, mcf.getAddress())
+       CasualXAResource xaResourceOne = new CasualXAResource(casualManagedConnectionOne, rmIdOne)
+       CasualXAResource xaResourceTwo = new CasualXAResource(casualManagedConnectionTwo, rmIdTwo)
+       CasualXAResource xaResourceThree = new CasualXAResource(casualManagedConnectionThree, rmIdThree)
 
        xaResourceOne.start(xid1, 0)
        xaResourceThree.start(xid2, 0)

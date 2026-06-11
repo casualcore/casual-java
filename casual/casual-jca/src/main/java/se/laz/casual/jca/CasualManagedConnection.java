@@ -68,7 +68,12 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         this.logwriter = null;
         this.connectionEventHandler = new ConnectionEventHandler();
         this.connectionHandles = Collections.synchronizedList(new ArrayList<>(1));
-        xaResource = new CasualXAResource(this, mcf.getResourceId(), mcf.getAddress());
+        xaResource = new CasualXAResource(this, mcf.getResourceId());
+    }
+
+    public Address getAddress()
+    {
+        return mcf.getAddress();
     }
 
     /**

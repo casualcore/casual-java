@@ -46,6 +46,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -90,6 +91,11 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         log.info( ConfigurationService.log() );
         initialiseFielded();
         startEventServer();
+    }
+
+    public Optional<CasualInboundTransactionRegistry> getInboundTransactionRegistry()
+    {
+        return Optional.ofNullable(inboundTransactionRegistry);
     }
 
     /**
@@ -154,6 +160,8 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         log.finest(() -> "end endpointActivation()");
 
     }
+
+
 
     private void maybeStartReverseInbound(List<ReverseInbound> reverseInbound, MessageEndpointFactory endpointFactory, WorkManager workManager, XATerminator xaTerminator)
     {
@@ -230,7 +238,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         InboundDeactivatedContext.domainDisconnect();
         InboundDeactivatedContext.clear();
         InboundTopologyUpdateContext.clear();
-        Predicate predicate = () -> CasualInboundTransactionRegistry.hasPending() || CasualResourceManager.getInstance().hasPending();
+        Predicate predicate = () -> inboundTransactionRegistry.hasPending() || CasualResourceManager.getInstance().hasPending();
         long sleepTimeMilliseconds = 20L;
         ShutdownBarrier shutdownBarrier = ShutdownBarrier.of(sleepTimeMilliseconds, predicate);
         shutdownBarrier.intermittentSleep();

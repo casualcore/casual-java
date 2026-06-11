@@ -14,12 +14,10 @@ import se.laz.casual.api.queue.MessageSelector
 import se.laz.casual.api.queue.QueueErrorCode
 import se.laz.casual.api.queue.QueueInfo
 import se.laz.casual.api.queue.QueueMessage
-import se.laz.casual.api.xa.XID
 import se.laz.casual.config.json.Domain
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
-import se.laz.casual.jca.CasualResourceManager
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.connection.CasualConnectionException
@@ -83,10 +81,6 @@ class CasualQueueCallerTest extends Specification
         }
         connection = new CasualManagedConnection( mcf )
         connection.networkConnection =  networkConnection
-
-        CasualResourceManager.getInstance().remove(domainOne, XID.NULL_XID)
-        connection.getXAResource().start( XID.NULL_XID, 0 )
-        CasualResourceManager.getInstance().remove(domainOne,XID.NULL_XID)
 
         instance = CasualQueueCaller.of( connection )
 

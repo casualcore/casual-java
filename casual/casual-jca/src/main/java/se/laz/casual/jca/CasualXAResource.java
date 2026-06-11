@@ -34,15 +34,13 @@ public class CasualXAResource implements XAResource
     private static final Xid[] NO_XIDS = {};
     private final CasualManagedConnection casualManagedConnection;
     private final int resourceManagerId;
-    private final Address address;
     private Xid currentXid = XID.NULL_XID;
     private boolean readOnly = false;
 
-    public CasualXAResource(final CasualManagedConnection connection, int resourceManagerId, Address address)
+    public CasualXAResource(final CasualManagedConnection connection, int resourceManagerId)
     {
         casualManagedConnection = connection;
         this.resourceManagerId = resourceManagerId;
-        this.address = address;
     }
 
     public Xid getCurrentXid()
@@ -83,7 +81,7 @@ public class CasualXAResource implements XAResource
     public void end(Xid xid, int flag) throws XAException
     {
         LOG.finest(()-> String.format("end, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, flag, XAFlags.unmarshall(flag)));
-        CasualResourceManager.getInstance().remove(address, xid);
+        CasualResourceManager.getInstance().remove(casualManagedConnection.getAddress(), xid);
         disassociate();
         XAFlags f = XAFlags.unmarshall(flag);
         switch(f)
@@ -120,7 +118,7 @@ public class CasualXAResource implements XAResource
     {
         if (xaResource instanceof CasualXAResource casualXAResource)
         {
-            return Objects.equals(casualXAResource.address, address);
+            return Objects.equals(casualXAResource.casualManagedConnection.getAddress(), casualManagedConnection.getAddress());
         }
         return false;
     }
@@ -180,15 +178,15 @@ public class CasualXAResource implements XAResource
         LOG.finest(()-> String.format("start, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, i, XAFlags.unmarshall(i)));
         readOnly = false;
         if(!(XAFlags.TMJOIN.getValue() == i || XAFlags.TMRESUME.getValue() == i) &&
-            CasualResourceManager.getInstance().isPending(address, xid))
+            CasualResourceManager.getInstance().isPending(casualManagedConnection.getAddress(), xid))
         {
             LOG.finest(()->"throwing XAException.XAER_DUPID");
             throw new XAException(XAException.XAER_DUPID);
         }
         associate(xid);
-        if(!CasualResourceManager.getInstance().isPending(address, currentXid))
+        if(!CasualResourceManager.getInstance().isPending(casualManagedConnection.getAddress(), currentXid))
         {
-            CasualResourceManager.getInstance().put(address, currentXid);
+            CasualResourceManager.getInstance().put(casualManagedConnection.getAddress(), currentXid);
         }
     }
 

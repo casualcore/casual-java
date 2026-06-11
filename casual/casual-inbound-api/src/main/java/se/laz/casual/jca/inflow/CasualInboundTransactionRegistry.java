@@ -18,7 +18,7 @@ public class CasualInboundTransactionRegistry
 {
     private static final Logger log = Logger.getLogger(CasualInboundTransactionRegistry.class.getName());
     private static final String CHANNEL_ID_CAN_NOT_BE_NULL = "channelId can not be null";
-    private static final Map<ChannelId, Set<XidKey>> transactions = new ConcurrentHashMap<>();
+    private final Map<ChannelId, Set<XidKey>> transactions = new ConcurrentHashMap<>();
 
     public void add(ChannelId channelId, XidKey key)
     {
@@ -45,7 +45,7 @@ public class CasualInboundTransactionRegistry
         transactions.remove(channelId);
     }
 
-    public static boolean hasPending()
+    public boolean hasPending()
     {
         log.finest(() -> "# of inbound pending: " + transactions.size());
         return !transactions.isEmpty();
