@@ -10,6 +10,7 @@ import se.laz.casual.api.discovery.DiscoveryReturn
 import se.laz.casual.api.queue.QueueDetails
 import se.laz.casual.config.json.Domain
 import se.laz.casual.info.CasualInfo
+import se.laz.casual.info.CasualInfoStorage
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
@@ -143,7 +144,7 @@ class CasualDiscoveryCallerTest extends Specification
                 actualDiscoveryRequest = input
                 return CompletableFuture.completedFuture(reply)
         }
-        CasualInfo.getOutboundServices(  ).size(  ) == 2
+        CasualInfoStorage.getInstance(  ).getServices(  ).size(  ) == 2
     }
 
     def 'discover - returns services and queues from reply, protocol version #protocolVersion'()

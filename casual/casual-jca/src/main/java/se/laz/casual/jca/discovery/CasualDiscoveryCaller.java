@@ -66,11 +66,11 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
         LOG.finest(() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + "reply -> service names: " + serviceNames + " queue names: " + queueNames);
         DiscoveryReturn discoveryReturn = toDiscoveryReturn( replyMsg.getMessage(), connection.getNetworkConnection().getProtocolVersion() );
-        CasualInfo.addDiscovery(discoveryReturn, new Connection.Builder()
+        CasualInfo.getInstance().addDiscovery(discoveryReturn.getServiceDetails(), new Connection.Builder()
                         .domainId( connection.getNetworkConnection().getDomainId() )
                         .protocolVersion( connection.getNetworkConnection().getProtocolVersion() )
-                        .hostName( connection.getMcf().getHostName() )
-                        .portNumber( connection.getMcf().getPortNumber() )
+                        .hostName( connection.getManagedConnectionFactory().getHostName() )
+                        .portNumber( connection.getManagedConnectionFactory().getPortNumber() )
                 .build() );
         return discoveryReturn;
     }

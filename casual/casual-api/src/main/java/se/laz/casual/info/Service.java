@@ -8,9 +8,10 @@ import java.util.Objects;
 public class Service
 {
     private final String name;
+    private final Order order;
     private final String category;
     private final long hops;
-    private boolean registered;
+    private final boolean registered;
     private final String jndiName;
     private final TransactionType transactionType;
     private final long timeout;
@@ -19,6 +20,7 @@ public class Service
     private Service( Builder builder )
     {
         this.name = builder.name;
+        this.order = builder.order;
         this.category = builder.category;
         this.timeout = builder.timeout;
         this.transactionType = builder.transactionType;
@@ -28,6 +30,7 @@ public class Service
         this.connection = builder.connection;
 
         Objects.requireNonNull( name );
+        Objects.requireNonNull( order );
         Objects.requireNonNull( category );
         Objects.requireNonNull( transactionType );
         Objects.requireNonNull( jndiName );
@@ -36,6 +39,11 @@ public class Service
     public String getName()
     {
         return name;
+    }
+
+    public Order getOrder()
+    {
+        return order;
     }
 
     public String getCategory()
@@ -58,11 +66,6 @@ public class Service
         return jndiName;
     }
 
-    public void setRegistered( boolean registered )
-    {
-        this.registered = registered;
-    }
-
     public TransactionType getTransactionType()
     {
         return transactionType;
@@ -78,6 +81,28 @@ public class Service
         return connection;
     }
 
+    public static Builder newBuilder( Service src )
+    {
+        return new Builder()
+                .name( src.getName() )
+                .order( src.getOrder() )
+                .category( src.getCategory() )
+                .hops( src.getHops() )
+                .registred( src.isRegistered() )
+                .jndiName( src.getJndiName() );
+    }
+
+    public static Builder newBuilder( ServiceDetails src, Order order )
+    {
+        return new Builder()
+                .name( src.getName() )
+                .order( order )
+                .transactionType( src.getTransactionType() )
+                .timeout( src.getTimeout() )
+                .category( src.getCategory() )
+                .hops( src.getHops() );
+    }
+
     @Override
     public boolean equals( Object o )
     {
@@ -86,13 +111,13 @@ public class Service
             return false;
         }
         Service service = (Service) o;
-        return hops == service.hops && registered == service.registered && timeout == service.timeout && Objects.equals( name, service.name ) && Objects.equals( category, service.category ) && Objects.equals( jndiName, service.jndiName ) && transactionType == service.transactionType && Objects.equals( connection, service.connection );
+        return hops == service.hops && registered == service.registered && timeout == service.timeout && Objects.equals( name, service.name ) && order == service.order && Objects.equals( category, service.category ) && Objects.equals( jndiName, service.jndiName ) && transactionType == service.transactionType && Objects.equals( connection, service.connection );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( name, category, hops, registered, jndiName, transactionType, timeout, connection );
+        return Objects.hash( name, order, category, hops, registered, jndiName, transactionType, timeout, connection );
     }
 
     @Override
@@ -100,6 +125,7 @@ public class Service
     {
         return "Service{" +
                 "name='" + name + '\'' +
+                ", order=" + order +
                 ", category='" + category + '\'' +
                 ", hops=" + hops +
                 ", registered=" + registered +
@@ -113,6 +139,7 @@ public class Service
     public static class Builder
     {
         private String name;
+        private Order order;
         private String category;
         private long hops = 0; // 0 == inbound service
         private boolean registred = false;
@@ -124,6 +151,12 @@ public class Service
         public Builder name( String name )
         {
             this.name = name;
+            return this;
+        }
+
+        public Builder order( Order order )
+        {
+            this.order = order;
             return this;
         }
 
@@ -167,24 +200,6 @@ public class Service
         {
             this.connection = connection;
             return this;
-        }
-
-        public Builder newBuilder( Service src )
-        {
-            return new Builder()
-                    .name( src.getName() )
-                    .category( src.getCategory() )
-                    .hops( src.getHops() )
-                    .registred( src.isRegistered() )
-                    .jndiName( src.getJndiName() );
-        }
-
-        public Builder newBuilder( ServiceDetails src )
-        {
-            return new Builder()
-                    .name( src.getName() )
-                    .category( src.getCategory() )
-                    .hops( src.getHops() );
         }
 
         public Service build()

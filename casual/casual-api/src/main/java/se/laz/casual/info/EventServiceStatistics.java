@@ -4,13 +4,13 @@ import java.util.Objects;
 
 public class EventServiceStatistics
 {
-    String name;
-    char order;
-    long count;
-    long total;
-    long min;
-    long max;
-    long last;
+    private final String name;
+    private final char order;
+    private final long count;
+    private final long total;
+    private final long min;
+    private final long max;
+    private final long last;
 
     public EventServiceStatistics( Builder builder )
     {
@@ -58,37 +58,18 @@ public class EventServiceStatistics
         return last;
     }
 
-    public void increment()
+    public static Builder newBuilder( EventServiceStatistics eventServiceStatistics )
     {
-        this.count++;
+        return new Builder()
+                .name( eventServiceStatistics.name )
+                .order( eventServiceStatistics.order )
+                .count( eventServiceStatistics.count )
+                .total( eventServiceStatistics.total )
+                .min( eventServiceStatistics.min )
+                .max( eventServiceStatistics.max )
+                .last( eventServiceStatistics.last );
     }
 
-    public void setMin( long value )
-    {
-        if( this.min == 0 || value < this.min )
-        {
-            this.min = value;
-        }
-    }
-
-    public void setMax( long value )
-    {
-        if( this.max == 0 || value > this.max )
-        {
-            this.max = value;
-        }
-    }
-
-    public void setLast( long value )
-    {
-        this.last = value;
-    }
-
-
-    public void increaseTotal( long value )
-    {
-        this.total += value;
-    }
 
     @Override
     public boolean equals( Object o )
@@ -141,6 +122,52 @@ public class EventServiceStatistics
         {
             this.order = order;
             return this;
+        }
+
+        public EventServiceStatistics.Builder count( long count )
+        {
+            this.count = count;
+            return this;
+        }
+
+        public EventServiceStatistics.Builder total( long total )
+        {
+            this.total = total;
+            return this;
+        }
+
+        public EventServiceStatistics.Builder min( long min )
+        {
+            if( this.min == 0 || this.min > min )
+            {
+                this.min = min;
+            }
+            return this;
+        }
+
+        public EventServiceStatistics.Builder max( long max )
+        {
+            if( this.max == 0 || this.max < max )
+            {
+                this.max = max;
+            }
+            return this;
+        }
+
+        public EventServiceStatistics.Builder last( long last )
+        {
+            this.last = last;
+            return this;
+        }
+
+        public void increment()
+        {
+            this.count++;
+        }
+
+        public void increaseTotal( long value )
+        {
+            this.total += value;
         }
 
         public EventServiceStatistics build()

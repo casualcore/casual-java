@@ -7,6 +7,7 @@
 package se.laz.casual.jca.inbound.handler.service.casual;
 
 import se.laz.casual.info.CasualInfo;
+import se.laz.casual.info.Order;
 import se.laz.casual.info.Service;
 
 import java.util.List;
@@ -39,9 +40,9 @@ public final class CasualServiceRegistry
     public void register( CasualServiceMetaData metaData )
     {
         serviceMetaData.put( metaData.getServiceName(), metaData );
-        CasualInfo.addInboundService(
-                new Service.Builder().name(metaData.getServiceName())
-                        .category(metaData.getServiceCategory()).build()
+        CasualInfo.getInstance().addService(
+                new Service.Builder().name(metaData.getServiceName()).order( Order.SEQUENTIAL )
+                        .category(metaData.getServiceCategory()).jndiName( metaData.getJndiName().orElse( "" ) ).build()
         );
     }
 

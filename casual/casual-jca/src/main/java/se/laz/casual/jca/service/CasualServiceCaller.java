@@ -211,11 +211,11 @@ public class CasualServiceCaller implements CasualServiceApi
                                 .withTimeout(service.getTimeout())
                                 .withHops(service.getHops()).build()));
 
-        CasualInfo.addDiscovery(serviceDetailsList, new Connection.Builder()
+        CasualInfo.getInstance().addDiscovery(serviceDetailsList, new Connection.Builder()
                 .domainId( connection.getNetworkConnection().getDomainId() )
                 .protocolVersion( connection.getNetworkConnection().getProtocolVersion() )
-                .hostName( connection.getMcf().getHostName() )
-                .portNumber( connection.getMcf().getPortNumber() )
+                .hostName( connection.getManagedConnectionFactory().getHostName() )
+                .portNumber( connection.getManagedConnectionFactory().getPortNumber() )
                 .build() );
         return serviceDetailsList;
     }

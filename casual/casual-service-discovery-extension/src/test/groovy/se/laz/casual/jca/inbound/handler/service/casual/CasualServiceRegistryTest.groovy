@@ -9,6 +9,9 @@ package se.laz.casual.jca.inbound.handler.service.casual
 import se.laz.casual.api.service.CasualService
 import se.laz.casual.api.service.CasualServiceJndiName
 import se.laz.casual.info.CasualInfo
+import se.laz.casual.info.CasualInfoStorage
+import se.laz.casual.info.Order
+import se.laz.casual.info.ServiceDescriptor
 import spock.lang.Specification
 
 import java.lang.reflect.Method
@@ -28,7 +31,7 @@ class CasualServiceRegistryTest extends Specification
         CasualServiceRegistry.getInstance().register(metadata);
 
         then:
-        CasualInfo.getInboundService(metadata.serviceName).isPresent();
+        CasualInfoStorage.getInstance().getService( new ServiceDescriptor( metadata.serviceName, Order.SEQUENTIAL ) ).isPresent();
     }
 
     @CasualServiceJndiName("se.laz.casual.test.Service")

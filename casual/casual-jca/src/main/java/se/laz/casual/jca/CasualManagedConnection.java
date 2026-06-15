@@ -108,7 +108,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
                                          mcf.getNetworkConnectionPoolSize());
     }
 
-    public CasualManagedConnectionFactory getMcf()
+    public CasualManagedConnectionFactory getManagedConnectionFactory()
     {
         return mcf;
     }

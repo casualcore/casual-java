@@ -1,16 +1,10 @@
 package se.laz.casual.info;
 
-import se.laz.casual.api.discovery.DiscoveryReturn;
-import se.laz.casual.api.queue.QueueDetails;
 import se.laz.casual.api.service.ServiceDetails;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -19,123 +13,61 @@ import java.util.logging.Logger;
  */
 public final class CasualInfo
 {
-    private static Logger LOG = Logger.getLogger( CasualInfo.class.getName() );
-
+    private static final Logger LOG = Logger.getLogger( CasualInfo.class.getName() );
     private static final CasualInfo instance = new CasualInfo();
-    private final Map<String, Service> inboundServices;
-    private final Map<String, List<Service>> outboundServices;
-    private final Map<String, EventServiceStatistics> inboundStatistics;
-    private final Map<String, EventServiceStatistics> outboundStatistics;
 
     private CasualInfo()
     {
-        this.inboundServices = new ConcurrentHashMap<>();
-        this.outboundServices = new ConcurrentHashMap<>();
-        this.inboundStatistics = new ConcurrentHashMap<>();
-        this.outboundStatistics = new ConcurrentHashMap<>();
+        // no-op
     }
 
-    public static void addInboundService( Service service )
+    public static CasualInfo getInstance()
+    {
+        return instance;
+    }
+
+    public void addService( Service service )
     {
         Objects.requireNonNull( service, "service must not be null" );
-        instance.inboundServices.put( service.getName(), service );
+        CasualInfoStorage.getInstance().putService( service );
     }
 
-    public static List<Service> getInboundServices()
+    public void addDiscovery( List<ServiceDetails> serviceDetailsList, Connection connection )
     {
-        return instance.inboundServices.values().stream().toList();
+        serviceDetailsList.forEach( serviceDetails -> addDiscoveredService( serviceDetails, connection ) );
     }
 
-    public static Optional<Service> getInboundService( String serviceName )
+    public void storeEvent( String serviceName, char order, long start, long end )
     {
-        Objects.requireNonNull( serviceName, "name must not be null" );
-        return Optional.ofNullable( instance.inboundServices.get( serviceName ) );
-    }
-
-    public static Optional<EventServiceStatistics> getInboundStatistic( String serviceName )
-    {
-        return Optional.ofNullable( instance.inboundStatistics.get( serviceName ) );
-    }
-
-    public static List<Service> getOutboundServices()
-    {
-        List<Service> outboundServices = new ArrayList<>();
-        instance.outboundServices.values().forEach( outboundServices::addAll );
-        return outboundServices;
-    }
-
-    public static List<Service> getOutboundService( String serviceName )
-    {
-        Objects.requireNonNull( serviceName, "name must not be null" );
-        return instance.outboundServices.getOrDefault( serviceName, Collections.emptyList() );
-    }
-
-    public static Optional<EventServiceStatistics> getOutboundStatistic( String serviceName )
-    {
-        return Optional.ofNullable( instance.outboundStatistics.get( serviceName ) );
-    }
-
-    public static Map<String, EventServiceStatistics> getInboundStatistics()
-    {
-        return instance.inboundStatistics;
-    }
-
-    public static Map<String, EventServiceStatistics> getOutboundStatistics()
-    {
-        return instance.outboundStatistics;
-    }
-
-    public static void addDiscovery( DiscoveryReturn discoveryReturn, Connection connection )
-    {
-        discoveryReturn.getQueueDetails().forEach( queueDetails -> addOutboundQueue( queueDetails, connection ) );
-        discoveryReturn.getServiceDetails().forEach( serviceDetails -> addOutboundService( serviceDetails,
-                connection ) );
-    }
-
-    public static void addDiscovery( List<ServiceDetails> serviceDetailsList, Connection connection )
-    {
-        serviceDetailsList.forEach( serviceDetails -> addOutboundService( serviceDetails, connection ) );
-    }
-
-    public static void storeEvent( String serviceName, char order, long start, long end )
-    {
-        EventServiceStatistics eventServiceStatistics = instance.inboundStatistics.getOrDefault( serviceName,
-                new EventServiceStatistics.Builder().name( serviceName )
-                        .order( order ).build() );
-        eventServiceStatistics.increment();
-        long executionTime = end - start;
-        eventServiceStatistics.setMin( executionTime );
-        eventServiceStatistics.setMax( executionTime );
-        eventServiceStatistics.setLast( end );
-        eventServiceStatistics.increaseTotal( executionTime );
-        if( order == 'S' )
-        {
-            instance.inboundStatistics.put( serviceName, eventServiceStatistics );
-        }
-        else
-        {
-            instance.outboundStatistics.put( serviceName, eventServiceStatistics );
-        }
+        EventServiceStatistics eventServiceStatistics = toEvent( serviceName, order, start, end );
+        CasualInfoStorage.getInstance().putEvent( new ServiceDescriptor( eventServiceStatistics.getName(),
+                Order.unmarshall( order ) ), eventServiceStatistics );
         LOG.finest( () -> "Stored statistics: '%s'.".formatted( eventServiceStatistics ) );
     }
 
-    private static void addOutboundService( ServiceDetails serviceDetails, Connection connection )
+    private void addDiscoveredService( ServiceDetails serviceDetails, Connection connection )
     {
-        Service service = new Service.Builder().newBuilder( serviceDetails )
-                .connection( connection ).build();
-        String domainId = connection.getDomainId().getId().toString();
-        List<Service> allDiscoveries = instance.outboundServices.getOrDefault( domainId,
-                Collections.synchronizedList( new ArrayList<>() ) );
-        Optional<Service> exists = allDiscoveries.stream().findFirst().filter( s -> s.equals( service ) );
-        if( exists.isEmpty() )
-        {
-            allDiscoveries.add( service );
-            instance.outboundServices.put( domainId, allDiscoveries );
-        }
+        ServiceDescriptor serviceDescriptor = new ServiceDescriptor( serviceDetails.getName(), Order.CONCURRENT );
+        Optional<Service> service = CasualInfoStorage.getInstance().getService( serviceDescriptor );
+        Service.Builder builder = service.isPresent() ? Service.newBuilder( service.get() ) :
+                Service.newBuilder( serviceDetails, Order.CONCURRENT );
+        builder.connection( connection );
+        CasualInfoStorage.getInstance().putService( builder.build() );
     }
 
-    private static void addOutboundQueue( QueueDetails queueDetails, Connection connection )
+    private EventServiceStatistics toEvent( String serviceName, char order, long start, long end )
     {
-        //Not implemented!
+        EventServiceStatistics eventServiceStatistics =
+                CasualInfoStorage.getInstance().getServiceStatistic( new ServiceDescriptor( serviceName,
+                                Order.unmarshall( order ) ) )
+                        .orElseGet( () -> new EventServiceStatistics.Builder().name( serviceName ).order( order ).build() );
+        EventServiceStatistics.Builder builder = EventServiceStatistics.newBuilder( eventServiceStatistics );
+        long executionTime = end - start;
+        builder.increment();
+        builder.max( executionTime );
+        builder.min( executionTime );
+        builder.last( start );
+        builder.increaseTotal( executionTime );
+        return builder.build();
     }
 }
