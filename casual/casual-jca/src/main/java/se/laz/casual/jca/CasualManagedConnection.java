@@ -274,7 +274,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
      */
     public boolean isDomainDisconnecting()
     {
-        return networkConnection != null && networkConnection.isDisconnecting();
+        return networkConnection != null && networkConnection.isDomainDisconnecting();
     }
 
     public WorkManager getWorkManager()

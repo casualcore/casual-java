@@ -147,7 +147,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     }
 
     @Override
-    public boolean isDisconnecting()
+    public boolean isDomainDisconnecting()
     {
         return protocolSupportsDomainDisconnect() && domainDisconnectHandler.hasDomainBeenDisconnected();
     }

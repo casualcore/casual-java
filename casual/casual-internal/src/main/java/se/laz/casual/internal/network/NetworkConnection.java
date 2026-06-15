@@ -40,10 +40,10 @@ public interface NetworkConnection
     ProtocolVersion getProtocolVersion();
 
     /**
-     * The connection is in the process of disconnecting
+     * The domain is in the process of disconnecting
      * IE the server side has sent a domain disconnect message to the client
      *
      * @return true if the connection is disconnecting, false if not
      */
-    boolean isDisconnecting();
+    boolean isDomainDisconnecting();
 }

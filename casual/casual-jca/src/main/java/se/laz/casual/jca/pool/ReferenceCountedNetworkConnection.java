@@ -42,9 +42,9 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
     }
 
     @Override
-    public  boolean isDisconnecting()
+    public  boolean isDomainDisconnecting()
     {
-        return networkConnection.isDisconnecting();
+        return networkConnection.isDomainDisconnecting();
     }
 
     public int increment()
