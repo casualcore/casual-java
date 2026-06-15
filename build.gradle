@@ -43,8 +43,9 @@ allprojects{
           content {
               includeGroup("se.laz.casual")
           }
-        }
+      }
       mavenCentral()
+
   } 
 }
 
