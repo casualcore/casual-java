@@ -17,11 +17,11 @@ import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.xa.XID
 import se.laz.casual.internal.network.NetworkConnection
+import se.laz.casual.jca.Address
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceAdapter
 import se.laz.casual.jca.CasualResourceManager
-import se.laz.casual.jca.DomainId
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.inbound.ProtocolVersionValueHolder
@@ -40,7 +40,7 @@ class ConversationConnectCallerTest extends Specification
    @Shared NetworkConnection networkConnection
    @Shared UUID executionId
    @Shared UUID corrId
-   @Shared DomainId domainOne = DomainId.of(UUID.randomUUID())
+   @Shared Address domainOne = Address.of('fnord', 1234)
    @Shared String serviceName
    @Shared JsonBuffer message
    @Shared CasualNWMessageImpl<ConnectRequest> expectedConnectRequest
@@ -59,9 +59,10 @@ class ConversationConnectCallerTest extends Specification
       workManager = Mock(WorkManager)
       ra = new CasualResourceAdapter()
       ra.workManager = workManager
-      mcf = Mock(CasualManagedConnectionFactory)
+      mcf = Mock(CasualManagedConnectionFactory){
+         getAddress() >> domainOne
+      }
       networkConnection = Mock(NetworkConnection){
-         getDomainId() >> domainOne
          getProtocolVersion() >> {protocolVersionValueHolder.get()}
       }
 

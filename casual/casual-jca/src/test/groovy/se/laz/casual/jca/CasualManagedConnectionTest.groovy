@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -28,7 +28,9 @@ class CasualManagedConnectionTest extends Specification
 
     def setup()
     {
-        managedConnectionFactory = Mock(CasualManagedConnectionFactory)
+        managedConnectionFactory = Mock(CasualManagedConnectionFactory){
+           getAddress() >> Mock(Address)
+        }
         instance = new CasualManagedConnection( managedConnectionFactory )
         domainId = DomainId.of(UUID.randomUUID())
         NetworkConnection networkConnection = Mock( ){

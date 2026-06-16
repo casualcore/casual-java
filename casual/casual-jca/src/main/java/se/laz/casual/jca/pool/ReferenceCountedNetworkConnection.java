@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -39,6 +39,12 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
     {
         Objects.requireNonNull(networkConnection, "networkConnection can not be null");
         return new ReferenceCountedNetworkConnection(networkConnection, closeListener);
+    }
+
+    @Override
+    public  boolean isDomainDisconnecting()
+    {
+        return networkConnection.isDomainDisconnecting();
     }
 
     public int increment()

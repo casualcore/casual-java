@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -12,7 +12,9 @@ import se.laz.casual.spi.Priority;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -22,9 +24,20 @@ public final class BufferHandlerFactory
 {
     private static final BufferHandler PASSTHROUGH_HANDLER = new PassThroughBufferHandler();
     private static final Map<String,BufferHandler> bufferHandlerCache = new ConcurrentHashMap<>();
+    private static final Set<BufferHandler> registeredHandlers = ConcurrentHashMap.newKeySet();
+
 
     private BufferHandlerFactory()
+    {}
+
+    /**
+     * Register a handler instance programmatically.
+     * Used by the Quarkus extension to make user handlers visible in quarkusDev.
+     */
+    public static void register(BufferHandler handler)
     {
+        Objects.requireNonNull(handler, "handler can not be null");
+        registeredHandlers.add(handler);
     }
 
     /**
@@ -34,7 +47,7 @@ public final class BufferHandlerFactory
      */
     public static List<BufferHandler> getHandlers()
     {
-        List<BufferHandler> handlers = new ArrayList<>();
+        List<BufferHandler> handlers = new ArrayList<>(registeredHandlers);
         for( BufferHandler h: ServiceLoader.load( BufferHandler.class ) )
         {
             handlers.add( h );
