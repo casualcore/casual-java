@@ -44,6 +44,7 @@ public class ServiceCallEventPublisher
         try
         {
             handler.put( event );
+            // Add service statstics to local storage:
             CasualInfo.getInstance().storeEvent( event.getService(), event.getOrder(), event.getStart(),
                     event.getEnd() );
         }

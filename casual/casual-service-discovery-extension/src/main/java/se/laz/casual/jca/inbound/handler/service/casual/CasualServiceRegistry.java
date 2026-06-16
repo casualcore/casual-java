@@ -40,6 +40,7 @@ public final class CasualServiceRegistry
     public void register( CasualServiceMetaData metaData )
     {
         serviceMetaData.put( metaData.getServiceName(), metaData );
+        // Add inbound service to local storage:
         CasualInfo.getInstance().addService(
                 new Service.Builder().name(metaData.getServiceName()).order( Order.SEQUENTIAL )
                         .category(metaData.getServiceCategory()).jndiName( metaData.getJndiName().orElse( "" ) ).build()

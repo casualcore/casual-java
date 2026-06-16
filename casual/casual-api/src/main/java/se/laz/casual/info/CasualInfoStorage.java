@@ -14,6 +14,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Static instance that contains information about inbound Casual Jca, services and queues.
+ * Used primarily by casual-java cli.
+ */
 public class CasualInfoStorage
 {
     private static final CasualInfoStorage instance = new CasualInfoStorage();
@@ -31,6 +35,12 @@ public class CasualInfoStorage
         return instance;
     }
 
+    /**
+     * Get service from storage if it exists
+     *
+     * @param serviceDescriptor - composite key of service name and service order
+     * @return Service
+     */
     public Optional<Service> getService( ServiceDescriptor serviceDescriptor )
     {
         Objects.requireNonNull( serviceDescriptor, "serviceDescriptor must not be null" );
@@ -39,6 +49,11 @@ public class CasualInfoStorage
         return !serviceList.isEmpty() ? Optional.of( serviceList.get( 0 ) ) : Optional.empty();
     }
 
+    /**
+     * Get all services
+     *
+     * @return List of services
+     */
     public List<Service> getServices()
     {
         List<Service> servicesList = new ArrayList<>();
@@ -46,11 +61,22 @@ public class CasualInfoStorage
         return Collections.unmodifiableList( servicesList );
     }
 
+    /**
+     * Get service statistics
+     *
+     * @param serviceDescriptor - composite key of service name and service order
+     * @return Optional EventServiceStatistics
+     */
     public Optional<EventServiceStatistics> getServiceStatistic( ServiceDescriptor serviceDescriptor )
     {
         return Optional.ofNullable( instance.serviceStatistics.get( serviceDescriptor ) );
     }
 
+    /**
+     * Add/update service in storage
+     *
+     * @param service - service to be added/updated
+     */
     protected void putService( Service service )
     {
         Objects.requireNonNull( service, "service must not be null" );
@@ -58,6 +84,12 @@ public class CasualInfoStorage
                 Collections.synchronizedList( List.of( service ) ) );
     }
 
+    /**
+     * Add service statistics
+     *
+     * @param serviceDescriptor - composite key of service name and service order
+     * @param eventServiceStatistics - event statistics for service
+     */
     protected void putEvent( ServiceDescriptor serviceDescriptor, EventServiceStatistics eventServiceStatistics )
     {
         Objects.requireNonNull( serviceDescriptor, "serviceDescriptor must not be null" );

@@ -95,6 +95,7 @@ public class JndiSearchTimerEjbSingleton
                 // Set information about a service when it has been registered:
                 Optional<Service> inboundService = CasualInfoStorage.getInstance().getService(
                         new ServiceDescriptor( found.getServiceName(), Order.SEQUENTIAL ) );
+                // Update service in local storage:
                 inboundService.ifPresent( service -> CasualInfo.getInstance().addService(
                         Service.newBuilder( service )
                                 .registred( true )

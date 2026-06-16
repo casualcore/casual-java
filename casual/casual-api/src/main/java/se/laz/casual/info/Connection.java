@@ -5,6 +5,9 @@ import se.laz.casual.network.ProtocolVersion;
 
 import java.util.Objects;
 
+/**
+ * Connection details for outbound services
+ */
 public class Connection
 {
     private DomainId domainId;

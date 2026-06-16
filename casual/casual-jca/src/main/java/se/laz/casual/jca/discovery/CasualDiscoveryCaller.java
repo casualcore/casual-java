@@ -66,6 +66,7 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
         LOG.finest(() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + "reply -> service names: " + serviceNames + " queue names: " + queueNames);
         DiscoveryReturn discoveryReturn = toDiscoveryReturn( replyMsg.getMessage(), connection.getNetworkConnection().getProtocolVersion() );
+        // Add discovered service to local storage:
         CasualInfo.getInstance().addDiscovery(discoveryReturn.getServiceDetails(), new Connection.Builder()
                         .domainId( connection.getNetworkConnection().getDomainId() )
                         .protocolVersion( connection.getNetworkConnection().getProtocolVersion() )

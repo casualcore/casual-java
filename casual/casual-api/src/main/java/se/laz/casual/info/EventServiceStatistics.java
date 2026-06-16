@@ -2,6 +2,9 @@ package se.laz.casual.info;
 
 import java.util.Objects;
 
+/**
+ * Statistics for a service
+ */
 public class EventServiceStatistics
 {
     private final String name;

@@ -5,6 +5,9 @@ import se.laz.casual.network.messages.domain.TransactionType;
 
 import java.util.Objects;
 
+/**
+ * Service object
+ */
 public class Service
 {
     private final String name;

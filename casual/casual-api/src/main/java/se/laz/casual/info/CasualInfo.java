@@ -8,7 +8,8 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
- * Static instance that contains information about inbound Casual Services.
+ * Static instance that stores information about Casual jca, services and queues
+ * in {@link CasualInfoStorage}.
  * Used primarily by casual-java cli.
  */
 public final class CasualInfo
@@ -26,17 +27,37 @@ public final class CasualInfo
         return instance;
     }
 
+    /**
+     * Add an inbound service to storage
+     *
+     * @param service - a service
+     */
     public void addService( Service service )
     {
         Objects.requireNonNull( service, "service must not be null" );
         CasualInfoStorage.getInstance().putService( service );
     }
 
+    /**
+     * Add an outbound service to storage
+     *
+     * @param serviceDetailsList - details about the service
+     * @param connection         - service connection details
+     */
     public void addDiscovery( List<ServiceDetails> serviceDetailsList, Connection connection )
     {
         serviceDetailsList.forEach( serviceDetails -> addDiscoveredService( serviceDetails, connection ) );
     }
 
+    /**
+     * Store and/or update statistics for a service.
+     * Should only be called when an event is created from a service call.
+     *
+     * @param serviceName - service name
+     * @param order       - order of service
+     * @param start       - start time
+     * @param end         - end time
+     */
     public void storeEvent( String serviceName, char order, long start, long end )
     {
         EventServiceStatistics eventServiceStatistics = toEvent( serviceName, order, start, end );
@@ -45,6 +66,12 @@ public final class CasualInfo
         LOG.finest( () -> "Stored statistics: '%s'.".formatted( eventServiceStatistics ) );
     }
 
+    /**
+     * Adds an outbound service to storage
+     *
+     * @param serviceDetails - service details
+     * @param connection     - service connection details
+     */
     private void addDiscoveredService( ServiceDetails serviceDetails, Connection connection )
     {
         ServiceDescriptor serviceDescriptor = new ServiceDescriptor( serviceDetails.getName(), Order.CONCURRENT );
@@ -55,6 +82,15 @@ public final class CasualInfo
         CasualInfoStorage.getInstance().putService( builder.build() );
     }
 
+    /**
+     * Creates or updates statistics for a specific service (inbound or outbound).
+     *
+     * @param serviceName - service
+     * @param order       - order of service e.g. inbound or outbound
+     * @param start       - start time
+     * @param end         -  end time
+     * @return EventServiceStatistics
+     */
     private EventServiceStatistics toEvent( String serviceName, char order, long start, long end )
     {
         EventServiceStatistics eventServiceStatistics =
