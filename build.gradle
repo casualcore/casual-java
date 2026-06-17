@@ -15,7 +15,6 @@ buildscript {
 plugins {
   id "org.sonarqube" version "7.2.3.7755"
   id "com.github.spotbugs" version "6.5.4"
-  id "pmd"
 }
 
 sonar {
