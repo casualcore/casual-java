@@ -36,7 +36,7 @@ import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodM
  * https://stackoverflow.com/questions/48867612/determine-jndi-portable-name-within-an-javax-enterprise-inject-spi-extension/50195996#50195996
  */
 // jakarta singletons need public constructors.
-@SuppressFBWarnings("SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTO")
+@SuppressFBWarnings("SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR")
 @Singleton
 public class JndiSearchTimerEjbSingleton
 {
