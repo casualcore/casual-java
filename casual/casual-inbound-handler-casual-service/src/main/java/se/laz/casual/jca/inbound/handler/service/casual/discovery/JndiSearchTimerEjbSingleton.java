@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca.inbound.handler.service.casual.discovery;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Timer;
@@ -34,6 +35,8 @@ import static se.laz.casual.jca.inbound.handler.service.casual.discovery.MethodM
  *
  * https://stackoverflow.com/questions/48867612/determine-jndi-portable-name-within-an-javax-enterprise-inject-spi-extension/50195996#50195996
  */
+// jakarta singletons need public constructors.
+@SuppressFBWarnings("SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTO")
 @Singleton
 public class JndiSearchTimerEjbSingleton
 {

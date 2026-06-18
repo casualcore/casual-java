@@ -21,7 +21,7 @@ import java.util.Objects;
 public class CStringBuffer implements CasualBuffer
 {
     private static final String NULL_TERMINATOR = "\0";
-    private static final byte NULL_TERMINATOR_BYTE = NULL_TERMINATOR.getBytes()[0];
+    private static final byte NULL_TERMINATOR_BYTE = 0;
 
     private static final long serialVersionUID = 1L;
     private final String charset;

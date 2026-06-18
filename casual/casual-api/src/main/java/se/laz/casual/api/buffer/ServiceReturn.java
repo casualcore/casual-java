@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -15,6 +15,8 @@ import se.laz.casual.api.flags.ServiceReturnState;
  * is returned to you upon a service call via the {@link se.laz.casual.api.CasualServiceApi}
  * @author jone
  */
+// java:S6206 - refactor to record, not yet.
+@SuppressWarnings( "java:S6206" )
 public final class ServiceReturn<X extends CasualBuffer>
 {
     private final X replyBuffer;

@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 /**
@@ -55,7 +56,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     private NetworkConnection networkConnection;
     private final Object networkConnectionLock = new Object();
     private CasualXAResource xaResource;
-    private int timeout;
+    private final AtomicInteger timeout = new AtomicInteger();
 
     /**
      * Create a new managed connection with the provided factory and request information.
@@ -310,12 +311,12 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
 
     public void setTransactionTimeout(int timeout)
     {
-        this.timeout = timeout;
+        this.timeout.set( timeout );
     }
 
     public int getTransactionTimeout()
     {
-        return timeout;
+        return timeout.get();
     }
 
     private NetworkConnection createOneToOneManagedConnection()

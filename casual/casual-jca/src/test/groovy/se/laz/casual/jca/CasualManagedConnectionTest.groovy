@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -291,5 +291,24 @@ class CasualManagedConnectionTest extends Specification
     {
         expect:
         instance.toString().contains( "CasualManagedConnection" )
+    }
+
+    def "Transaction Timeout"()
+    {
+        given:
+        int timeout = 100
+
+        when:
+        int actual = instance.getTransactionTimeout(  )
+
+        then:
+        actual == 0
+
+        when:
+        instance.setTransactionTimeout( timeout )
+        actual = instance.getTransactionTimeout(  )
+
+        then:
+        actual == timeout
     }
 }

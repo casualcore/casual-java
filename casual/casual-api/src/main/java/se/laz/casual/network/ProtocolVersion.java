@@ -5,6 +5,7 @@
  */
 package se.laz.casual.network;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -89,12 +90,12 @@ public enum ProtocolVersion
 
     public static List<Long> supportedVersionNumbers()
     {
-        return supportedVersions;
+        return new ArrayList<>( supportedVersions );
     }
 
     public static List<String> supportedVersions()
     {
-        return supportedVersionsString;
+        return new ArrayList<>( supportedVersionsString );
     }
 
     public boolean supportsDomainTopologyChange()

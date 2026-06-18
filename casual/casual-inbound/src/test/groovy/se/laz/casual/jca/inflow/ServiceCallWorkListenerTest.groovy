@@ -8,7 +8,6 @@ package se.laz.casual.jca.inflow
 
 import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
-import jakarta.resource.spi.work.Work
 import jakarta.resource.spi.work.WorkCompletedException
 import jakarta.resource.spi.work.WorkEvent
 import jakarta.resource.spi.work.WorkException
@@ -149,7 +148,7 @@ class ServiceCallWorkListenerTest extends Specification
     {
         setup:
         CasualServiceCallWork work = new CasualServiceCallWork(UUID.randomUUID(), request, true, ProtocolVersion.VERSION_1_2, SpanId.of())
-        work.workFailedUnexpectedly = failedUnexpectedly
+        work.workFailedUnexpectedly.set( failedUnexpectedly )
         WorkEvent event = new WorkEvent(this, WorkEvent.WORK_COMPLETED, work, null)
         instance = new ServiceCallWorkListener(channel, request, true, SpanId.of(), ProtocolVersion.VERSION_1_2)
         instance.setEventPublisher(serviceCallEventPublisher)

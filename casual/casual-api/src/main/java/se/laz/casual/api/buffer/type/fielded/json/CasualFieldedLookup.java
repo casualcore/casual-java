@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -13,11 +13,12 @@ import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
@@ -92,11 +93,11 @@ public final class CasualFieldedLookup
 
     private static CasualFielded slurpJSON(final URL resource)
     {
-        try
+        try( FileReader fileReader =new FileReader(new File(resource.toURI()), StandardCharsets.UTF_8) )
         {
-            return JsonProviderFactory.getJsonProvider().fromJson(new FileReader(new File(resource.toURI())), CasualFielded.class);
+            return JsonProviderFactory.getJsonProvider().fromJson(fileReader, CasualFielded.class);
         }
-        catch (FileNotFoundException | URISyntaxException e)
+        catch ( URISyntaxException | IOException e)
         {
             throw new CasualFieldedLookupException("failed loading fielded json", e);
         }

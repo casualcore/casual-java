@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.jca;
 
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.transaction.xa.Xid;
 import java.util.Collections;
@@ -14,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-// java:S6548 - yes it is intentional
+// java:S6548 - singleton is intentional
 @SuppressWarnings("java:S6548")
 public final class CasualResourceManager
 {
@@ -25,6 +27,8 @@ public final class CasualResourceManager
     private CasualResourceManager()
     {}
 
+    // Exposed internal representation is expected.
+    @SuppressFBWarnings("MS_EXPOSE_REP")
     public static CasualResourceManager getInstance()
     {
         return INSTANCE;
