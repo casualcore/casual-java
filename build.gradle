@@ -59,7 +59,7 @@ subprojects{
     finalizedBy jacocoTestReport
     useJUnitPlatform()
       testLogging {
-        //events "passed", "skipped", "failed"
+        events "passed", "skipped", "failed"
       }
     }
 

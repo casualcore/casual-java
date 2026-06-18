@@ -11,7 +11,7 @@ spotbugs {
     showStackTraces = false
     showProgress = false
     reportsDir = file( "build/reports/" )
-    excludeFilter = file( "$rootProject.projectDir/spotbugs.xml" )
+    excludeFilter = file( "$rootProject.projectDir/spotbugs-excludes.xml" )
 }
 
 
