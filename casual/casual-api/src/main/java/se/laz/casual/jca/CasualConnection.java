@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -35,5 +35,14 @@ public interface CasualConnection extends CasualServiceApi, CasualQueueApi, Casu
      * @return DomainId - the domain id of the connected domain
      */
     DomainId getDomainId();
+
+    /**
+     * Check if the connection is disconnecting
+     * This means that the domain that we are connected to is going down
+     * and is currently draining in flight transactions but the actual connection
+     * is not yet gone
+     * @return true if disconnecting, false if not
+     */
+    boolean isDomainDisconnecting();
 
 }

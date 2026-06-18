@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -46,6 +46,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -90,6 +91,11 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         log.info( ConfigurationService.log() );
         initialiseFielded();
         startEventServer();
+    }
+
+    public Optional<CasualInboundTransactionRegistry> getInboundTransactionRegistry()
+    {
+        return Optional.ofNullable(inboundTransactionRegistry);
     }
 
     /**
@@ -154,6 +160,8 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         log.finest(() -> "end endpointActivation()");
 
     }
+
+
 
     private void maybeStartReverseInbound(List<ReverseInbound> reverseInbound, MessageEndpointFactory endpointFactory, WorkManager workManager, XATerminator xaTerminator)
     {

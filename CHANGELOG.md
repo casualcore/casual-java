@@ -1,6 +1,29 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.4.7] - 2026-06-16
+
+### feat: changes for quarkus ([#211](https://github.com/casualcore/casual-java/issues/211))
+Added an API to add handlers found via SPI - this is needed for the
+quarkus extension.
+
+The quarkus extension still uses SPI to find any handlers but in dev
+mode it also needs to register them.
+It is only used by the quarkus extension, in a Java application server -
+everything works as before.
+
+Expose the inbound transaction registry via CasualResourceAdapter - used
+by the quarkus extension.
+
+Changes to robustness found during soak testing:
+* expose an API to know if the connection is currently disconnecting -
+used by casual caller to not issue any service/queue calls
+* use the pool address instead of domain id in XAResource start/end -
+there is no need for any network call here and it serves the same
+purpose
+* in the NettyNetworkConnection - when the domain is disconnecting, only
+messages allowed are XA messages.
+
 ## [3.4.6] - 2026-05-21
 
 ### build: allow local publish without signing ([#208](https://github.com/casualcore/casual-java/issues/208))

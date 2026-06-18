@@ -72,6 +72,11 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         xaResource = new CasualXAResource(this, mcf.getResourceId());
     }
 
+    public Address getAddress()
+    {
+        return mcf.getAddress();
+    }
+
     /**
      * Underlying physical network connection managed by this
      * managed connection instance.
@@ -259,6 +264,18 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     private void removeHandle(CasualConnectionImpl handle)
     {
         connectionHandles.remove(handle);
+    }
+
+    /**
+     * Check if the connection is disconnecting
+     * This means that the domain that we are connected to is going down
+     * and is currently draining in flight transactions, but the actual connection
+     * is not yet gone
+     * @return true if disconnecting, false if not
+     */
+    public boolean isDomainDisconnecting()
+    {
+        return networkConnection != null && networkConnection.isDomainDisconnecting();
     }
 
     public WorkManager getWorkManager()

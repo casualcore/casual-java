@@ -28,7 +28,9 @@ class CasualManagedConnectionTest extends Specification
 
     def setup()
     {
-        managedConnectionFactory = Mock(CasualManagedConnectionFactory)
+        managedConnectionFactory = Mock(CasualManagedConnectionFactory){
+           getAddress() >> Mock(Address)
+        }
         instance = new CasualManagedConnection( managedConnectionFactory )
         domainId = DomainId.of(UUID.randomUUID())
         NetworkConnection networkConnection = Mock( ){

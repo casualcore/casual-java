@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2025, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -23,10 +23,10 @@ import se.laz.casual.event.Order
 import se.laz.casual.event.ServiceCallEvent
 import se.laz.casual.event.ServiceCallEventPublisher
 import se.laz.casual.internal.network.NetworkConnection
+import se.laz.casual.jca.Address
 import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceAdapter
-import se.laz.casual.jca.CasualResourceManager
 import se.laz.casual.jca.DomainId
 import se.laz.casual.jca.RuntimeInformation
 import se.laz.casual.network.ProtocolVersion
@@ -54,6 +54,7 @@ class CasualServiceCallerTest extends Specification
     @Shared UUID executionId
     @Shared UUID domainId
     @Shared DomainId domainOne = DomainId.of(UUID.randomUUID())
+    @Shared Address addressOne = Address.of("foo","6767")
     @Shared String domainName
     @Shared String serviceName
     @Shared JsonBuffer message
@@ -75,17 +76,15 @@ class CasualServiceCallerTest extends Specification
         ra = new CasualResourceAdapter()
         workManager = Mock(WorkManager)
         ra.workManager = workManager
-        mcf = Mock(CasualManagedConnectionFactory)
+        mcf = Mock(CasualManagedConnectionFactory){
+           getAddress() >> addressOne
+        }
         networkConnection = Mock(NetworkConnection){
            getDomainId() >> domainOne
            getProtocolVersion() >> ProtocolVersion.VERSION_1_2
         }
         connection = new CasualManagedConnection( mcf )
         connection.networkConnection =  networkConnection
-
-        CasualResourceManager.getInstance().remove(domainOne, XID.NULL_XID)
-        connection.getXAResource().start( XID.NULL_XID, 0 )
-        CasualResourceManager.getInstance().remove(domainOne, XID.NULL_XID)
 
         instance = CasualServiceCaller.of( connection )
         serviceCallEventPublisher = Mock(ServiceCallEventPublisher)
