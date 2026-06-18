@@ -8,14 +8,10 @@ apply plugin: 'com.github.spotbugs'
 
 spotbugs {
     ignoreFailures = true
-    showStackTraces = true
-    showProgress = true
-    //reportLevel = Confidence.DEFAULT
-    //visitors = listOf("FindSqlInjection", "SwitchFallthrough")
-    //omitVisitors = listOf("FindNonShortCircuit")
-    //chooseVisitors = listOf("-FindNonShortCircuit", "+TestASM")
+    showStackTraces = false
+    showProgress = false
     reportsDir = file( "build/reports/" )
-    excludeFilter = file( "$rootProject.projectDir/findbugs.xml" )
+    excludeFilter = file( "$rootProject.projectDir/spotbugs.xml" )
 }
 
 

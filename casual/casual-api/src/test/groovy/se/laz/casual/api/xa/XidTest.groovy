@@ -177,13 +177,36 @@ class XidTest extends Specification
         Xid instance3 = XID.of(gtridData2, bqualData2, formatType)
 
         then:
-        instance1 == instance1
-        instance1 == instance2
-        instance1 != instance3
+        instance1.equals( instance1 )
+        instance1.equals( instance2 )
+        !instance1.equals( instance3 )
         instance1.hashCode(  ) == instance1.hashCode(  )
         instance1.hashCode(  ) == instance2.hashCode(  )
         instance1.hashCode(  ) != instance3.hashCode(  )
         !instance1.equals( "String" )
+    }
+
+    def "to String"()
+    {
+        given:
+        Random r = new Random( 42 )
+        byte[] gtridData1 = ( 0..XID.MAX_XID_DATA_SIZE / 2 - 1 ) as byte[]
+        byte[] bqualData1 = ( 0..XID.MAX_XID_DATA_SIZE / 2 - 1 ) as byte[]
+
+        def formatType = 42l
+
+        r.nextBytes( gtridData1 )
+        r.nextBytes( bqualData1 )
+
+        Xid instance = XID.of(gtridData1, bqualData1, formatType)
+
+        when:
+        String actual = instance.toString(  )
+        String actual2 = instance.toString( )
+
+        then:
+        actual.contains( formatType.toString(  ) )
+        actual2 == actual
     }
 
 }
