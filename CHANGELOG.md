@@ -1,6 +1,13 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.4.8] - 2026-06-22
+
+### feat: add static code analysis with spot bugs ([#212](https://github.com/casualcore/casual-java/issues/212))
+Add static code analysis with spot bugs tooling.
+Integrated spot bugs output with sonar reporting.
+Resolved all resulting reported issues.
+
 ## [3.4.7] - 2026-06-16
 
 ### feat: changes for quarkus ([#211](https://github.com/casualcore/casual-java/issues/211))

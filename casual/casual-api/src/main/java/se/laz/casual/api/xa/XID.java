@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -120,8 +120,8 @@ public final class XID implements Xid
     @Override
     public int hashCode()
     {
-        String g = (globalTransactionId == null ) ? null : new String( globalTransactionId );
-        String b = (branchQualifier == null ) ? null : new String( branchQualifier );
+        int g = Arrays.hashCode( globalTransactionId );
+        int b = Arrays.hashCode( branchQualifier );
         return Objects.hash(formatType, gtridLength, bqualLength, g, b );
     }
 

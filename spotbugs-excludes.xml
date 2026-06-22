@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2026, The casual project. All rights reserved.
+  ~
+  ~ This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+  -->
+
+<FindBugsFilter>
+    <!--// Exposing internal representation by returning //-->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <!--// Exposing internal representation by receiving //-->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+</FindBugsFilter>

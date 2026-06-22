@@ -5,6 +5,7 @@
  */
 package se.laz.casual.jca;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.CommException;
 import jakarta.resource.spi.ConnectionManager;
@@ -31,12 +32,13 @@ import java.util.stream.Collectors;
  * @version $Revision: $
  */
 //Non serialisable or transient for ResourceAdapter and PrintWriter - this is as shown in Iron Jacamar so ignoring.
-@SuppressWarnings("squid:S1948")
+@SuppressWarnings({"squid:S1948"})
+@SuppressFBWarnings("SE_BAD_FIELD")
 public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation, ValidatingManagedConnectionFactory
 { 
    private static final long serialVersionUID = 1L;
-   private static Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
-   private  CasualManagedConnectionProducer casualManagedConnectionProducer;
+   private static final Logger log = Logger.getLogger(CasualManagedConnectionFactory.class.getName());
+   private CasualManagedConnectionProducer casualManagedConnectionProducer;
    private ResourceAdapter ra;
    private PrintWriter logwriter;
 

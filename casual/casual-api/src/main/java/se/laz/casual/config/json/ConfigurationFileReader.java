@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,8 +11,9 @@ import se.laz.casual.config.ConfigurationException;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationStore;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,11 +55,11 @@ public class ConfigurationFileReader
 
     private static Configuration readFile( String filename )
     {
-        try
+        try( FileReader fileReader = new FileReader( filename, StandardCharsets.UTF_8 ) )
         {
-            return JsonProviderFactory.getJsonProvider().fromJson( new FileReader( filename ), Configuration.class );
+            return JsonProviderFactory.getJsonProvider().fromJson( fileReader, Configuration.class );
         }
-        catch( FileNotFoundException e )
+        catch( IOException e )
         {
             throw new ConfigurationException( "Could not find configuration file specified.", e );
         }

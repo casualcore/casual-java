@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2026, The casual project. All rights reserved.
+ *
+ * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
+ */
+
+apply plugin: 'com.github.spotbugs'
+
+spotbugs {
+    ignoreFailures = true
+    showStackTraces = false
+    showProgress = false
+    reportsDir = file( "build/reports/" )
+    excludeFilter = file( "$rootProject.projectDir/spotbugs-excludes.xml" )
+}
+
+
+spotbugsMain {
+    reports {
+        xml.required = true
+        html.required = true
+        sarif.required = true
+    }
+}
+
+spotbugsTest {
+    enabled = false
+}
+
+sonar{
+    properties{
+        property "sonar.java.spotbugs.reportPaths","build/reports/main.xml"
+    }
+}
+
+
+
+

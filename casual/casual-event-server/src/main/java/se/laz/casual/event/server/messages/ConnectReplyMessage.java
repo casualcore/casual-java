@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -40,7 +40,7 @@ public class ConnectReplyMessage
             return false;
         }
         ConnectReplyMessage that = (ConnectReplyMessage) o;
-        return message == that.message;
+        return Objects.equals( message, that.message );
     }
 
     @Override

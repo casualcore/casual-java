@@ -26,6 +26,7 @@ import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMes
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,7 +46,7 @@ public final class CasualServiceCallWork implements Work
     private CasualNWMessage<CasualServiceCallReplyMessage> response;
     private ServiceHandler handler = null;
     private final SpanId spanId;
-    private boolean workFailedUnexpectedly = false;
+    private final AtomicBoolean workFailedUnexpectedly = new AtomicBoolean( false );
 
     public CasualServiceCallWork(UUID correlationId, CasualServiceCallRequestMessage message, boolean isTpNoReply, ProtocolVersion protocolVersion, SpanId spanId)
     {
@@ -108,7 +109,7 @@ public final class CasualServiceCallWork implements Work
         }
         catch( Throwable t)
         {
-            workFailedUnexpectedly = true;
+            workFailedUnexpectedly.set( true );
             // This shouldn't happen with a well-behaved service handler. If it does, the handler that threw might need fixing.
             log.log( Level.SEVERE, "An exception was thrown while handing a TPNOREPLY service call", t );
         }
@@ -146,7 +147,7 @@ public final class CasualServiceCallWork implements Work
         }
         catch( Throwable t)
         {
-            workFailedUnexpectedly = true;
+            workFailedUnexpectedly.set( true );
             replyBuilder.setError( ErrorState.TPESYSTEM )
                         .setTransactionState( TransactionState.ROLLBACK_ONLY );
             // This shouldn't happen with a well-behaved service handler. If it does, the handler that threw might need fixing.
@@ -185,6 +186,6 @@ public final class CasualServiceCallWork implements Work
 
     public boolean failedUnexpectedly()
     {
-        return workFailedUnexpectedly;
+        return workFailedUnexpectedly.get();
     }
 }

@@ -15,13 +15,17 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-// yes it is intentional
+// singleton is intentional
 @SuppressWarnings("java:S6548")
 public class NetworkPoolHandler
 {
     private static final Logger log = Logger.getLogger(NetworkPoolHandler.class.getName());
     private static final NetworkPoolHandler instance = new NetworkPoolHandler();
     private final Map<String, NetworkConnectionPool> pools = new ConcurrentHashMap<>();
+
+    private NetworkPoolHandler()
+    {
+    }
 
     public static NetworkPoolHandler getInstance()
     {

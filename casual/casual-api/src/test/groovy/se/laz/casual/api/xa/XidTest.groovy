@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -156,6 +156,57 @@ class XidTest extends Specification
         id.getGlobalTransactionId() == gtridData
         id.getBranchQualifier() == bqualData
         id.getFormatId() == formatType
+    }
+
+    def "Equals and hashCode"()
+    {
+        given:
+        Random r = new Random(42 )
+        byte[] gtridData1 = (0..XID.MAX_XID_DATA_SIZE/2 -1) as byte[]
+        byte[] bqualData1 = (0..XID.MAX_XID_DATA_SIZE/2 -1) as byte[]
+        byte[] gtridData2 = (0..XID.MAX_XID_DATA_SIZE/2 -1) as byte[]
+        byte[] bqualData2 = (0..XID.MAX_XID_DATA_SIZE/2 -1) as byte[]
+        def formatType = 42l
+
+        r.nextBytes( gtridData1 )
+        r.nextBytes( bqualData1 )
+
+        when:
+        Xid instance1 = XID.of(gtridData1, bqualData1, formatType)
+        Xid instance2 = XID.of(gtridData1, bqualData1, formatType)
+        Xid instance3 = XID.of(gtridData2, bqualData2, formatType)
+
+        then:
+        instance1.equals( instance1 )
+        instance1.equals( instance2 )
+        !instance1.equals( instance3 )
+        instance1.hashCode(  ) == instance1.hashCode(  )
+        instance1.hashCode(  ) == instance2.hashCode(  )
+        instance1.hashCode(  ) != instance3.hashCode(  )
+        !instance1.equals( "String" )
+    }
+
+    def "to String"()
+    {
+        given:
+        Random r = new Random( 42 )
+        byte[] gtridData1 = ( 0..XID.MAX_XID_DATA_SIZE / 2 - 1 ) as byte[]
+        byte[] bqualData1 = ( 0..XID.MAX_XID_DATA_SIZE / 2 - 1 ) as byte[]
+
+        def formatType = 42l
+
+        r.nextBytes( gtridData1 )
+        r.nextBytes( bqualData1 )
+
+        Xid instance = XID.of(gtridData1, bqualData1, formatType)
+
+        when:
+        String actual = instance.toString(  )
+        String actual2 = instance.toString( )
+
+        then:
+        actual.contains( formatType.toString(  ) )
+        actual2 == actual
     }
 
 }

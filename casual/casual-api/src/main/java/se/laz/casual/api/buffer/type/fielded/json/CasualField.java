@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 
 package se.laz.casual.api.buffer.type.fielded.json;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import se.laz.casual.api.buffer.type.fielded.FieldType;
 
 import java.util.Objects;
@@ -13,6 +14,8 @@ import java.util.Objects;
 /**
  * A casual field
  */
+// type is written via JSON marshalling.
+@SuppressFBWarnings("UWF_UNWRITTEN_FIELD")
 public final class CasualField
 {
     private final String name;

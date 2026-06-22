@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,6 +11,8 @@ import java.util.List;
 /**
  * Representation of a fielded JSON object
  */
+// java:S6206 - refactor to record, not yet.
+@SuppressWarnings( "java:S6206" )
 public final class CasualFielded
 {
     private final List<CasualFieldGroup> groups;
