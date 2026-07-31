@@ -108,6 +108,11 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
                                          mcf.getNetworkConnectionPoolSize());
     }
 
+    public CasualManagedConnectionFactory getManagedConnectionFactory()
+    {
+        return mcf;
+    }
+
     @Override
     public Object getConnection(Subject subject,
                                 ConnectionRequestInfo cxRequestInfo) throws ResourceException

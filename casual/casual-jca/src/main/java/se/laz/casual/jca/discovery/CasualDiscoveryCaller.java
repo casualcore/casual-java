@@ -13,6 +13,8 @@ import se.laz.casual.api.service.ServiceDetails;
 import se.laz.casual.api.util.PrettyPrinter;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
+import se.laz.casual.info.CasualInfo;
+import se.laz.casual.info.Connection;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
@@ -63,7 +65,15 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
 
         CasualNWMessage<CasualDomainDiscoveryReplyMessage> replyMsg = replyMsgFuture.join();
         LOG.finest(() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + "reply -> service names: " + serviceNames + " queue names: " + queueNames);
-        return toDiscoveryReturn(replyMsg.getMessage(), connection.getNetworkConnection().getProtocolVersion());
+        DiscoveryReturn discoveryReturn = toDiscoveryReturn( replyMsg.getMessage(), connection.getNetworkConnection().getProtocolVersion() );
+        // Add discovered service to local storage:
+        CasualInfo.getInstance().addDiscovery(discoveryReturn.getServiceDetails(), new Connection.Builder()
+                        .domainId( connection.getNetworkConnection().getDomainId() )
+                        .protocolVersion( connection.getNetworkConnection().getProtocolVersion() )
+                        .hostName( connection.getManagedConnectionFactory().getHostName() )
+                        .portNumber( connection.getManagedConnectionFactory().getPortNumber() )
+                .build() );
+        return discoveryReturn;
     }
 
     private DiscoveryReturn toDiscoveryReturn(CasualDomainDiscoveryReplyMessage message, ProtocolVersion protocolVersion)
