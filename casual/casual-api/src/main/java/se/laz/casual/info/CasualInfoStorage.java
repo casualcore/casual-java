@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * Static instance that contains information about inbound Casual Jca, services and queues.
@@ -20,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CasualInfoStorage
 {
+    private static final Logger LOG = Logger.getLogger( CasualInfoStorage.class.getName() );
     private static final CasualInfoStorage instance = new CasualInfoStorage();
     private final Map<ServiceDescriptor, List<Service>> services;
     private final Map<ServiceDescriptor, EventServiceStatistics> serviceStatistics;
@@ -77,7 +79,7 @@ public class CasualInfoStorage
      *
      * @param service - service to be added/updated
      */
-    protected void putService( Service service )
+    protected synchronized void putService( Service service )
     {
         Objects.requireNonNull( service, "service must not be null" );
         services.put( new ServiceDescriptor( service.getName(), service.getOrder() ),
@@ -87,12 +89,38 @@ public class CasualInfoStorage
     /**
      * Add service statistics
      *
-     * @param serviceDescriptor - composite key of service name and service order
-     * @param eventServiceStatistics - event statistics for service
+     * @param serviceName - service name
+     * @param order       - order of service
+     * @param start       - start timestamp of event
+     * @param end         - end timestamp of event
      */
-    protected void putEvent( ServiceDescriptor serviceDescriptor, EventServiceStatistics eventServiceStatistics )
+    protected synchronized void putEvent( String serviceName, char order, long start, long end )
     {
-        Objects.requireNonNull( serviceDescriptor, "serviceDescriptor must not be null" );
-        serviceStatistics.put( serviceDescriptor, eventServiceStatistics );
+        ServiceDescriptor serviceDescriptor = new ServiceDescriptor( serviceName, Order.unmarshall( order ) );
+        EventServiceStatistics event = toEvent( serviceDescriptor, start, end );
+        serviceStatistics.put( serviceDescriptor, event );
+        LOG.finest( () -> "Stored statistics: '%s'.".formatted( event ) );
+    }
+
+    /**
+     * Creates or updates statistics for a specific service (inbound or outbound).
+     *
+     * @param serviceDescriptor - service descriptor
+     * @param start             - start time
+     * @param end               -  end time
+     * @return EventServiceStatistics
+     */
+    private EventServiceStatistics toEvent( ServiceDescriptor serviceDescriptor, long start, long end )
+    {
+        EventServiceStatistics eventServiceStatistics = getServiceStatistic( serviceDescriptor )
+                .orElseGet( () -> new EventServiceStatistics.Builder().name( serviceDescriptor.name() ).order( serviceDescriptor.order().getValue() ).build() );
+        EventServiceStatistics.Builder builder = EventServiceStatistics.newBuilder( eventServiceStatistics );
+        long executionTime = end - start;
+        builder.increment();
+        builder.max( executionTime );
+        builder.min( executionTime );
+        builder.last( start );
+        builder.increaseTotal( executionTime );
+        return builder.build();
     }
 }

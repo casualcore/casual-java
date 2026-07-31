@@ -5,7 +5,6 @@ import se.laz.casual.api.service.ServiceDetails;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 /**
  * Static instance that stores information about Casual jca, services and queues
@@ -14,8 +13,8 @@ import java.util.logging.Logger;
  */
 public final class CasualInfo
 {
-    private static final Logger LOG = Logger.getLogger( CasualInfo.class.getName() );
     private static final CasualInfo instance = new CasualInfo();
+    private static final CasualInfoStorage storageInstance = CasualInfoStorage.getInstance();
 
     private CasualInfo()
     {
@@ -35,7 +34,7 @@ public final class CasualInfo
     public void addService( Service service )
     {
         Objects.requireNonNull( service, "service must not be null" );
-        CasualInfoStorage.getInstance().putService( service );
+        storageInstance.putService( service );
     }
 
     /**
@@ -60,10 +59,7 @@ public final class CasualInfo
      */
     public void storeEvent( String serviceName, char order, long start, long end )
     {
-        EventServiceStatistics eventServiceStatistics = toEvent( serviceName, order, start, end );
-        CasualInfoStorage.getInstance().putEvent( new ServiceDescriptor( eventServiceStatistics.getName(),
-                Order.unmarshall( order ) ), eventServiceStatistics );
-        LOG.finest( () -> "Stored statistics: '%s'.".formatted( eventServiceStatistics ) );
+        storageInstance.putEvent( serviceName, order, start, end );
     }
 
     /**
@@ -75,35 +71,10 @@ public final class CasualInfo
     private void addDiscoveredService( ServiceDetails serviceDetails, Connection connection )
     {
         ServiceDescriptor serviceDescriptor = new ServiceDescriptor( serviceDetails.getName(), Order.CONCURRENT );
-        Optional<Service> service = CasualInfoStorage.getInstance().getService( serviceDescriptor );
+        Optional<Service> service = storageInstance.getService( serviceDescriptor );
         Service.Builder builder = service.isPresent() ? Service.newBuilder( service.get() ) :
                 Service.newBuilder( serviceDetails, Order.CONCURRENT );
         builder.connection( connection );
-        CasualInfoStorage.getInstance().putService( builder.build() );
-    }
-
-    /**
-     * Creates or updates statistics for a specific service (inbound or outbound).
-     *
-     * @param serviceName - service
-     * @param order       - order of service e.g. inbound or outbound
-     * @param start       - start time
-     * @param end         -  end time
-     * @return EventServiceStatistics
-     */
-    private EventServiceStatistics toEvent( String serviceName, char order, long start, long end )
-    {
-        EventServiceStatistics eventServiceStatistics =
-                CasualInfoStorage.getInstance().getServiceStatistic( new ServiceDescriptor( serviceName,
-                                Order.unmarshall( order ) ) )
-                        .orElseGet( () -> new EventServiceStatistics.Builder().name( serviceName ).order( order ).build() );
-        EventServiceStatistics.Builder builder = EventServiceStatistics.newBuilder( eventServiceStatistics );
-        long executionTime = end - start;
-        builder.increment();
-        builder.max( executionTime );
-        builder.min( executionTime );
-        builder.last( start );
-        builder.increaseTotal( executionTime );
-        return builder.build();
+        storageInstance.putService( builder.build() );
     }
 }
