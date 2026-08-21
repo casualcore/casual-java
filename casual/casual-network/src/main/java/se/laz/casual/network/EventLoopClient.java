@@ -9,5 +9,7 @@ package se.laz.casual.network;
 public enum EventLoopClient
 {
     OUTBOUND,
-    REVERSE
+    REVERSE,
+    REVERSE_OUTBOUND,
+    REVERSE_OUTBOUND_BOSS_GROUP
 }

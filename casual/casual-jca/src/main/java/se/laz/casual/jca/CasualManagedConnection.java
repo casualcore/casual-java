@@ -19,6 +19,7 @@ import jakarta.resource.spi.ResourceAdapter;
 import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
+import se.laz.casual.jca.pool.NetworkConnectionPool;
 import se.laz.casual.jca.pool.NetworkPoolHandler;
 import se.laz.casual.network.outbound.NettyConnectionInformation;
 import se.laz.casual.network.outbound.NettyConnectionInformationCreator;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -57,6 +59,9 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     private final Object networkConnectionLock = new Object();
     private CasualXAResource xaResource;
     private final AtomicInteger timeout = new AtomicInteger();
+    // when set, the network connection is always fetched towards this specific remote domain - reverse pools only
+    // this since each active managed connection is backed by a specific network connection ( based on domain id)
+    private DomainId pinnedDomainId;
 
     /**
      * Create a new managed connection with the provided factory and request information.
@@ -106,18 +111,58 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
 
     private NetworkConnection getOrCreateFromPool()
     {
-        return NetworkPoolHandler.getInstance()
-                                 .getOrCreate(
-                                         mcf.getNetworkConnectionPoolName(),
-                                         mcf.getAddress(),
-                                         this,
-                                         mcf.getNetworkConnectionPoolSize());
+        return null == pinnedDomainId ? NetworkPoolHandler.getInstance()
+                                                          .getOrCreate(
+                                                                  mcf.getNetworkConnectionPoolName(),
+                                                                  mcf.getAddress(),
+                                                                  this,
+                                                                  mcf.getNetworkConnectionPoolSize())
+                                      : NetworkPoolHandler.getInstance()
+                                                          .getOrCreate(
+                                                                  mcf.getNetworkConnectionPoolName(),
+                                                                  mcf.getAddress(),
+                                                                  this,
+                                                                  mcf.getNetworkConnectionPoolSize(),
+                                                                  pinnedDomainId);
+    }
+
+    /**
+     * The remote domain this managed connection is pinned to, empty when not pinned.
+     * A managed connection gets pinned when handed out with a {@link CasualRequestInfo} carrying
+     * a domain id and stays pinned for its lifetime -
+     * {@link CasualManagedConnectionFactory#matchManagedConnections} only ever matches on pin equality.
+     */
+    public Optional<DomainId> getPinnedDomainId()
+    {
+        synchronized (networkConnectionLock)
+        {
+            return Optional.ofNullable(pinnedDomainId);
+        }
+    }
+
+    private void pinIfRequested(ConnectionRequestInfo cxRequestInfo) throws ResourceException
+    {
+        Optional<DomainId> maybeDomainId = CasualManagedConnectionFactory.getDomainId(cxRequestInfo);
+        if(maybeDomainId.isEmpty())
+        {
+            return;
+        }
+        DomainId domainId = maybeDomainId.get();
+        synchronized (networkConnectionLock)
+        {
+            if(null != pinnedDomainId && !pinnedDomainId.equals(domainId))
+            {
+                throw new ResourceException("managed connection already pinned to: " + pinnedDomainId + " can not pin to: " + domainId);
+            }
+            pinnedDomainId = domainId;
+        }
     }
 
     @Override
     public Object getConnection(Subject subject,
                                 ConnectionRequestInfo cxRequestInfo) throws ResourceException
     {
+        pinIfRequested(cxRequestInfo);
         try
         {
             log.finest("getConnection()");
@@ -324,6 +369,31 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public DomainId getDomainId()
     {
         return getNetworkConnection().getDomainId();
+    }
+
+    /**
+     * Is this managed connection backed by a reverse network connection pool?
+     */
+    public boolean isReversePool()
+    {
+        return getPoolIfAny().map(NetworkConnectionPool::isReverse)
+                             .orElse(false);
+    }
+
+    /**
+     * The remote domain ids currently backing the network connection pool of this managed connection.
+     * For a non pooled connection: the domain id of the connection itself.
+     */
+    public List<DomainId> getPoolDomainIds()
+    {
+        return getPoolIfAny().map(NetworkConnectionPool::getPoolDomainIds)
+                             .orElseGet(() -> List.of(getDomainId()));
+    }
+
+    private Optional<NetworkConnectionPool> getPoolIfAny()
+    {
+        return networkPoolNameAndNetworkPoolSizeSet() ? Optional.ofNullable(NetworkPoolHandler.getInstance().getPool(mcf.getNetworkConnectionPoolName()))
+                                                      : Optional.empty();
     }
 
     public void setTransactionTimeout(int timeout)

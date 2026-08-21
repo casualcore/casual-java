@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 + 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -9,8 +9,6 @@ import se.laz.casual.network.outbound.NettyNetworkConnection
 import spock.lang.Specification
 
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class ReferenceCountedNetworkConnectionTest extends Specification
 {
@@ -46,7 +44,7 @@ class ReferenceCountedNetworkConnectionTest extends Specification
       ReferenceCountedNetworkConnection instance = ReferenceCountedNetworkConnection.of(networkConnection, closeListener)
       for(int i = 0; i < subsequentReferences; ++i)
       {
-         instance.increment()
+         assert instance.tryIncrement()
       }
       when:
       for(int i = 0; i < expectedNumberOfReferences; ++i)
@@ -57,32 +55,56 @@ class ReferenceCountedNetworkConnectionTest extends Specification
       noExceptionThrown()
    }
 
-   def 'concurrent incrementing/decrementing'()
+   def 'closed connection can not be taken again'()
+   {
+      given:
+      def networkConnection = Mock(NettyNetworkConnection)
+      def closeListener = Mock(ReferenceCountedNetworkCloseListener)
+      ReferenceCountedNetworkConnection instance = ReferenceCountedNetworkConnection.of(networkConnection, closeListener)
+
+      when: 'a second user takes and both release'
+      instance.tryIncrement()
+      instance.close()
+      instance.close()
+
+      then: 'the physical connection is closed, once, and the listener told'
+      1 * networkConnection.close()
+      1 * closeListener.closed(instance)
+
+      expect: 'a closed connection can not be taken again'
+      !instance.tryIncrement()
+   }
+
+   def 'concurrent incrementing/decrementing closes the physical connection exactly once'()
    {
       given:
       def subsequentReferences = 4
-      def expectedNumberOfReferences = 5
-      def networkConnection = Mock(NettyNetworkConnection)
-      def closeListener = Mock(ReferenceCountedNetworkCloseListener)
+      def totalReferences = 5
+      def networkConnection = Mock(NettyNetworkConnection){
+         1 * close()
+      }
+      def closeListener = Mock(ReferenceCountedNetworkCloseListener){
+         1 * closed(_)
+      }
       // 1st reference count on creation
       ReferenceCountedNetworkConnection instance = ReferenceCountedNetworkConnection.of(networkConnection, closeListener)
+      when:
       CompletableFuture<Void> incrementFuture = CompletableFuture.runAsync({
          for(int i = 0; i < subsequentReferences; ++i)
          {
-            instance.increment()
+            instance.tryIncrement()
          }
       })
       CompletableFuture<Void> closeFuture = CompletableFuture.runAsync({
-         for(int i = 0; i < expectedNumberOfReferences; ++i)
+         for(int i = 0; i < totalReferences; ++i)
          {
             instance.close()
          }
       })
-      when:
       incrementFuture.join()
       closeFuture.join()
-      then:
-      instance.increment() == 1
+      then: 'no matter the interleaving, exactly one physical close and no resurrection'
+      !instance.tryIncrement()
    }
 
 }

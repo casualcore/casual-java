@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -15,6 +15,7 @@ class ConfigurationTest extends Specification
     Domain domain = Domain.newBuilder().build()
     Outbound outbound = Outbound.newBuilder().build()
     List<ReverseInbound> reverseInbounds = [ReverseInbound.newBuilder().build(  )]
+    List<ReverseOutbound> reverseOutbounds = [ReverseOutbound.newBuilder().withName("rev").withPort(1234).build()]
     EventServer eventServer = EventServer.newBuilder().build()
     boolean epoll = true
     boolean unmanaged = true
@@ -27,6 +28,7 @@ class ConfigurationTest extends Specification
                 .withUnmanaged( unmanaged )
                 .withEventServer( eventServer )
                 .withReverseInbound( reverseInbounds )
+                .withReverseOutbound( reverseOutbounds )
                 .withOutbound( outbound )
                 .withDomain( domain )
                 .withInbound( inbound )
@@ -41,6 +43,7 @@ class ConfigurationTest extends Specification
         instance.getInbound( ) == inbound
         instance.getOutbound(  ) == outbound
         instance.getReverseInbound( ) == reverseInbounds
+        instance.getReverseOutbound( ) == reverseOutbounds
         instance.getEventServer(  ) == eventServer
         instance.getDomain() == domain
     }
@@ -70,6 +73,7 @@ class ConfigurationTest extends Specification
         actual.contains( inbound.toString(  ) )
         actual.contains( outbound.toString(  ) )
         actual.contains( reverseInbounds.toString(  ) )
+        actual.contains( reverseOutbounds.toString(  ) )
         actual.contains( eventServer.toString(  ) )
         actual.contains( domain.toString(  ) )
         actual.contains( "" +  epoll )

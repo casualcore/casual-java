@@ -125,6 +125,38 @@ class CasualManagedConnectionFactoryTest extends Specification
         instance.matchManagedConnections( set, subject, cri ) == connection
     }
 
+    def "MatchManagedConnections matches on pinned domain id"()
+    {
+        setup:
+        Subject subject = new Subject()
+        DomainId domainId = DomainId.of(UUID.randomUUID())
+        DomainId otherDomainId = DomainId.of(UUID.randomUUID())
+        CasualManagedConnection unpinned = new CasualManagedConnection( Mock(CasualManagedConnectionFactory) )
+        CasualManagedConnection pinned = pinnedManagedConnection( domainId )
+        Set<Object> set = [unpinned, pinned] as Set
+
+        expect: 'a request carrying a domain id only ever matches a managed connection pinned to that very domain'
+        instance.matchManagedConnections( set, subject, CasualRequestInfo.of( domainId ) ) == pinned
+        instance.matchManagedConnections( set, subject, CasualRequestInfo.of( otherDomainId ) ) == null
+        and: 'a request without one only ever matches an unpinned managed connection'
+        instance.matchManagedConnections( set, subject, null ) == unpinned
+    }
+
+    def pinnedManagedConnection(DomainId domainId)
+    {
+        CasualManagedConnection connection = new CasualManagedConnection( Mock(CasualManagedConnectionFactory) )
+        try
+        {
+            connection.getConnection( new Subject(), CasualRequestInfo.of( domainId ) )
+        }
+        catch(ResourceException e)
+        {
+            // there is no network in this test - the pin is set regardless
+        }
+        assert connection.getPinnedDomainId() == Optional.of(domainId)
+        return connection
+    }
+
     def "MatchManagedConnections returns null if there are no CasualManagedConnection instance in the set provided."()
     {
         setup:

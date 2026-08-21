@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -25,6 +25,8 @@ public final class EventLoopFactory
         INSTANCES = new ConcurrentHashMap<>();
         INSTANCES.put(EventLoopClient.OUTBOUND, createEventLoopGroup());
         INSTANCES.put(EventLoopClient.REVERSE, createEventLoopGroup());
+        INSTANCES.put(EventLoopClient.REVERSE_OUTBOUND, createEventLoopGroup());
+        INSTANCES.put(EventLoopClient.REVERSE_OUTBOUND_BOSS_GROUP, createBossEventLoopGroup());
     }
     private EventLoopFactory()
     {}
@@ -37,6 +39,18 @@ public final class EventLoopFactory
         boolean unmanaged = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED );
         boolean useEpoll = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL );
         int numThreads = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS );
+        if(unmanaged)
+        {
+            return getUnmanagedEventLoopGroup(useEpoll, numThreads);
+        }
+        return getManagedEventLoopGroup(useEpoll, numThreads );
+    }
+
+    private static EventLoopGroup createBossEventLoopGroup()
+    {
+        boolean unmanaged = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED );
+        boolean useEpoll = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL );
+        int numThreads = 1;
         if(unmanaged)
         {
             return getUnmanagedEventLoopGroup(useEpoll, numThreads);
@@ -61,10 +75,10 @@ public final class EventLoopFactory
         if (useEpoll)
         {
             LOG.info(() -> "using EpollEventLoopGroup");
-            return new EpollEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService());
+            return new EpollEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getExecutorService());
         }
         LOG.info(() -> "using NioEventLoopGroup");
-        return new NioEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService());
+        return new NioEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getExecutorService());
     }
 
 }

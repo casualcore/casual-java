@@ -42,3 +42,7 @@ Failed connections will be re-scheduled on a `ScheduledExecutionService` which m
 (should be on JBoss/WildFly, WebLogic), otherwise a shared instance of `ScheduledThreadPoolExecutor` will be used. It
 has a default pool size of `10` and the pool size of this shared `ScheduledThreadPoolExecutor` can be set through the
 environment variable `CASUAL_UNMANAGED_SCHEDULED_EXECUTOR_SERVICE_POOL_SIZE`.
+
+## Reverse Outbound
+
+The symmetric feature, where the EIS connects to casual-jca, is documented in [reverse-outbound.md](reverse-outbound.md).

@@ -101,6 +101,18 @@ public class CasualConnectionImpl implements CasualConnection
     }
 
     @Override
+    public boolean isReversePool()
+    {
+        return getManagedConnection().isReversePool();
+    }
+
+    @Override
+    public List<DomainId> getPoolDomainIds()
+    {
+        return getManagedConnection().getPoolDomainIds();
+    }
+
+    @Override
     public ServiceReturn<CasualBuffer> tpcall(String serviceName, CasualBuffer data, Flag<AtmiFlags> flags)
     {
         throwIfInvalidated();

@@ -53,6 +53,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 {
     private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
+    private static final String NETWORK_CONNECTION_GONE = "network connection is gone";
     private final BaseConnectionInformation ci;
     private final Correlator correlator;
     private final ConversationMessageStorage conversationMessageStorage;
@@ -83,8 +84,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     public static NetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
     {
         Objects.requireNonNull(ci, "connection info can not be null");
-        Objects.requireNonNull(ci, "network listener can not be null");
-        ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException("network connection is gone"));
+        Objects.requireNonNull(networkListener, "network listener can not be null");
+        ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException(NETWORK_CONNECTION_GONE));
         errorInformer.addListener(networkListener);
         EventLoopGroup workerGroup = EventLoopFactory.getInstance(EventLoopClient.OUTBOUND);
         Correlator correlator = ci.getCorrelator();
@@ -94,8 +95,36 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator);
         ProtocolVersionValueHolder protocolVersionValueHolder =  ProtocolVersionValueHolder.of();
         Channel ch = init(ci, workerGroup, messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), protocolVersionValueHolder);
-        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
-        LOG.finest(() -> networkConnection + " connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()));
+        return handshake(ci, ch, correlator, conversationMessageStorage, messageHandler, protocolVersionValueHolder, errorInformer);
+    }
+
+    /**
+     * Create a connection from an already established channel, performing the outbound domain connect handshake.
+     * Used for reverse outbound: the EIS connects to us and then waits for us, the outbound side, to issue the
+     * domain connect request - just as if we had connected to it.
+     * Blocks awaiting the handshake reply and must not be called from the channel's event loop thread.
+     */
+    public static NettyNetworkConnection ofAcceptedChannel(final SocketChannel channel, final NettyConnectionInformation ci, final NetworkListener networkListener)
+    {
+        Objects.requireNonNull(channel, "channel can not be null");
+        Objects.requireNonNull(ci, "connection info can not be null");
+        Objects.requireNonNull(networkListener, "network listener can not be null");
+        ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException(NETWORK_CONNECTION_GONE));
+        errorInformer.addListener(networkListener);
+        Correlator correlator = ci.getCorrelator();
+        ConversationMessageStorage conversationMessageStorage = ConversationMessageStorageImpl.of();
+        OnNetworkError onNetworkError = ch -> NetworkErrorHandler.notifyListenersIfNotConnected(ch, errorInformer);
+        ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of(conversationMessageStorage);
+        CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator);
+        ProtocolVersionValueHolder protocolVersionValueHolder = ProtocolVersionValueHolder.of();
+        setupPipeline(channel, ci, messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), protocolVersionValueHolder);
+        return handshake(ci, channel, correlator, conversationMessageStorage, messageHandler, protocolVersionValueHolder, errorInformer);
+    }
+
+    private static NettyNetworkConnection handshake(NettyConnectionInformation ci, Channel ch, Correlator correlator, ConversationMessageStorage conversationMessageStorage,
+                                                    CasualMessageHandler messageHandler, ProtocolVersionValueHolder protocolVersionValueHolder, ErrorInformer errorInformer)
+    {
+        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getExecutorService, errorInformer);
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
         DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
         protocolVersionValueHolder.accept(networkConnection.protocolVersion);
@@ -109,6 +138,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         {
             networkConnection.setDomainDiscoveryTopologyChangedHandler(DomainDiscoveryTopologyChangedHandler.of());
         }
+        LOG.finest(() -> networkConnection + " reverse outbound connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()) + " with domainId: " + id);
         return networkConnection;
     }
 
@@ -134,16 +164,22 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                 @Override
                 protected void initChannel(SocketChannel ch)
                 {
-                    ch.pipeline().addLast(CasualNWMessageDecoder.of(protocolVersionValueHolder), CasualNWMessageEncoder.of(), messageHandler, conversationMessageHandler, exceptionHandler);
-                    if(ci.isLogHandlerEnabled())
-                    {
-                        ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.OUTBOUND_LOGGING_LEVEL));
-                        LOG.info(() -> "outbound network log handler enabled, using netty logging level: " + LogLevelProvider.OUTBOUND_LOGGING_LEVEL);
-                    }
+                    setupPipeline(ch, ci, messageHandler, conversationMessageHandler, exceptionHandler, protocolVersionValueHolder);
                 }
             });
         LOG.finest(() -> "about to connect to: " + ci.getAddress());
         return b.connect(ci.getAddress()).syncUninterruptibly().channel();
+    }
+
+    // note: setupPipeline( is used both in normal and reverse outbound, reverse outbound does not call init as it does not initiate a connection
+    private static void setupPipeline(SocketChannel ch, NettyConnectionInformation ci, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, ProtocolVersionValueHolder protocolVersionValueHolder)
+    {
+        ch.pipeline().addLast(CasualNWMessageDecoder.of(protocolVersionValueHolder), CasualNWMessageEncoder.of(), messageHandler, conversationMessageHandler, exceptionHandler);
+        if(ci.isLogHandlerEnabled())
+        {
+            ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.OUTBOUND_LOGGING_LEVEL));
+            LOG.info(() -> "outbound network log handler enabled, using netty logging level: " + LogLevelProvider.OUTBOUND_LOGGING_LEVEL);
+        }
     }
 
     @Override
@@ -169,7 +205,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         // always complete any outstanding requests exceptionally
         // both when the casual domain goes away or when the owner of the network connection
         // closes us, the client, directly
-        connection.correlator.completeAllExceptionally(new CasualConnectionException("network connection is gone"));
+        connection.correlator.completeAllExceptionally(new CasualConnectionException(NETWORK_CONNECTION_GONE));
         if(connection.connected.get())
         {
             // only inform on casual disconnect

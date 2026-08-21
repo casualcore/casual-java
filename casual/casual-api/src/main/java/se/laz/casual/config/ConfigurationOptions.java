@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -47,6 +47,7 @@ public class ConfigurationOptions
     public static final ConfigurationOption<Boolean> CASUAL_OUTBOUND_UNMANAGED = new ConfigurationOption<>( "CASUAL_OUTBOUND_UNMANAGED" );
 
     public static final ConfigurationOption<List<ReverseInbound>> CASUAL_REVERSE_INBOUND_INSTANCES = new ConfigurationOption<>( "CASUAL_REVERSE_INBOUND_INSTANCES" );
+    public static final ConfigurationOption<List<ReverseOutbound>> CASUAL_REVERSE_OUTBOUND_INSTANCES = new ConfigurationOption<>( "CASUAL_REVERSE_OUTBOUND_INSTANCES" );
 
     public static final ConfigurationOption<String> CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME = new ConfigurationOption<>( "CASUAL_OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME" );
     public static final ConfigurationOption<Integer> CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS = new ConfigurationOption<>( "CASUAL_OUTBOUND_MANAGED_EXECUTOR_NUMBER_OF_THREADS" );

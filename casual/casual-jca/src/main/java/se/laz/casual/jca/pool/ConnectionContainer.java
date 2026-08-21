@@ -1,12 +1,15 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 package se.laz.casual.jca.pool;
 
+import se.laz.casual.jca.DomainId;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ConnectionContainer
@@ -53,6 +56,39 @@ public class ConnectionContainer
                 return connections.get(0);
             }
             return connections.get(getRandomNumber(0, connections.size()));
+        }
+    }
+
+    /**
+     * Get a connection towards the given domain, empty if there is none.
+     */
+    public Optional<ReferenceCountedNetworkConnection> get(DomainId domainId)
+    {
+        synchronized (lock)
+        {
+            List<ReferenceCountedNetworkConnection> matches = connections.stream()
+                                                                         .filter(connection -> domainId.equals(connection.getDomainId()))
+                                                                         .toList();
+            if(matches.isEmpty())
+            {
+                return Optional.empty();
+            }
+            if(matches.size() == 1)
+            {
+                return Optional.of(matches.get(0));
+            }
+            return Optional.of(matches.get(getRandomNumber(0, matches.size())));
+        }
+    }
+
+    public List<DomainId> getDomainIds()
+    {
+        synchronized (lock)
+        {
+            return connections.stream()
+                              .map(ReferenceCountedNetworkConnection::getDomainId)
+                              .distinct()
+                              .toList();
         }
     }
 

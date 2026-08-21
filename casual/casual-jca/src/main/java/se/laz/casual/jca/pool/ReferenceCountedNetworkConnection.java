@@ -19,13 +19,15 @@ import se.laz.casual.network.protocol.messages.conversation.Request;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class ReferenceCountedNetworkConnection implements NetworkConnection
 {
     private static final Logger log = Logger.getLogger(ReferenceCountedNetworkConnection.class.getName());
-    private final AtomicInteger referenceCount = new AtomicInteger(1);
+    private final Object referenceLock = new Object();
+    private int referenceCount = 1;
+    // guarded by referenceLock, once the count reaches zero the connection is closed for good
+    private boolean closed;
     private final NettyNetworkConnection networkConnection;
     private final ReferenceCountedNetworkCloseListener closeListener;
 
@@ -35,6 +37,13 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
         this.closeListener = closeListener;
     }
 
+    /**
+     * Create with one initial reference, owned by the creator.
+     * For a normal outbound pool that reference is the managed connection the pool created the
+     * connection for. For a reverse pool it is the pool itself, so that managed connection churn
+     * never closes the physical connection - it lives until the EIS closes it or the resource
+     * adapter is deactivated, mirroring a normal outbound pool configured to never be exhausted.
+     */
     public static ReferenceCountedNetworkConnection of(NettyNetworkConnection networkConnection, ReferenceCountedNetworkCloseListener closeListener)
     {
         Objects.requireNonNull(networkConnection, "networkConnection can not be null");
@@ -47,10 +56,22 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
         return networkConnection.isDomainDisconnecting();
     }
 
-    public int increment()
+    /**
+     * Take a reference, false when the connection is already closed - the last user just
+     * released it and the close notification may still be pending.
+     */
+    public boolean tryIncrement()
     {
-        log.finest(() -> "increment current refcount: " + referenceCount.get());
-        return referenceCount.incrementAndGet();
+        synchronized (referenceLock)
+        {
+            if(closed)
+            {
+                return false;
+            }
+            log.finest(() -> "increment current refcount: " + referenceCount + " for network connection: " + networkConnection);
+            referenceCount++;
+            return true;
+        }
     }
 
     public void addListener(NetworkListener listener)
@@ -91,13 +112,20 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
     @Override
     public void close()
     {
-        log.finest(() -> "close current refcount: " + referenceCount.get());
-        if(referenceCount.decrementAndGet() == 0)
+        synchronized (referenceLock)
         {
-            log.finest(() -> "closing network connection: " + networkConnection);
-            networkConnection.close();
-            closeListener.closed(this);
+            log.finest(() -> "close current refcount: " + referenceCount);
+            if(closed || --referenceCount != 0)
+            {
+                return;
+            }
+            closed = true;
         }
+        // outside the lock, the close listener takes the pool lock and the pool
+        // calls tryIncrement while holding it
+        log.finest(() -> "closing network connection: " + networkConnection);
+        networkConnection.close();
+        closeListener.closed(this);
     }
 
     @Override

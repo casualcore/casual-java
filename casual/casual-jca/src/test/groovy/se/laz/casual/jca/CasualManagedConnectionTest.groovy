@@ -8,11 +8,15 @@ package se.laz.casual.jca
 
 import jakarta.resource.NotSupportedException
 import jakarta.resource.ResourceException
+import jakarta.resource.spi.CommException
 import jakarta.resource.spi.ConnectionEvent
 import jakarta.resource.spi.ConnectionEventListener
 import se.laz.casual.api.flags.XAFlags
 import se.laz.casual.api.xa.XID
 import se.laz.casual.internal.network.NetworkConnection
+import se.laz.casual.jca.pool.NetworkConnectionPool
+import se.laz.casual.jca.pool.NetworkPoolHandler
+import se.laz.casual.network.outbound.NettyNetworkConnection
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -28,6 +32,8 @@ class CasualManagedConnectionTest extends Specification
 
     def setup()
     {
+        // note: @ for field not getter
+        NetworkPoolHandler.getInstance().@pools.clear()
         managedConnectionFactory = Mock(CasualManagedConnectionFactory){
            getAddress() >> Mock(Address)
         }
@@ -313,4 +319,40 @@ class CasualManagedConnectionTest extends Specification
         then:
         actual == timeout
     }
+
+    def 'getConnection over an empty reverse pool throws, works once an EIS connects'()
+    {
+        given:
+        def poolName = 'empty-reverse-pool'
+        NetworkConnectionPool pool = NetworkPoolHandler.getInstance().getOrCreateReversePool(poolName)
+        CasualManagedConnectionFactory mcf = Mock(CasualManagedConnectionFactory) {
+            getAddress() >> Mock(Address)
+            getNetworkConnectionPoolName() >> poolName
+            getNetworkConnectionPoolSize() >> 1
+        }
+        CasualManagedConnection connection = new CasualManagedConnection(mcf)
+
+        when: 'allocation fails as there is nothing in the pool ( no EIS has connected yet)'
+        connection.getConnection(null, null)
+
+        then: 'it fails like a normal outbound whose remote is down, staying retryable'
+        thrown(CommException)
+        // note, @ sign to force using the field instead of calling the getter
+        connection.@networkConnection == null
+
+        when: 'an EIS connects'
+        DomainId domainId = DomainId.of(UUID.randomUUID())
+        pool.addConnectionForReversePool(Mock(NettyNetworkConnection) {
+            getDomainId() >> domainId
+            isActive() >> true
+        })
+        CasualRequestInfo requestInfo = CasualRequestInfo.of(domainId)
+        Object handle = connection.getConnection(null, requestInfo)
+
+        then:
+        handle instanceof CasualConnectionImpl
+        connection.getDomainId() == domainId
+        connection.pinnedDomainId.get() == domainId
+    }
+
 }

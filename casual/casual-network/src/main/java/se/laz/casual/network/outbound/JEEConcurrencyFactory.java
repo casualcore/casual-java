@@ -54,7 +54,7 @@ public class JEEConcurrencyFactory
      * This is needed for conversation handling
      * @return an ExecutorService
      */
-    public static ExecutorService getManagedExecutorService()
+    public static ExecutorService getExecutorService()
     {
         boolean unmanaged = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED );
         if(unmanaged)

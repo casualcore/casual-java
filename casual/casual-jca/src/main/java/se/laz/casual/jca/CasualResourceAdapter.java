@@ -23,14 +23,17 @@ import se.laz.casual.api.buffer.type.fielded.json.CasualFieldedLookup;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.ReverseInbound;
+import se.laz.casual.config.ReverseOutbound;
 import se.laz.casual.event.server.EventServer;
 import se.laz.casual.event.server.EventServerConnectionInformation;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
 import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 import se.laz.casual.jca.jmx.JMXStartup;
+import se.laz.casual.jca.pool.NetworkPoolHandler;
 import se.laz.casual.jca.work.StartInboundServerListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
 import se.laz.casual.jca.work.StartReverseInboundServerListener;
+import se.laz.casual.jca.work.StartReverseOutboundServerListener;
 import se.laz.casual.network.InboundDeactivatedContext;
 import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.ProtocolVersion;
@@ -40,13 +43,19 @@ import se.laz.casual.network.inbound.reverse.AutoConnect;
 import se.laz.casual.network.inbound.reverse.ReverseInboundConnectionInformation;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
+import se.laz.casual.network.reverse.outbound.ReverseOutboundConnectionInformation;
+import se.laz.casual.network.reverse.outbound.ReverseOutboundServer;
+import se.laz.casual.network.reverse.outbound.ReverseOutboundServerImpl;
 
 import javax.transaction.xa.XAResource;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -69,7 +78,8 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
 {
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
     private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
-    private List<ReverseInboundServer> reverseInbounds = new ArrayList<>();
+    private List<ReverseInboundServer> reverseInbounds = Collections.synchronizedList(new ArrayList<>());
+    private List<ReverseOutboundServer> reverseOutbounds = Collections.synchronizedList(new ArrayList<>());
     private CasualInboundTransactionRegistry inboundTransactionRegistry;
     // it is not really unused, it should never ever be gc:ed, thus it is part of this class
     @SuppressWarnings("java:S1068")
@@ -157,6 +167,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         log.info(() -> "start casual inbound server" );
         startInboundServer( ci );
         maybeStartReverseInbound( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES ), endpointFactory, workManager, xaTerminator);
+        maybeStartReverseOutbound( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES ) );
         log.finest(() -> "end endpointActivation()");
 
     }
@@ -197,6 +208,46 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
             Work work = StartInboundServerWork.of(getInboundStartupServices(), logMsg, consumer, supplier);
             startWork(work, StartReverseInboundServerListener.of());
         }
+    }
+
+    private void maybeStartReverseOutbound(List<ReverseOutbound> reverseOutbound)
+    {
+        Set<String> seenNames = new HashSet<>();
+        for (ReverseOutbound instance : reverseOutbound)
+        {
+            String name = instance.getName();
+            if (!seenNames.add(name))
+            {
+                log.warning(() -> "Duplicate reverse outbound name configured: '" + name + "'. Names must be unique - skipping this entry.");
+                continue;
+            }
+            // pre-register the reverse pool so that it exists before any connection factory can look it up
+            // it also guarantees that it exists as reverse pool for the lifetime of the application server
+            NetworkPoolHandler.getInstance().getOrCreateReversePool(name);
+            startReverseOutbound(ReverseOutboundConnectionInformation.createBuilder()
+                    .withName(name)
+                    .withPort(instance.getPort())
+                    .withDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId())
+                    .withDomainName(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME ))
+                    .withUseEpoll(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL ))
+                    .withConnectionConsumer(connection -> NetworkPoolHandler.getInstance().addReverseConnection(name, connection))
+                    .build());
+        }
+    }
+
+    private void startReverseOutbound(ReverseOutboundConnectionInformation connectionInformation )
+    {
+        Consumer<ReverseOutboundServer> consumer = this::connectedReverseOutbound;
+        Supplier<ReverseOutboundServer> supplier = () -> ReverseOutboundServerImpl.of(connectionInformation);
+        Supplier<String> logMsg = () -> "casual reverse outbound listening on port: " + connectionInformation.getPort() + " name=" + connectionInformation.getName();
+        Work work = StartInboundServerWork.of(getInboundStartupServices(), logMsg, consumer, supplier);
+        startWork(work, StartReverseOutboundServerListener.of());
+    }
+
+    private void connectedReverseOutbound(ReverseOutboundServer server)
+    {
+        log.info(() -> "ReverseOutbound: " + server.getPort() + " (name=" + server.getName() + ") started");
+        reverseOutbounds.add(server);
     }
 
     private void startInboundServer( ConnectionInformation connectionInformation )
@@ -248,6 +299,8 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         }
         reverseInbounds.forEach(ReverseInboundServer::deactivate);
         reverseInbounds.clear();
+        reverseOutbounds.forEach(ReverseOutboundServer::deactivate);
+        reverseOutbounds.clear();
         activations.remove(((CasualActivationSpec)spec).getPort() );
     }
 
