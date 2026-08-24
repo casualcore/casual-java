@@ -37,7 +37,7 @@ public class StartReverseOutboundServerListener implements WorkListener
     @Override
     public void workRejected(WorkEvent e)
     {
-        logWorkEvent( e, Level.WARNING, ()-> "Casual reverse outbound start, work rejected, inbound will not be started!!!"  );
+        logWorkEvent( e, Level.WARNING, ()-> "Casual reverse outbound start, work rejected, reverse outbound will not be started!!!"  );
     }
 
     @Override
@@ -57,7 +57,7 @@ public class StartReverseOutboundServerListener implements WorkListener
         log.log( level, supplier );
         if( e.getException() != null )
         {
-            log.log(Level.SEVERE, e.getException(), () -> "Casual inbound start WorkEvent contained an exception: ");
+            log.log(Level.SEVERE, e.getException(), () -> "Casual reverse outbound start WorkEvent contained an exception: ");
         }
     }
 }
