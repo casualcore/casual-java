@@ -5,6 +5,7 @@
  */
 package se.laz.casual.jca.pool
 
+
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.Address
 import se.laz.casual.jca.CasualResourceAdapterException
@@ -13,6 +14,8 @@ import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.outbound.NettyNetworkConnection
 import se.laz.casual.network.outbound.NetworkListener
 import spock.lang.Specification
+
+import java.util.concurrent.CountDownLatch
 
 class NetworkConnectionPoolTest extends Specification
 {
@@ -131,7 +134,7 @@ class NetworkConnectionPoolTest extends Specification
       thrown(CasualConnectionException)
    }
 
-   def 'reverse pool survives managed connection churn, connections only ever close on network error'()
+   def 'reverse pool retains physical connection across managed connection churn'()
    {
       given: 'a connection from domain A - used by two user applications'
       DomainId domainA = DomainId.of(UUID.randomUUID())
@@ -259,6 +262,163 @@ class NetworkConnectionPoolTest extends Specification
       then: 'the domain is gone and pinned allocation towards it fails'
       thrown(CasualConnectionException)
       pool.getPoolDomainIds().isEmpty()
+   }
+
+   def 'standard pool evicts connection in close path and creates replacement'()
+   {
+      // note: usually you would run a standard outbound pool on only 1 physical connection
+      given:
+      def address = Address.of('localhost', 7771)
+      def nettyConOne = Mock(NettyNetworkConnection)
+      def nettyConTwo = Mock(NettyNetworkConnection)
+
+      def closeStartedLatch = new CountDownLatch(1)
+      def closeProceedLatch = new CountDownLatch(1)
+
+      ReferenceCountedNetworkConnection refCountedOne
+      ReferenceCountedNetworkConnection refCountedTwo
+
+      // Creator wraps the pool's closeListener to pause before container removal
+      def creator = { Address addr, NetworkListener nl, ReferenceCountedNetworkCloseListener poolListener, NetworkListener ol ->
+         def delayedListener = { ReferenceCountedNetworkConnection conn ->
+            closeStartedLatch.countDown()
+            closeProceedLatch.await()
+            poolListener.closed(conn)
+         } as ReferenceCountedNetworkCloseListener
+
+         // this is so con1 is used on first call and con2 on second
+         def physical = (nettyConOne != null) ? nettyConOne : nettyConTwo
+         def refCounted = ReferenceCountedNetworkConnection.of(physical, delayedListener)
+         if(nettyConOne != null)
+         {
+            refCountedOne = refCounted
+         }
+         else
+         {
+            refCountedTwo = refCounted
+         }
+         nettyConOne = null
+         return refCounted
+      }
+      def pool = NetworkConnectionPool.of('test-pool', address, 1, creator)
+
+      when: 'initial connection is acquired, then closed in another thread'
+      def first = pool.getOrCreateConnection(address, Mock(NetworkListener))
+      Thread.start { first.close() }
+
+      // Wait until first has decremented refcount to 0 and set closed = true under referenceLock,
+      // but BEFORE pool.closed(first) has executed to remove it from pool.connections
+      closeStartedLatch.await()
+
+      and: 'a second caller requests a connection while the dying one is still in the container'
+      def second = pool.getOrCreateConnection(address, Mock(NetworkListener))
+
+      then:
+      !refCountedOne.tryIncrement()
+      second != first
+      refCountedTwo.tryIncrement()
+
+      cleanup:
+      closeProceedLatch.countDown()
+   }
+
+   def 'reverse pool skips closed connection and routes to surviving connection for same domain'()
+   {
+      given: 'two reverse connections from the same domain'
+      def domainA = DomainId.of(UUID.randomUUID())
+      def physical1 = createPhysicalConnection(domainA)
+      def physical2 = createPhysicalConnection(domainA)
+
+      def pool = NetworkConnectionPool.ofReverse('reverse-pool')
+      pool.addConnectionForReversePool(physical1)
+      pool.addConnectionForReversePool(physical2)
+
+      // Acquire first connection and close all references so refcount reaches 0
+      def conn1 = pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
+      conn1.close() // ManagedConnection closes (refcount 2 -> 1)
+      conn1.close() // Pool closes / network error (refcount 1 -> 0, closed = true)
+
+      when: 'requesting a connection for domain A'
+      def allocated = pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
+
+      then: 'the closed connection was evicted, returning the healthy connection'
+      allocated != conn1
+      pool.getPoolDomainIds() == [domainA]
+   }
+
+   def 'reverse pool evicts closed connection and throws when no live connections remain'()
+   {
+      given: 'a single reverse connection that reaches 0 refcount'
+      def domainA = DomainId.of(UUID.randomUUID())
+      def physical = createPhysicalConnection(domainA)
+
+      def pool = NetworkConnectionPool.ofReverse('reverse-pool')
+      pool.addConnectionForReversePool(physical)
+
+      def conn = pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
+      conn.close() // refcount 2 -> 1
+      conn.close() // refcount 1 -> 0
+
+      when: 'requesting a connection for domain A'
+      pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
+
+      then: 'the closed connection was evicted and CasualConnectionException is thrown'
+      thrown(CasualConnectionException)
+      pool.getPoolDomainIds().isEmpty()
+   }
+
+   def 'reverse pool closes physical connection on network error when no active users'()
+   {
+      given: 'a reverse connection registered with the pool and no active managed connections'
+      DomainId domainA = DomainId.of(UUID.randomUUID())
+      NetworkListener networkListener
+      NettyNetworkConnection physicalConnection = Mock(NettyNetworkConnection) {
+         getDomainId() >> domainA
+         addListener(_) >> { NetworkListener l -> networkListener = l }
+      }
+
+      NetworkConnectionPool pool = NetworkConnectionPool.ofReverse('reverse-pool')
+      pool.addConnectionForReversePool(physicalConnection)
+
+      when: 'an EIS network error occurs while idle in pool'
+      networkListener.disconnected(new Exception('EIS network error'))
+
+      then: 'the pool removed it from its domain list and closed the physical connection'
+      1 * physicalConnection.close()
+      pool.getPoolDomainIds().isEmpty()
+   }
+
+   def 'reverse pool closes physical connection after active user releases following network error'()
+   {
+      given: 'a reverse connection in use by an active application'
+      DomainId domainA = DomainId.of(UUID.randomUUID())
+      List<NetworkListener> networkListeners = []
+      NettyNetworkConnection physicalConnection = Mock(NettyNetworkConnection) {
+         getDomainId() >> domainA
+      }
+
+      NetworkConnectionPool pool = NetworkConnectionPool.ofReverse('reverse-pool')
+      pool.addConnectionForReversePool(physicalConnection)
+      NetworkConnection connection = pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
+
+      when: 'EIS network error'
+      pool.closed(connection)
+
+      then: 'pool evicted the connection, but physical close awaits active managed connection release'
+      pool.getPoolDomainIds().isEmpty()
+
+      when: 'active user closes their managed connection ( EIS error, MC is informed, informs appserver, appserver calls destroy on MC -> close on ref counted network connection)'
+      connection.close()
+
+      then: 'physical connection is closed'
+      1 * physicalConnection.close()
+   }
+
+   private NettyNetworkConnection createPhysicalConnection(DomainId domainId)
+   {
+      NettyNetworkConnection connection = Mock(NettyNetworkConnection)
+      connection.getDomainId() >> domainId
+      return connection
    }
 
 }

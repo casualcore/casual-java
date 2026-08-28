@@ -221,6 +221,15 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     {
         synchronized (getOrCreateLock)
         {
+            if(reverse)
+            {
+                // some EIS is failing
+                // since we start at count 1 not 0 for reverse connections
+                // this is for readability and testing, the action itself is idempotent - the network connection is already gone since we ended up here
+                // each managed connection that was active when the network error occurred are closed by the appserver via managed connection destroy ->
+                // ref counted connection close
+                networkConnection.close();
+            }
             connections.removeConnection(networkConnection);
             LOG.finest(() -> "removed( reverse=" + reverse + " ) : " + networkConnection + " from: " + this);
         }
