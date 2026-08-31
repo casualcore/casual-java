@@ -6,19 +6,41 @@
 package se.laz.casual.jca.pool
 
 
+import io.netty.channel.embedded.EmbeddedChannel
+import jakarta.resource.spi.ConnectionEvent
+import jakarta.resource.spi.ConnectionEventListener
+import jakarta.resource.spi.ConnectionRequestInfo
+import se.laz.casual.api.buffer.CasualBuffer
+import se.laz.casual.api.flags.AtmiFlags
+import se.laz.casual.api.flags.Flag
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.Address
+import se.laz.casual.jca.CasualConnection
+import se.laz.casual.jca.CasualManagedConnection
+import se.laz.casual.jca.CasualManagedConnectionFactory
+import se.laz.casual.jca.CasualRequestInfo
 import se.laz.casual.jca.CasualResourceAdapterException
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.connection.CasualConnectionException
+import se.laz.casual.network.outbound.ConversationMessageStorageImpl
+import se.laz.casual.network.outbound.Correlator
+import se.laz.casual.network.outbound.CorrelatorImpl
+import se.laz.casual.network.outbound.ErrorInformer
+import se.laz.casual.network.outbound.NettyConnectionInformation
 import se.laz.casual.network.outbound.NettyNetworkConnection
 import se.laz.casual.network.outbound.NetworkListener
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
 
 class NetworkConnectionPoolTest extends Specification
 {
+   def cleanup()
+   {
+      NetworkPoolHandler.getInstance().@pools.clear()
+   }
+
    def 'using the wrong address'()
    {
       given:
@@ -392,7 +414,6 @@ class NetworkConnectionPoolTest extends Specification
    {
       given: 'a reverse connection in use by an active application'
       DomainId domainA = DomainId.of(UUID.randomUUID())
-      List<NetworkListener> networkListeners = []
       NettyNetworkConnection physicalConnection = Mock(NettyNetworkConnection) {
          getDomainId() >> domainA
       }
@@ -412,6 +433,79 @@ class NetworkConnectionPoolTest extends Specification
 
       then: 'physical connection is closed'
       1 * physicalConnection.close()
+   }
+
+   def 'appserver destroys managed connection and cleans up pool when network connection fails'()
+   {
+      given: 'a reverse connection pool with a NettyNetworkConnection wired to an EmbeddedChannel and ErrorInformer'
+      DomainId domainA = DomainId.of(UUID.randomUUID())
+      EmbeddedChannel channel = new EmbeddedChannel()
+      Correlator correlator = CorrelatorImpl.of()
+      CasualConnectionException networkFailure = new CasualConnectionException('network connection is gone')
+      ErrorInformer errorInformer = ErrorInformer.of(networkFailure)
+      NettyConnectionInformation ci = NettyConnectionInformation.createBuilder()
+         .withAddress(new InetSocketAddress(7771))
+         .withDomainId(UUID.randomUUID())
+         .withDomainName('test-domain')
+         .withCorrelator(correlator)
+         .build()
+      NettyNetworkConnection physicalConnection = new NettyNetworkConnection(
+         ci,
+         correlator,
+         channel,
+         ConversationMessageStorageImpl.of(),
+         { Mock(ExecutorService) },
+         errorInformer
+      )
+      // would happen during normal construction
+      physicalConnection.setDomainId(domainA)
+      channel.closeFuture().addListener({ f ->
+         NettyNetworkConnection.handleClose(physicalConnection, errorInformer)
+      })
+
+      def poolName = 'simulated-reverse-pool'
+      NetworkConnectionPool pool = NetworkPoolHandler.getInstance().getOrCreateReversePool(poolName)
+      pool.addConnectionForReversePool(physicalConnection)
+
+      and: 'a managed connection registered with an appserver ConnectionEventListener'
+      CasualManagedConnectionFactory mcf = Mock(CasualManagedConnectionFactory) {
+         getAddress() >> Mock(Address)
+         getNetworkConnectionPoolName() >> poolName
+         getNetworkConnectionPoolSize() >> 1
+      }
+      CasualManagedConnection managedConnection = new CasualManagedConnection(mcf)
+      ConnectionRequestInfo requestInfo = CasualRequestInfo.of(domainA)
+      CasualConnection handle = (CasualConnection) managedConnection.getConnection(null, requestInfo)
+
+      List<ConnectionEvent> errorEvents = []
+      ConnectionEventListener appServerPoolManager = Mock(ConnectionEventListener) {
+         connectionErrorOccurred(_) >> { ConnectionEvent event ->
+            errorEvents << event
+            // Simulate the application server reaction: destroy the failed managed connection
+            managedConnection.destroy()
+         }
+      }
+      managedConnection.addConnectionEventListener(appServerPoolManager)
+
+      when: 'the physical network connection fails and NettyNetworkConnection::handleClose is invoked'
+      channel.disconnect()
+
+      then: 'the appserver connection event listener was notified with CONNECTION_ERROR_OCCURRED'
+      errorEvents.size() == 1
+      errorEvents[0].id == ConnectionEvent.CONNECTION_ERROR_OCCURRED
+      errorEvents[0].exception == networkFailure
+
+      and: 'the failed connection is evicted from the pool'
+      pool.getPoolDomainIds().isEmpty()
+
+      and: 'the physical connection channel is closed'
+      !physicalConnection.isActive()
+
+      when: 'an application attempts to use the connection handle after the appserver destroyed the managed connection'
+      handle.tpcall('myService', Mock(CasualBuffer), Flag.of(AtmiFlags.NOFLAG))
+
+      then: 'the call fails because the connection is closed/destroyed'
+      thrown(CasualConnectionException)
    }
 
    private NettyNetworkConnection createPhysicalConnection(DomainId domainId)
