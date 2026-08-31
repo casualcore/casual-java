@@ -9,7 +9,6 @@ package se.laz.casual.jca.work;
 import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
 
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +19,7 @@ import java.util.logging.Logger;
 public class StartReverseOutboundServerListener implements WorkListener
 {
     private static final Logger log = Logger.getLogger( StartReverseOutboundServerListener.class.getName());
+    private static final String EXCEPTION_MESSAGE = "Casual reverse outbound start WorkEvent contained an exception: ";
     private StartReverseOutboundServerListener()
     {}
 
@@ -31,33 +31,24 @@ public class StartReverseOutboundServerListener implements WorkListener
     @Override
     public void workAccepted(WorkEvent e)
     {
-        logWorkEvent( e, Level.FINEST, ()->"Casual reverse outbound start, work accepted." );
+        WorkEventLogger.logWorkEvent( log, e, Level.FINEST, ()->"Casual reverse outbound start, work accepted.", () -> EXCEPTION_MESSAGE );
     }
 
     @Override
     public void workRejected(WorkEvent e)
     {
-        logWorkEvent( e, Level.WARNING, ()-> "Casual reverse outbound start, work rejected, reverse outbound will not be started!!!"  );
+        WorkEventLogger.logWorkEvent( log,  e, Level.WARNING, ()-> "Casual reverse outbound start, work rejected, reverse outbound will not be started!!!", () -> EXCEPTION_MESSAGE  );
     }
 
     @Override
     public void workStarted(WorkEvent e)
     {
-        logWorkEvent( e, Level.FINEST, ()-> "Casual reverse outbound start, work started." );
+        WorkEventLogger.logWorkEvent( log, e, Level.FINEST, ()-> "Casual reverse outbound start, work started.", () -> EXCEPTION_MESSAGE );
     }
 
     @Override
     public void workCompleted(WorkEvent e)
     {
-        logWorkEvent( e, Level.FINEST, ()-> "Casual reverse outbound start, work completed." );
-    }
-
-    private void logWorkEvent(WorkEvent e, Level level, Supplier<String> supplier )
-    {
-        log.log( level, supplier );
-        if( e.getException() != null )
-        {
-            log.log(Level.SEVERE, e.getException(), () -> "Casual reverse outbound start WorkEvent contained an exception: ");
-        }
+        WorkEventLogger.logWorkEvent( log, e, Level.FINEST, ()-> "Casual reverse outbound start, work completed.", () -> EXCEPTION_MESSAGE );
     }
 }
