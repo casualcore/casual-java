@@ -77,4 +77,4 @@ When Resource Adapter (RA) deactivation occurs, the system closes both the liste
 
 Reverse Outbound acts as a server listener and does not support custom pool sizing or backoff parameters.
 
-```
+
