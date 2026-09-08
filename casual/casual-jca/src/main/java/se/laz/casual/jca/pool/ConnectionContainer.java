@@ -9,6 +9,7 @@ import se.laz.casual.jca.DomainId;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -99,6 +100,26 @@ public class ConnectionContainer
                 "connections=" + connections +
                 ", lock=" + lock +
                 '}';
+    }
+
+    public boolean isDomainDisconnecting()
+    {
+        synchronized (lock)
+        {
+            return connections.stream()
+                              .anyMatch(ReferenceCountedNetworkConnection::isDomainDisconnecting);
+        }
+    }
+
+    public boolean isDomainDisconnecting(DomainId domainId)
+    {
+        Objects.requireNonNull(domainId, "domainId can not be null");
+        synchronized (lock)
+        {
+            return connections.stream()
+                              .filter(connection -> domainId.equals(connection.getDomainId()))
+                              .anyMatch(ReferenceCountedNetworkConnection::isDomainDisconnecting);
+        }
     }
 
     // pseudorandom is good enough here

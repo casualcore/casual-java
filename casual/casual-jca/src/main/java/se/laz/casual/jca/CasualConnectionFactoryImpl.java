@@ -11,6 +11,11 @@ import javax.naming.Reference;
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.ConnectionManager;
 import jakarta.resource.spi.ConnectionRequestInfo;
+import se.laz.casual.jca.pool.NetworkConnectionPool;
+import se.laz.casual.jca.pool.NetworkPoolHandler;
+
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -71,6 +76,52 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
         log.finest("setReference()");
         this.reference = reference;
     }
+
+    @Override
+    public boolean isDomainDisconnecting()
+    {
+        NetworkConnectionPool pool = getExistingNetworkPool();
+        return pool != null && pool.isDomainDisconnecting();
+    }
+
+    @Override
+    public boolean isDomainDisconnecting(DomainId domainId)
+    {
+        Objects.requireNonNull(domainId, "domainId must not be null");
+        NetworkConnectionPool pool = getExistingNetworkPool();
+        return pool != null && pool.isDomainDisconnecting(domainId);
+    }
+
+    @Override
+    public boolean isReverse()
+    {
+        // can be null for normal outbound in case non mc has been requested yet
+        // for reverse, it always exists even before a reverse inbound has connected
+        NetworkConnectionPool  pool = getExistingNetworkPool();
+        return null != pool && pool.isReverse();
+    }
+
+    @Override
+    public List<DomainId> getDomainIds()
+    {
+        // can be null for normal outbound in case non mc has been requested yet
+        // for reverse, it always exists even before a reverse inbound has connected
+        NetworkConnectionPool  pool = getExistingNetworkPool();
+        return null == pool ? Collections.emptyList() : pool.getPoolDomainIds();
+    }
+
+    private NetworkConnectionPool getExistingNetworkPool()
+    {
+        String poolName = managedConnectionFactory.getNetworkConnectionPoolName();
+        Integer poolSize = managedConnectionFactory.getNetworkConnectionPoolSize();
+        if (null == poolName || null == poolSize)
+        {
+            // usage of casual-jca without pooling is not allowed
+            throw new UnsupportedOperationException("network pooling has to be enabled");
+        }
+        return NetworkPoolHandler.getInstance().getPool(poolName);
+    }
+
 
     @Override
     public boolean equals(Object o)

@@ -56,12 +56,6 @@ public class CasualConnectionImpl implements CasualConnection
         queueCaller = CasualQueueCaller.of(mc);
     }
 
-    @Override
-    public boolean isDomainDisconnecting()
-    {
-        return managedConnection != null && managedConnection.isDomainDisconnecting();
-    }
-
     /**
      * Invalidate this connection handle removing its reference to
      * the underlying {@link jakarta.resource.spi.ManagedConnection}.
@@ -98,18 +92,6 @@ public class CasualConnectionImpl implements CasualConnection
     public DomainId getDomainId()
     {
         return getManagedConnection().getNetworkConnection().getDomainId();
-    }
-
-    @Override
-    public boolean isReversePool()
-    {
-        return getManagedConnection().isReversePool();
-    }
-
-    @Override
-    public List<DomainId> getPoolDomainIds()
-    {
-        return getManagedConnection().getPoolDomainIds();
     }
 
     @Override

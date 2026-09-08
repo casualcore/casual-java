@@ -235,6 +235,50 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         }
     }
 
+    /**
+     * Returns whether any connection in this normal outbound pool reports shutdown.
+     *
+     * <p>You can call this method concurrently with pool updates. It does not
+     * acquire a connection or change reference counts.
+     *
+     * @return {@code true} if any connection reports shutdown;
+     *         {@code false} if the pool is empty
+     * @throws IllegalStateException if this is a reverse pool
+     */
+    public boolean isDomainDisconnecting()
+    {
+        if (reverse)
+        {
+            throw new IllegalStateException(
+                    "A domain ID is required to query a reverse pool: " + poolName);
+        }
+        synchronized (getOrCreateLock)
+        {
+            return connections.isDomainDisconnecting();
+        }
+    }
+
+    /**
+     * Returns whether any connection to the specified domain reports shutdown.
+     *
+     * <p>You can call this method concurrently with pool updates. It does not
+     * acquire a connection or change reference counts.
+     *
+     * @param domainId the remote domain to inspect
+     * @return {@code true} if any matching connection reports shutdown;
+     *         {@code false} if no connection matches
+     * @throws NullPointerException if {@code domainId} is {@code null}
+     */
+    public boolean isDomainDisconnecting(DomainId domainId)
+    {
+        Objects.requireNonNull(domainId, "domainId can not be null");
+        synchronized (getOrCreateLock)
+        {
+            return connections.isDomainDisconnecting(domainId);
+        }
+    }
+
+
     @Override
     public boolean equals(Object o)
     {

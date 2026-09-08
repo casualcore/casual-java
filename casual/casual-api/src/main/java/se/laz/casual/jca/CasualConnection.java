@@ -37,32 +37,4 @@ public interface CasualConnection extends CasualServiceApi, CasualQueueApi, Casu
      * @return DomainId - the domain id of the connected domain
      */
     DomainId getDomainId();
-
-    /**
-     * Check if the connection is disconnecting
-     * This means that the domain that we are connected to is going down
-     * and is currently draining in flight transactions but the actual connection
-     * is not yet gone
-     * @return true if disconnecting, false if not
-     */
-    boolean isDomainDisconnecting();
-
-    /**
-     * Check if this connection is backed by a reverse pool
-     * @return true if backed by a reverse pool, false if not
-     */
-    boolean isReversePool();
-
-    /**
-     * The domain ids currently backing the reverse pool - if it is a reverse pool.
-     *
-     * For a reverse pool these are the currently connected instances, one entry per instance no
-     * matter how many connections each of them has established. A connection towards a specific
-     * instance can then be obtained via
-     * {@link CasualConnectionFactory#getConnection(jakarta.resource.spi.ConnectionRequestInfo)}
-     * using a {@link CasualRequestInfo} with that domain id.
-     * @return the domain ids currently backing this connections pool
-     */
-    List<DomainId> getPoolDomainIds();
-
 }
