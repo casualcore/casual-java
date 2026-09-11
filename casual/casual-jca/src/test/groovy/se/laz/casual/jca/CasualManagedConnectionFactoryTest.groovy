@@ -257,4 +257,16 @@ class CasualManagedConnectionFactoryTest extends Specification
         expect:
         instance.toString().contains( "CasualManagedConnectionFactory" )
     }
+    def 'a pool containing only another domain has no matching managed connection'()
+    {
+        given:
+        DomainId domainA = DomainId.of(UUID.randomUUID())
+        DomainId domainB = DomainId.of(UUID.randomUUID())
+        CasualManagedConnection pinned = pinnedManagedConnection(domainA)
+
+        expect:
+        instance.matchManagedConnections([pinned] as Set, new Subject(), CasualRequestInfo.of(domainB)) == null
+        pinned.getPinnedDomainId() == Optional.of(domainA)
+    }
+
 }

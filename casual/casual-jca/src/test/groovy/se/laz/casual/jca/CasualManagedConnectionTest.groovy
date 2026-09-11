@@ -355,4 +355,31 @@ class CasualManagedConnectionTest extends Specification
         connection.pinnedDomainId.get() == domainId
     }
 
+    def 'a different domain request cannot change an established managed connection pin'()
+    {
+        given:
+        DomainId otherDomainId = DomainId.of(UUID.randomUUID())
+        CasualConnection first = instance.getConnection(null, CasualRequestInfo.of(domainId))
+        def originalNetworkConnection = instance.getNetworkConnection()
+
+        when:
+        instance.getConnection(null, CasualRequestInfo.of(otherDomainId))
+
+        then:
+        thrown(ResourceException)
+        instance.getPinnedDomainId() == Optional.of(domainId)
+        instance.getNetworkConnection().is(originalNetworkConnection)
+
+        when:
+        CasualConnection second = instance.getConnection(null, CasualRequestInfo.of(domainId))
+
+        then:
+        second != null
+        instance.getPinnedDomainId() == Optional.of(domainId)
+
+        cleanup:
+        first?.close()
+        second?.close()
+    }
+
 }

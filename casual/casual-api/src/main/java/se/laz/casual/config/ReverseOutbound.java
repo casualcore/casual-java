@@ -16,7 +16,7 @@ import java.util.Objects;
 public final class ReverseOutbound
 {
     private final String name;
-    private final Integer port;
+    private final int port;
 
     private ReverseOutbound( Builder builder )
     {
@@ -29,7 +29,7 @@ public final class ReverseOutbound
         return name;
     }
 
-    public Integer getPort()
+    public int getPort()
     {
         return port;
     }
