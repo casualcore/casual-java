@@ -41,6 +41,113 @@ class NetworkConnectionPoolTest extends Specification
       NetworkPoolHandler.getInstance().@pools.clear()
    }
 
+   def 'normal outbound reports domain disconnect when any connection is disconnecting: #states'()
+   {
+      given:
+      DomainId domainId = DomainId.of(UUID.randomUUID())
+      Address address = Address.of('localhost', 7771)
+      NetworkConnectionCreator creator = Mock(NetworkConnectionCreator)
+      NetworkConnectionPool pool = NetworkConnectionPool.of('pool', address, 2, creator)
+      def references = states.collect { boolean state ->
+         ReferenceCountedNetworkConnection.of(Mock(NettyNetworkConnection) {
+            isDomainDisconnecting() >> state
+            // it is connected to some domain
+            getDomainId() >> domainId
+         }, pool)
+      }
+      creator.createNetworkConnection(address, *_) >>> references
+      references.each { pool.getOrCreateConnection(address, Mock(NetworkListener)) }
+
+      when:
+      boolean disconnecting = pool.isDomainDisconnecting()
+
+      then:
+      disconnecting == expected
+      references.every { it.@referenceCount == 1 }
+      pool.getPoolDomainIds() == (states.isEmpty() ? [] : [domainId])
+      0 * creator.createNetworkConnection(*_)
+
+      where:
+      states         | expected
+      []             | false
+      [false, false] | false
+      [false, true]  | true
+      [true, false]  | true
+   }
+
+   def 'reverse domain disconnect queries isolate domains and preserve connection references'()
+   {
+      given:
+      DomainId domainA = DomainId.of(UUID.randomUUID())
+      DomainId domainB = DomainId.of(UUID.randomUUID())
+      def pool = NetworkConnectionPool.ofReverse('reverse-pool')
+      pool.addConnectionForReversePool(Mock(NettyNetworkConnection) {
+         getDomainId() >> domainA
+         isDomainDisconnecting() >> false
+      })
+      pool.addConnectionForReversePool(Mock(NettyNetworkConnection) {
+         getDomainId() >> domainA
+         isDomainDisconnecting() >> true
+      })
+      pool.addConnectionForReversePool(Mock(NettyNetworkConnection) {
+         getDomainId() >> domainB
+         isDomainDisconnecting() >> false
+      })
+      def references = new ArrayList(pool.@connections.@connections)
+
+      when:
+      boolean aIsDisconnecting = pool.isDomainDisconnecting(domainA)
+      boolean bIsDisconnecting = pool.isDomainDisconnecting(domainB)
+      boolean unknownDisconnecting = pool.isDomainDisconnecting(DomainId.of(UUID.randomUUID()))
+
+      then:
+      aIsDisconnecting
+      !bIsDisconnecting
+      !unknownDisconnecting
+      pool.getPoolDomainIds() as Set == [domainA, domainB] as Set
+      pool.@connections.@connections == references
+      references.every { it.@referenceCount == 1 }
+
+      when:
+      pool.isDomainDisconnecting()
+
+      then:
+      thrown(IllegalStateException)
+   }
+
+   def 'domain disconnected connection does not mark its replacement as disconnecting'()
+   {
+      given:
+      DomainId domainId = DomainId.of(UUID.randomUUID())
+      NetworkListener closeListener
+      def physical = Mock(NettyNetworkConnection) {
+         getDomainId() >> domainId
+         isDomainDisconnecting() >> true
+         addListener(_) >> { NetworkListener listener -> closeListener = listener }
+      }
+      def pool = NetworkConnectionPool.ofReverse('pool')
+      pool.addConnectionForReversePool(physical)
+      assert pool.isDomainDisconnecting(domainId)
+
+      when:
+      closeListener.disconnected(new IOException('Remote domain closed the connection'))
+
+      then:
+      1 * physical.close()
+      !pool.isDomainDisconnecting(domainId)
+      pool.getPoolDomainIds().isEmpty()
+
+      when:
+      pool.addConnectionForReversePool(Mock(NettyNetworkConnection) {
+         getDomainId() >> domainId
+         isDomainDisconnecting() >> false
+      })
+
+      then:
+      !pool.isDomainDisconnecting(domainId)
+      pool.getPoolDomainIds() == [domainId]
+   }
+
    def 'using the wrong address'()
    {
       given:
