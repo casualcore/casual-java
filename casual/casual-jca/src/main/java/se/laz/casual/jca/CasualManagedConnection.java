@@ -142,7 +142,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
 
     private void pinIfRequested(ConnectionRequestInfo cxRequestInfo) throws ResourceException
     {
-        Optional<DomainId> maybeDomainId = CasualManagedConnectionFactory.getDomainId(cxRequestInfo);
+        Optional<DomainId> maybeDomainId = DomainIdExtractor.getDomainId(cxRequestInfo);
         if(maybeDomainId.isEmpty())
         {
             return;

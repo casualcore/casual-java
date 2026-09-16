@@ -34,31 +34,41 @@ class CasualInboundTransactionRegistryTest extends Specification
       ChannelId idTwo = Mock(ChannelId)
       Xid xidTwo = XID.of(gtridData, bqualData, formatTypeTwo)
       XidKey keyTwo = XidKey.of(xidTwo)
+      expect:
+      instance.getPendingTransactionCount() == 0
       when:
       instance.add(idOne, keyOne)
       instance.add(idOne, keyTwo)
+      instance.add(idOne, keyOne)
       then:
+      instance.getPendingTransactionCount() == 2
       instance.hasPending()
       when:
       instance.remove(idOne, keyOne)
       then:
+      instance.getPendingTransactionCount() == 1
       instance.hasPending()
       when:
       instance.remove(idOne, keyTwo)
       then:
       !instance.hasPending()
+      instance.getPendingTransactionCount() == 0
       when:
       instance.add(idOne, keyOne)
       instance.add(idTwo, keyTwo)
+      instance.add(idTwo, keyOne)
       then:
+      instance.getPendingTransactionCount() == 3
       instance.hasPending()
       when:
       instance.remove(idOne)
       then:
+      instance.getPendingTransactionCount() == 2
       instance.hasPending()
       when:
       instance.remove(idTwo)
       then:
       !instance.hasPending()
+      instance.getPendingTransactionCount() == 0
    }
 }

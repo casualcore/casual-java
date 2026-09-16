@@ -53,6 +53,19 @@ public final class CasualResourceManager
         return !pendingRequests.isEmpty();
     }
 
+    /**
+     * Returns the number of pending outbound transaction entries across resource addresses.
+     *
+     * <p>This method synchronizes with registration and removal. An XID registered
+     * at multiple addresses contributes one entry per address.
+     *
+     * @return the number of pending outbound transaction entries
+     */
+    public synchronized long getPendingTransactionCount()
+    {
+        return pendingRequests.values().stream().mapToLong(Set::size).sum();
+    }
+
     public synchronized void remove(Address domainId, final Xid xid)
     {
         Set<Xid> inFlight = pendingRequests.get(domainId);

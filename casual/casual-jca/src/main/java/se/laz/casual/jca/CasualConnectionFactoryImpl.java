@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -11,12 +11,14 @@ import javax.naming.Reference;
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.ConnectionManager;
 import jakarta.resource.spi.ConnectionRequestInfo;
+import jakarta.resource.spi.ResourceAllocationException;
 import se.laz.casual.jca.pool.NetworkConnectionPool;
 import se.laz.casual.jca.pool.NetworkPoolHandler;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -60,6 +62,12 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     public CasualConnection getConnection(ConnectionRequestInfo connectionRequestInfo) throws ResourceException
     {
         log.finest("getConnection()");
+        Optional<DomainId> maybeDomainId = DomainIdExtractor.getDomainId(connectionRequestInfo);
+        boolean domainIsDisconnecting = maybeDomainId.map(this::isDomainDisconnecting).orElseGet(this::isDomainDisconnecting);
+        if(domainIsDisconnecting)
+        {
+            throw new ResourceAllocationException("domain is disconnecting");
+        }
         return (CasualConnection) connectionManager.allocateConnection(managedConnectionFactory, connectionRequestInfo);
     }
 

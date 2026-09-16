@@ -7,13 +7,16 @@
 package se.laz.casual.jca
 
 import se.laz.casual.jca.pool.NetworkPoolHandler
+import se.laz.casual.jca.pool.NetworkConnectionPool
 import se.laz.casual.network.outbound.NettyNetworkConnection
+import se.laz.casual.network.outbound.NetworkListener
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import javax.naming.Reference
 import jakarta.resource.spi.ConnectionManager
+import jakarta.resource.spi.ResourceAllocationException
 
 class CasualConnectionFactoryImplTest extends Specification
 {
@@ -40,13 +43,88 @@ class CasualConnectionFactoryImplTest extends Specification
         instance = null
     }
 
-    def "GetConnection"()
+    def "getConnection"()
     {
+        given:
+        factory.getNetworkConnectionPoolName() >> "pool-${UUID.randomUUID()}"
+        factory.getNetworkConnectionPoolSize() >> 1
+
         when:
         instance.getConnection()
 
         then:
         1 * cm.allocateConnection( factory, null )
+    }
+
+    def 'disconnecting normal pool rejects acquisition before allocation'()
+    {
+        given:
+        String poolName = "pool-${UUID.randomUUID()}"
+        def handler = NetworkPoolHandler.getInstance()
+        def pool = Mock(NetworkConnectionPool)
+        handler.@pools.put(poolName, pool)
+        factory.getNetworkConnectionPoolName() >> poolName
+        factory.getNetworkConnectionPoolSize() >> 1
+
+        when:
+        instance.getConnection()
+
+        then:
+        1 * pool.isDomainDisconnecting() >> true
+        0 * pool.isDomainDisconnecting(_)
+        thrown(ResourceAllocationException)
+        0 * cm.allocateConnection(_, _)
+
+        cleanup:
+        handler.@pools.remove(poolName)
+    }
+
+    def 'reverse outbound checks the requested domain: disconnecting = #disconnecting'()
+    {
+        given:
+        String poolName = "pool-${UUID.randomUUID()}"
+        def domainId = DomainId.of(UUID.randomUUID())
+        def otherDomainId = DomainId.of(UUID.randomUUID())
+        def requestInfo = CasualRequestInfo.of(domainId)
+        def handler = NetworkPoolHandler.getInstance()
+        def pool = handler.getOrCreateReversePool(poolName)
+        pool.addConnectionForReversePool(Mock(NettyNetworkConnection) {
+            getDomainId() >> domainId
+            isDomainDisconnecting() >> disconnecting
+        })
+        pool.addConnectionForReversePool(Mock(NettyNetworkConnection) {
+            getDomainId() >> otherDomainId
+            isDomainDisconnecting() >> !disconnecting
+        })
+        factory.getNetworkConnectionPoolName() >> poolName
+        factory.getNetworkConnectionPoolSize() >> 1
+        def connection = Mock(CasualConnection)
+
+        when:
+        CasualConnection result = null
+        ResourceAllocationException failure = null
+        try
+        {
+            // connection for domainId
+            result = instance.getConnection(requestInfo)
+        }
+        catch (ResourceAllocationException e)
+        {
+            failure = e
+        }
+
+        then:
+        (failure != null) == disconnecting
+        (disconnecting ? 0 : 1) * cm.allocateConnection(factory, requestInfo) >> connection
+        result == (disconnecting ? null : connection)
+        // no other allocation was made
+        0 * cm.allocateConnection(_, _)
+
+        cleanup:
+        handler.@pools.remove(poolName)
+
+        where:
+        disconnecting << [true, false]
     }
 
     def "GetReference before it is set then it is null."()

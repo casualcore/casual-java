@@ -136,20 +136,12 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       log.finest("matchManagedConnections()");
       // a request carrying a domain id must only ever match a managed connection pinned to that very domain,
       // a request without one must only ever match an unpinned managed connection
-      Optional<DomainId> maybeDomainId = getDomainId(cxRequestInfo);
+      Optional<DomainId> maybeDomainId = DomainIdExtractor.getDomainId(cxRequestInfo);
       return (ManagedConnection)connectionSet.stream()
                                              .filter(CasualManagedConnection.class::isInstance)
                                              .filter(connection -> maybeDomainId.equals(((CasualManagedConnection)connection).getPinnedDomainId()))
                                              .findFirst( )
                                              .orElse( null );
-   }
-
-   /**
-    * The domain id of the request info, empty when there is none.
-    */
-   static Optional<DomainId> getDomainId(ConnectionRequestInfo cxRequestInfo)
-   {
-      return cxRequestInfo instanceof CasualRequestInfo requestInfo ? requestInfo.getDomainId() : Optional.empty();
    }
 
    @Override
