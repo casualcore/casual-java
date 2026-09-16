@@ -42,7 +42,6 @@ public interface CasualConnectionFactory extends Serializable, Referenceable
      * The result can change immediately after this method returns.
      *
      * @return whether any connection reports remote domain shutdown
-     * @throws UnsupportedOperationException if network pooling is not configured
      */
     boolean isDomainDisconnecting();
 }

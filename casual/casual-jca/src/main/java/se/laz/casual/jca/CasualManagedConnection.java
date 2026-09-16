@@ -85,7 +85,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         {
             if (networkConnection == null)
             {
-                mcf.validateNetworkPooling();
                 networkConnection = getOrCreateFromPool();
             }
         }

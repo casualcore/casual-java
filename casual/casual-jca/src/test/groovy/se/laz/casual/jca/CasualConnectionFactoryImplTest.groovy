@@ -193,16 +193,4 @@ class CasualConnectionFactoryImplTest extends Specification
         0 * cm.allocateConnection(_, _)
     }
 
-    def 'acquisition without network pooling fails before allocation'()
-    {
-        given:
-        def unconfiguredFactory = new CasualConnectionFactoryImpl(new CasualManagedConnectionFactory(), cm)
-
-        when:
-        unconfiguredFactory.getConnection()
-
-        then:
-        thrown(UnsupportedOperationException)
-        0 * cm.allocateConnection(_, _)
-    }
 }

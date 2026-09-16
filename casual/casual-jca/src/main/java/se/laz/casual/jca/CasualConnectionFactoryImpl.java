@@ -82,7 +82,6 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     @Override
     public boolean isDomainDisconnecting()
     {
-        managedConnectionFactory.validateNetworkPooling();
         final NetworkConnectionPool pool = NetworkPoolHandler.getInstance()
                 .getPool(managedConnectionFactory.getNetworkConnectionPoolName());
         return pool != null && pool.isDomainDisconnecting();

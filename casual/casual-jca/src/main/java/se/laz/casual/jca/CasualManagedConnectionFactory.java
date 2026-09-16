@@ -98,7 +98,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     *
     * @throws UnsupportedOperationException if network pooling is not configured correctly
     */
-   void validateNetworkPooling()
+   private void validateNetworkPooling()
    {
       if (networkConnectionPoolName == null || networkConnectionPoolName.isBlank()
               || networkConnectionPoolSize == null || networkConnectionPoolSize <= 0)
