@@ -86,6 +86,8 @@ class CasualManagedConnectionFactoryTest extends Specification
         ConnectionManager manager = Mock(ConnectionManager)
 
         when:
+        instance.setNetworkConnectionPoolName("pool")
+        instance.setNetworkConnectionPoolSize(1)
         Object factory = instance.createConnectionFactory( manager )
 
         then:
@@ -103,6 +105,8 @@ class CasualManagedConnectionFactoryTest extends Specification
            }
         }
         instance = new CasualManagedConnectionFactory().setCasualManagedConnectionProducer(producer)
+        instance.setNetworkConnectionPoolName("pool")
+        instance.setNetworkConnectionPoolSize(1)
         instance.setHostName(hostName)
         instance.setPortNumber( portNumber)
 
@@ -224,5 +228,37 @@ class CasualManagedConnectionFactoryTest extends Specification
     {
         expect:
         instance.toString().contains( "CasualManagedConnectionFactory" )
+    }
+
+    def 'invalid pooling configuration is rejected before factory or managed connection creation: #name, #size'()
+    {
+        given:
+        instance.networkConnectionPoolName = name
+        instance.networkConnectionPoolSize = size
+        def producer = Mock(CasualManagedConnectionProducer)
+        instance.setCasualManagedConnectionProducer(producer)
+
+        when:
+        instance.createConnectionFactory(Mock(ConnectionManager))
+
+        then:
+        thrown(UnsupportedOperationException)
+
+        when:
+        instance.createManagedConnection(null, null)
+
+        then:
+        thrown(UnsupportedOperationException)
+        0 * producer.createManagedConnection(_)
+
+        where:
+        name   | size
+        null   | null
+        null   | 1
+        'pool' | null
+        ''     | 1
+        '  '   | 1
+        'pool' | 0
+        'pool' | -1
     }
 }

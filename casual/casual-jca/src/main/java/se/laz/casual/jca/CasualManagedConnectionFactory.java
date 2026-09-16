@@ -93,9 +93,25 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
         this.networkConnectionPoolSize = networkConnectionPoolSize;
     }
 
+   /**
+    * Requires a nonblank network pool name and a positive pool size.
+    *
+    * @throws UnsupportedOperationException if network pooling is not configured correctly
+    */
+   void validateNetworkPooling()
+   {
+      if (networkConnectionPoolName == null || networkConnectionPoolName.isBlank()
+              || networkConnectionPoolSize == null || networkConnectionPoolSize <= 0)
+      {
+         throw new UnsupportedOperationException(
+                 "Network pooling requires a nonblank networkConnectionPoolName and a positive networkConnectionPoolSize");
+      }
+   }
+
    @Override
    public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException
    {
+      validateNetworkPooling();
       log.finest("createConnectionFactory()");
       return new CasualConnectionFactoryImpl(this, cxManager);
    }
@@ -110,6 +126,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    public ManagedConnection createManagedConnection(Subject subject,
                                                     ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
+      validateNetworkPooling();
       try
       {
          CasualManagedConnection managedConnection = casualManagedConnectionProducer.createManagedConnection(this);

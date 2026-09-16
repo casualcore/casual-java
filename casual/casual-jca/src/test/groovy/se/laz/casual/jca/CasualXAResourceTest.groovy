@@ -81,6 +81,32 @@ class CasualXAResourceTest extends Specification
         transactionResources.remove( domainOne, xid2 )
     }
 
+    def 'an enlisted branch with no service calls still sends prepare to the remote resource'()
+    {
+        // scenario:
+        // user app getConnection is fine but the domain goes down after the user has got the handle
+        // thus, it would be enlisted in any active transaction even though the actual service call will fail
+        // as only XA calls are allowed while a domain is going down - no new service calls
+        when:
+        instance.start(xid1, XAResource.TMNOFLAGS)
+        instance.end(xid1, XAResource.TMSUCCESS)
+
+        then:
+        !instance.readOnly
+        0 * networkConnection.request(_)
+
+        when:
+        instance.prepare(xid1)
+
+        then:
+        1 * networkConnection.request({ envelope ->
+            envelope.message instanceof CasualTransactionResourcePrepareRequestMessage &&
+                    envelope.message.xid == xid1
+        }) >> CompletableFuture.completedFuture(createPrepareReplyMessage(xid1, XAReturnCode.XAER_INVAL))
+        XAException error = thrown()
+        error.errorCode == XAException.XAER_INVAL
+    }
+
     def initialiseExpectedRequests()
     {
         expectedPrepareRequestMessage = createPrepareRequestMessage( xid1, Flag.of(XAFlags.TMNOFLAGS) )

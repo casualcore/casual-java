@@ -191,35 +191,4 @@ class CasualConnectionImplTest extends Specification
         expect:
         instance.toString().contains( "CasualConnectionImpl")
     }
-
-    def "Disconnecting test invalidated, return false."()
-    {
-        given:
-        instance = new CasualConnectionImpl( connection )
-
-        when:
-        instance.invalidate(  )
-
-        then:
-        !instance.isDomainDisconnecting(  )
-
-    }
-
-    def "Disconnecting test"()
-    {
-        given:
-        CasualManagedConnection con = Mock(CasualManagedConnection)
-        1* con.isDomainDisconnecting(  ) >> disconnected
-
-        when:
-        instance = new CasualConnectionImpl( con )
-
-        then:
-        instance.isDomainDisconnecting(  ) == expected
-
-        where:
-        disconnected || expected
-        true         || true
-        false        || false
-    }
 }

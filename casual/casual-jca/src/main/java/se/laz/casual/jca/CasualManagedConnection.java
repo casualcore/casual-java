@@ -20,16 +20,12 @@ import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
 import se.laz.casual.jca.pool.NetworkPoolHandler;
-import se.laz.casual.network.outbound.NettyConnectionInformation;
-import se.laz.casual.network.outbound.NettyConnectionInformationCreator;
-import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
 
 import javax.security.auth.Subject;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -89,19 +85,11 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         {
             if (networkConnection == null)
             {
-                if(null != mcf.getNetworkConnectionPoolName() && null == mcf.getNetworkConnectionPoolSize())
-                {
-                    log.warning(() -> "networkPoolName set to: " + mcf.getNetworkConnectionPoolName() + " but missing networkPoolSize!");
-                }
-                networkConnection = networkPoolNameAndNetworkPoolSizeSet() ? getOrCreateFromPool() : createOneToOneManagedConnection();
+                mcf.validateNetworkPooling();
+                networkConnection = getOrCreateFromPool();
             }
         }
         return networkConnection;
-    }
-
-    private boolean networkPoolNameAndNetworkPoolSizeSet()
-    {
-        return null != mcf.getNetworkConnectionPoolSize() && null != mcf.getNetworkConnectionPoolName();
     }
 
     private NetworkConnection getOrCreateFromPool()
@@ -266,18 +254,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         connectionHandles.remove(handle);
     }
 
-    /**
-     * Check if the connection is disconnecting
-     * This means that the domain that we are connected to is going down
-     * and is currently draining in flight transactions, but the actual connection
-     * is not yet gone
-     * @return true if disconnecting, false if not
-     */
-    public boolean isDomainDisconnecting()
-    {
-        return networkConnection != null && networkConnection.isDomainDisconnecting();
-    }
-
     public WorkManager getWorkManager()
     {
         ResourceAdapter ra = mcf.getResourceAdapter();
@@ -336,11 +312,4 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         return timeout.get();
     }
 
-    private NetworkConnection createOneToOneManagedConnection()
-    {
-        NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(mcf.getHostName(), mcf.getPortNumber()));
-        NetworkConnection newNetworkConnection = NettyNetworkConnection.of(ci, this);
-        log.finest(() -> "created new nw connection " + this);
-        return newNetworkConnection;
-    }
 }

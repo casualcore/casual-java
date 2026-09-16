@@ -56,6 +56,15 @@ public class ConnectionContainer
         }
     }
 
+    public boolean isDomainDisconnecting()
+    {
+        synchronized (lock)
+        {
+            return connections.stream()
+                              .anyMatch(ReferenceCountedNetworkConnection::isDomainDisconnecting);
+        }
+    }
+
     @Override
     public String toString()
     {

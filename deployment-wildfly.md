@@ -69,6 +69,8 @@ Added the following to the standalone.xml on your wildfly server:
                     <config-property name="HostName">
                     192.168.99.100
                     </config-property>
+                    <config-property name="NetworkConnectionPoolName">casual-network-pool</config-property>
+                    <config-property name="NetworkConnectionPoolSize">1</config-property>
                     <xa-pool>
                         <min-pool-size>5</min-pool-size>
                         <initial-pool-size>5</initial-pool-size>

@@ -313,4 +313,16 @@ class CasualManagedConnectionTest extends Specification
         then:
         actual == timeout
     }
+
+    def 'physical connection acquisition requires network pooling'()
+    {
+        given:
+        def connection = new CasualManagedConnection(new CasualManagedConnectionFactory())
+
+        when:
+        connection.getNetworkConnection()
+
+        then:
+        thrown(UnsupportedOperationException)
+    }
 }

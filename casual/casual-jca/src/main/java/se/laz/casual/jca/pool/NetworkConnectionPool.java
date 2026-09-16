@@ -65,12 +65,16 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         {
             // create up to pool size # of connections
             // after that, randomly choose one - later on we can have some better heuristics for choosing which connection to return
-            if (connections.size() == poolSize)
+            while (connections.size() == poolSize)
             {
                 ReferenceCountedNetworkConnection connection = connections.get();
-                connection.increment();
-                connection.addListener(networkListener);
-                return connection;
+                if(connection.tryIncrement())
+                {
+                    connection.addListener(networkListener);
+                    return connection;
+                }
+                // the last user just released it, its close notification is pending - drop it and create a replacement
+                connections.removeConnection(connection);
             }
             ReferenceCountedNetworkConnection connection = networkConnectionCreator.createNetworkConnection(address, networkListener, this, this);
             connections.addConnection(connection);
@@ -107,6 +111,14 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     public int hashCode()
     {
         return Objects.hash(address, poolName);
+    }
+
+    public boolean isDomainDisconnecting()
+    {
+        synchronized (getOrCreateLock)
+        {
+            return connections.isDomainDisconnecting();
+        }
     }
 
     @Override
