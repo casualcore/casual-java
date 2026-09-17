@@ -56,8 +56,7 @@ If you are running on an older JVM in a containerized world, that might be subop
 
 ## Pool configuration
 
-Without any specific configuration the mapping of Managed Connection entries, pool entries, and physical network connection is 1 to 1.
-You can specify the number of physical connections by specifying the network pool name and the number of connections you want.
+You must configure `NetworkConnectionPoolName` with a unique nonblank name and `NetworkConnectionPoolSize` with a positive integer. The adapter rejects missing or invalid network pool settings. Managed connections share the physical connections in the named network pool; unpooled physical connections are not supported.
 
 Example for wildfly:
 ```
@@ -66,5 +65,4 @@ $connectionDefinitionNode/config-properties=NetworkConnectionPoolSize:add(value=
 ```
 
 Note that each physical network connection is multiplexing on its own since we are running on top of Netty.
-On another note, we recommend that if you are connecting via a load balancer - create different pools each with the  NetworkConnectionPoolSize of 1.
-This means that for each pool, each ManagedConnection is still talking to the same EIS.
+We recommend that you use a NetworkConnectionPoolSize of 1 for most cases.

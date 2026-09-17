@@ -83,7 +83,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     public static NetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
     {
         Objects.requireNonNull(ci, "connection info can not be null");
-        Objects.requireNonNull(ci, "network listener can not be null");
+        Objects.requireNonNull(networkListener, "network listener can not be null");
         ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException("network connection is gone"));
         errorInformer.addListener(networkListener);
         EventLoopGroup workerGroup = EventLoopFactory.getInstance(EventLoopClient.OUTBOUND);

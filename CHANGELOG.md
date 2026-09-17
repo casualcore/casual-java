@@ -1,6 +1,21 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.5.0] - 2026-09-17
+
+### fix: prepare rb and race condition fix plus ensure pool usage only ([#214](https://github.com/casualcore/casual-java/issues/214))
+Fix transaction cleanup and pooled connection lifecycle
+
+  - Remove inbound transaction entries when prepare returns XA_RB*.
+- Prevent reacquiring connections after their final reference is
+released.
+- Reject connection allocation when the remote domain is disconnecting.
+  - Move domain-disconnect queries from connection handles to factories.
+  - Require a nonblank network pool name and positive pool size.
+  - Remove the unpooled connection path.
+  - Correct network listener null validation.
+  - Add regression tests and update pooling documentation.
+
 ## [3.4.8] - 2026-06-22
 
 ### feat: add static code analysis with spot bugs ([#212](https://github.com/casualcore/casual-java/issues/212))

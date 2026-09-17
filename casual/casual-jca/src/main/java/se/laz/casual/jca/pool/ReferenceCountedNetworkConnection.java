@@ -19,13 +19,15 @@ import se.laz.casual.network.protocol.messages.conversation.Request;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class ReferenceCountedNetworkConnection implements NetworkConnection
 {
     private static final Logger log = Logger.getLogger(ReferenceCountedNetworkConnection.class.getName());
-    private final AtomicInteger referenceCount = new AtomicInteger(1);
+    private final Object referenceLock = new Object();
+    private int referenceCount = 1;
+    // guarded by referenceLock, once the count reaches zero the connection is closed for good
+    private boolean closed;
     private final NettyNetworkConnection networkConnection;
     private final ReferenceCountedNetworkCloseListener closeListener;
 
@@ -35,6 +37,13 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
         this.closeListener = closeListener;
     }
 
+    /**
+     * Creates a connection with one reference owned by the caller.
+     *
+     * @param networkConnection the physical connection
+     * @param closeListener the listener notified after the final reference is released
+     * @return a reference-counted connection
+     */
     public static ReferenceCountedNetworkConnection of(NettyNetworkConnection networkConnection, ReferenceCountedNetworkCloseListener closeListener)
     {
         Objects.requireNonNull(networkConnection, "networkConnection can not be null");
@@ -47,10 +56,25 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
         return networkConnection.isDomainDisconnecting();
     }
 
-    public int increment()
+    /**
+     * Acquires a reference unless the final reference has already been released.
+     *
+     * <p>You can call this method concurrently with {@link #close()}.
+     *
+     * @return {@code true} if a reference is acquired; {@code false} if already closed
+     */
+    public boolean tryIncrement()
     {
-        log.finest(() -> "increment current refcount: " + referenceCount.get());
-        return referenceCount.incrementAndGet();
+        synchronized (referenceLock)
+        {
+            if(closed)
+            {
+                return false;
+            }
+            log.finest(() -> "increment current refcount: " + referenceCount + " for network connection: " + networkConnection);
+            referenceCount++;
+            return true;
+        }
     }
 
     public void addListener(NetworkListener listener)
@@ -91,13 +115,20 @@ public class ReferenceCountedNetworkConnection implements NetworkConnection
     @Override
     public void close()
     {
-        log.finest(() -> "close current refcount: " + referenceCount.get());
-        if(referenceCount.decrementAndGet() == 0)
+        synchronized (referenceLock)
         {
-            log.finest(() -> "closing network connection: " + networkConnection);
-            networkConnection.close();
-            closeListener.closed(this);
+            log.finest(() -> "close current refcount: " + referenceCount);
+            if(closed || --referenceCount != 0)
+            {
+                return;
+            }
+            closed = true;
         }
+        // outside the lock, the close listener takes the pool lock and the pool
+        // calls tryIncrement while holding it
+        log.finest(() -> "closing network connection: " + networkConnection);
+        networkConnection.close();
+        closeListener.closed(this);
     }
 
     @Override

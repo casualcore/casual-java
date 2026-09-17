@@ -11,6 +11,9 @@ import javax.naming.Reference;
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.ConnectionManager;
 import jakarta.resource.spi.ConnectionRequestInfo;
+import jakarta.resource.spi.ResourceAllocationException;
+import se.laz.casual.jca.pool.NetworkConnectionPool;
+import se.laz.casual.jca.pool.NetworkPoolHandler;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -55,6 +58,10 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     public CasualConnection getConnection(ConnectionRequestInfo connectionRequestInfo) throws ResourceException
     {
         log.finest("getConnection()");
+        if (isDomainDisconnecting())
+        {
+            throw new ResourceAllocationException("domain is disconnecting");
+        }
         return (CasualConnection) connectionManager.allocateConnection(managedConnectionFactory, connectionRequestInfo);
     }
 
@@ -70,6 +77,14 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     {
         log.finest("setReference()");
         this.reference = reference;
+    }
+
+    @Override
+    public boolean isDomainDisconnecting()
+    {
+        final NetworkConnectionPool pool = NetworkPoolHandler.getInstance()
+                .getPool(managedConnectionFactory.getNetworkConnectionPoolName());
+        return pool != null && pool.isDomainDisconnecting();
     }
 
     @Override

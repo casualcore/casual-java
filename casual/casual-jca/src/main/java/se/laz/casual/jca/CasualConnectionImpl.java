@@ -56,12 +56,6 @@ public class CasualConnectionImpl implements CasualConnection
         queueCaller = CasualQueueCaller.of(mc);
     }
 
-    @Override
-    public boolean isDomainDisconnecting()
-    {
-        return managedConnection != null && managedConnection.isDomainDisconnecting();
-    }
-
     /**
      * Invalidate this connection handle removing its reference to
      * the underlying {@link jakarta.resource.spi.ManagedConnection}.

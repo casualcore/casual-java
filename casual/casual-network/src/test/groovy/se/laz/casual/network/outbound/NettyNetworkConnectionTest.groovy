@@ -443,4 +443,12 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
          return null
       }
    }
+
+    def 'connection creation rejects a missing listener before opening a channel'()
+    {
+        when:
+        NettyNetworkConnection.of(ci, null)
+        then:
+        thrown(NullPointerException)
+    }
 }

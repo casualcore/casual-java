@@ -6,6 +6,9 @@
 
 package se.laz.casual.jca
 
+import se.laz.casual.jca.pool.NetworkPoolHandler
+import se.laz.casual.jca.pool.NetworkConnectionPool
+import jakarta.resource.spi.ResourceAllocationException
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -38,8 +41,34 @@ class CasualConnectionFactoryImplTest extends Specification
         instance = null
     }
 
+    def 'disconnecting normal pool rejects acquisition before allocation'()
+    {
+        given:
+        String poolName = "pool-${UUID.randomUUID()}"
+        def handler = NetworkPoolHandler.getInstance()
+        def pool = Mock(NetworkConnectionPool)
+        handler.@pools.put(poolName, pool)
+        factory.getNetworkConnectionPoolName() >> poolName
+        factory.getNetworkConnectionPoolSize() >> 1
+
+        when:
+        instance.getConnection()
+
+        then:
+        1 * pool.isDomainDisconnecting() >> true
+        thrown(ResourceAllocationException)
+        0 * cm.allocateConnection(_, _)
+
+        cleanup:
+        handler.@pools.remove(poolName)
+    }
+
     def "GetConnection"()
     {
+        given:
+        factory.getNetworkConnectionPoolName() >> "pool-${UUID.randomUUID()}"
+        factory.getNetworkConnectionPoolSize() >> 1
+
         when:
         instance.getConnection()
 
@@ -109,4 +138,59 @@ class CasualConnectionFactoryImplTest extends Specification
         expect:
         instance.toString().contains( "CasualConnectionFactoryImpl" )
     }
+
+    def 'explicit request info is preserved when allocation succeeds'()
+    {
+        given:
+        def info = Mock(jakarta.resource.spi.ConnectionRequestInfo)
+        def connection = Mock(CasualConnection)
+        factory.getNetworkConnectionPoolName() >> "pool-${UUID.randomUUID()}"
+        factory.getNetworkConnectionPoolSize() >> 1
+
+        when:
+        def result = instance.getConnection(info)
+
+        then:
+        1 * cm.allocateConnection(factory, info) >> connection
+        result.is(connection)
+    }
+
+    def 'disconnecting pool rejects explicit request info before allocation'()
+    {
+        given:
+        String poolName = "pool-${UUID.randomUUID()}"
+        def handler = NetworkPoolHandler.getInstance()
+        handler.@pools.put(poolName, Mock(NetworkConnectionPool) {
+            isDomainDisconnecting() >> true
+        })
+        factory.getNetworkConnectionPoolName() >> poolName
+        factory.getNetworkConnectionPoolSize() >> 1
+
+        when:
+        instance.getConnection(Mock(jakarta.resource.spi.ConnectionRequestInfo))
+
+        then:
+        thrown(ResourceAllocationException)
+        0 * cm.allocateConnection(_, _)
+
+        cleanup:
+        handler.@pools.remove(poolName)
+    }
+
+    def 'missing pool query does not create a pool or allocate a connection'()
+    {
+        given:
+        String poolName = "pool-${UUID.randomUUID()}"
+        factory.getNetworkConnectionPoolName() >> poolName
+        factory.getNetworkConnectionPoolSize() >> 1
+
+        when:
+        def disconnecting = instance.isDomainDisconnecting()
+
+        then:
+        !disconnecting
+        NetworkPoolHandler.getInstance().getPool(poolName) == null
+        0 * cm.allocateConnection(_, _)
+    }
+
 }

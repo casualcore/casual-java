@@ -234,9 +234,10 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         }
         finally
         {
-            if(status == XAReturnCode.XA_RDONLY.getId())
+            if (status == XAReturnCode.XA_RDONLY.getId()
+                    || (status >= XAException.XA_RBBASE && status <= XAException.XA_RBEND))
             {
-                // XA_RDONLY, no commit/rollback will be called
+                // The branch has completed; no further commit or rollback call is required.
                 inboundTransactionRegistry.remove(channel.id(), XidKey.of(xid));
             }
             CasualTransactionResourcePrepareReplyMessage reply =

@@ -498,6 +498,30 @@ class CasualMessageListenerImplTest extends Specification
         inboundTransactionRegistry.hasPending()
     }
 
+    def 'prepare rollback outcome #errorCode removes the completed inbound transaction'()
+    {
+        given:
+        def message = CasualNWMessageImpl.of(correlationId,
+                CasualTransactionResourcePrepareRequestMessage.of(execution, xid, 1, Flag.of()))
+        def registry = new CasualInboundTransactionRegistry()
+        registry.add(channel.id(), XidKey.of(xid))
+
+        when:
+        instance.prepareRequest(message, channel, xaTerminator, registry)
+        channel.writeInbound(channel.outboundMessages().element())
+        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
+
+        then:
+        1 * xaTerminator.prepare(xid) >> { throw new XAException(errorCode) }
+        reply.getCorrelationId() == correlationId
+        reply.getMessage().getXid() == xid
+        reply.getMessage().getTransactionReturnCode().getId() == errorCode
+        !registry.hasPending()
+
+        where:
+        errorCode << (XAException.XA_RBBASE..XAException.XA_RBEND)
+    }
+
     def "CommitRequest"()
     {
         given:

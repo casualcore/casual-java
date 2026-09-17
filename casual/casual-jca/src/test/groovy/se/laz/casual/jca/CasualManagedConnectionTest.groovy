@@ -313,4 +313,5 @@ class CasualManagedConnectionTest extends Specification
         then:
         actual == timeout
     }
+
 }
