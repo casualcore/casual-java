@@ -9,7 +9,9 @@ package se.laz.casual.jca;
 import jakarta.resource.Referenceable;
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.ConnectionRequestInfo;
+
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * CasualConnectionFactory
@@ -34,14 +36,40 @@ public interface CasualConnectionFactory extends Serializable, Referenceable
      * @exception ResourceException Thrown if a connection can't be obtained
      */
     CasualConnection getConnection(ConnectionRequestInfo connectionRequestInfo) throws ResourceException;
+
     /**
-     * Returns whether an existing pooled connection reports remote domain shutdown.
+     * Returns whether a connection to this factory's remote domain reports shutdown.
      *
-     * <p>You can call this method concurrently. It does not allocate a connection.
-     * A missing or empty pool returns {@code false}; this does not establish availability.
-     * The result can change immediately after this method returns.
+     * <p>You can call this method concurrently. It inspects existing connections
+     * without allocating a connection or changing reference counts. The result
+     * can change immediately after the method returns.
      *
-     * @return whether any connection reports remote domain shutdown
+     * <p>A missing or empty pool returns {@code false}. This result does not
+     * establish that the remote domain is available.
+     *
+     * @return {@code true} if any connection in the pool reports domain shutdown
+     * @throws IllegalStateException if the existing pool is an unpinned reverse pool
      */
     boolean isDomainDisconnecting();
+
+    /**
+     * Returns whether a connection to the specified remote domain in a reverse pool reports shutdown.
+     *
+     * <p>You can call this method concurrently. It inspects existing connections
+     * without allocating a connection or changing reference counts. The result
+     * can change immediately after the method returns.
+     *
+     * <p>You must use a registered reverse pool. A domain without matching connections
+     * returns {@code false}. This result does not establish that the domain is available.
+     *
+     * @param domainId the remote domain to inspect
+     * @return {@code true} if any matching connection reports domain shutdown
+     * @throws NullPointerException if {@code domainId} is {@code null}
+     * @throws IllegalStateException if the pool is missing or is not a reverse pool
+     */
+    boolean isDomainDisconnecting(DomainId domainId);
+
+    boolean isReverse();
+    List<DomainId> getDomainIds();
+
 }

@@ -6,6 +6,8 @@
 
 package se.laz.casual.jca
 
+import se.laz.casual.network.outbound.NetworkListener
+import se.laz.casual.network.outbound.NettyNetworkConnection
 import se.laz.casual.jca.pool.NetworkPoolHandler
 import se.laz.casual.jca.pool.NetworkConnectionPool
 import jakarta.resource.spi.ResourceAllocationException
@@ -193,4 +195,173 @@ class CasualConnectionFactoryImplTest extends Specification
         0 * cm.allocateConnection(_, _)
     }
 
+
+    def 'reverse outbound checks the requested domain: disconnecting = #disconnecting'()
+    {
+        given:
+        String poolName = "pool-${UUID.randomUUID()}"
+        def domainId = DomainId.of(UUID.randomUUID())
+        def otherDomainId = DomainId.of(UUID.randomUUID())
+        def requestInfo = CasualRequestInfo.of(domainId)
+        def handler = NetworkPoolHandler.getInstance()
+        def pool = handler.getOrCreateReversePool(poolName)
+        pool.addConnectionForReversePool(Mock(NettyNetworkConnection) {
+            getDomainId() >> domainId
+            isDomainDisconnecting() >> disconnecting
+        })
+        pool.addConnectionForReversePool(Mock(NettyNetworkConnection) {
+            getDomainId() >> otherDomainId
+            isDomainDisconnecting() >> !disconnecting
+        })
+        factory.getNetworkConnectionPoolName() >> poolName
+        factory.getNetworkConnectionPoolSize() >> 1
+        def connection = Mock(CasualConnection)
+
+        when:
+        CasualConnection result = null
+        ResourceAllocationException failure = null
+        try
+        {
+            // connection for domainId
+            result = instance.getConnection(requestInfo)
+        }
+        catch (ResourceAllocationException e)
+        {
+            failure = e
+        }
+
+        then:
+        (failure != null) == disconnecting
+        (disconnecting ? 0 : 1) * cm.allocateConnection(factory, requestInfo) >> connection
+        result == (disconnecting ? null : connection)
+        // no other allocation was made
+        0 * cm.allocateConnection(_, _)
+
+        cleanup:
+        handler.@pools.remove(poolName)
+
+        where:
+        disconnecting << [true, false]
+    }
+
+    def 'normal pool queries do not allocate a connection nor create a pool'()
+    {
+        given:
+        String poolName = "pool-${UUID.randomUUID()}"
+        factory.getNetworkConnectionPoolName() >> poolName
+        factory.getNetworkConnectionPoolSize() >> 1
+
+        when:
+        boolean reverse = instance.isReverse()
+        def domains = instance.getDomainIds()
+        boolean disconnecting = instance.isDomainDisconnecting()
+
+        then:
+        !reverse
+        domains.isEmpty()
+        !disconnecting
+        NetworkPoolHandler.getInstance().getPool(poolName) == null
+        0 * cm.allocateConnection(_, _)
+    }
+
+    def 'registered empty reverse pool domain disconnected queries without allocating any connection'()
+    {
+        given:
+        String poolName = "pool-${UUID.randomUUID()}"
+        // what CasualResourceAdapter does for a configured reverse pool on startup
+        def handler = NetworkPoolHandler.getInstance()
+        handler.getOrCreateReversePool(poolName)
+        factory.getNetworkConnectionPoolName() >> poolName
+        factory.getNetworkConnectionPoolSize() >> 1
+
+        when:
+        boolean reverse = instance.isReverse()
+        def domains = instance.getDomainIds()
+        boolean disconnecting = instance.isDomainDisconnecting(DomainId.of(UUID.randomUUID()))
+
+        then:
+        reverse
+        domains.isEmpty()
+        !disconnecting
+        0 * cm.allocateConnection(_, _)
+
+        when:
+        instance.isDomainDisconnecting()
+
+        then:
+        thrown(IllegalStateException)
+        0 * cm.allocateConnection(_, _)
+
+        cleanup:
+        handler.@pools.remove(poolName)
+    }
+
+    def 'factories query their own pools even when the domain id is shared'()
+    {
+        given:
+        String firstPoolName = "pool-${UUID.randomUUID()}"
+        String secondPoolName = "pool-${UUID.randomUUID()}"
+        DomainId domainId = DomainId.of(UUID.randomUUID())
+        // what CasualResourceAdapter does for configured reverse pools on startup
+        def handler = NetworkPoolHandler.getInstance()
+        def firstPool = handler.getOrCreateReversePool(firstPoolName)
+        def secondPool = handler.getOrCreateReversePool(secondPoolName)
+        firstPool.addConnectionForReversePool(Mock(NettyNetworkConnection) {
+            getDomainId() >> domainId
+            isDomainDisconnecting() >> true
+        })
+        secondPool.addConnectionForReversePool(Mock(NettyNetworkConnection) {
+            getDomainId() >> domainId
+            isDomainDisconnecting() >> false
+        })
+        factory.getNetworkConnectionPoolName() >> firstPoolName
+        factory.getNetworkConnectionPoolSize() >> 1
+        factory2.getNetworkConnectionPoolName() >> secondPoolName
+        factory2.getNetworkConnectionPoolSize() >> 1
+        def secondFactory = new CasualConnectionFactoryImpl(factory2, cm2)
+
+        when:
+        boolean firstDisconnecting = instance.isDomainDisconnecting(domainId)
+        boolean secondDisconnecting = secondFactory.isDomainDisconnecting(domainId)
+        def firstDomains = instance.getDomainIds()
+        def secondDomains = secondFactory.getDomainIds()
+
+        then:
+        firstDisconnecting
+        !secondDisconnecting
+        firstDomains == [domainId]
+        secondDomains == [domainId]
+        0 * cm.allocateConnection(_, _)
+        0 * cm2.allocateConnection(_, _)
+
+        cleanup:
+        handler.@pools.remove(firstPoolName)
+        handler.@pools.remove(secondPoolName)
+    }
+
+    def 'domain-specific shutdown query rejects a missing or normal pool: registered = #registered'()
+    {
+        given:
+        String poolName = "pool-${UUID.randomUUID()}"
+        def handler = NetworkPoolHandler.getInstance()
+        factory.getNetworkConnectionPoolName() >> poolName
+        if (registered)
+        {
+            handler.@pools.put(poolName, NetworkConnectionPool.of(poolName, Address.of('localhost', 7771), 1))
+        }
+
+        when:
+        instance.isDomainDisconnecting(DomainId.of(UUID.randomUUID()))
+
+        then:
+        thrown(IllegalStateException)
+        0 * cm.allocateConnection(_, _)
+        (handler.getPool(poolName) != null) == registered
+
+        cleanup:
+        handler.@pools.remove(poolName)
+
+        where:
+        registered << [false, true]
+    }
 }

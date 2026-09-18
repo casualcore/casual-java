@@ -22,6 +22,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -150,8 +151,12 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
                                                     Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
       log.finest("matchManagedConnections()");
+      // a request carrying a domain id must only ever match a managed connection pinned to that very domain,
+      // a request without one must only ever match an unpinned managed connection
+      Optional<DomainId> maybeDomainId = DomainIdExtractor.getDomainId(cxRequestInfo);
       return (ManagedConnection)connectionSet.stream()
                                              .filter(CasualManagedConnection.class::isInstance)
+                                             .filter(connection -> maybeDomainId.equals(((CasualManagedConnection)connection).getPinnedDomainId()))
                                              .findFirst( )
                                              .orElse( null );
    }

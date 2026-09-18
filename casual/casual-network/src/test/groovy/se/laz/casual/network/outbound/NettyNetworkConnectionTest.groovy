@@ -10,6 +10,7 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import io.netty.channel.embedded.EmbeddedChannel
+import io.netty.channel.socket.SocketChannel
 import jakarta.enterprise.concurrent.ContextService
 import jakarta.enterprise.concurrent.ManagedExecutorService
 import se.laz.casual.api.buffer.type.CStringBuffer
@@ -91,6 +92,19 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         connectionInformation            | networkListener
         null                             | Mock(NetworkListener)
         ci                               | null
+    }
+
+    def 'ofAcceptedChannel with nulls throws NPE'()
+    {
+        when:
+        NettyNetworkConnection.ofAcceptedChannel( acceptedChannel, connectionInformation, listener )
+        then:
+        thrown NullPointerException
+        where:
+        acceptedChannel          | connectionInformation | listener
+        null                     | ci                    | Mock(NetworkListener)
+        Mock(SocketChannel)      | null                  | Mock(NetworkListener)
+        Mock(SocketChannel)      | ci                    | null
     }
 
     def 'ping ponging a domain discovery request message'()

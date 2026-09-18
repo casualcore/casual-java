@@ -1,12 +1,16 @@
 /*
- * Copyright (c) 2022, The casual project. All rights reserved.
+ * Copyright (c) 2022 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 package se.laz.casual.jca.pool;
 
+import se.laz.casual.jca.DomainId;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ConnectionContainer
@@ -56,12 +60,36 @@ public class ConnectionContainer
         }
     }
 
-    public boolean isDomainDisconnecting()
+    /**
+     * Get a connection towards the given domain, empty if there is none.
+     */
+    public Optional<ReferenceCountedNetworkConnection> get(DomainId domainId)
+    {
+        synchronized (lock)
+        {
+            List<ReferenceCountedNetworkConnection> matches = connections.stream()
+                                                                         .filter(connection -> domainId.equals(connection.getDomainId()))
+                                                                         .toList();
+            if(matches.isEmpty())
+            {
+                return Optional.empty();
+            }
+            if(matches.size() == 1)
+            {
+                return Optional.of(matches.get(0));
+            }
+            return Optional.of(matches.get(getRandomNumber(0, matches.size())));
+        }
+    }
+
+    public List<DomainId> getDomainIds()
     {
         synchronized (lock)
         {
             return connections.stream()
-                              .anyMatch(ReferenceCountedNetworkConnection::isDomainDisconnecting);
+                              .map(ReferenceCountedNetworkConnection::getDomainId)
+                              .distinct()
+                              .toList();
         }
     }
 
@@ -72,6 +100,28 @@ public class ConnectionContainer
                 "connections=" + connections +
                 ", lock=" + lock +
                 '}';
+    }
+
+    public boolean isDomainDisconnecting()
+    {
+        synchronized (lock)
+        {
+            // Connections receive disconnect notifications independently, so any notified connection marks the domain as disconnecting.
+            return connections.stream()
+                              .anyMatch(ReferenceCountedNetworkConnection::isDomainDisconnecting);
+        }
+    }
+
+    public boolean isDomainDisconnecting(DomainId domainId)
+    {
+        Objects.requireNonNull(domainId, "domainId can not be null");
+        synchronized (lock)
+        {
+            // Connections to the same domain can receive the notification at different times; anyMatch detects the first reported disconnect.
+            return connections.stream()
+                              .filter(connection -> domainId.equals(connection.getDomainId()))
+                              .anyMatch(ReferenceCountedNetworkConnection::isDomainDisconnecting);
+        }
     }
 
     // pseudorandom is good enough here

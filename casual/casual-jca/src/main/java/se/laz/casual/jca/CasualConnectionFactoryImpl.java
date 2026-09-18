@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -14,7 +14,11 @@ import jakarta.resource.spi.ConnectionRequestInfo;
 import jakarta.resource.spi.ResourceAllocationException;
 import se.laz.casual.jca.pool.NetworkConnectionPool;
 import se.laz.casual.jca.pool.NetworkPoolHandler;
+
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -58,7 +62,9 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     public CasualConnection getConnection(ConnectionRequestInfo connectionRequestInfo) throws ResourceException
     {
         log.finest("getConnection()");
-        if (isDomainDisconnecting())
+        Optional<DomainId> maybeDomainId = DomainIdExtractor.getDomainId(connectionRequestInfo);
+        boolean domainIsDisconnecting = maybeDomainId.map(this::isDomainDisconnecting).orElseGet(this::isDomainDisconnecting);
+        if(domainIsDisconnecting)
         {
             throw new ResourceAllocationException("domain is disconnecting");
         }
@@ -82,10 +88,46 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     @Override
     public boolean isDomainDisconnecting()
     {
-        final NetworkConnectionPool pool = NetworkPoolHandler.getInstance()
-                .getPool(managedConnectionFactory.getNetworkConnectionPoolName());
+        NetworkConnectionPool pool = getExistingNetworkPool();
         return pool != null && pool.isDomainDisconnecting();
     }
+
+    @Override
+    public boolean isDomainDisconnecting(DomainId domainId)
+    {
+        Objects.requireNonNull(domainId, "domainId must not be null");
+        NetworkConnectionPool pool = getExistingNetworkPool();
+        if (pool == null)
+        {
+            throw new IllegalStateException("Reverse pool is not registered: " + managedConnectionFactory.getNetworkConnectionPoolName());
+        }
+        return pool.isDomainDisconnecting(domainId);
+    }
+
+    @Override
+    public boolean isReverse()
+    {
+        // can be null for normal outbound in case non mc has been requested yet
+        // for reverse, it always exists even before a reverse inbound has connected
+        NetworkConnectionPool  pool = getExistingNetworkPool();
+        return null != pool && pool.isReverse();
+    }
+
+    @Override
+    public List<DomainId> getDomainIds()
+    {
+        // can be null for normal outbound in case non mc has been requested yet
+        // for reverse, it always exists even before a reverse inbound has connected
+        NetworkConnectionPool  pool = getExistingNetworkPool();
+        return null == pool ? Collections.emptyList() : pool.getPoolDomainIds();
+    }
+
+    private NetworkConnectionPool getExistingNetworkPool()
+    {
+        String poolName = managedConnectionFactory.getNetworkConnectionPoolName();
+        return NetworkPoolHandler.getInstance().getPool(poolName);
+    }
+
 
     @Override
     public boolean equals(Object o)
