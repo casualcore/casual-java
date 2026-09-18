@@ -6,6 +6,8 @@
 package se.laz.casual.jca;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import se.laz.casual.config.ConfigurationOptions;
+import se.laz.casual.config.ConfigurationService;
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.CommException;
 import jakarta.resource.spi.ConnectionManager;
@@ -95,17 +97,22 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     }
 
    /**
-    * Requires a nonblank network pool name and a positive pool size.
+    * Requires a nonblank pool name and, for normal outbound, a positive pool size.
     *
     * @throws UnsupportedOperationException if network pooling is not configured correctly
     */
    private void validateNetworkPooling()
    {
-      if (networkConnectionPoolName == null || networkConnectionPoolName.isBlank()
-              || networkConnectionPoolSize == null || networkConnectionPoolSize <= 0)
+      if (networkConnectionPoolName == null || networkConnectionPoolName.isBlank())
+      {
+         throw new UnsupportedOperationException("Network pooling requires a nonblank networkConnectionPoolName");
+      }
+      boolean reverse = ConfigurationService.getConfiguration(ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES)
+              .stream().anyMatch(instance -> instance.getName().equals(networkConnectionPoolName));
+      if (!reverse && (networkConnectionPoolSize == null || networkConnectionPoolSize <= 0))
       {
          throw new UnsupportedOperationException(
-                 "Network pooling requires a nonblank networkConnectionPoolName and a positive networkConnectionPoolSize");
+                 "Normal outbound pooling requires a positive networkConnectionPoolSize");
       }
    }
 

@@ -10,6 +10,7 @@ import se.laz.casual.jca.pool.NetworkPoolHandler
 import se.laz.casual.config.ConfigurationOptions
 import se.laz.casual.config.ConfigurationService
 import se.laz.casual.config.ReverseOutbound
+import se.laz.casual.jca.work.StartInboundServerListener
 import se.laz.casual.jca.work.StartReverseOutboundServerListener
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
@@ -210,9 +211,14 @@ class CasualResourceAdapterTest extends Specification
                 registeredPoolCounts.add(pools.size())
                 return 0L
         }
-        // The first work submission sees only firstName. Its duplicate is skipped,
-        // the second submission sees both firstName and secondName.
-        registeredPoolCounts == [1, 2]
+        1 * manager.startWork(_, _, _, _ as StartInboundServerListener) >> {
+            work, timeout, executionContext, listener ->
+                assert [firstName, secondName].every {
+                    handler.getPool(it)?.isReverse() && handler.getPool(it).getPoolDomainIds().isEmpty()
+                }
+                return 0L
+        }
+        registeredPoolCounts == [2, 2]
         handler.getPool(firstName).isReverse()
         handler.getPool(secondName).isReverse()
         handler.getPool(firstName).getPoolDomainIds().isEmpty()

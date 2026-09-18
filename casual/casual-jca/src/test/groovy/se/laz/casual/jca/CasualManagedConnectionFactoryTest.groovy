@@ -6,6 +6,10 @@
 
 package se.laz.casual.jca
 
+import se.laz.casual.config.ConfigurationOptions
+import se.laz.casual.config.ConfigurationService
+import se.laz.casual.config.ReverseOutbound
+
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -260,6 +264,36 @@ class CasualManagedConnectionFactoryTest extends Specification
     {
         expect:
         instance.toString().contains( "CasualManagedConnectionFactory" )
+    }
+
+    def 'reverse pooling does not require a positive size: #size'()
+    {
+        given:
+        String poolName = "reverse-${UUID.randomUUID()}"
+        def option = ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES
+        def previous = ConfigurationService.getConfiguration(option)
+        ConfigurationService.setConfiguration(option,
+                [ReverseOutbound.newBuilder().withName(poolName).withPort(7785).build()])
+        instance.networkConnectionPoolName = poolName
+        instance.networkConnectionPoolSize = size
+        def producer = Mock(CasualManagedConnectionProducer)
+        def connection = Mock(CasualManagedConnection)
+        instance.setCasualManagedConnectionProducer(producer)
+
+        when:
+        def factory = instance.createConnectionFactory(Mock(ConnectionManager))
+        def managed = instance.createManagedConnection(null, null)
+
+        then:
+        factory.isReverse()
+        managed.is(connection)
+        1 * producer.createManagedConnection(instance) >> connection
+
+        cleanup:
+        ConfigurationService.setConfiguration(option, previous)
+
+        where:
+        size << [null, 0, -1, 1]
     }
 
     def 'invalid pooling configuration is rejected before factory or managed connection creation: #name, #size'()

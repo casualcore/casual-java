@@ -12,6 +12,8 @@ import jakarta.resource.ResourceException;
 import jakarta.resource.spi.ConnectionManager;
 import jakarta.resource.spi.ConnectionRequestInfo;
 import jakarta.resource.spi.ResourceAllocationException;
+import se.laz.casual.config.ConfigurationOptions;
+import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.jca.pool.NetworkConnectionPool;
 import se.laz.casual.jca.pool.NetworkPoolHandler;
 
@@ -107,10 +109,9 @@ public class CasualConnectionFactoryImpl implements CasualConnectionFactory
     @Override
     public boolean isReverse()
     {
-        // can be null for normal outbound in case non mc has been requested yet
-        // for reverse, it always exists even before a reverse inbound has connected
-        NetworkConnectionPool  pool = getExistingNetworkPool();
-        return null != pool && pool.isReverse();
+        String poolName = managedConnectionFactory.getNetworkConnectionPoolName();
+        return ConfigurationService.getConfiguration(ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES)
+                .stream().anyMatch(instance -> instance.getName().equals(poolName));
     }
 
     @Override

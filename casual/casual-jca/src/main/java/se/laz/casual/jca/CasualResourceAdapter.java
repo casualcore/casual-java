@@ -164,10 +164,13 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                 .withInboundTransactionRegistry(inboundTransactionRegistry)
                 .build();
         activations.put(as.getPort(), as);
+        List<ReverseOutbound> reverseOutbound = ConfigurationService.getConfiguration(ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES);
+        // Register every reverse pool before any listener work can accept requests.
+        reverseOutbound.forEach(instance -> NetworkPoolHandler.getInstance().getOrCreateReversePool(instance.getName()));
         log.info(() -> "start casual inbound server" );
         startInboundServer( ci );
         maybeStartReverseInbound( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES ), endpointFactory, workManager, xaTerminator);
-        maybeStartReverseOutbound( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES ) );
+        maybeStartReverseOutbound(reverseOutbound);
         log.finest(() -> "end endpointActivation()");
 
     }
@@ -221,9 +224,6 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                 log.warning(() -> "Duplicate reverse outbound name configured: '" + name + "'. Names must be unique - skipping this entry.");
                 continue;
             }
-            // pre-register the reverse pool so that it exists before any connection factory can look it up
-            // it also guarantees that it exists as reverse pool for the lifetime of the application server
-            NetworkPoolHandler.getInstance().getOrCreateReversePool(name);
             startReverseOutbound(ReverseOutboundConnectionInformation.createBuilder()
                     .withName(name)
                     .withPort(instance.getPort())

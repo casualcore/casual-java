@@ -320,7 +320,7 @@ class CasualManagedConnectionTest extends Specification
         actual == timeout
     }
 
-    def 'getConnection over an empty reverse pool throws, works once an EIS connects'()
+    def 'getConnection over an empty reverse pool throws, works once an EIS connects without a configured pool size'()
     {
         given:
         def poolName = 'empty-reverse-pool'
@@ -328,7 +328,6 @@ class CasualManagedConnectionTest extends Specification
         CasualManagedConnectionFactory mcf = Mock(CasualManagedConnectionFactory) {
             getAddress() >> Mock(Address)
             getNetworkConnectionPoolName() >> poolName
-            getNetworkConnectionPoolSize() >> 1
         }
         CasualManagedConnection connection = new CasualManagedConnection(mcf)
 

@@ -46,12 +46,11 @@ Consume connections through a standard application server connection factory. Co
     <config-property name="hostName">reverse</config-property>
     <config-property name="portNumber">0</config-property>
     <config-property name="networkConnectionPoolName">myReverseOutbound</config-property>
-    <config-property name="networkConnectionPoolSize">1</config-property>
 </connection-definition>
 
 ```
 
-You must still provide a nonblank pool name and a positive `networkConnectionPoolSize`. Reverse pools do not use `hostName` or `portNumber` to establish connections, and the size does not limit the number of accepted connections. The pool accepts connections established by the EIS.
+You must provide a nonblank pool name that matches your reverse outbound configuration. You can omit `networkConnectionPoolSize` for reverse outbound; if you specify it, the reverse pool ignores it. Normal outbound still requires a positive size. Reverse pools do not use `hostName` or `portNumber` to establish connections. The pool accepts connections established by the EIS.
 
 You look up the connection factory through JNDI. The application server manages connection pooling and XA enlistment.
 

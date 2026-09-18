@@ -6,6 +6,9 @@
 
 package se.laz.casual.jca
 
+import se.laz.casual.config.ConfigurationOptions
+import se.laz.casual.config.ConfigurationService
+import se.laz.casual.config.ReverseOutbound
 import se.laz.casual.network.outbound.NetworkListener
 import se.laz.casual.network.outbound.NettyNetworkConnection
 import se.laz.casual.jca.pool.NetworkPoolHandler
@@ -264,11 +267,44 @@ class CasualConnectionFactoryImplTest extends Specification
         0 * cm.allocateConnection(_, _)
     }
 
+    def 'configured reverse factory is reverse before and after pool registration'()
+    {
+        given:
+        String poolName = "reverse-${UUID.randomUUID()}"
+        def handler = NetworkPoolHandler.getInstance()
+        def option = ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES
+        def previous = ConfigurationService.getConfiguration(option)
+        ConfigurationService.setConfiguration(option,
+                [ReverseOutbound.newBuilder().withName(poolName).withPort(7785).build()])
+        factory.getNetworkConnectionPoolName() >> poolName
+
+        expect:
+        instance.isReverse()
+        instance.getDomainIds().isEmpty()
+        handler.getPool(poolName) == null
+
+        when:
+        handler.getOrCreateReversePool(poolName)
+
+        then:
+        instance.isReverse()
+        instance.getDomainIds().isEmpty()
+        0 * cm.allocateConnection(_, _)
+
+        cleanup:
+        ConfigurationService.setConfiguration(option, previous)
+        handler.@pools.remove(poolName)
+    }
+
     def 'registered empty reverse pool domain disconnected queries without allocating any connection'()
     {
         given:
         String poolName = "pool-${UUID.randomUUID()}"
-        // what CasualResourceAdapter does for a configured reverse pool on startup
+        def option = ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES
+        def previous = ConfigurationService.getConfiguration(option)
+        ConfigurationService.setConfiguration(option,
+                [ReverseOutbound.newBuilder().withName(poolName).withPort(7785).build()])
+        // Register the configured reverse pool as CasualResourceAdapter does on startup.
         def handler = NetworkPoolHandler.getInstance()
         handler.getOrCreateReversePool(poolName)
         factory.getNetworkConnectionPoolName() >> poolName
@@ -293,6 +329,7 @@ class CasualConnectionFactoryImplTest extends Specification
         0 * cm.allocateConnection(_, _)
 
         cleanup:
+        ConfigurationService.setConfiguration(option, previous)
         handler.@pools.remove(poolName)
     }
 
