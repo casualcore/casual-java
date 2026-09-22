@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
 package se.laz.casual.api.util;
 
 import javax.transaction.xa.Xid;
-import java.math.BigInteger;
+import java.util.HexFormat;
 import java.util.UUID;
 
 /**
@@ -45,8 +45,7 @@ public final class PrettyPrinter
         {
             return "null";
         }
-        BigInteger val = new BigInteger(1, bytes);
-        return String.format("%x", val);
+        return HexFormat.of().formatHex(bytes);
     }
 
 }
