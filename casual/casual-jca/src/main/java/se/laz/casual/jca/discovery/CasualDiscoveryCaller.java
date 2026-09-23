@@ -15,6 +15,7 @@ import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.info.CasualInfo;
 import se.laz.casual.info.Connection;
+import se.laz.casual.info.Order;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
@@ -67,12 +68,13 @@ public class CasualDiscoveryCaller implements CasualDiscoveryApi
         LOG.finest(() -> "domain discovery ok for corrid: " + PrettyPrinter.casualStringify(corrid) + "reply -> service names: " + serviceNames + " queue names: " + queueNames);
         DiscoveryReturn discoveryReturn = toDiscoveryReturn( replyMsg.getMessage(), connection.getNetworkConnection().getProtocolVersion() );
         // Add discovered service to local storage:
-        CasualInfo.getInstance().addDiscovery(discoveryReturn.getServiceDetails(), new Connection.Builder()
-                        .domainId( connection.getNetworkConnection().getDomainId() )
-                        .protocolVersion( connection.getNetworkConnection().getProtocolVersion() )
-                        .hostName( connection.getManagedConnectionFactory().getHostName() )
-                        .portNumber( connection.getManagedConnectionFactory().getPortNumber() )
-                .build() );
+        discoveryReturn.getServiceDetails().forEach(serviceDetails -> CasualInfo.addService(se.laz.casual.info.Service.newBuilder(serviceDetails, Order.CONCURRENT)
+                        .connection(new Connection.Builder()
+                                .domainId( connection.getNetworkConnection().getDomainId() )
+                                .protocolVersion( connection.getNetworkConnection().getProtocolVersion() )
+                                .hostName( connection.getManagedConnectionFactory().getHostName() )
+                                .portNumber( connection.getManagedConnectionFactory().getPortNumber() )
+                                .build()).build()));
         return discoveryReturn;
     }
 

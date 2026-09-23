@@ -7,7 +7,6 @@
 package se.laz.casual.info
 
 
-import se.laz.casual.api.service.ServiceDetails
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.messages.domain.TransactionType
@@ -25,19 +24,12 @@ class CasualInfoTest extends Specification
             .category( "C" )
             .build();
 
-    def "add inbound service"()
+    void setup()
     {
-        when:
-        CasualInfo.getInstance().addService( service )
-
-        then:
-        CasualInfoStorage.getInstance().getService( new ServiceDescriptor( service.getName(), Order.SEQUENTIAL ) ).
-                isPresent()
-        CasualInfoStorage.getInstance().getService( new ServiceDescriptor( service.getName(), Order.SEQUENTIAL ) ).
-                get() == service
+        CasualInfo.clear();
     }
 
-    def "add discovery"()
+    def "add service"()
     {
         given:
         def domainId = DomainId.of( UUID.randomUUID() );
@@ -47,33 +39,38 @@ class CasualInfoTest extends Specification
                 .domainId( domainId )
                 .protocolVersion( ProtocolVersion.VERSION_1_0 )
                 .build();
-        ServiceDetails serviceDetails = ServiceDetails.createBuilder()
-                .withName( "test" )
-                .withTransactionType( TransactionType.ATOMIC )
-                .withHops( 0 )
-                .withCategory( "cat" )
-                .withTimeout( 12 )
+        Service outbound = new Service.Builder()
+                .name( "test" )
+                .transactionType( TransactionType.ATOMIC )
+                .hops( 0 )
+                .order(Order.CONCURRENT)
+                .category( "cat" )
+                .timeout( 12 )
+                .connection(connection)
                 .build();
 
         when:
-        CasualInfo.getInstance().addDiscovery( List.of( serviceDetails ), connection )
+        CasualInfo.addService( service )
+        CasualInfo.addService( outbound )
 
         then:
-        def present = CasualInfoStorage.getInstance()
-                .getService( new ServiceDescriptor( serviceDetails.name, Order.CONCURRENT ) )
-        present.isPresent()
-        present.get().getName() == serviceDetails.getName()
-        present.get().getOrder() == Order.CONCURRENT
-        present.get().getCategory() == serviceDetails.getCategory()
-        present.get().getHops() == serviceDetails.getHops()
-        !present.get().isRegistered()
-        present.get().getJndiName().isEmpty()
-        present.get().getTimeout() == serviceDetails.getTimeout()
-        present.get().getTransactionType() == serviceDetails.getTransactionType()
-        present.get().getConnection().getDomainId() == connection.getDomainId()
-        present.get().getConnection().getHostName() == connection.getHostName()
-        present.get().getConnection().getPortNumber() == connection.getPortNumber()
-        present.get().getConnection().getProtocolVersion() == connection.getProtocolVersion()
+        def serviceList = CasualInfo.getService(service.getName())
+        serviceList.size() == 2
+        def inb = serviceList.stream().filter { (it.order == Order.SEQUENTIAL) }.findFirst().get()
+        def outb = serviceList.stream().filter { (it.order == Order.CONCURRENT) }.findFirst().get()
+        inb == service
+        outb.getName() == outbound.getName()
+        outb.getOrder() == outbound.order
+        outb.getCategory() == outbound.getCategory()
+        outb.getHops() == outbound.getHops()
+        !outb.isRegistered()
+        outb.getJndiName().isEmpty()
+        outb.getTimeout() == outbound.getTimeout()
+        outb.getTransactionType() == outbound.getTransactionType()
+        outb.getConnection().getDomainId() == connection.getDomainId()
+        outb.getConnection().getHostName() == connection.getHostName()
+        outb.getConnection().getPortNumber() == connection.getPortNumber()
+        outb.getConnection().getProtocolVersion() == connection.getProtocolVersion()
     }
 
     def "storeEvent - no previous statistics"()
@@ -85,9 +82,9 @@ class CasualInfoTest extends Specification
         long end = 10
 
         when:
-        CasualInfo.getInstance().storeEvent( serviceName, order as char, start, end )
+        CasualInfo.storeEvent( serviceName, order as char, start, end )
 
-        def event = CasualInfoStorage.getInstance().getServiceStatistic( new ServiceDescriptor( serviceName, Order.
+        def event = CasualInfo.getServiceStatistic( new ServiceDescriptor( serviceName, Order.
                 SEQUENTIAL ) )
         then:
         event.isPresent()
@@ -103,36 +100,31 @@ class CasualInfoTest extends Specification
     def "storeEvent - updates previous statistics"()
     {
         given:
-        CasualInfoStorage.getInstance().putEvent( new ServiceDescriptor( prevEvent.name, order ), prevEvent )
+        String serviceName = "test"
+        long firstStart = 10, firstEnd = 20
+        CasualInfo.storeEvent( serviceName, order.getValue(), firstStart, firstEnd )
 
         when:
-        CasualInfo.getInstance().storeEvent( prevEvent.getName(), prevEvent.getOrder() as char, start, end )
-        def event = CasualInfoStorage.getInstance().getServiceStatistic( new ServiceDescriptor( prevEvent.getName(),
-                order ) )
+        CasualInfo.storeEvent( serviceName, order.getValue(), start, end )
+        def event = CasualInfo.getServiceStatistic( new ServiceDescriptor( serviceName, order ) )
 
         then:
         event.isPresent()
-        event.get().name == prevEvent.getName()
-        event.get().order == prevEvent.getOrder()
-        event.get().count == prevEvent.getCount() + 1
-        event.get().total == prevEvent.getTotal() + ( end - start )
+        event.get().name == serviceName
+        event.get().order == order.getValue()
+        event.get().count == 2
+        event.get().total == ( firstEnd - firstStart ) + ( end - start )
         event.get().min == expectedMin
         event.get().max == expectedMax
         event.get().last == start
 
         where:
-        prevEvent                                        | order            | start | end | expectedMin | expectedMax
-        getEventBuilder( 'S' as char ).build()           | Order.SEQUENTIAL | 10    | 20  | 10          | 20
-        getEventBuilder( 'S' as char ).min( 1 ).build()  | Order.SEQUENTIAL | 10    | 11  | 1           | 20
-        getEventBuilder( 'S' as char ).max( 10 ).build() | Order.SEQUENTIAL | 10    | 100 | 10          | 90
-        getEventBuilder( 'C' as char ).build()           | Order.CONCURRENT | 10    | 20  | 10          | 20
-        getEventBuilder( 'C' as char ).min( 1 ).build()  | Order.CONCURRENT | 10    | 11  | 1           | 20
-        getEventBuilder( 'C' as char ).max( 10 ).build() | Order.CONCURRENT | 10    | 100 | 10          | 90
-    }
-
-    def getEventBuilder( char order )
-    {
-        return new EventServiceStatistics.Builder()
-                .name( "test" ).order( order ).min( 10 ).max( 20 );
+        order | start | end | expectedMin | expectedMax
+        Order.SEQUENTIAL | 10 | 20 | 10 | 10 // Call took exactly the same amount of time
+        Order.SEQUENTIAL | 10 | 25 | 10 | 15 // Call took longer than first
+        Order.SEQUENTIAL | 10 | 11 | 1 | 10 // Call was shorter than first
+        Order.CONCURRENT | 10 | 20 | 10 | 10 // Call took exactly the same amount of time
+        Order.CONCURRENT | 10 | 25 | 10 | 15 // Call took longer than first
+        Order.CONCURRENT | 10 | 11 | 1 | 10 // Call was shorter than first
     }
 }

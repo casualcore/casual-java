@@ -31,7 +31,7 @@ class CasualServiceRegistryTest extends Specification
         CasualServiceRegistry.getInstance().register(metadata);
 
         then:
-        CasualInfoStorage.getInstance().getService( new ServiceDescriptor( metadata.serviceName, Order.SEQUENTIAL ) ).isPresent();
+        CasualInfo.getService( metadata.serviceName ).size() > 0;
     }
 
     @CasualServiceJndiName("se.laz.casual.test.Service")

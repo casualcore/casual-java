@@ -1,7 +1,5 @@
 package se.laz.casual.info;
 
-import se.laz.casual.api.service.ServiceDetails;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,38 +12,60 @@ import java.util.Optional;
 public final class CasualInfo
 {
     private static final CasualInfo instance = new CasualInfo();
-    private static final CasualInfoStorage storageInstance = CasualInfoStorage.getInstance();
+    private final CasualInfoStorage storageInstance;
 
     private CasualInfo()
     {
-        // no-op
-    }
-
-    public static CasualInfo getInstance()
-    {
-        return instance;
+        storageInstance = new CasualInfoStorage();
     }
 
     /**
-     * Add an inbound service to storage
+     * Add service to storage
      *
      * @param service - a service
      */
-    public void addService( Service service )
+    public static void addService( Service service )
     {
         Objects.requireNonNull( service, "service must not be null" );
-        storageInstance.putService( service );
+        instance.storageInstance.putService( service );
     }
 
     /**
-     * Add an outbound service to storage
-     *
-     * @param serviceDetailsList - details about the service
-     * @param connection         - service connection details
+     * Set inbound service as registered and populate jndi name
+     * @param serviceName   - name of service
+     * @param jndiName      - Jndi name of service
      */
-    public void addDiscovery( List<ServiceDetails> serviceDetailsList, Connection connection )
+    public static void registerService( String serviceName, String jndiName )
     {
-        serviceDetailsList.forEach( serviceDetails -> addDiscoveredService( serviceDetails, connection ) );
+        // Set information about a service when it has been registered:
+        List<Service> serviceList = instance.storageInstance.getService(serviceName);
+        Optional<Service> storedService = serviceList.stream().filter(service ->
+                service.getName().equals(serviceName) && service.getOrder().equals(Order.SEQUENTIAL)).findFirst();
+        // Update service in local storage:
+        storedService.ifPresent( service -> instance.storageInstance.putService(
+                Service.newBuilder( service )
+                        .registred( true )
+                        .jndiName( jndiName )
+                        .build()));
+    }
+
+    /**
+     * Get all instances for a specific service name
+     * @param serviceName - name of serivice
+     * @return List of instances of service
+     */
+    public static List<Service> getService( String serviceName )
+    {
+        return instance.storageInstance.getService( serviceName );
+    }
+
+    /**
+     * Returns all services
+     * @return List of services
+     */
+    public static List<Service> getServices()
+    {
+        return instance.storageInstance.getServices();
     }
 
     /**
@@ -57,24 +77,24 @@ public final class CasualInfo
      * @param start       - start time
      * @param end         - end time
      */
-    public void storeEvent( String serviceName, char order, long start, long end )
+    public static void storeEvent( String serviceName, char order, long start, long end )
     {
-        storageInstance.putEvent( serviceName, order, start, end );
+        instance.storageInstance.putEvent( serviceName, order, start, end );
     }
 
     /**
-     * Adds an outbound service to storage
+     * Get service statistics
      *
-     * @param serviceDetails - service details
-     * @param connection     - service connection details
+     * @param serviceDescriptor - composite key of service name and service order
+     * @return Optional EventServiceStatistics
      */
-    private void addDiscoveredService( ServiceDetails serviceDetails, Connection connection )
+    public static Optional<EventServiceStatistics> getServiceStatistic( ServiceDescriptor serviceDescriptor )
     {
-        ServiceDescriptor serviceDescriptor = new ServiceDescriptor( serviceDetails.getName(), Order.CONCURRENT );
-        Optional<Service> service = storageInstance.getService( serviceDescriptor );
-        Service.Builder builder = service.isPresent() ? Service.newBuilder( service.get() ) :
-                Service.newBuilder( serviceDetails, Order.CONCURRENT );
-        builder.connection( connection );
-        storageInstance.putService( builder.build() );
+        return instance.storageInstance.getServiceStatistic( serviceDescriptor );
+    }
+
+    static void clear()
+    {
+        instance.storageInstance.clear();
     }
 }

@@ -144,7 +144,7 @@ class CasualDiscoveryCallerTest extends Specification
                 actualDiscoveryRequest = input
                 return CompletableFuture.completedFuture(reply)
         }
-        CasualInfoStorage.getInstance(  ).getServices(  ).size(  ) == 2
+        CasualInfo.getServices(  ).size(  ) == 2
     }
 
     def 'discover - returns services and queues from reply, protocol version #protocolVersion'()

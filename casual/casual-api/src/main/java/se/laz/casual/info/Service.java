@@ -139,6 +139,22 @@ public class Service
                 '}';
     }
 
+    public boolean matches(Service service) {
+        if (!name.equals(service.getName()))
+        {
+            return false;
+        }
+        if(order.equals(Order.SEQUENTIAL) && service.getOrder().equals(Order.SEQUENTIAL))
+        {
+            return true; // Inbound services only exists once per application.
+        }
+        else
+        {
+            return Objects.nonNull(connection) && Objects.nonNull(service.getConnection()) &&
+                    connection.equals(service.getConnection());
+        }
+    }
+
     public static class Builder
     {
         private String name;

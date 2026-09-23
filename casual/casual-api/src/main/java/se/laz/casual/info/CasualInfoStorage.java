@@ -6,12 +6,7 @@
 
 package se.laz.casual.info;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -22,45 +17,30 @@ import java.util.logging.Logger;
 public class CasualInfoStorage
 {
     private static final Logger LOG = Logger.getLogger( CasualInfoStorage.class.getName() );
-    private static final CasualInfoStorage instance = new CasualInfoStorage();
-    private final Map<ServiceDescriptor, List<Service>> services;
+    private final Map<String, List<Service>> services;
     private final Map<ServiceDescriptor, EventServiceStatistics> serviceStatistics;
 
-    private CasualInfoStorage()
+    CasualInfoStorage()
     {
         this.services = new ConcurrentHashMap<>();
         this.serviceStatistics = new ConcurrentHashMap<>();
     }
 
-    public static CasualInfoStorage getInstance()
-    {
-        return instance;
-    }
-
     /**
-     * Get service from storage if it exists
-     *
-     * @param serviceDescriptor - composite key of service name and service order
-     * @return Service
-     */
-    public Optional<Service> getService( ServiceDescriptor serviceDescriptor )
-    {
-        Objects.requireNonNull( serviceDescriptor, "serviceDescriptor must not be null" );
-        List<Service> serviceList = instance.services.getOrDefault( serviceDescriptor,
-                Collections.emptyList() );
-        return !serviceList.isEmpty() ? Optional.of( serviceList.get( 0 ) ) : Optional.empty();
-    }
-
-    /**
-     * Get all services
+     * Get all for service name
      *
      * @return List of services
      */
+    List<Service> getService(String serviceName)
+    {
+        return services.getOrDefault(serviceName, Collections.emptyList());
+    }
+
     public List<Service> getServices()
     {
-        List<Service> servicesList = new ArrayList<>();
-        instance.services.values().forEach( servicesList::addAll );
-        return Collections.unmodifiableList( servicesList );
+        List<Service> allServices = new ArrayList<>();
+        services.forEach((s, serviceList) -> allServices.addAll(serviceList));
+        return Collections.unmodifiableList(allServices);
     }
 
     /**
@@ -69,9 +49,9 @@ public class CasualInfoStorage
      * @param serviceDescriptor - composite key of service name and service order
      * @return Optional EventServiceStatistics
      */
-    public Optional<EventServiceStatistics> getServiceStatistic( ServiceDescriptor serviceDescriptor )
+    Optional<EventServiceStatistics> getServiceStatistic( ServiceDescriptor serviceDescriptor )
     {
-        return Optional.ofNullable( instance.serviceStatistics.get( serviceDescriptor ) );
+        return Optional.ofNullable( serviceStatistics.get( serviceDescriptor ) );
     }
 
     /**
@@ -79,11 +59,22 @@ public class CasualInfoStorage
      *
      * @param service - service to be added/updated
      */
-    protected synchronized void putService( Service service )
+    synchronized void putService( Service service )
     {
         Objects.requireNonNull( service, "service must not be null" );
-        services.put( new ServiceDescriptor( service.getName(), service.getOrder() ),
-                Collections.synchronizedList( List.of( service ) ) );
+        if ( services.containsKey( service.getName() ) )
+        {
+            List<Service> serviceList = services.get(service.getName());
+            Optional<Service> found = serviceList.stream().findFirst().filter(s -> s.matches(service));
+            found.ifPresent(serviceList::remove);
+            serviceList.add(service);
+        }
+        else
+        {
+            List<Service> s = new ArrayList<>();
+            s.add(service);
+            services.put(service.getName(), Collections.synchronizedList( s ) );
+        }
     }
 
     /**
@@ -94,7 +85,7 @@ public class CasualInfoStorage
      * @param start       - start timestamp of event
      * @param end         - end timestamp of event
      */
-    protected synchronized void putEvent( String serviceName, char order, long start, long end )
+    synchronized void putEvent( String serviceName, char order, long start, long end )
     {
         ServiceDescriptor serviceDescriptor = new ServiceDescriptor( serviceName, Order.unmarshall( order ) );
         EventServiceStatistics event = toEvent( serviceDescriptor, start, end );
@@ -122,5 +113,11 @@ public class CasualInfoStorage
         builder.last( start );
         builder.increaseTotal( executionTime );
         return builder.build();
+    }
+
+    void clear()
+    {
+        services.clear();
+        serviceStatistics.clear();
     }
 }

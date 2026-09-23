@@ -211,12 +211,13 @@ public class CasualServiceCaller implements CasualServiceApi
                                 .withTimeout(service.getTimeout())
                                 .withHops(service.getHops()).build()));
         // Add discovered service to local storage:
-        CasualInfo.getInstance().addDiscovery(serviceDetailsList, new Connection.Builder()
-                .domainId( connection.getNetworkConnection().getDomainId() )
-                .protocolVersion( connection.getNetworkConnection().getProtocolVersion() )
-                .hostName( connection.getManagedConnectionFactory().getHostName() )
-                .portNumber( connection.getManagedConnectionFactory().getPortNumber() )
-                .build() );
+        serviceDetailsList.forEach(serviceDetails -> CasualInfo.addService(se.laz.casual.info.Service.newBuilder(serviceDetails, se.laz.casual.info.Order.CONCURRENT)
+                .connection(new Connection.Builder()
+                        .domainId( connection.getNetworkConnection().getDomainId() )
+                        .protocolVersion( connection.getNetworkConnection().getProtocolVersion() )
+                        .hostName( connection.getManagedConnectionFactory().getHostName() )
+                        .portNumber( connection.getManagedConnectionFactory().getPortNumber() )
+                        .build()).build()));
         return serviceDetailsList;
     }
 

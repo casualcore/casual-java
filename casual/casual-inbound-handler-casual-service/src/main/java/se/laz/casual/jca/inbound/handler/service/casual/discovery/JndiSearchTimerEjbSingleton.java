@@ -13,10 +13,6 @@ import se.laz.casual.api.service.CasualService;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.info.CasualInfo;
-import se.laz.casual.info.CasualInfoStorage;
-import se.laz.casual.info.Order;
-import se.laz.casual.info.Service;
-import se.laz.casual.info.ServiceDescriptor;
 import se.laz.casual.jca.inbound.handler.HandlerException;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceEntry;
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData;
@@ -91,17 +87,7 @@ public class JndiSearchTimerEjbSingleton
             {
                 logger.info(() -> "Resolved casual service: %s".formatted(found));
                 CasualServiceRegistry.getInstance().register( found );
-
-                // Set information about a service when it has been registered:
-                Optional<Service> inboundService = CasualInfoStorage.getInstance().getService(
-                        new ServiceDescriptor( found.getServiceName(), Order.SEQUENTIAL ) );
-                // Update service in local storage:
-                inboundService.ifPresent( service -> CasualInfo.getInstance().addService(
-                        Service.newBuilder( service )
-                                .registred( true )
-                                .jndiName( found.getJndiName() )
-                                .build()
-                ));
+                CasualInfo.registerService(found.getServiceName(), found.getJndiName());
                 break;
             }
         }
