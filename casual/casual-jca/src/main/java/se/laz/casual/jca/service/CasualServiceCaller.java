@@ -24,6 +24,8 @@ import se.laz.casual.event.Order;
 import se.laz.casual.event.ServiceCallEvent;
 import se.laz.casual.event.ServiceCallEventPublisher;
 import se.laz.casual.event.ServiceCallEventStoreFactory;
+import se.laz.casual.info.CasualInfo;
+import se.laz.casual.info.Connection;
 import se.laz.casual.jca.CasualManagedConnection;
 import se.laz.casual.jca.RuntimeInformation;
 import se.laz.casual.network.ProtocolVersion;
@@ -208,7 +210,14 @@ public class CasualServiceCaller implements CasualServiceApi
                                 .withTransactionType(service.getTransactionType())
                                 .withTimeout(service.getTimeout())
                                 .withHops(service.getHops()).build()));
-
+        // Add discovered service to local storage:
+        serviceDetailsList.forEach(serviceDetails -> CasualInfo.addService(se.laz.casual.info.Service.newBuilder(serviceDetails, se.laz.casual.info.Order.CONCURRENT)
+                .connection(new Connection.Builder()
+                        .domainId( connection.getNetworkConnection().getDomainId() )
+                        .protocolVersion( connection.getNetworkConnection().getProtocolVersion() )
+                        .hostName( connection.getManagedConnectionFactory().getHostName() )
+                        .portNumber( connection.getManagedConnectionFactory().getPortNumber() )
+                        .build()).build()));
         return serviceDetailsList;
     }
 

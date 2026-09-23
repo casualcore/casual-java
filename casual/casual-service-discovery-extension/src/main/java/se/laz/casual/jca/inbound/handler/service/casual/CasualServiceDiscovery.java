@@ -89,6 +89,7 @@ public class CasualServiceDiscovery implements Extension
             if( service != null )
             {
                 Method serviceMethod = method.getJavaMember();
+                LOG.info(() -> "Found annotated CasualService method: %s.%s".formatted(serviceClass.getName(), serviceMethod.getName()));
                 b.service( service ).serviceMethod( serviceMethod );
                 serviceRegistry.register(b.build());
             }

@@ -18,7 +18,7 @@ public class CasualServiceCallEventStore implements ServiceCallEventStore
     private final BlockingDeque<ServiceCallEvent> serviceCallEvents = new LinkedBlockingDeque<>();
 
     @Override
-    public void put(ServiceCallEvent event)
+    public void put( ServiceCallEvent event )
     {
         Objects.requireNonNull(event, "event can not be null");
         serviceCallEvents.add(event);
@@ -31,7 +31,7 @@ public class CasualServiceCallEventStore implements ServiceCallEventStore
         {
             return serviceCallEvents.takeFirst();
         }
-        catch (InterruptedException e)
+        catch( InterruptedException e )
         {
             Thread.currentThread().interrupt();
             throw new CasualServiceCallEventHandlerInterruptedException("CasualServiceCallEventHandler::takeFirst interrupted");
