@@ -16,7 +16,6 @@ import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
 
 import java.net.InetSocketAddress;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,6 +25,7 @@ import java.util.logging.Logger;
 public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListener, NetworkListener
 {
     private static final Logger LOG = Logger.getLogger(NetworkConnectionPool.class.getName());
+    private static final String DOMAIN_ID_CAN_NOT_BE_NULL = "domainId can not be null";
     // for reverse pools the address is unused, connections are established by the EIS
     private static final Address REVERSE_ADDRESS = Address.of("reverse", 0);
     private final Address address;
@@ -85,7 +85,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
      */
     public NetworkConnection getOrCreateConnection(Address address, NetworkListener networkListener, DomainId domainId)
     {
-        Objects.requireNonNull(domainId, "domainId can not be null");
+        Objects.requireNonNull(domainId, DOMAIN_ID_CAN_NOT_BE_NULL);
         if(reverse)
         {
             return getReverseConnection(networkListener, domainId);
@@ -207,7 +207,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         }
         Objects.requireNonNull(networkConnection, "networkConnection can not be null");
         DomainId domainId = networkConnection.getDomainId();
-        Objects.requireNonNull(domainId, "domainId can not be null");
+        Objects.requireNonNull(domainId, DOMAIN_ID_CAN_NOT_BE_NULL);
         synchronized (getOrCreateLock)
         {
             ReferenceCountedNetworkConnection connection = ReferenceCountedNetworkConnection.of(networkConnection, this);
@@ -273,7 +273,7 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
      */
     public boolean isDomainDisconnecting(DomainId domainId)
     {
-        Objects.requireNonNull(domainId, "domainId can not be null");
+        Objects.requireNonNull(domainId, DOMAIN_ID_CAN_NOT_BE_NULL);
         if (!reverse)
         {
             throw new IllegalStateException("Domain-specific shutdown queries require a reverse pool: " + poolName);
