@@ -322,14 +322,10 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     private static ReferenceCountedNetworkConnection createNetworkConnection(Address address, NetworkListener networkListener, ReferenceCountedNetworkCloseListener referenceCountedNetworkCloseListener, NetworkListener ownListener)
     {
         NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(address.getHostName(), address.getPort()));
-        NetworkConnection networkConnection = NettyNetworkConnection.of(ci, ownListener);
-        if (networkConnection instanceof NettyNetworkConnection impl)
-        {
-            impl.addListener(networkListener);
-            LOG.finest(() -> "created network connection: " + networkConnection);
-            return ReferenceCountedNetworkConnection.of(impl, referenceCountedNetworkCloseListener);
-        }
-        throw new CasualResourceAdapterException("Wrong implementation for NetworkConnection, was expecting NettyNetworkConnection but got: " + networkConnection.getClass());
+        NettyNetworkConnection networkConnection = NettyNetworkConnection.of(ci, ownListener);
+        networkConnection.addListener(networkListener);
+        LOG.finest(() -> "created network connection: " + networkConnection);
+        return ReferenceCountedNetworkConnection.of(networkConnection, referenceCountedNetworkCloseListener);
     }
 
     @Override

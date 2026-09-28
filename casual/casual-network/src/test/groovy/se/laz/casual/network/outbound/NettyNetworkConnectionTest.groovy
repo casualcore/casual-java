@@ -10,7 +10,9 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import io.netty.channel.embedded.EmbeddedChannel
+import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
+import io.netty.channel.socket.nio.NioSocketChannel
 import jakarta.enterprise.concurrent.ContextService
 import jakarta.enterprise.concurrent.ManagedExecutorService
 import se.laz.casual.api.buffer.type.CStringBuffer
@@ -105,6 +107,29 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         null                     | ci                    | Mock(NetworkListener)
         Mock(SocketChannel)      | null                  | Mock(NetworkListener)
         Mock(SocketChannel)      | ci                    | null
+    }
+
+    def 'failed handshake closes accepted channel without reporting a disconnect'()
+    {
+        given:
+        NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup(1)
+        SocketChannel acceptedChannel = new NioSocketChannel()
+        eventLoopGroup.register(acceptedChannel).syncUninterruptibly()
+        NetworkListener listener = Mock()
+
+        when:
+        NettyNetworkConnection.ofAcceptedChannel(acceptedChannel, ci, listener)
+
+        then:
+        CompletionException exception = thrown()
+        exception.cause instanceof CasualConnectionException
+        acceptedChannel.closeFuture().awaitUninterruptibly(5, TimeUnit.SECONDS)
+        !acceptedChannel.isOpen()
+        0 * listener.disconnected(_)
+
+        cleanup:
+        acceptedChannel.close().syncUninterruptibly()
+        eventLoopGroup.shutdownGracefully().syncUninterruptibly()
     }
 
     def 'ping ponging a domain discovery request message'()

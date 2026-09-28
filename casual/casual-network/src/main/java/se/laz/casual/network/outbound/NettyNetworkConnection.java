@@ -81,7 +81,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         this.errorInformer = errorInformer;
     }
 
-    public static NetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
+    public static NettyNetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
     {
         Objects.requireNonNull(ci, "connection info can not be null");
         Objects.requireNonNull(networkListener, "network listener can not be null");
@@ -126,20 +126,32 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     {
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
-        DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
-        protocolVersionValueHolder.accept(networkConnection.protocolVersion);
-        networkConnection.setDomainId(id);
-        if(networkConnection.protocolSupportsDomainDisconnect())
+        boolean handshakeCompleted = false;
+        try
         {
-            messageHandler.setMessageListener(networkConnection);
-            networkConnection.setConnectionHandler(DomainDisconnectHandler.of(networkConnection.channel, networkConnection.getDomainId()));
+            DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
+            protocolVersionValueHolder.accept(networkConnection.protocolVersion);
+            networkConnection.setDomainId(id);
+            if(networkConnection.protocolSupportsDomainDisconnect())
+            {
+                messageHandler.setMessageListener(networkConnection);
+                networkConnection.setConnectionHandler(DomainDisconnectHandler.of(networkConnection.channel, networkConnection.getDomainId()));
+            }
+            if(networkConnection.protocolSupportsDomainTopologyChange())
+            {
+                networkConnection.setDomainDiscoveryTopologyChangedHandler(DomainDiscoveryTopologyChangedHandler.of());
+            }
+            LOG.finest(() -> networkConnection + " outbound connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()) + " with domainId: " + id);
+            handshakeCompleted = true;
+            return networkConnection;
         }
-        if(networkConnection.protocolSupportsDomainTopologyChange())
+        finally
         {
-            networkConnection.setDomainDiscoveryTopologyChangedHandler(DomainDiscoveryTopologyChangedHandler.of());
+            if(!handshakeCompleted)
+            {
+                networkConnection.close();
+            }
         }
-        LOG.finest(() -> networkConnection + " reverse outbound connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()) + " with domainId: " + id);
-        return networkConnection;
     }
 
     @Override
