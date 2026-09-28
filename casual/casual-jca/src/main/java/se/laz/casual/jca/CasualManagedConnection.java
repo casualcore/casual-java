@@ -15,11 +15,8 @@ import jakarta.resource.spi.ConnectionRequestInfo;
 import jakarta.resource.spi.LocalTransaction;
 import jakarta.resource.spi.ManagedConnection;
 import jakarta.resource.spi.ManagedConnectionMetaData;
-import jakarta.resource.spi.ResourceAdapter;
-import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
-import se.laz.casual.jca.pool.NetworkConnectionPool;
 import se.laz.casual.jca.pool.NetworkPoolHandler;
 import se.laz.casual.network.outbound.NetworkListener;
 
