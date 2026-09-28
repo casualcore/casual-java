@@ -300,16 +300,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         connectionHandles.remove(handle);
     }
 
-    public WorkManager getWorkManager()
-    {
-        ResourceAdapter ra = mcf.getResourceAdapter();
-        if(ra instanceof CasualResourceAdapter resourceAdapter)
-        {
-            return resourceAdapter.getWorkManager();
-        }
-        throw new CasualResourceAdapterException("resource adapter should be a casual resource adapter");
-    }
-
     @Override
     public String toString()
     {
@@ -346,29 +336,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     public DomainId getDomainId()
     {
         return getNetworkConnection().getDomainId();
-    }
-
-    /**
-     * Is this managed connection backed by a reverse network connection pool?
-     */
-    public boolean isReversePool()
-    {
-        return getPoolIfAny().map(NetworkConnectionPool::isReverse)
-                             .orElse(false);
-    }
-
-    /**
-     * The remote domain ids currently backing the network connection pool of this managed connection.
-     */
-    public List<DomainId> getPoolDomainIds()
-    {
-        return getPoolIfAny().map(NetworkConnectionPool::getPoolDomainIds)
-                             .orElseGet(() -> List.of(getDomainId()));
-    }
-
-    private Optional<NetworkConnectionPool> getPoolIfAny()
-    {
-        return Optional.ofNullable(NetworkPoolHandler.getInstance().getPool(mcf.getNetworkConnectionPoolName()));
     }
 
     public void setTransactionTimeout(int timeout)
