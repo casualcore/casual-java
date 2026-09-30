@@ -32,6 +32,7 @@ public final class CasualServer
 {
     private static final Logger log = Logger.getLogger(CasualServer.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
+    private static final int SINGLE_THREAD = 1;
     private final Channel channel;
 
     public CasualServer(Channel channel)
@@ -48,11 +49,14 @@ public final class CasualServer
     private static Channel init(ConnectionInformation ci)
     {
         boolean useEpoll = ci.isUseEpoll();
-        EventLoopGroup workerGroup = useEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+        // accept
+        EventLoopGroup bossGroup = useEpoll ? new EpollEventLoopGroup(SINGLE_THREAD) : new NioEventLoopGroup(SINGLE_THREAD);
+        // client work
+        EventLoopGroup workerGroup = useEpoll ? new EpollEventLoopGroup(SINGLE_THREAD) : new NioEventLoopGroup(SINGLE_THREAD);
         Class<? extends ServerChannel> channelClass = useEpoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
         ExceptionHandler exceptionHandler = ExceptionHandler.of(ci.getInboundTransactionRegistry());
         ServerBootstrap b = new ServerBootstrap()
-            .group(workerGroup)
+            .group(bossGroup, workerGroup)
             .channel(channelClass)
             .childHandler(new ChannelInitializer<SocketChannel>()
             {
