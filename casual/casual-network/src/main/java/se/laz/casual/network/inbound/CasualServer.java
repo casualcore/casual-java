@@ -52,7 +52,7 @@ public final class CasualServer
         // accept
         EventLoopGroup bossGroup = useEpoll ? new EpollEventLoopGroup(SINGLE_THREAD) : new NioEventLoopGroup(SINGLE_THREAD);
         // client work
-        EventLoopGroup workerGroup = useEpoll ? new EpollEventLoopGroup(SINGLE_THREAD) : new NioEventLoopGroup(SINGLE_THREAD);
+        EventLoopGroup workerGroup = useEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
         Class<? extends ServerChannel> channelClass = useEpoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
         ExceptionHandler exceptionHandler = ExceptionHandler.of(ci.getInboundTransactionRegistry());
         ServerBootstrap b = new ServerBootstrap()
