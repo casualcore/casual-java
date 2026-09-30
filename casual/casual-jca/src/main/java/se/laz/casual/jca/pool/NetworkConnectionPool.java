@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListener, NetworkListener
@@ -111,20 +113,16 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         {
             // create up to pool size # of connections
             // after that, randomly choose one - later on we can have some better heuristics for choosing which connection to return
-            while (connections.size() == poolSize)
+            Supplier<ReferenceCountedNetworkConnection> supplier = connections::get;
+            BooleanSupplier runIt = () -> connections.size() == poolSize;
+            Optional<NetworkConnection> connection = doGetConnection(supplier, networkListener, runIt);
+            if(connection.isPresent())
             {
-                ReferenceCountedNetworkConnection connection = connections.get();
-                if(connection.tryIncrement())
-                {
-                    connection.addListener(networkListener);
-                    return connection;
-                }
-                // the last user just released it, its close notification is pending - drop it and create a replacement
-                connections.removeConnection(connection);
+                return connection.get();
             }
-            ReferenceCountedNetworkConnection connection = networkConnectionCreator.createNetworkConnection(address, networkListener, this, this);
-            connections.addConnection(connection);
-            return connection;
+            ReferenceCountedNetworkConnection newConnection = networkConnectionCreator.createNetworkConnection(address, networkListener, this, this);
+            connections.addConnection(newConnection);
+            return newConnection;
         }
     }
 
@@ -132,17 +130,8 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     {
         synchronized (getOrCreateLock)
         {
-            for(;;)
-            {
-                ReferenceCountedNetworkConnection connection = anyReverseConnection().orElseThrow(() -> noReverseConnection(""));
-                if(connection.tryIncrement())
-                {
-                    connection.addListener(networkListener);
-                    return connection;
-                }
-                // the last user just released it, its close notification is pending - drop it
-                connections.removeConnection(connection);
-            }
+            Supplier<ReferenceCountedNetworkConnection> supplier = () -> anyReverseConnection().orElseThrow(() -> noReverseConnection(""));
+            return doGetConnection(supplier, networkListener, () -> true).orElseThrow(() -> noReverseConnection("this code should never ever have been reached"));
         }
     }
 
@@ -150,19 +139,29 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     {
         synchronized (getOrCreateLock)
         {
-            for(;;)
-            {
-                ReferenceCountedNetworkConnection connection = connections.get(domainId).orElseThrow(() -> noReverseConnection(" towards domain: " + domainId));
-                if(connection.tryIncrement())
-                {
-                    connection.addListener(networkListener);
-                    return connection;
-                }
-                // the last user just released it, its close notification is pending - drop it
-                connections.removeConnection(connection);
-            }
+            Supplier<ReferenceCountedNetworkConnection> supplier = () -> connections.get(domainId).orElseThrow(() -> noReverseConnection(" towards domain: " + domainId));
+            return doGetConnection(supplier, networkListener, () -> true).orElseThrow(() -> noReverseConnection("this code should never ever have been reached"));
         }
     }
+
+    // note: the supplier has to throw if there are no connections available or at least terminate
+    private Optional<NetworkConnection> doGetConnection(Supplier<ReferenceCountedNetworkConnection> creator, NetworkListener networkListener, BooleanSupplier runIt)
+    {
+        while(runIt.getAsBoolean())
+        {
+            ReferenceCountedNetworkConnection connection = creator.get();
+            if (connection.tryIncrement())
+            {
+                connection.addListener(networkListener);
+                return Optional.of(connection);
+            }
+            // the last user just released it, its close notification is pending - drop it
+            connections.removeConnection(connection);
+        }
+        return Optional.empty();
+    }
+
+
 
     // only ever call while holding getOrCreateLock
     private Optional<ReferenceCountedNetworkConnection> anyReverseConnection()
