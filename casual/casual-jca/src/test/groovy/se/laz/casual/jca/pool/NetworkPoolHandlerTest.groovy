@@ -44,7 +44,7 @@ class NetworkPoolHandlerTest extends Specification
         NetworkConnectionPool pool = NetworkPoolHandler.getInstance().getOrCreateReversePool( poolName )
 
         when: 'allocation fails since no EIS has connected yet'
-        NetworkPoolHandler.getInstance().getOrCreate( poolName, Address.of( 'asdf', 123 ), Mock( NetworkListener ), 1 )
+        NetworkPoolHandler.getInstance().getOrCreate( poolName, Address.of( 'asdf', 123 ), Mock( NetworkListener ), 1, null )
 
         then: 'it throws but the reverse pool remains registered, it is filled as EIS(s) connects'
         thrown( CasualConnectionException )

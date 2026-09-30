@@ -97,19 +97,13 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     {
         // Reverse pools accept connections without a configured size.
         int poolSize = Objects.requireNonNullElse(mcf.getNetworkConnectionPoolSize(), 0);
-        return null == pinnedDomainId ? NetworkPoolHandler.getInstance()
-                                                          .getOrCreate(
-                                                                  mcf.getNetworkConnectionPoolName(),
-                                                                  mcf.getAddress(),
-                                                                  this,
-                                                                  poolSize)
-                                      : NetworkPoolHandler.getInstance()
-                                                          .getOrCreate(
-                                                                  mcf.getNetworkConnectionPoolName(),
-                                                                  mcf.getAddress(),
-                                                                  this,
-                                                                  poolSize,
-                                                                  pinnedDomainId);
+        return NetworkPoolHandler.getInstance()
+                                 .getOrCreate(
+                                         mcf.getNetworkConnectionPoolName(),
+                                         mcf.getAddress(),
+                                         this,
+                                         poolSize,
+                                         pinnedDomainId);
     }
 
     /**

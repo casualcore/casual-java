@@ -14,7 +14,6 @@ import se.laz.casual.network.outbound.NetworkListener;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -36,19 +35,10 @@ public class NetworkPoolHandler
         return instance;
     }
 
-    public NetworkConnection getOrCreate(String poolName, Address address, NetworkListener listener, int poolSize)
-    {
-        return getOrCreate(poolName, address, poolSize, pool -> pool.getOrCreateConnection(address, listener));
-    }
-
-    /**
-     * Get or create a connection pinned to a specific remote domain - see
-     * {@link NetworkConnectionPool#getOrCreateConnection(Address, NetworkListener, DomainId)}.
-     */
     public NetworkConnection getOrCreate(String poolName, Address address, NetworkListener listener, int poolSize, DomainId domainId)
     {
-        Objects.requireNonNull(domainId, "domainId can not be null");
-        return getOrCreate(poolName, address, poolSize, pool -> pool.getOrCreateConnection(address, listener, domainId));
+        return null == domainId ? getOrCreate(poolName, address, poolSize, pool -> pool.getOrCreateConnection(address, listener))
+                : getOrCreate(poolName, address, poolSize, pool -> pool.getOrCreateConnection(address, listener, domainId));
     }
 
     private NetworkConnection getOrCreate(String poolName, Address address, int poolSize, Function<NetworkConnectionPool, NetworkConnection> connectionGetter)
