@@ -6,10 +6,11 @@
 package se.laz.casual.event.server;
 
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.ServerChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollIoHandler;
 import io.netty.channel.epoll.EpollServerSocketChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
@@ -63,7 +64,7 @@ public class EventServerConnectionInformation
 
     public EventLoopGroup createEventLoopGroup()
     {
-        return isUseEpoll() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+        return isUseEpoll() ?  new MultiThreadIoEventLoopGroup(EpollIoHandler.newFactory()) : new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
     }
 
     public Class<? extends ServerChannel> getChannelClass()

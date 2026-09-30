@@ -6,8 +6,9 @@
 package se.laz.casual.network;
 
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.epoll.EpollIoHandler;
+import io.netty.channel.nio.NioIoHandler;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.network.outbound.JEEConcurrencyFactory;
@@ -64,10 +65,10 @@ public final class EventLoopFactory
         if(useEpoll)
         {
             LOG.info(() -> "using EpollEventLoopGroup");
-            return new EpollEventLoopGroup(numberOfThreads);
+            return new MultiThreadIoEventLoopGroup(numberOfThreads, EpollIoHandler.newFactory());
         }
         LOG.info(() -> "using NioEventLoopGroup");
-        return new NioEventLoopGroup(numberOfThreads);
+        return new MultiThreadIoEventLoopGroup(numberOfThreads, NioIoHandler.newFactory());
     }
 
     private static EventLoopGroup getManagedEventLoopGroup(boolean useEpoll, int numberOfThreads)
@@ -75,10 +76,10 @@ public final class EventLoopFactory
         if (useEpoll)
         {
             LOG.info(() -> "using EpollEventLoopGroup");
-            return new EpollEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService());
+            return new MultiThreadIoEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService(), EpollIoHandler.newFactory());
         }
         LOG.info(() -> "using NioEventLoopGroup");
-        return new NioEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService());
+        return new MultiThreadIoEventLoopGroup(numberOfThreads, JEEConcurrencyFactory.getManagedExecutorService(), NioIoHandler.newFactory());
     }
 
 }

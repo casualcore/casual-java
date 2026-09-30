@@ -8,7 +8,8 @@ package se.laz.casual.event.client;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.util.Objects;
@@ -79,7 +80,7 @@ public final class EventClientBuilder
             Objects.requireNonNull(eventObserver, "eventObserver can not be null");
             Objects.requireNonNull(connectionObserver, "connectionObserver can not be null");
             channelClass = null == channelClass ? NioSocketChannel.class : channelClass;
-            eventLoopGroup = null == eventLoopGroup ? new NioEventLoopGroup() : eventLoopGroup;
+            eventLoopGroup = null == eventLoopGroup ? new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()) : eventLoopGroup;
             ConnectionInformation connectionInformation = new ConnectionInformation(host, port);
             EventClientInformation clientInformation = EventClientInformation.createBuilder()
                                                                              .withConnectionInformation(connectionInformation)

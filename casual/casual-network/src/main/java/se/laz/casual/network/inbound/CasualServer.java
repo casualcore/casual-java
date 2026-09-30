@@ -11,10 +11,11 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.ServerChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollIoHandler;
 import io.netty.channel.epoll.EpollServerSocketChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
@@ -48,7 +49,8 @@ public final class CasualServer
     private static Channel init(ConnectionInformation ci)
     {
         boolean useEpoll = ci.isUseEpoll();
-        EventLoopGroup workerGroup = useEpoll ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+
+        EventLoopGroup workerGroup = useEpoll ? new MultiThreadIoEventLoopGroup(EpollIoHandler.newFactory()) : new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
         Class<? extends ServerChannel> channelClass = useEpoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
         ExceptionHandler exceptionHandler = ExceptionHandler.of(ci.getInboundTransactionRegistry());
         ServerBootstrap b = new ServerBootstrap()
