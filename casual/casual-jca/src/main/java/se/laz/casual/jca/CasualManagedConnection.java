@@ -107,10 +107,13 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     }
 
     /**
-     * The remote domain this managed connection is pinned to, empty when not pinned.
-     * A managed connection gets pinned when handed out with a {@link CasualRequestInfo} carrying
-     * a domain id and stays pinned for its lifetime -
+     * Returns the remote domain this managed connection is pinned to.
+     *
+     * <p>A managed connection gets pinned when handed out with a {@link CasualRequestInfo} carrying
+     * a domain ID and stays pinned for its lifetime.
      * {@link CasualManagedConnectionFactory#matchManagedConnections} only ever matches on pin equality.
+     *
+     * @return the pinned domain ID, or an empty value when this connection is not pinned
      */
     public Optional<DomainId> getPinnedDomainId()
     {

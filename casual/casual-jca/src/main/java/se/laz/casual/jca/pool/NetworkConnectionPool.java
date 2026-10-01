@@ -18,7 +18,6 @@ import se.laz.casual.network.outbound.NetworkListener;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -62,9 +61,14 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     }
 
     /**
-     * Create a reverse pool.
-     * A reverse pool never establishes any connections itself, it is fed established connections
+     * Creates a reverse pool.
+     *
+     * <p>A reverse pool never establishes any connections itself. It receives established connections
      * via {@link #addConnectionForReversePool(NettyNetworkConnection)} as the EIS connects to a reverse outbound listener.
+     *
+     * @param poolName the unique pool name
+     * @return an empty reverse pool with the specified name
+     * @throws NullPointerException if {@code poolName} is {@code null}
      */
     public static NetworkConnectionPool ofReverse(String poolName)
     {
@@ -77,28 +81,8 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         return reverse;
     }
 
-    /**
-     * Get a connection pinned to a specific remote domain.
-     * The pin is only honored by reverse pools - it selects a connection towards that specific
-     * connected instance, failing if the instance is gone. Non reverse pools ignore it since
-     * all their connections go towards one and the same system anyway.
-     */
-    public NetworkConnection getOrCreateConnection(Address address, NetworkListener networkListener, DomainId domainId)
-    {
-        Objects.requireNonNull(domainId, DOMAIN_ID_CAN_NOT_BE_NULL);
-        if(reverse)
-        {
-            return getReverseConnection(networkListener, domainId);
-        }
-        return getOrCreateConnection(address, networkListener);
-    }
-
     public NetworkConnection getOrCreateConnection(Address address, NetworkListener networkListener)
     {
-        if(reverse)
-        {
-            return getReverseConnection(networkListener);
-        }
         if(!this.address.equals(address))
         {
             throw new CasualResourceAdapterException("Address mismatch, have: " + this.address + " got: " + address + " for pool with name: " + poolName);
@@ -125,13 +109,20 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         }
     }
 
-    private NetworkConnection getReverseConnection(NetworkListener networkListener)
+    /**
+     * Returns a reverse connection pinned to the specified remote domain.
+     *
+     * @param networkListener the listener to notify when the connection closes
+     * @param domainId the remote domain to select
+     * @return a connection to the specified domain
+     */
+    NetworkConnection getReverseConnection(NetworkListener networkListener, DomainId domainId)
     {
         synchronized (getOrCreateLock)
         {
             for(;;)
             {
-                ReferenceCountedNetworkConnection connection = anyReverseConnection().orElseThrow(() -> noReverseConnection(""));
+                ReferenceCountedNetworkConnection connection = connections.get(domainId).orElseThrow(() -> noReverseConnection(" towards domain: " + domainId));
                 if( connectionCanBeUsed( connection, networkListener ) )
                 {
                     return connection;
@@ -152,36 +143,18 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         return false;
     }
 
-    private NetworkConnection getReverseConnection(NetworkListener networkListener, DomainId domainId)
-    {
-        synchronized (getOrCreateLock)
-        {
-            for(;;)
-            {
-                ReferenceCountedNetworkConnection connection = connections.get(domainId).orElseThrow(() -> noReverseConnection(" towards domain: " + domainId));
-                if( connectionCanBeUsed( connection, networkListener ) )
-                {
-                    return connection;
-                }
-            }
-        }
-    }
-
-    // only ever call while holding getOrCreateLock
-    private Optional<ReferenceCountedNetworkConnection> anyReverseConnection()
-    {
-        return connections.size() == 0 ? Optional.empty() : Optional.of(connections.get());
-    }
-
     private CasualConnectionException noReverseConnection(String detail)
     {
         return new CasualConnectionException("no reverse outbound connection available for pool: " + poolName + detail);
     }
 
     /**
-     * The remote domain ids currently backing this pool.
-     * For a reverse pool: the currently connected instances, one entry per instance no matter
-     * how many connections each of them has established.
+     * Returns the distinct remote domain IDs currently backing this pool.
+     *
+     * <p>For a reverse pool, the list contains one entry per connected instance, regardless of
+     * how many connections each instance has established.
+     *
+     * @return an unmodifiable snapshot of the domain IDs currently backing this pool
      */
     public List<DomainId> getPoolDomainIds()
     {
@@ -192,15 +165,20 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     }
 
     /**
-     * Add an established connection, reverse pools only.
-     * Each established connection acts, to the user, as if it was its own configured pool towards
-     * the connected instance - one is chosen at random per managed connection ( per domain id).
+     * Adds an established connection to a reverse pool.
      *
-     * The pool holds the initial reference so that managed connection churn never closes the
+     * <p>Each established connection acts as its own configured pool for the connected instance.
+     * The pool selects one connection at random for each managed connection and domain ID.
+     *
+     * <p>The pool holds the initial reference so that managed connection churn never closes the
      * physical connection - a normal outbound pool is always configured to never be exhausted
      * (initial = min = max, no scaling) so its connections only ever close on network error,
      * and reverse connections behave the same: they live until the EIS closes them or the
      * resource adapter is deactivated.
+     *
+     * @param networkConnection the established reverse outbound connection to add
+     * @throws NullPointerException if {@code networkConnection} or its domain ID is {@code null}
+     * @throws CasualResourceAdapterException if this is a standard outbound pool
      */
     public void addConnectionForReversePool(NettyNetworkConnection networkConnection)
     {

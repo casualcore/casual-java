@@ -269,7 +269,7 @@ class NetworkConnectionPoolTest extends Specification
       given:
       NetworkConnectionPool pool = NetworkConnectionPool.ofReverse('empty-reverse-pool')
       when:
-      pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener))
+      pool.getReverseConnection(Mock(NetworkListener), DomainId.of(UUID.randomUUID()))
       then:
       thrown(CasualConnectionException)
    }
@@ -302,7 +302,7 @@ class NetworkConnectionPoolTest extends Specification
       when: 'asking for domain A'
       Set<DomainId> seenDomains = [] as Set
       20.times {
-         seenDomains << pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA).getDomainId()
+         seenDomains << pool.getReverseConnection(Mock(NetworkListener), domainA).getDomainId()
       }
 
       then:
@@ -311,7 +311,7 @@ class NetworkConnectionPoolTest extends Specification
       pool.getPoolDomainIds() as Set == [domainA, domainB] as Set
 
       when: 'non connected domain - throws'
-      pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), DomainId.of(UUID.randomUUID()))
+      pool.getReverseConnection(Mock(NetworkListener), DomainId.of(UUID.randomUUID()))
 
       then:
       thrown(CasualConnectionException)
@@ -326,8 +326,8 @@ class NetworkConnectionPoolTest extends Specification
       }
       NetworkConnectionPool pool = NetworkConnectionPool.ofReverse('reverse-pool')
       pool.addConnectionForReversePool(physicalConnection)
-      NetworkConnection firstConnection = pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
-      NetworkConnection secondConnection = pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
+      NetworkConnection firstConnection = pool.getReverseConnection(Mock(NetworkListener), domainA)
+      NetworkConnection secondConnection = pool.getReverseConnection(Mock(NetworkListener), domainA)
 
       expect: 'both connections share the one physical connection'
       firstConnection == secondConnection
@@ -340,59 +340,8 @@ class NetworkConnectionPoolTest extends Specification
       0 * physicalConnection.close()
 
       and: 'it can be taken again, exactly as a normal outbound pool that is never exhausted'
-      pool.getOrCreateConnection(Address.of('whatever', 123), Mock(NetworkListener), domainA) == firstConnection
+      pool.getReverseConnection(Mock(NetworkListener), domainA) == firstConnection
       pool.getPoolDomainIds() == [domainA]
-   }
-
-   def 'unpinned getOrCreateConnection over a reverse pool serves any connected instance - only used for classification, normal usage is always pinned by domain id'()
-   {
-      given: 'two connections from domain A and one from domain B'
-      // Unpinned access is never part of a normal call chain - callers pin by domain id.
-      // It exists for the bootstrap: casual-caller has to get *a* connection to ask
-      // isReversePool()/getPoolDomainIds() before any domain id is known, and a plain JCA user
-      // without casual-caller gets the same "any connected instance" semantics.
-      DomainId domainA = DomainId.of(UUID.randomUUID())
-      DomainId domainB = DomainId.of(UUID.randomUUID())
-      Map<NettyNetworkConnection, NetworkListener> deathListeners = [:]
-      def connectionFrom = { DomainId domainId ->
-         NettyNetworkConnection connection = Mock(NettyNetworkConnection)
-         connection.getDomainId() >> domainId
-         // the first registered listener is the pools own removal listener
-         connection.addListener(_) >> { NetworkListener listener -> deathListeners.putIfAbsent(connection, listener) }
-         return connection
-      }
-      NettyNetworkConnection connectionA1 = connectionFrom(domainA)
-      NettyNetworkConnection connectionA2 = connectionFrom(domainA)
-      NettyNetworkConnection connectionB1 = connectionFrom(domainB)
-      NetworkConnectionPool pool = NetworkConnectionPool.ofReverse('reverse-pool')
-      pool.addConnectionForReversePool(connectionA1)
-      pool.addConnectionForReversePool(connectionA2)
-      pool.addConnectionForReversePool(connectionB1)
-
-      when: 'drawing many connections unpinned'
-      Set<DomainId> seenDomains = [] as Set
-      100.times {
-         seenDomains << pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener)).getDomainId()
-      }
-
-      then: 'selection covers the whole pool'
-      seenDomains == [domainA, domainB] as Set
-
-      when: 'domain A goes bye bye'
-      deathListeners[connectionA1].disconnected(new Exception('instance gone'))
-      deathListeners[connectionA2].disconnected(new Exception('instance gone'))
-
-      then: 'its connections are removed and unpinned can only serve domain B'
-      pool.getPoolDomainIds() == [domainB]
-      pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener)).getDomainId() == domainB
-
-      when: 'domain B goes bye bye'
-      deathListeners[connectionB1].disconnected(new Exception('instance gone'))
-      pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener))
-
-      then: 'the pool is empty and allocation fails until an EIS connects again'
-      thrown(CasualConnectionException)
-      pool.getPoolDomainIds().isEmpty()
    }
 
    def 'pinned get spread over all connections sharing the same domain id and survives until the last one is gone'()
@@ -419,7 +368,7 @@ class NetworkConnectionPoolTest extends Specification
       when: 'drawing many pinned connections'
       Set<NetworkConnection> seenConnections = [] as Set
       100.times {
-         seenConnections << pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainId)
+         seenConnections << pool.getReverseConnection(Mock(NetworkListener), domainId)
       }
 
       then: 'every connection is used'
@@ -429,7 +378,7 @@ class NetworkConnectionPoolTest extends Specification
       deathListeners[first].disconnected(new Exception('connection gone'))
       Set<NetworkConnection> remainingConnections = [] as Set
       100.times {
-         remainingConnections << pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainId)
+         remainingConnections << pool.getReverseConnection(Mock(NetworkListener), domainId)
       }
 
       then: 'pinned gets keep working, spread over the survivors, and the domain is still visible'
@@ -440,7 +389,7 @@ class NetworkConnectionPoolTest extends Specification
       when: 'the last connections die'
       deathListeners[second].disconnected(new Exception('connection gone'))
       deathListeners[third].disconnected(new Exception('connection gone'))
-      pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainId)
+      pool.getReverseConnection(Mock(NetworkListener), domainId)
 
       then: 'the domain is gone and pinned allocation towards it fails'
       thrown(CasualConnectionException)
@@ -459,12 +408,12 @@ class NetworkConnectionPoolTest extends Specification
       pool.addConnectionForReversePool(physical2)
 
       // Acquire first connection and close all references so refcount reaches 0
-      def conn1 = pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
+      def conn1 = pool.getReverseConnection(Mock(NetworkListener), domainA)
       conn1.close() // ManagedConnection closes (refcount 2 -> 1)
       conn1.close() // Pool closes / network error (refcount 1 -> 0, closed = true)
 
       when: 'requesting a connection for domain A'
-      def allocated = pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
+      def allocated = pool.getReverseConnection(Mock(NetworkListener), domainA)
 
       then: 'the closed connection was evicted, returning the healthy connection'
       allocated != conn1
@@ -480,12 +429,12 @@ class NetworkConnectionPoolTest extends Specification
       def pool = NetworkConnectionPool.ofReverse('reverse-pool')
       pool.addConnectionForReversePool(physical)
 
-      def conn = pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
+      def conn = pool.getReverseConnection(Mock(NetworkListener), domainA)
       conn.close() // refcount 2 -> 1
       conn.close() // refcount 1 -> 0
 
       when: 'requesting a connection for domain A'
-      pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
+      pool.getReverseConnection(Mock(NetworkListener), domainA)
 
       then: 'the closed connection was evicted and CasualConnectionException is thrown'
       thrown(CasualConnectionException)
@@ -523,7 +472,7 @@ class NetworkConnectionPoolTest extends Specification
 
       NetworkConnectionPool pool = NetworkConnectionPool.ofReverse('reverse-pool')
       pool.addConnectionForReversePool(physicalConnection)
-      NetworkConnection connection = pool.getOrCreateConnection(Address.of('asdf', 123), Mock(NetworkListener), domainA)
+      NetworkConnection connection = pool.getReverseConnection(Mock(NetworkListener), domainA)
 
       when: 'EIS network error'
       pool.closed(connection)

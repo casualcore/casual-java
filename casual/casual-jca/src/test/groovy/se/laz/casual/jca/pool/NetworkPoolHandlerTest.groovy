@@ -7,6 +7,7 @@
 package se.laz.casual.jca.pool
 
 import se.laz.casual.jca.Address
+import se.laz.casual.jca.DomainId
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.outbound.NetworkListener
 import spock.lang.Specification
@@ -44,7 +45,12 @@ class NetworkPoolHandlerTest extends Specification
         NetworkConnectionPool pool = NetworkPoolHandler.getInstance().getOrCreateReversePool( poolName )
 
         when: 'allocation fails since no EIS has connected yet'
-        NetworkPoolHandler.getInstance().getOrCreate( poolName, Address.of( 'asdf', 123 ), Mock( NetworkListener ), 1, null )
+        NetworkPoolHandler.getInstance().getOrCreate(
+                poolName,
+                Address.of('asdf', 123),
+                Mock(NetworkListener),
+                1,
+                DomainId.of(UUID.randomUUID()))
 
         then: 'it throws but the reverse pool remains registered, it is filled as EIS(s) connects'
         thrown( CasualConnectionException )

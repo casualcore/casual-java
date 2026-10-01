@@ -38,7 +38,7 @@ public class NetworkPoolHandler
     public NetworkConnection getOrCreate(String poolName, Address address, NetworkListener listener, int poolSize, DomainId domainId)
     {
         return null == domainId ? getOrCreate(poolName, address, poolSize, pool -> pool.getOrCreateConnection(address, listener))
-                : getOrCreate(poolName, address, poolSize, pool -> pool.getOrCreateConnection(address, listener, domainId));
+                : getOrCreate(poolName, address, poolSize, pool -> pool.getReverseConnection(listener, domainId));
     }
 
     private NetworkConnection getOrCreate(String poolName, Address address, int poolSize, Function<NetworkConnectionPool, NetworkConnection> connectionGetter)
@@ -62,9 +62,14 @@ public class NetworkPoolHandler
     }
 
     /**
-     * Get or create the reverse pool with the given name.
-     * Reverse pools are registered when the reverse outbound listeners start so that they exist
+     * Returns the reverse pool with the specified name, creating it when necessary.
+     *
+     * <p>Reverse pools are registered when the reverse outbound listeners start so that they exist
      * before any connection factory can look them up.
+     *
+     * @param poolName the unique reverse pool name
+     * @return the existing or newly created reverse pool
+     * @throws NullPointerException if {@code poolName} is {@code null}
      */
     public NetworkConnectionPool getOrCreateReversePool(String poolName)
     {
@@ -72,7 +77,12 @@ public class NetworkPoolHandler
     }
 
     /**
-     * Add an established reverse outbound connection to the pool with the given name.
+     * Adds an established reverse outbound connection to the pool with the specified name.
+     *
+     * @param poolName the unique reverse pool name
+     * @param connection the established connection to add
+     * @throws NullPointerException if {@code poolName}, {@code connection}, or the connection's
+     *         domain ID is {@code null}
      */
     public void addReverseConnection(String poolName, NettyNetworkConnection connection)
     {

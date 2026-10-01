@@ -68,7 +68,9 @@ public final class ReverseOutboundConnectionInformation
     }
 
     /**
-     * Consumer of established connections, invoked after the handshake and role switch completes.
+     * Returns the consumer invoked after the handshake and role switch complete.
+     *
+     * @return the consumer of established reverse outbound connections
      */
     public Consumer<NettyNetworkConnection> getConnectionConsumer()
     {

@@ -99,10 +99,17 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     }
 
     /**
-     * Create a connection from an already established channel, performing the outbound domain connect handshake.
-     * Used for reverse outbound: the EIS connects to us and then waits for us, the outbound side, to issue the
-     * domain connect request - just as if we had connected to it.
-     * Blocks awaiting the handshake reply and must not be called from the channel's event loop thread.
+     * Creates a connection from an established channel and performs the outbound domain-connect handshake.
+     *
+     * <p>For reverse outbound, the EIS connects and waits for this outbound side to issue the
+     * domain-connect request. This method blocks while awaiting the handshake reply. Do not call
+     * it from the channel's event-loop thread.
+     *
+     * @param channel the established channel to use
+     * @param ci the outbound connection information
+     * @param networkListener the listener to notify if the network connection closes unexpectedly
+     * @return the connected network connection after a successful handshake
+     * @throws NullPointerException if any argument is {@code null}
      */
     public static NettyNetworkConnection ofAcceptedChannel(final SocketChannel channel, final NettyConnectionInformation ci, final NetworkListener networkListener)
     {
