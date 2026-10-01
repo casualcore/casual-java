@@ -30,10 +30,8 @@ import se.laz.casual.jca.inflow.CasualActivationSpec;
 import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 import se.laz.casual.jca.jmx.JMXStartup;
 import se.laz.casual.jca.pool.NetworkPoolHandler;
-import se.laz.casual.jca.work.StartInboundServerListener;
+import se.laz.casual.jca.work.ServerStartupWorkListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
-import se.laz.casual.jca.work.StartReverseInboundServerListener;
-import se.laz.casual.jca.work.StartReverseOutboundServerListener;
 import se.laz.casual.network.InboundDeactivatedContext;
 import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.ProtocolVersion;
@@ -209,7 +207,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
             Supplier<String> logMsg = () -> "casual reverse inbound connected to: " +
                     new InetSocketAddress(connectionInformation.getAddress().getHostName(), connectionInformation.getAddress().getPort());
             Work work = StartInboundServerWork.of(getInboundStartupServices(), logMsg, consumer, supplier);
-            startWork(work, StartReverseInboundServerListener.of());
+            startWork(work, ServerStartupWorkListener.of("reverse inbound"));
         }
     }
 
@@ -241,7 +239,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         Supplier<ReverseOutboundServer> supplier = () -> ReverseOutboundServerImpl.of(connectionInformation);
         Supplier<String> logMsg = () -> "casual reverse outbound listening on port: " + connectionInformation.getPort() + " name=" + connectionInformation.getName();
         Work work = StartInboundServerWork.of(getInboundStartupServices(), logMsg, consumer, supplier);
-        startWork(work, StartReverseOutboundServerListener.of());
+        startWork(work, ServerStartupWorkListener.of("reverse outbound"));
     }
 
     private void connectedReverseOutbound(ReverseOutboundServer server)
@@ -260,7 +258,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         Supplier<String> logMsg = () -> "Casual inbound server bound to port: " + connectionInformation.getPort();
         long delay = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS );
         Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier, delay);
-        startWork(work, StartInboundServerListener.of());
+        startWork(work, ServerStartupWorkListener.of("inbound"));
     }
 
     private List<String> getInboundStartupServices()

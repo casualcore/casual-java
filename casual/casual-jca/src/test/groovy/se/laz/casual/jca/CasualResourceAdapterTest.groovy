@@ -10,8 +10,7 @@ import se.laz.casual.jca.pool.NetworkPoolHandler
 import se.laz.casual.config.ConfigurationOptions
 import se.laz.casual.config.ConfigurationService
 import se.laz.casual.config.ReverseOutbound
-import se.laz.casual.jca.work.StartInboundServerListener
-import se.laz.casual.jca.work.StartReverseOutboundServerListener
+import se.laz.casual.jca.work.ServerStartupWorkListener
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.EventLoop
@@ -204,14 +203,14 @@ class CasualResourceAdapterTest extends Specification
         instance.endpointActivation(Mock(MessageEndpointFactory), new CasualActivationSpec())
 
         then:
-        2 * manager.startWork(_, _, _, _ as StartReverseOutboundServerListener) >> {
+        2 * manager.startWork(_, _, _, _ as ServerStartupWorkListener) >> {
             work, timeout, executionContext, listener ->
                 def pools = [firstName, secondName].collect { handler.getPool(it) }.findAll { it != null }
                 assert pools.every { it.isReverse() && it.getPoolDomainIds().isEmpty() }
                 registeredPoolCounts.add(pools.size())
                 return 0L
         }
-        1 * manager.startWork(_, _, _, _ as StartInboundServerListener) >> {
+        1 * manager.startWork(_, _, _, _ as ServerStartupWorkListener) >> {
             work, timeout, executionContext, listener ->
                 assert [firstName, secondName].every {
                     handler.getPool(it)?.isReverse() && handler.getPool(it).getPoolDomainIds().isEmpty()
