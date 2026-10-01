@@ -69,7 +69,25 @@ public interface CasualConnectionFactory extends Serializable, Referenceable
      */
     boolean isDomainDisconnecting(DomainId domainId);
 
+    /**
+     * Returns whether this connection factory uses a reverse outbound pool.
+     *
+     * @return {@code true} if this factory uses a reverse outbound pool;
+     *         otherwise, {@code false}
+     */
     boolean isReverse();
-    List<DomainId> getDomainIds();
 
+    /**
+     * Returns the distinct remote domain IDs currently represented in this pool.
+     *
+     * <p>A standard outbound pool returns at most one domain ID. A reverse outbound
+     * pool returns one domain ID for each connected EIS. Either pool can return an
+     * empty list when it has no established connections.
+     *
+     * <p>The returned list is an unmodifiable snapshot. Connections can change
+     * immediately after this method returns.
+     *
+     * @return the distinct domain IDs currently represented in the pool
+     */
+    List<DomainId> getDomainIds();
 }

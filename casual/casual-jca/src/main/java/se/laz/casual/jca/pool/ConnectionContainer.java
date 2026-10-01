@@ -62,6 +62,8 @@ public class ConnectionContainer
 
     /**
      * Get a connection towards the given domain, empty if there is none.
+     * @param domainId - the domain id of the domain for which a connection is requested
+     * @return A connection, if any is available - empty if not
      */
     public Optional<ReferenceCountedNetworkConnection> get(DomainId domainId)
     {

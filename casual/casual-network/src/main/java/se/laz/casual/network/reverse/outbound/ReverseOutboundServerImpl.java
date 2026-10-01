@@ -117,7 +117,7 @@ public class ReverseOutboundServerImpl implements ReverseOutboundServer
     }
 
     @Override
-    public void deactivate()
+    public void  deactivate()
     {
         if(!deactivated.compareAndSet(false, true))
         {
