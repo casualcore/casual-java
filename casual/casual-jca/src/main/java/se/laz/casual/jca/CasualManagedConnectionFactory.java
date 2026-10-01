@@ -6,8 +6,6 @@
 package se.laz.casual.jca;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import se.laz.casual.config.ConfigurationOptions;
-import se.laz.casual.config.ConfigurationService;
 import jakarta.resource.ResourceException;
 import jakarta.resource.spi.CommException;
 import jakarta.resource.spi.ConnectionManager;
@@ -17,12 +15,12 @@ import jakarta.resource.spi.ManagedConnectionFactory;
 import jakarta.resource.spi.ResourceAdapter;
 import jakarta.resource.spi.ResourceAdapterAssociation;
 import jakarta.resource.spi.ValidatingManagedConnectionFactory;
+import se.laz.casual.config.ConfigurationOptions;
+import se.laz.casual.config.ConfigurationService;
 
 import javax.security.auth.Subject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -153,7 +151,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    }
 
    @Override
-   @SuppressWarnings({"rawtypes","unchecked"})
+   @SuppressWarnings({"rawtypes"})
    public ManagedConnection matchManagedConnections(Set connectionSet,
                                                     Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
@@ -161,24 +159,24 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       // a request carrying a domain id must only ever match a managed connection pinned to that very domain,
       // a request without one must only ever match an unpinned managed connection
       Optional<DomainId> maybeDomainId = DomainIdExtractor.getDomainId(cxRequestInfo);
-      return (ManagedConnection)connectionSet.stream()
-                                             .filter(CasualManagedConnection.class::isInstance)
-                                             .filter(connection -> maybeDomainId.equals(((CasualManagedConnection)connection).getPinnedDomainId()))
-                                             .findFirst( )
-                                             .orElse( null );
+
+      return ( (Set<?>)connectionSet ).stream()
+              .filter( CasualManagedConnection.class::isInstance )
+              .map( CasualManagedConnection.class::cast )
+              .filter( connection -> maybeDomainId.equals( connection.getPinnedDomainId() ) )
+              .findFirst()
+              .orElse( null );
    }
 
    @Override
-   @SuppressWarnings({"rawtypes","unchecked"})
+   @SuppressWarnings({"rawtypes"})
    public Set getInvalidConnections(Set connectionSet) throws ResourceException
    {
-      List<Object> wrapper = new ArrayList<>();
-      wrapper.addAll(connectionSet);
-      return wrapper.stream()
-                    .filter(CasualManagedConnection.class::isInstance)
-                    .map(CasualManagedConnection.class::cast)
-                    .filter(managedConnection -> !managedConnection.getNetworkConnection().isActive())
-                    .collect(Collectors.toSet());
+      return ( (Set<?>)connectionSet ).stream()
+              .filter( CasualManagedConnection.class::isInstance )
+              .map( CasualManagedConnection.class::cast )
+              .filter( managedConnection -> !managedConnection.getNetworkConnection().isActive() )
+              .collect( Collectors.toSet() );
    }
 
    @Override
