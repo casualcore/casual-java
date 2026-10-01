@@ -81,15 +81,15 @@ public class ServiceCallWorkListener implements WorkListener
             if (null != e.getException())
             {
                 log.log(Level.WARNING,
-                        "CasualServiceCallWork rejected with errorCode=%s, corrid=%s".formatted(
+                        e.getException(),
+                        () -> "CasualServiceCallWork rejected with errorCode=%s, corrid=%s".formatted(
                                 getDescriptiveWorkExceptionErrorCode(e.getException()),
-                                getCasualCorrelationId(work)),
-                        e.getException());
+                                getCasualCorrelationId(work)));
             }
             else
             {
                 log.log(Level.WARNING,
-                        "CasualServiceCallWork rejected without an exception, this is not normal, corrid=%s".formatted(getCasualCorrelationId(work)));
+                        () -> "CasualServiceCallWork rejected without an exception, this is not normal, corrid=%s".formatted(getCasualCorrelationId(work)));
             }
         }
 
@@ -113,7 +113,7 @@ public class ServiceCallWorkListener implements WorkListener
         eventBuilder.end();
         if (e.getException() != null)
         {
-            log.log(Level.SEVERE, "Inbound call failed with an exception, errorCode=%s".formatted(getDescriptiveWorkExceptionErrorCode(e.getException())), e.getException());
+            log.log(Level.SEVERE, e.getException(), () -> "Inbound call failed with an exception, errorCode=%s".formatted(getDescriptiveWorkExceptionErrorCode(e.getException())));
         }
         CasualServiceCallWork work = getCasualServiceCallWork(e);
         ServiceCallEvent event = createEvent(work);

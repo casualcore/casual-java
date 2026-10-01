@@ -71,7 +71,7 @@ public final class ServerStartupWorkListener implements WorkListener
         LOG.log(level, () -> "Casual " + serverType + " startup: " + message);
         if(event.getException() != null)
         {
-            LOG.log(Level.SEVERE, "Casual " + serverType + " startup work failed", event.getException());
+            LOG.log(Level.SEVERE, event.getException(), () -> "Casual " + serverType + " startup work failed");
         }
     }
 }

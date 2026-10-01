@@ -5,6 +5,7 @@
  */
 package se.laz.casual.jca.pool;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.Address;
 import se.laz.casual.jca.DomainId;
@@ -30,6 +31,8 @@ public class NetworkPoolHandler
     {
     }
 
+    // Exposed internal representation is expected.
+    @SuppressFBWarnings("external_spotbugs:MS_EXPOSE_REP")
     public static NetworkPoolHandler getInstance()
     {
         return instance;
