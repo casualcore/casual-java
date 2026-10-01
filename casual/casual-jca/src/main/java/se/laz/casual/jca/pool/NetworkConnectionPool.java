@@ -114,13 +114,10 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
             while (connections.size() == poolSize)
             {
                 ReferenceCountedNetworkConnection connection = connections.get();
-                if(connection.tryIncrement())
+                if( connectionCanBeUsed( connection, networkListener ) )
                 {
-                    connection.addListener(networkListener);
                     return connection;
                 }
-                // the last user just released it, its close notification is pending - drop it and create a replacement
-                connections.removeConnection(connection);
             }
             ReferenceCountedNetworkConnection connection = networkConnectionCreator.createNetworkConnection(address, networkListener, this, this);
             connections.addConnection(connection);
@@ -135,15 +132,24 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
             for(;;)
             {
                 ReferenceCountedNetworkConnection connection = anyReverseConnection().orElseThrow(() -> noReverseConnection(""));
-                if(connection.tryIncrement())
+                if( connectionCanBeUsed( connection, networkListener ) )
                 {
-                    connection.addListener(networkListener);
                     return connection;
                 }
-                // the last user just released it, its close notification is pending - drop it
-                connections.removeConnection(connection);
             }
         }
+    }
+
+    private boolean connectionCanBeUsed( ReferenceCountedNetworkConnection connection, NetworkListener networkListener )
+    {
+        if(connection.tryIncrement())
+        {
+            connection.addListener(networkListener);
+            return true;
+        }
+        // the last user just released it, its close notification is pending - drop it
+        connections.removeConnection(connection);
+        return false;
     }
 
     private NetworkConnection getReverseConnection(NetworkListener networkListener, DomainId domainId)
@@ -153,13 +159,10 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
             for(;;)
             {
                 ReferenceCountedNetworkConnection connection = connections.get(domainId).orElseThrow(() -> noReverseConnection(" towards domain: " + domainId));
-                if(connection.tryIncrement())
+                if( connectionCanBeUsed( connection, networkListener ) )
                 {
-                    connection.addListener(networkListener);
                     return connection;
                 }
-                // the last user just released it, its close notification is pending - drop it
-                connections.removeConnection(connection);
             }
         }
     }
