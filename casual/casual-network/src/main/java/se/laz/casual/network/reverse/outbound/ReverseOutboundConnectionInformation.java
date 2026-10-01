@@ -77,6 +77,39 @@ public final class ReverseOutboundConnectionInformation
         return connectionConsumer;
     }
 
+    @Override
+    public boolean equals(Object o)
+    {
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        ReverseOutboundConnectionInformation that = (ReverseOutboundConnectionInformation) o;
+        return port == that.port && useEpoll == that.useEpoll && Objects.equals(name, that.name) &&
+                Objects.equals(domainId, that.domainId) && Objects.equals(domainName, that.domainName) &&
+                Objects.equals(channelClass, that.channelClass) && Objects.equals(connectionConsumer, that.connectionConsumer);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(name, port, domainId, domainName, channelClass, connectionConsumer, useEpoll);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "ReverseOutboundConnectionInformation{" +
+                "name='" + name + '\'' +
+                ", port=" + port +
+                ", domainId=" + domainId +
+                ", domainName='" + domainName + '\'' +
+                ", channelClass=" + channelClass +
+                ", connectionConsumer=" + connectionConsumer +
+                ", useEpoll=" + useEpoll +
+                '}';
+    }
+
     public static Builder createBuilder()
     {
         return new Builder();

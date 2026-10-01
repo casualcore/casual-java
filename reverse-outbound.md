@@ -36,9 +36,9 @@ A request that includes a domain ID matches or creates a managed connection pinn
 
 `casual-caller` exposes each connected instance as a standalone connection factory entry. With *n* connected reverse inbounds, `casual-caller` detects *n* distinct pools, each maintaining its own service discovery, validity state, and failover priority.
 
-## Consumption
+## Wildfly application server configuration
 
-Consume connections through a standard application server connection factory. Configure it like a pooled outbound connection factory, but set `networkConnectionPoolName` to your reverse outbound name:
+Configure connections through a standard application server connection factory. Configure it like a pooled outbound connection factory, but set `networkConnectionPoolName` to your reverse outbound name:
 
 ```xml
 <connection-definition class-name="se.laz.casual.jca.CasualManagedConnectionFactory"
