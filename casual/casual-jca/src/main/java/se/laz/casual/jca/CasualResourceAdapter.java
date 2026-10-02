@@ -283,14 +283,48 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                                      ActivationSpec spec)
     {
         log.info(()->"endpointDeactivation() ");
+        prepareEndpointDeactivation();
+        waitForPendingTransactions();
+        deactivateEndpoint(spec);
+    }
+
+    /**
+     * Prepares the endpoint for deactivation and stops new service traffic.
+     *
+     * <p>This method marks the domain as shutting down, notifies connected domains, and clears
+     * inbound connection contexts. Call this method before applying the environment-specific
+     * transaction-drain policy. This method is not thread-safe and must run once per endpoint
+     * lifecycle before {@link #deactivateEndpoint(ActivationSpec)}.
+     */
+    public void prepareEndpointDeactivation()
+    {
         RuntimeInformation.setDomainIsBeingShutdown(true);
         InboundDeactivatedContext.domainDisconnect();
         InboundDeactivatedContext.clear();
         InboundTopologyUpdateContext.clear();
+    }
+
+    private void waitForPendingTransactions()
+    {
         Predicate predicate = () -> inboundTransactionRegistry.hasPending() || CasualResourceManager.getInstance().hasPending();
         long sleepTimeMilliseconds = 20L;
         ShutdownBarrier shutdownBarrier = ShutdownBarrier.of(sleepTimeMilliseconds, predicate);
         shutdownBarrier.intermittentSleep();
+    }
+
+    /**
+     * Stops the endpoint servers and removes the endpoint activation state.
+     *
+     * <p>Call this method after {@link #prepareEndpointDeactivation()} and after applying the
+     * environment-specific transaction-drain policy. This method does not wait for pending
+     * transactions. This method is not thread-safe and must not run concurrently with endpoint
+     * activation or deactivation.
+     *
+     * @param spec the {@link CasualActivationSpec} for the endpoint
+     * @throws ClassCastException if {@code spec} is not a {@code CasualActivationSpec}
+     */
+    public void deactivateEndpoint(ActivationSpec spec)
+    {
         if( server != null )
         {
             server.close();
