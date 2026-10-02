@@ -15,8 +15,6 @@ import jakarta.resource.spi.ConnectionRequestInfo;
 import jakarta.resource.spi.LocalTransaction;
 import jakarta.resource.spi.ManagedConnection;
 import jakarta.resource.spi.ManagedConnectionMetaData;
-import jakarta.resource.spi.ResourceAdapter;
-import jakarta.resource.spi.work.WorkManager;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.event.ConnectionEventHandler;
 import se.laz.casual.jca.pool.NetworkPoolHandler;
@@ -30,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -53,6 +52,9 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     private final Object networkConnectionLock = new Object();
     private CasualXAResource xaResource;
     private final AtomicInteger timeout = new AtomicInteger();
+    // when set, the network connection is always fetched towards this specific remote domain - reverse pools only
+    // this since each active managed connection is backed by a specific network connection ( based on domain id)
+    private DomainId pinnedDomainId;
 
     /**
      * Create a new managed connection with the provided factory and request information.
@@ -93,18 +95,57 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
 
     private NetworkConnection getOrCreateFromPool()
     {
+        // Reverse pools accept connections without a configured size.
+        int poolSize = Objects.requireNonNullElse(mcf.getNetworkConnectionPoolSize(), 0);
         return NetworkPoolHandler.getInstance()
                                  .getOrCreate(
                                          mcf.getNetworkConnectionPoolName(),
                                          mcf.getAddress(),
                                          this,
-                                         mcf.getNetworkConnectionPoolSize());
+                                         poolSize,
+                                         pinnedDomainId);
+    }
+
+    /**
+     * Returns the remote domain this managed connection is pinned to.
+     *
+     * <p>A managed connection gets pinned when handed out with a {@link CasualRequestInfo} carrying
+     * a domain ID and stays pinned for its lifetime.
+     * {@link CasualManagedConnectionFactory#matchManagedConnections} only ever matches on pin equality.
+     *
+     * @return the pinned domain ID, or an empty value when this connection is not pinned
+     */
+    public Optional<DomainId> getPinnedDomainId()
+    {
+        synchronized (networkConnectionLock)
+        {
+            return Optional.ofNullable(pinnedDomainId);
+        }
+    }
+
+    private void pinIfRequested(ConnectionRequestInfo cxRequestInfo) throws ResourceException
+    {
+        Optional<DomainId> maybeDomainId = DomainIdExtractor.getDomainId(cxRequestInfo);
+        if(maybeDomainId.isEmpty())
+        {
+            return;
+        }
+        DomainId domainId = maybeDomainId.get();
+        synchronized (networkConnectionLock)
+        {
+            if(null != pinnedDomainId && !pinnedDomainId.equals(domainId))
+            {
+                throw new ResourceException("managed connection already pinned to: " + pinnedDomainId + " can not pin to: " + domainId);
+            }
+            pinnedDomainId = domainId;
+        }
     }
 
     @Override
     public Object getConnection(Subject subject,
                                 ConnectionRequestInfo cxRequestInfo) throws ResourceException
     {
+        pinIfRequested(cxRequestInfo);
         try
         {
             log.finest("getConnection()");
@@ -251,16 +292,6 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
     private void removeHandle(CasualConnectionImpl handle)
     {
         connectionHandles.remove(handle);
-    }
-
-    public WorkManager getWorkManager()
-    {
-        ResourceAdapter ra = mcf.getResourceAdapter();
-        if(ra instanceof CasualResourceAdapter resourceAdapter)
-        {
-            return resourceAdapter.getWorkManager();
-        }
-        throw new CasualResourceAdapterException("resource adapter should be a casual resource adapter");
     }
 
     @Override

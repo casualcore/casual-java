@@ -45,6 +45,8 @@ See [casual caller documentation](https://github.com/casualcore/casual-caller) f
 
 [Outbound](outbound.md)
 
+[Reverse Outbound](reverse-outbound.md)
+
 [Event server](event-server.md)
 
 [Event client](event-client.md)

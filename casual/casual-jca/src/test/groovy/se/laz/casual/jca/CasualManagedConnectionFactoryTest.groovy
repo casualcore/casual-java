@@ -6,6 +6,10 @@
 
 package se.laz.casual.jca
 
+import se.laz.casual.config.ConfigurationOptions
+import se.laz.casual.config.ConfigurationService
+import se.laz.casual.config.ReverseOutbound
+
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -129,6 +133,38 @@ class CasualManagedConnectionFactoryTest extends Specification
         instance.matchManagedConnections( set, subject, cri ) == connection
     }
 
+    def "MatchManagedConnections matches on pinned domain id"()
+    {
+        setup:
+        Subject subject = new Subject()
+        DomainId domainId = DomainId.of(UUID.randomUUID())
+        DomainId otherDomainId = DomainId.of(UUID.randomUUID())
+        CasualManagedConnection unpinned = new CasualManagedConnection( Mock(CasualManagedConnectionFactory) )
+        CasualManagedConnection pinned = pinnedManagedConnection( domainId )
+        Set<Object> set = [unpinned, pinned] as Set
+
+        expect: 'a request carrying a domain id only ever matches a managed connection pinned to that very domain'
+        instance.matchManagedConnections( set, subject, CasualRequestInfo.of( domainId ) ) == pinned
+        instance.matchManagedConnections( set, subject, CasualRequestInfo.of( otherDomainId ) ) == null
+        and: 'a request without one only ever matches an unpinned managed connection'
+        instance.matchManagedConnections( set, subject, null ) == unpinned
+    }
+
+    def pinnedManagedConnection(DomainId domainId)
+    {
+        CasualManagedConnection connection = new CasualManagedConnection( Mock(CasualManagedConnectionFactory) )
+        try
+        {
+            connection.getConnection( new Subject(), CasualRequestInfo.of( domainId ) )
+        }
+        catch(ResourceException e)
+        {
+            // there is no network in this test - the pin is set regardless
+        }
+        assert connection.getPinnedDomainId() == Optional.of(domainId)
+        return connection
+    }
+
     def "MatchManagedConnections returns null if there are no CasualManagedConnection instance in the set provided."()
     {
         setup:
@@ -230,6 +266,36 @@ class CasualManagedConnectionFactoryTest extends Specification
         instance.toString().contains( "CasualManagedConnectionFactory" )
     }
 
+    def 'reverse pooling does not require a positive size: #size'()
+    {
+        given:
+        String poolName = "reverse-${UUID.randomUUID()}"
+        def option = ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES
+        def previous = ConfigurationService.getConfiguration(option)
+        ConfigurationService.setConfiguration(option,
+                [ReverseOutbound.newBuilder().withName(poolName).withPort(7785).build()])
+        instance.networkConnectionPoolName = poolName
+        instance.networkConnectionPoolSize = size
+        def producer = Mock(CasualManagedConnectionProducer)
+        def connection = Mock(CasualManagedConnection)
+        instance.setCasualManagedConnectionProducer(producer)
+
+        when:
+        def factory = instance.createConnectionFactory(Mock(ConnectionManager))
+        def managed = instance.createManagedConnection(null, null)
+
+        then:
+        factory.isReverse()
+        managed.is(connection)
+        1 * producer.createManagedConnection(instance) >> connection
+
+        cleanup:
+        ConfigurationService.setConfiguration(option, previous)
+
+        where:
+        size << [null, 0, -1, 1]
+    }
+
     def 'invalid pooling configuration is rejected before factory or managed connection creation: #name, #size'()
     {
         given:
@@ -261,4 +327,16 @@ class CasualManagedConnectionFactoryTest extends Specification
         'pool' | 0
         'pool' | -1
     }
+    def 'a pool containing only another domain has no matching managed connection'()
+    {
+        given:
+        DomainId domainA = DomainId.of(UUID.randomUUID())
+        DomainId domainB = DomainId.of(UUID.randomUUID())
+        CasualManagedConnection pinned = pinnedManagedConnection(domainA)
+
+        expect:
+        instance.matchManagedConnections([pinned] as Set, new Subject(), CasualRequestInfo.of(domainB)) == null
+        pinned.getPinnedDomainId() == Optional.of(domainA)
+    }
+
 }

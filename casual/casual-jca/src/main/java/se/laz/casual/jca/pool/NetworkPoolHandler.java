@@ -5,14 +5,18 @@
  */
 package se.laz.casual.jca.pool;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.Address;
+import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.connection.CasualConnectionException;
+import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 // singleton is intentional
@@ -27,24 +31,65 @@ public class NetworkPoolHandler
     {
     }
 
+    // Exposed internal representation is expected.
+    @SuppressFBWarnings("external_spotbugs:MS_EXPOSE_REP")
     public static NetworkPoolHandler getInstance()
     {
         return instance;
     }
 
-    public NetworkConnection getOrCreate(String poolName, Address address, NetworkListener listener, int poolSize)
+    public NetworkConnection getOrCreate(String poolName, Address address, NetworkListener listener, int poolSize, DomainId domainId)
+    {
+        return null == domainId ? getOrCreate(poolName, address, poolSize, pool -> pool.getOrCreateConnection(address, listener))
+                : getOrCreate(poolName, address, poolSize, pool -> pool.getReverseConnection(listener, domainId));
+    }
+
+    private NetworkConnection getOrCreate(String poolName, Address address, int poolSize, Function<NetworkConnectionPool, NetworkConnection> connectionGetter)
     {
         try
         {
-            return pools.computeIfAbsent(poolName, key -> NetworkConnectionPool.of(key, address, poolSize)).getOrCreateConnection(address, listener);
+            return connectionGetter.apply(pools.computeIfAbsent(poolName, key -> NetworkConnectionPool.of(key, address, poolSize)));
         }
         catch(CasualConnectionException e)
         {
             log.finest(() -> "connection failure for: " + address);
-            log.finest(() -> "removing pool: " + poolName);
-            pools.remove(poolName);
+            NetworkConnectionPool pool = pools.get(poolName);
+            if(null != pool && !pool.isReverse())
+            {
+                // reverse pools are kept, they are refilled as the EIS(s) reconnects
+                log.finest(() -> "removing pool: " + poolName);
+                pools.remove(poolName, pool);
+            }
             throw e;
         }
+    }
+
+    /**
+     * Returns the reverse pool with the specified name, creating it when necessary.
+     *
+     * <p>Reverse pools are registered when the reverse outbound listeners start so that they exist
+     * before any connection factory can look them up.
+     *
+     * @param poolName the unique reverse pool name
+     * @return the existing or newly created reverse pool
+     * @throws NullPointerException if {@code poolName} is {@code null}
+     */
+    public NetworkConnectionPool getOrCreateReversePool(String poolName)
+    {
+        return pools.computeIfAbsent(poolName, NetworkConnectionPool::ofReverse);
+    }
+
+    /**
+     * Adds an established reverse outbound connection to the pool with the specified name.
+     *
+     * @param poolName the unique reverse pool name
+     * @param connection the established connection to add
+     * @throws NullPointerException if {@code poolName}, {@code connection}, or the connection's
+     *         domain ID is {@code null}
+     */
+    public void addReverseConnection(String poolName, NettyNetworkConnection connection)
+    {
+        getOrCreateReversePool(poolName).addConnectionForReversePool(connection);
     }
 
     // used by jmx only

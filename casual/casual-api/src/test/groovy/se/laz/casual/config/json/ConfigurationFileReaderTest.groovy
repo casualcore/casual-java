@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -25,6 +25,7 @@ import static se.laz.casual.config.ConfigurationDefaults.SHUTDOWN_QUIET_PERIOD_D
 import static se.laz.casual.config.ConfigurationDefaults.SHUTDOWN_TIMEOUT_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.UNMANAGED_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.USE_EPOLL_DEFAULT
+
 
 class ConfigurationFileReaderTest extends Specification
 {
@@ -166,6 +167,28 @@ class ConfigurationFileReaderTest extends Specification
         "casual-config-reverse-inbound.json"              || "10.96.186.114" | 7771 | REVERSE_INBOUND_CONNECTION_POOL_SIZE_DEFAULT | REVERSE_INBOUND_CONNECTION_MAX_BACKOFF_DEFAULT
         "casual-config-reverse-inbound-with-backoff.json" || "10.96.186.114" | 7771 | REVERSE_INBOUND_CONNECTION_POOL_SIZE_DEFAULT | 12345
         "casual-config-reverse-inbound-with-size.json"    || "10.96.186.114" | 7771 | 42                                           | REVERSE_INBOUND_CONNECTION_MAX_BACKOFF_DEFAULT
+    }
+
+    def "Read file reverse outbound, store updated"()
+    {
+        given:
+        String file = "src/test/resources/" + filename
+        se.laz.casual.config.ReverseOutbound expected = se.laz.casual.config.ReverseOutbound.newBuilder()
+                .withName( name )
+                .withPort( port )
+                .build()
+
+        when:
+        instance.populateStoreFromFile( file )
+
+        List<se.laz.casual.config.ReverseOutbound> actual = store.get( ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES )
+
+        then:
+        actual == [expected]
+
+        where:
+        filename                                    || name             | port
+        "casual-config-reverse-outbound.json"       || "myReverse"      | 7773
     }
 
 }

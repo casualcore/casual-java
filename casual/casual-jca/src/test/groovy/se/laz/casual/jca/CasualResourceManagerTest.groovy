@@ -34,6 +34,7 @@ class CasualResourceManagerTest extends Specification
         instance.remove(domainOne, xid1 )
         instance.remove(domainOne, xid2 )
         instance.remove(domainOne, xid3 )
+        instance.remove(domainTwo, xid1 )
     }
 
     def "Check xid constraints"()
@@ -106,6 +107,33 @@ class CasualResourceManagerTest extends Specification
        then:
        !instance.isPending(domainOne, xid1)
        instance.isPending(domainTwo, xid1)
+    }
+
+    def 'pending count includes each resource and tracks removal'()
+    {
+        expect:
+        instance.getPendingTransactionCount() == 0
+
+        when:
+        instance.put(domainOne, xid1)
+        instance.put(domainOne, xid2)
+        instance.put(domainTwo, xid1)
+
+        then:
+        instance.getPendingTransactionCount() == 3
+
+        when:
+        instance.remove(domainOne, xid1)
+
+        then:
+        instance.getPendingTransactionCount() == 2
+
+        when:
+        instance.remove(domainOne, xid2)
+        instance.remove(domainTwo, xid1)
+
+        then:
+        instance.getPendingTransactionCount() == 0
     }
 
     def "toString test."()

@@ -50,4 +50,18 @@ public class CasualInboundTransactionRegistry
         log.finest(() -> "# of inbound pending: " + transactions.size());
         return !transactions.isEmpty();
     }
+
+    /**
+     * Returns the number of pending inbound transaction entries across channels.
+     *
+     * <p>You can call this method concurrently with registration and removal.
+     * The count is approximate during concurrent updates. An XID registered on
+     * multiple channels contributes one entry per channel.
+     *
+     * @return the number of pending inbound transaction entries
+     */
+    public long getPendingTransactionCount()
+    {
+        return transactions.values().stream().mapToLong(Set::size).sum();
+    }
 }
