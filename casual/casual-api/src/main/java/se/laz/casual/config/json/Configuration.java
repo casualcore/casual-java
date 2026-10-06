@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 - 2024, The casual project. All rights reserved.
+ * Copyright (c) 2021 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -17,6 +17,7 @@ class Configuration
     private final Domain domain;
     private final Outbound outbound;
     private final List<ReverseInbound> reverseInbound;
+    private final List<ReverseOutbound> reverseOutbound;
     private final EventServer eventServer;
     private final Boolean useEpoll;
     private final Boolean unmanaged;
@@ -27,6 +28,7 @@ class Configuration
         this.domain = builder.domain;
         this.outbound = builder.outbound;
         this.reverseInbound = builder.reverseInbound;
+        this.reverseOutbound = builder.reverseOutbound;
         this.eventServer = builder.eventServer;
         this.useEpoll = builder.useEpoll;
         this.unmanaged = builder.unmanaged;
@@ -50,6 +52,11 @@ class Configuration
     public List<ReverseInbound> getReverseInbound()
     {
         return reverseInbound == null ? Collections.emptyList() : new ArrayList<>( reverseInbound );
+    }
+
+    public List<ReverseOutbound> getReverseOutbound()
+    {
+        return reverseOutbound == null ? Collections.emptyList() : new ArrayList<>( reverseOutbound );
     }
 
     public EventServer getEventServer()
@@ -79,13 +86,13 @@ class Configuration
             return false;
         }
         Configuration that = (Configuration) o;
-        return Objects.equals( inbound, that.inbound ) && Objects.equals( domain, that.domain ) && Objects.equals( outbound, that.outbound ) && Objects.equals( reverseInbound, that.reverseInbound ) && Objects.equals( eventServer, that.eventServer ) && Objects.equals( useEpoll, that.useEpoll ) && Objects.equals( unmanaged, that.unmanaged );
+        return Objects.equals( inbound, that.inbound ) && Objects.equals( domain, that.domain ) && Objects.equals( outbound, that.outbound ) && Objects.equals( reverseInbound, that.reverseInbound ) && Objects.equals( reverseOutbound, that.reverseOutbound ) && Objects.equals( eventServer, that.eventServer ) && Objects.equals( useEpoll, that.useEpoll ) && Objects.equals( unmanaged, that.unmanaged );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( inbound, domain, outbound, reverseInbound, eventServer, useEpoll, unmanaged );
+        return Objects.hash( inbound, domain, outbound, reverseInbound, reverseOutbound, eventServer, useEpoll, unmanaged );
     }
 
     @Override
@@ -96,6 +103,7 @@ class Configuration
                 ", domain=" + domain +
                 ", outbound=" + outbound +
                 ", reverseInbound=" + reverseInbound +
+                ", reverseOutbound=" + reverseOutbound +
                 ", eventServer=" + eventServer +
                 ", useEpoll=" + useEpoll +
                 ", unmanaged=" + unmanaged +
@@ -112,6 +120,7 @@ class Configuration
         return new Builder().withInbound( src.getInbound() )
                 .withOutbound( src.getOutbound() )
                 .withReverseInbound( src.getReverseInbound() )
+                .withReverseOutbound( src.getReverseOutbound() )
                 .withEventServer( src.getEventServer() )
                 .withUseEpoll( src.getUseEpoll() )
                 .withUnmanaged( src.getUnmanaged() )
@@ -124,6 +133,7 @@ class Configuration
         private Domain domain;
         private Outbound outbound;
         private List<ReverseInbound> reverseInbound = new ArrayList<>();
+        private List<ReverseOutbound> reverseOutbound = new ArrayList<>();
         private EventServer eventServer;
         private Boolean useEpoll;
         private Boolean unmanaged;
@@ -149,6 +159,12 @@ class Configuration
         public Builder withReverseInbound( List<ReverseInbound> reverseInbounds )
         {
             this.reverseInbound = new ArrayList<>( reverseInbounds );
+            return this;
+        }
+
+        public Builder withReverseOutbound( List<ReverseOutbound> reverseOutbounds )
+        {
+            this.reverseOutbound = new ArrayList<>( reverseOutbounds );
             return this;
         }
 

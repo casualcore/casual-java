@@ -6,6 +6,11 @@
 
 package se.laz.casual.jca
 
+import se.laz.casual.jca.pool.NetworkPoolHandler
+import se.laz.casual.config.ConfigurationOptions
+import se.laz.casual.config.ConfigurationService
+import se.laz.casual.config.ReverseOutbound
+import se.laz.casual.jca.work.ServerStartupWorkListener
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.EventLoop
@@ -172,4 +177,56 @@ class CasualResourceAdapterTest extends Specification
         !channel.isOpen()
         RuntimeInformation.isDomainBeingShutdown()
     }
+    def 'activation registers empty reverse pools before listener work and skips duplicate names'()
+    {
+        given:
+        String firstName = "first-${UUID.randomUUID()}"
+        String secondName = "second-${UUID.randomUUID()}"
+        def handler = NetworkPoolHandler.getInstance()
+        def option = ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES
+        def previous = ConfigurationService.getConfiguration(option)
+        def reverse = { String name, int port ->
+            ReverseOutbound.newBuilder().withName(name).withPort(port).build()
+        }
+        ConfigurationService.setConfiguration(option,
+                [reverse(firstName, 7785), reverse(firstName, 7786), reverse(secondName, 7787)])
+        WorkManager manager = Mock()
+        BootstrapContext context = Mock() {
+            getWorkManager() >> manager
+            getXATerminator() >> Mock(XATerminator)
+        }
+        instance.start(context)
+        instance.setInboundServerPort(9999)
+        def registeredPoolCounts = []
+
+        when:
+        instance.endpointActivation(Mock(MessageEndpointFactory), new CasualActivationSpec())
+
+        then:
+        2 * manager.startWork(_, _, _, _ as ServerStartupWorkListener) >> {
+            work, timeout, executionContext, listener ->
+                def pools = [firstName, secondName].collect { handler.getPool(it) }.findAll { it != null }
+                assert pools.every { it.isReverse() && it.getPoolDomainIds().isEmpty() }
+                registeredPoolCounts.add(pools.size())
+                return 0L
+        }
+        1 * manager.startWork(_, _, _, _ as ServerStartupWorkListener) >> {
+            work, timeout, executionContext, listener ->
+                assert [firstName, secondName].every {
+                    handler.getPool(it)?.isReverse() && handler.getPool(it).getPoolDomainIds().isEmpty()
+                }
+                return 0L
+        }
+        registeredPoolCounts == [2, 2]
+        handler.getPool(firstName).isReverse()
+        handler.getPool(secondName).isReverse()
+        handler.getPool(firstName).getPoolDomainIds().isEmpty()
+        handler.getPool(secondName).getPoolDomainIds().isEmpty()
+
+        cleanup:
+        ConfigurationService.setConfiguration(option, previous)
+        handler.@pools.remove(firstName)
+        handler.@pools.remove(secondName)
+    }
+
 }

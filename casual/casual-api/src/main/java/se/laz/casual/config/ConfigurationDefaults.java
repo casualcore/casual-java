@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, The casual project. All rights reserved.
+ * Copyright (c) 2024 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -35,6 +35,7 @@ public class ConfigurationDefaults
     public static final Boolean EVENT_SERVER_ENABLED_DEFAULT = false;
     public static final Integer EVENT_SERVER_PORT_DEFAULT = 7698;
     public static final List<ReverseInbound> REVERSE_INBOUND_INSTANCES_DEFAULT = Collections.emptyList();
+    public static final List<ReverseOutbound> REVERSE_OUTBOUND_INSTANCES_DEFAULT = Collections.emptyList();
     public static final Integer REVERSE_INBOUND_CONNECTION_POOL_SIZE_DEFAULT = 1;
     public static final Long REVERSE_INBOUND_CONNECTION_MAX_BACKOFF_DEFAULT = 30000L;
     public static final String CONFIG_FILE_DEFAULT = "";
@@ -91,6 +92,7 @@ public class ConfigurationDefaults
         store.put( ConfigurationOptions.CASUAL_EVENT_SERVER_ENABLE_LOGHANDLER, NETWORK_ENABLE_LOGHANDLER_DEFAULT );
 
         store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES, REVERSE_INBOUND_INSTANCES_DEFAULT );
+        store.put( ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES, REVERSE_OUTBOUND_INSTANCES_DEFAULT );
         store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCE_CONNECTION_POOL_SIZE, REVERSE_INBOUND_CONNECTION_POOL_SIZE_DEFAULT );
         store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCE_CONNECTION_MAX_BACKOFF_MILLIS, REVERSE_INBOUND_CONNECTION_MAX_BACKOFF_DEFAULT );
     }

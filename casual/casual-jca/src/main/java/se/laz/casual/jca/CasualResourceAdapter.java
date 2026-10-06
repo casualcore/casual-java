@@ -23,14 +23,15 @@ import se.laz.casual.api.buffer.type.fielded.json.CasualFieldedLookup;
 import se.laz.casual.config.ConfigurationOptions;
 import se.laz.casual.config.ConfigurationService;
 import se.laz.casual.config.ReverseInbound;
+import se.laz.casual.config.ReverseOutbound;
 import se.laz.casual.event.server.EventServer;
 import se.laz.casual.event.server.EventServerConnectionInformation;
 import se.laz.casual.jca.inflow.CasualActivationSpec;
 import se.laz.casual.jca.inflow.CasualInboundTransactionRegistry;
 import se.laz.casual.jca.jmx.JMXStartup;
-import se.laz.casual.jca.work.StartInboundServerListener;
+import se.laz.casual.jca.pool.NetworkPoolHandler;
+import se.laz.casual.jca.work.ServerStartupWorkListener;
 import se.laz.casual.jca.work.StartInboundServerWork;
-import se.laz.casual.jca.work.StartReverseInboundServerListener;
 import se.laz.casual.network.InboundDeactivatedContext;
 import se.laz.casual.network.InboundTopologyUpdateContext;
 import se.laz.casual.network.ProtocolVersion;
@@ -40,13 +41,19 @@ import se.laz.casual.network.inbound.reverse.AutoConnect;
 import se.laz.casual.network.inbound.reverse.ReverseInboundConnectionInformation;
 import se.laz.casual.network.reverse.inbound.ReverseInboundListener;
 import se.laz.casual.network.reverse.inbound.ReverseInboundServer;
+import se.laz.casual.network.reverse.outbound.ReverseOutboundConnectionInformation;
+import se.laz.casual.network.reverse.outbound.ReverseOutboundServer;
+import se.laz.casual.network.reverse.outbound.ReverseOutboundServerImpl;
 
 import javax.transaction.xa.XAResource;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -68,8 +75,9 @@ import java.util.logging.Logger;
 public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundListener
 {
     private static Logger log = Logger.getLogger(CasualResourceAdapter.class.getName());
-    private ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
-    private List<ReverseInboundServer> reverseInbounds = new ArrayList<>();
+    private final ConcurrentHashMap<Integer, CasualActivationSpec> activations = new ConcurrentHashMap<>();
+    private final List<ReverseInboundServer> reverseInbounds = Collections.synchronizedList(new ArrayList<>());
+    private final List<ReverseOutboundServer> reverseOutbounds = Collections.synchronizedList(new ArrayList<>());
     private CasualInboundTransactionRegistry inboundTransactionRegistry;
     // it is not really unused, it should never ever be gc:ed, thus it is part of this class
     @SuppressWarnings("java:S1068")
@@ -154,9 +162,13 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                 .withInboundTransactionRegistry(inboundTransactionRegistry)
                 .build();
         activations.put(as.getPort(), as);
+        List<ReverseOutbound> reverseOutbound = ConfigurationService.getConfiguration(ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES);
+        // Register every reverse pool before any listener work can accept requests.
+        reverseOutbound.forEach(instance -> NetworkPoolHandler.getInstance().getOrCreateReversePool(instance.getName()));
         log.info(() -> "start casual inbound server" );
         startInboundServer( ci );
         maybeStartReverseInbound( ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES ), endpointFactory, workManager, xaTerminator);
+        maybeStartReverseOutbound(reverseOutbound);
         log.finest(() -> "end endpointActivation()");
 
     }
@@ -195,8 +207,45 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
             Supplier<String> logMsg = () -> "casual reverse inbound connected to: " +
                     new InetSocketAddress(connectionInformation.getAddress().getHostName(), connectionInformation.getAddress().getPort());
             Work work = StartInboundServerWork.of(getInboundStartupServices(), logMsg, consumer, supplier);
-            startWork(work, StartReverseInboundServerListener.of());
+            startWork(work, ServerStartupWorkListener.of("reverse inbound"));
         }
+    }
+
+    private void maybeStartReverseOutbound(List<ReverseOutbound> reverseOutbound)
+    {
+        Set<String> seenNames = new HashSet<>();
+        for (ReverseOutbound instance : reverseOutbound)
+        {
+            String name = instance.getName();
+            if (!seenNames.add(name))
+            {
+                log.warning(() -> "Duplicate reverse outbound name configured: '" + name + "'. Names must be unique - skipping this entry.");
+                continue;
+            }
+            startReverseOutbound(ReverseOutboundConnectionInformation.createBuilder()
+                    .withName(name)
+                    .withPort(instance.getPort())
+                    .withDomainId(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId())
+                    .withDomainName(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME ))
+                    .withUseEpoll(ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_USE_EPOLL ))
+                    .withConnectionConsumer(connection -> NetworkPoolHandler.getInstance().addReverseConnection(name, connection))
+                    .build());
+        }
+    }
+
+    private void startReverseOutbound(ReverseOutboundConnectionInformation connectionInformation )
+    {
+        Consumer<ReverseOutboundServer> consumer = this::connectedReverseOutbound;
+        Supplier<ReverseOutboundServer> supplier = () -> ReverseOutboundServerImpl.of(connectionInformation);
+        Supplier<String> logMsg = () -> "casual reverse outbound listening on port: " + connectionInformation.getPort() + " name=" + connectionInformation.getName();
+        Work work = StartInboundServerWork.of(getInboundStartupServices(), logMsg, consumer, supplier);
+        startWork(work, ServerStartupWorkListener.of("reverse outbound"));
+    }
+
+    private void connectedReverseOutbound(ReverseOutboundServer server)
+    {
+        log.info(() -> "ReverseOutbound: " + server.getPort() + " (name=" + server.getName() + ") started");
+        reverseOutbounds.add(server);
     }
 
     private void startInboundServer( ConnectionInformation connectionInformation )
@@ -209,7 +258,7 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
         Supplier<String> logMsg = () -> "Casual inbound server bound to port: " + connectionInformation.getPort();
         long delay = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_INBOUND_STARTUP_INITIAL_DELAY_SECONDS );
         Work work = StartInboundServerWork.of( getInboundStartupServices(), logMsg, consumer, supplier, delay);
-        startWork(work, StartInboundServerListener.of());
+        startWork(work, ServerStartupWorkListener.of("inbound"));
     }
 
     private List<String> getInboundStartupServices()
@@ -234,20 +283,56 @@ public class CasualResourceAdapter implements ResourceAdapter, ReverseInboundLis
                                      ActivationSpec spec)
     {
         log.info(()->"endpointDeactivation() ");
+        prepareEndpointDeactivation();
+        waitForPendingTransactions();
+        deactivateEndpoint(spec);
+    }
+
+    /**
+     * Prepares the endpoint for deactivation and stops new service traffic.
+     *
+     * <p>This method marks the domain as shutting down, notifies connected domains, and clears
+     * inbound connection contexts. Call this method before applying the environment-specific
+     * transaction-drain policy. This method is not thread-safe and must run once per endpoint
+     * lifecycle before {@link #deactivateEndpoint(ActivationSpec)}.
+     */
+    public void prepareEndpointDeactivation()
+    {
         RuntimeInformation.setDomainIsBeingShutdown(true);
         InboundDeactivatedContext.domainDisconnect();
         InboundDeactivatedContext.clear();
         InboundTopologyUpdateContext.clear();
+    }
+
+    private void waitForPendingTransactions()
+    {
         Predicate predicate = () -> inboundTransactionRegistry.hasPending() || CasualResourceManager.getInstance().hasPending();
         long sleepTimeMilliseconds = 20L;
         ShutdownBarrier shutdownBarrier = ShutdownBarrier.of(sleepTimeMilliseconds, predicate);
         shutdownBarrier.intermittentSleep();
+    }
+
+    /**
+     * Stops the endpoint servers and removes the endpoint activation state.
+     *
+     * <p>Call this method after {@link #prepareEndpointDeactivation()} and after applying the
+     * environment-specific transaction-drain policy. This method does not wait for pending
+     * transactions. This method is not thread-safe and must not run concurrently with endpoint
+     * activation or deactivation.
+     *
+     * @param spec the {@link CasualActivationSpec} for the endpoint
+     * @throws ClassCastException if {@code spec} is not a {@code CasualActivationSpec}
+     */
+    public void deactivateEndpoint(ActivationSpec spec)
+    {
         if( server != null )
         {
             server.close();
         }
         reverseInbounds.forEach(ReverseInboundServer::deactivate);
         reverseInbounds.clear();
+        reverseOutbounds.forEach(ReverseOutboundServer::deactivate);
+        reverseOutbounds.clear();
         activations.remove(((CasualActivationSpec)spec).getPort() );
     }
 

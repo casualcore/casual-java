@@ -8,6 +8,7 @@ package se.laz.casual.jca.pool;
 import se.laz.casual.internal.network.NetworkConnection;
 import se.laz.casual.jca.Address;
 import se.laz.casual.jca.CasualResourceAdapterException;
+import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.outbound.NettyConnectionInformation;
 import se.laz.casual.network.outbound.NettyConnectionInformationCreator;
@@ -15,6 +16,7 @@ import se.laz.casual.network.outbound.NettyNetworkConnection;
 import se.laz.casual.network.outbound.NetworkListener;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -22,20 +24,27 @@ import java.util.logging.Logger;
 public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListener, NetworkListener
 {
     private static final Logger LOG = Logger.getLogger(NetworkConnectionPool.class.getName());
+    private static final String DOMAIN_ID_CAN_NOT_BE_NULL = "domainId can not be null";
+    // for reverse pools the address is unused, connections are established by the EIS
+    private static final Address REVERSE_ADDRESS = Address.of("reverse", 0);
     private final Address address;
+    // for reverse pools: each established connection acts, to the user, as if it was its own
+    // configured pool - abstracted as one pool where a connection is chosen at random per managed connection
     private final ConnectionContainer connections = ConnectionContainer.of();
     private final String poolName;
     private int poolSize;
     private final Object getOrCreateLock = new Object();
     private final NetworkConnectionCreator networkConnectionCreator;
     private final AtomicBoolean disconnected = new AtomicBoolean(false);
+    private final boolean reverse;
 
-    private NetworkConnectionPool(String poolName, Address address, int poolSize, NetworkConnectionCreator networkConnectionCreator)
+    private NetworkConnectionPool(String poolName, Address address, int poolSize, NetworkConnectionCreator networkConnectionCreator, boolean reverse)
     {
         this.address = address;
         this.poolSize = poolSize;
         this.networkConnectionCreator = networkConnectionCreator;
         this.poolName = poolName;
+        this.reverse = reverse;
     }
 
     public static NetworkConnectionPool of(String poolName, Address address, int poolSize)
@@ -48,7 +57,28 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         Objects.requireNonNull(poolName, "poolName can not be null");
         Objects.requireNonNull(address, "address can not be null");
         networkConnectionCreator = null == networkConnectionCreator ? NetworkConnectionPool::createNetworkConnection : networkConnectionCreator;
-        return new NetworkConnectionPool(poolName, address, poolSize, networkConnectionCreator);
+        return new NetworkConnectionPool(poolName, address, poolSize, networkConnectionCreator, false);
+    }
+
+    /**
+     * Creates a reverse pool.
+     *
+     * <p>A reverse pool never establishes any connections itself. It receives established connections
+     * via {@link #addConnectionForReversePool(NettyNetworkConnection)} as the EIS connects to a reverse outbound listener.
+     *
+     * @param poolName the unique pool name
+     * @return an empty reverse pool with the specified name
+     * @throws NullPointerException if {@code poolName} is {@code null}
+     */
+    public static NetworkConnectionPool ofReverse(String poolName)
+    {
+        Objects.requireNonNull(poolName, "poolName can not be null");
+        return new NetworkConnectionPool(poolName, REVERSE_ADDRESS, 0, NetworkConnectionPool::createNetworkConnection, true);
+    }
+
+    public boolean isReverse()
+    {
+        return reverse;
     }
 
     public NetworkConnection getOrCreateConnection(Address address, NetworkListener networkListener)
@@ -68,17 +98,103 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
             while (connections.size() == poolSize)
             {
                 ReferenceCountedNetworkConnection connection = connections.get();
-                if(connection.tryIncrement())
+                if( connectionCanBeUsed( connection, networkListener ) )
                 {
-                    connection.addListener(networkListener);
                     return connection;
                 }
-                // the last user just released it, its close notification is pending - drop it and create a replacement
-                connections.removeConnection(connection);
             }
             ReferenceCountedNetworkConnection connection = networkConnectionCreator.createNetworkConnection(address, networkListener, this, this);
             connections.addConnection(connection);
             return connection;
+        }
+    }
+
+    /**
+     * Returns a reverse connection pinned to the specified remote domain.
+     *
+     * @param networkListener the listener to notify when the connection closes
+     * @param domainId the remote domain to select
+     * @return a connection to the specified domain
+     */
+    NetworkConnection getReverseConnection(NetworkListener networkListener, DomainId domainId)
+    {
+        synchronized (getOrCreateLock)
+        {
+            for(;;)
+            {
+                ReferenceCountedNetworkConnection connection = connections.get(domainId).orElseThrow(() -> noReverseConnection(" towards domain: " + domainId));
+                if( connectionCanBeUsed( connection, networkListener ) )
+                {
+                    return connection;
+                }
+            }
+        }
+    }
+
+    private boolean connectionCanBeUsed( ReferenceCountedNetworkConnection connection, NetworkListener networkListener )
+    {
+        if(connection.tryIncrement())
+        {
+            connection.addListener(networkListener);
+            return true;
+        }
+        // the last user just released it, its close notification is pending - drop it
+        connections.removeConnection(connection);
+        return false;
+    }
+
+    private CasualConnectionException noReverseConnection(String detail)
+    {
+        return new CasualConnectionException("no reverse outbound connection available for pool: " + poolName + detail);
+    }
+
+    /**
+     * Returns the distinct remote domain IDs currently backing this pool.
+     *
+     * <p>For a reverse pool, the list contains one entry per connected instance, regardless of
+     * how many connections each instance has established.
+     *
+     * @return an unmodifiable snapshot of the domain IDs currently backing this pool
+     */
+    public List<DomainId> getPoolDomainIds()
+    {
+        synchronized (getOrCreateLock)
+        {
+            return connections.getDomainIds();
+        }
+    }
+
+    /**
+     * Adds an established connection to a reverse pool.
+     *
+     * <p>Each established connection acts as its own configured pool for the connected instance.
+     * The pool selects one connection at random for each managed connection and domain ID.
+     *
+     * <p>The pool holds the initial reference so that managed connection churn never closes the
+     * physical connection - a normal outbound pool is always configured to never be exhausted
+     * (initial = min = max, no scaling) so its connections only ever close on network error,
+     * and reverse connections behave the same: they live until the EIS closes them or the
+     * resource adapter is deactivated.
+     *
+     * @param networkConnection the established reverse outbound connection to add
+     * @throws NullPointerException if {@code networkConnection} or its domain ID is {@code null}
+     * @throws CasualResourceAdapterException if this is a standard outbound pool
+     */
+    public void addConnectionForReversePool(NettyNetworkConnection networkConnection)
+    {
+        if(!reverse)
+        {
+            throw new CasualResourceAdapterException("addConnection is only allowed for reverse pools, pool: " + poolName);
+        }
+        Objects.requireNonNull(networkConnection, "networkConnection can not be null");
+        DomainId domainId = networkConnection.getDomainId();
+        Objects.requireNonNull(domainId, DOMAIN_ID_CAN_NOT_BE_NULL);
+        synchronized (getOrCreateLock)
+        {
+            ReferenceCountedNetworkConnection connection = ReferenceCountedNetworkConnection.of(networkConnection, this);
+            networkConnection.addListener(exception -> closed(connection));
+            connections.addConnection(connection);
+            LOG.finest(() -> "added reverse outbound connection from domain: " + domainId + " to pool: " + poolName);
         }
     }
 
@@ -87,10 +203,68 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
     {
         synchronized (getOrCreateLock)
         {
+            if(reverse)
+            {
+                // some EIS is failing
+                // since we start at count 1 not 0 for reverse connections
+                // this is for readability and testing, the action itself is idempotent - the network connection is already gone since we ended up here
+                // each managed connection that was active when the network error occurred are closed by the appserver via managed connection destroy ->
+                // ref counted connection close
+                networkConnection.close();
+            }
             connections.removeConnection(networkConnection);
-            LOG.finest(() -> "removed: " + networkConnection + " from: " + this);
+            LOG.finest(() -> "removed( reverse=" + reverse + " ) : " + networkConnection + " from: " + this);
         }
     }
+
+    /**
+     * Returns whether any connection in this normal outbound pool reports shutdown.
+     *
+     * <p>You can call this method concurrently with pool updates. It does not
+     * acquire a connection or change reference counts.
+     *
+     * @return {@code true} if any connection reports shutdown;
+     *         {@code false} if the pool is empty
+     * @throws IllegalStateException if this is a reverse pool
+     */
+    public boolean isDomainDisconnecting()
+    {
+        if (reverse)
+        {
+            throw new IllegalStateException(
+                    "A domain ID is required to query a reverse pool: " + poolName);
+        }
+        synchronized (getOrCreateLock)
+        {
+            return connections.isDomainDisconnecting();
+        }
+    }
+
+    /**
+     * Returns whether any connection to the specified domain in this reverse pool reports shutdown.
+     *
+     * <p>You can call this method concurrently with pool updates. It does not
+     * acquire a connection or change reference counts.
+     *
+     * @param domainId the remote domain to inspect
+     * @return {@code true} if any matching connection reports shutdown;
+     *         {@code false} if no connection matches
+     * @throws NullPointerException if {@code domainId} is {@code null}
+     * @throws IllegalStateException if this is a normal outbound pool
+     */
+    public boolean isDomainDisconnecting(DomainId domainId)
+    {
+        Objects.requireNonNull(domainId, DOMAIN_ID_CAN_NOT_BE_NULL);
+        if (!reverse)
+        {
+            throw new IllegalStateException("Domain-specific shutdown queries require a reverse pool: " + poolName);
+        }
+        synchronized (getOrCreateLock)
+        {
+            return connections.isDomainDisconnecting(domainId);
+        }
+    }
+
 
     @Override
     public boolean equals(Object o)
@@ -104,21 +278,13 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
             return false;
         }
         NetworkConnectionPool that = (NetworkConnectionPool) o;
-        return Objects.equals(address, that.address) && Objects.equals(poolName, that.poolName);
+        return reverse == that.reverse && Objects.equals(address, that.address) && Objects.equals(poolName, that.poolName);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(address, poolName);
-    }
-
-    public boolean isDomainDisconnecting()
-    {
-        synchronized (getOrCreateLock)
-        {
-            return connections.isDomainDisconnecting();
-        }
+        return Objects.hash(address, poolName, reverse);
     }
 
     @Override
@@ -130,20 +296,17 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
                 ", poolName='" + poolName + '\'' +
                 ", poolSize=" + poolSize +
                 ", disconnected=" + disconnected +
+                ", reverse=" + reverse +
                 '}';
     }
 
     private static ReferenceCountedNetworkConnection createNetworkConnection(Address address, NetworkListener networkListener, ReferenceCountedNetworkCloseListener referenceCountedNetworkCloseListener, NetworkListener ownListener)
     {
         NettyConnectionInformation ci = NettyConnectionInformationCreator.create(InetSocketAddress.createUnresolved(address.getHostName(), address.getPort()));
-        NetworkConnection networkConnection = NettyNetworkConnection.of(ci, ownListener);
-        if (networkConnection instanceof NettyNetworkConnection impl)
-        {
-            impl.addListener(networkListener);
-            LOG.finest(() -> "created network connection: " + networkConnection);
-            return ReferenceCountedNetworkConnection.of(impl, referenceCountedNetworkCloseListener);
-        }
-        throw new CasualResourceAdapterException("Wrong implementation for NetworkConnection, was expecting NettyNetworkConnection but got: " + networkConnection.getClass());
+        NettyNetworkConnection networkConnection = NettyNetworkConnection.of(ci, ownListener);
+        networkConnection.addListener(networkListener);
+        LOG.finest(() -> "created network connection: " + networkConnection);
+        return ReferenceCountedNetworkConnection.of(networkConnection, referenceCountedNetworkCloseListener);
     }
 
     @Override

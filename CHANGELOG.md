@@ -1,6 +1,37 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.7.0] - 2026-10-06
+
+### feat: reverse outbound ([#216](https://github.com/casualcore/casual-java/issues/216))
+Adding reverse outbound support in symmetry with reverse inbound that is
+already implemented.
+
+Reverse outbound pools integrate with the standard JCA outbound
+connection pool model. Each connected EIS acts as a virtual subpool, so
+Casual Caller can select and use the EIS through the standard outbound
+connection API.
+
+To use this feature, configure one or more reverse outbound pools. You
+do not need to change your application code.
+
+- Add named reverse outbound configuration and resource adapter
+lifecycle management.
+- Route accepted connections through domain-pinned managed connections
+and reverse network pools.
+- Support multiple physical connections from the same remote domain.
+- Reuse the outbound handshake for accepted channels and close channels
+when the handshake fails.
+- Expose pending inbound and outbound transaction counts - useful for
+debugging
+- Fix handling of SERVICE_CALL_REQUEST_V_1_5 messages on reverse inbound
+connections.
+- Fix CasualServer to use boss group for accept and worker group for
+client work instead of a single worker group
+
+---------
+
+
 ## [3.5.1] - 2026-10-06
 
 ### fix: Correct zero padding of XID

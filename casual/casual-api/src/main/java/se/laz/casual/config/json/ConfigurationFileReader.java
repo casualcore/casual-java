@@ -42,6 +42,7 @@ public class ConfigurationFileReader
         populateInbound( configuration.getInbound() );
         populateOutbound( configuration.getOutbound() );
         populateReverseInbound( configuration.getReverseInbound() );
+        populateReverseOutbound( configuration.getReverseOutbound() );
         populateEventServer( configuration.getEventServer() );
     }
 
@@ -192,6 +193,23 @@ public class ConfigurationFileReader
             updated.add( update.build() );
         }
         store.put( ConfigurationOptions.CASUAL_REVERSE_INBOUND_INSTANCES, updated );
+    }
+
+    private void populateReverseOutbound( List<ReverseOutbound> reverseOutbound )
+    {
+        if( reverseOutbound == null )
+        {
+            return;
+        }
+        List<se.laz.casual.config.ReverseOutbound> updated = new ArrayList<>(reverseOutbound.size());
+        for( ReverseOutbound outbound : reverseOutbound )
+        {
+            se.laz.casual.config.ReverseOutbound.Builder update = se.laz.casual.config.ReverseOutbound.newBuilder( );
+            update.withName( outbound.getName() )
+                  .withPort( outbound.getPort() );
+            updated.add( update.build() );
+        }
+        store.put( ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES, updated );
     }
 
 }

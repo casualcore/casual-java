@@ -15,13 +15,14 @@ import jakarta.resource.spi.ManagedConnectionFactory;
 import jakarta.resource.spi.ResourceAdapter;
 import jakarta.resource.spi.ResourceAdapterAssociation;
 import jakarta.resource.spi.ValidatingManagedConnectionFactory;
+import se.laz.casual.config.ConfigurationOptions;
+import se.laz.casual.config.ConfigurationService;
 
 import javax.security.auth.Subject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -94,17 +95,22 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
     }
 
    /**
-    * Requires a nonblank network pool name and a positive pool size.
+    * Requires a nonblank pool name and, for normal outbound, a positive pool size.
     *
     * @throws UnsupportedOperationException if network pooling is not configured correctly
     */
    private void validateNetworkPooling()
    {
-      if (networkConnectionPoolName == null || networkConnectionPoolName.isBlank()
-              || networkConnectionPoolSize == null || networkConnectionPoolSize <= 0)
+      if (networkConnectionPoolName == null || networkConnectionPoolName.isBlank())
+      {
+         throw new UnsupportedOperationException("Network pooling requires a nonblank networkConnectionPoolName");
+      }
+      boolean reverse = ConfigurationService.getConfiguration(ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES)
+              .stream().anyMatch(instance -> instance.getName().equals(networkConnectionPoolName));
+      if (!reverse && (networkConnectionPoolSize == null || networkConnectionPoolSize <= 0))
       {
          throw new UnsupportedOperationException(
-                 "Network pooling requires a nonblank networkConnectionPoolName and a positive networkConnectionPoolSize");
+                 "Normal outbound pooling requires a positive networkConnectionPoolSize");
       }
    }
 
@@ -145,28 +151,32 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
    }
 
    @Override
-   @SuppressWarnings({"rawtypes","unchecked"})
+   @SuppressWarnings({"rawtypes"})
    public ManagedConnection matchManagedConnections(Set connectionSet,
                                                     Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException
    {
       log.finest("matchManagedConnections()");
-      return (ManagedConnection)connectionSet.stream()
-                                             .filter(CasualManagedConnection.class::isInstance)
-                                             .findFirst( )
-                                             .orElse( null );
+      // a request carrying a domain id must only ever match a managed connection pinned to that very domain,
+      // a request without one must only ever match an unpinned managed connection
+      Optional<DomainId> maybeDomainId = DomainIdExtractor.getDomainId(cxRequestInfo);
+
+      return ( (Set<?>)connectionSet ).stream()
+              .filter( CasualManagedConnection.class::isInstance )
+              .map( CasualManagedConnection.class::cast )
+              .filter( connection -> maybeDomainId.equals( connection.getPinnedDomainId() ) )
+              .findFirst()
+              .orElse( null );
    }
 
    @Override
-   @SuppressWarnings({"rawtypes","unchecked"})
+   @SuppressWarnings({"rawtypes"})
    public Set getInvalidConnections(Set connectionSet) throws ResourceException
    {
-      List<Object> wrapper = new ArrayList<>();
-      wrapper.addAll(connectionSet);
-      return wrapper.stream()
-                    .filter(CasualManagedConnection.class::isInstance)
-                    .map(CasualManagedConnection.class::cast)
-                    .filter(managedConnection -> !managedConnection.getNetworkConnection().isActive())
-                    .collect(Collectors.toSet());
+      return ( (Set<?>)connectionSet ).stream()
+              .filter( CasualManagedConnection.class::isInstance )
+              .map( CasualManagedConnection.class::cast )
+              .filter( managedConnection -> !managedConnection.getNetworkConnection().isActive() )
+              .collect( Collectors.toSet() );
    }
 
    @Override
