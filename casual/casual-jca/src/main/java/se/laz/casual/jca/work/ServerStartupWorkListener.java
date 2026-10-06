@@ -9,6 +9,7 @@ import jakarta.resource.spi.work.WorkEvent;
 import jakarta.resource.spi.work.WorkListener;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,28 +46,28 @@ public final class ServerStartupWorkListener implements WorkListener
     @Override
     public void workAccepted(WorkEvent event)
     {
-        log(event, Level.FINEST, "work accepted");
+        log(event, Level.FINEST, () -> "work accepted");
     }
 
     @Override
     public void workRejected(WorkEvent event)
     {
-        log(event, Level.WARNING, "work rejected; server does not start");
+        log(event, Level.WARNING, () -> "work rejected; server does not start");
     }
 
     @Override
     public void workStarted(WorkEvent event)
     {
-        log(event, Level.FINEST, "work started");
+        log(event, Level.FINEST, () -> "work started");
     }
 
     @Override
     public void workCompleted(WorkEvent event)
     {
-        log(event, Level.FINEST, "work completed");
+        log(event, Level.FINEST, () -> "work completed");
     }
 
-    private void log(WorkEvent event, Level level, String message)
+    private void log(WorkEvent event, Level level, Supplier<String> message)
     {
         LOG.log(level, () -> "Casual " + serverType + " startup: " + message);
         if(event.getException() != null)
