@@ -28,11 +28,10 @@ public class NetworkPoolHandler
     private final Map<String, NetworkConnectionPool> pools = new ConcurrentHashMap<>();
 
     private NetworkPoolHandler()
-    {
-    }
+    {}
 
     // Exposed internal representation is expected.
-    @SuppressFBWarnings("external_spotbugs:MS_EXPOSE_REP")
+    @SuppressFBWarnings("MS_EXPOSE_REP")
     public static NetworkPoolHandler getInstance()
     {
         return instance;
