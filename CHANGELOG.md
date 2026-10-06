@@ -1,6 +1,22 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.5.1] - 2026-10-06
+
+### fix: Correct zero padding of XID
+Improved hex-byte parsing by swapping to new java.util.HexFormat
+introduced in Java 17
+
+Previously leading zeroes in gtrid/bqual were lost, now they are
+included
+
+For example, with XID gtrid=0x0001, bqual=0x0002, format=42
+previously this formatted as "1:2:42", now should yield
+"0001:0002:42" which also is the same behavior as the main casual
+product
+
+Refs: [#215](https://github.com/casualcore/casual-java/issues/215)
+
 ## [3.5.0] - 2026-09-17
 
 ### fix: prepare rb and race condition fix plus ensure pool usage only ([#214](https://github.com/casualcore/casual-java/issues/214))
