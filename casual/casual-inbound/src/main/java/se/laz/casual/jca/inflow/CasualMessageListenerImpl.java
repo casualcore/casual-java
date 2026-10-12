@@ -78,16 +78,15 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         log.finest(() -> "domainConnectRequest(). " + PrettyPrinter.format(message.getCorrelationId(), message.getMessage().getExecution()) + message );
         log.info(()-> "domainConnectRequest(). client" + channel + " asking for protocol version(s)" + message.getMessage().getProtocols());
         log.info(()-> "domainConnectRequest(). supported protocols: " + ProtocolVersion.supportedVersions());
-        ProtocolVersion matchedProtocolVersion = ProtocolVersion.unmarshall(
-                ProtocolMatcher.match(message.getMessage().getProtocols()));
-        log.info(() -> "domainConnectRequest(). matched protocol version: " + matchedProtocolVersion);
-        protocolVersion.accept(matchedProtocolVersion);
-        if(matchedProtocolVersion.supportsDomainDisconnect())
+        Long matchedProtocolVersion = ProtocolMatcher.match(message.getMessage().getProtocols());
+        log.info(() -> "domainConnectRequest(). matched protocol version: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
+        protocolVersion.accept(ProtocolVersion.unmarshall(matchedProtocolVersion));
+        if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_1.getVersion())
         {
             // should be notified when RA is deactivated
             InboundDeactivatedContext.add(channel);
         }
-        if(matchedProtocolVersion.supportsDomainTopologyChange())
+        if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_2.getVersion())
         {
             // should be notified whenever a domain connects
             // we send to all previously connected clients and add the new one after as not to send
@@ -101,7 +100,7 @@ public class CasualMessageListenerImpl implements CasualMessageListener
                                                                                .withDomainId( domainId )
                                                                                .withDomainName( domainName )
                                                                                .withExecution( message.getMessage().getExecution() )
-                                                                               .withProtocolVersion(matchedProtocolVersion.getVersion())
+                                                                               .withProtocolVersion(matchedProtocolVersion)
                                                                                .build();
         CasualNWMessage<CasualDomainConnectReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
         channel.writeAndFlush(replyMessage);
