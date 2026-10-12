@@ -32,6 +32,7 @@ import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
+import se.laz.casual.network.InboundDeactivatedContext
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.messages.domain.TransactionType
@@ -40,6 +41,7 @@ import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMe
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectRequestMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage
 import se.laz.casual.network.protocol.messages.domain.Service
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
 import se.laz.casual.network.protocol.messages.transaction.CasualTransactionResourceCommitReplyMessage
@@ -90,6 +92,7 @@ class CasualMessageListenerImplTest extends Specification
 
     def cleanup()
     {
+        InboundDeactivatedContext.clear()
         ConfigurationService.reload(  )
     }
 
@@ -103,15 +106,8 @@ class CasualMessageListenerImplTest extends Specification
     def "DomainConnectRequest"()
     {
         given:
-        long protocolVersion = 1000L
-        CasualNWMessageImpl<CasualDomainConnectRequestMessage> message = CasualNWMessageImpl.of( correlationId,
-                CasualDomainConnectRequestMessage.createBuilder()
-                        .withDomainId( domainId )
-                        .withDomainName(domainName )
-                        .withExecution( execution )
-                        .withProtocols(Arrays.asList(protocolVersion))
-                        .build()
-        )
+        ProtocolVersion protocolVersion = ProtocolVersion.VERSION_1_0
+        CasualNWMessageImpl<CasualDomainConnectRequestMessage> message = createDomainConnectRequest(protocolVersion)
 
         when:
         instance.domainConnectRequest(message, channel, valueHolder)
@@ -125,7 +121,55 @@ class CasualMessageListenerImplTest extends Specification
         reply.getMessage().getDomainId() == domainId
         reply.getMessage().getDomainName() == domainName
         reply.getMessage().getExecution() == execution
-        reply.getMessage().getProtocolVersion() == protocolVersion
+        reply.getMessage().getProtocolVersion() == protocolVersion.getVersion()
+        valueHolder.get() == protocolVersion
+    }
+
+    def 'domain disconnect registration follows negotiated protocol: #protocolVersion'()
+    {
+        given:
+        CasualNWMessageImpl<CasualDomainConnectRequestMessage> message = createDomainConnectRequest(protocolVersion)
+
+        when:
+        instance.domainConnectRequest(message, channel, valueHolder)
+        CasualNWMessage<CasualDomainConnectReplyMessage> reply = readOutboundMessage()
+
+        then:
+        reply.getMessage().getProtocolVersion() == protocolVersion.getVersion()
+
+        when:
+        InboundDeactivatedContext.domainDisconnect()
+        CasualNWMessage<DomainDisconnectRequestMessage> disconnect = readOutboundMessage()
+
+        then:
+        disconnect?.getType() == expectedMessageType
+
+        where:
+        protocolVersion                 | expectedMessageType
+        ProtocolVersion.VERSION_1_0     | null
+        ProtocolVersion.VERSION_1_1     | CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST
+    }
+
+    private CasualNWMessageImpl<CasualDomainConnectRequestMessage> createDomainConnectRequest(ProtocolVersion protocolVersion)
+    {
+        return CasualNWMessageImpl.of(correlationId,
+                CasualDomainConnectRequestMessage.createBuilder()
+                        .withDomainId(domainId)
+                        .withDomainName(domainName)
+                        .withExecution(execution)
+                        .withProtocols(List.of(protocolVersion.getVersion()))
+                        .build())
+    }
+
+    private CasualNWMessage readOutboundMessage()
+    {
+        Object encodedMessage = channel.readOutbound()
+        if(encodedMessage == null)
+        {
+            return null
+        }
+        channel.writeInbound(encodedMessage)
+        return inboundHandler.getMsg()
     }
 
     def "DomainDiscoveryRequest"()

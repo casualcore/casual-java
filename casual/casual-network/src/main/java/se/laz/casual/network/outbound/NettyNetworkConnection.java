@@ -64,7 +64,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private DomainId domainId;
     private ProtocolVersion protocolVersion;
     private DomainDisconnectHandler domainDisconnectHandler;
-    private DomainDiscoveryTopologyChangedHandler domainDiscoveryTopologyChangedHandler;
+    private final ConnectionObserverHandler connectionObserverHandler = ConnectionObserverHandler.of();
 
     private NettyNetworkConnection(BaseConnectionInformation ci,
                                    Correlator correlator,
@@ -144,10 +144,6 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
                 messageHandler.setMessageListener(networkConnection);
                 networkConnection.setConnectionHandler(DomainDisconnectHandler.of(networkConnection.channel, networkConnection.getDomainId()));
             }
-            if(networkConnection.protocolSupportsDomainTopologyChange())
-            {
-                networkConnection.setDomainDiscoveryTopologyChangedHandler(DomainDiscoveryTopologyChangedHandler.of());
-            }
             LOG.finest(() -> networkConnection + " outbound connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()) + " with domainId: " + id);
             handshakeCompleted = true;
             return networkConnection;
@@ -211,12 +207,6 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     {
         Objects.requireNonNull(domainDisconnectHandler, "domainDisconnectHandler can not be null");
         this.domainDisconnectHandler = domainDisconnectHandler;
-    }
-
-    private void setDomainDiscoveryTopologyChangedHandler(DomainDiscoveryTopologyChangedHandler domainDiscoveryTopologyChangedHandler)
-    {
-        Objects.requireNonNull(domainDiscoveryTopologyChangedHandler, "domainDiscoveryTopologyUpdateHandler can not be null");
-        this.domainDiscoveryTopologyChangedHandler = domainDiscoveryTopologyChangedHandler;
     }
 
     private static void handleClose(final NettyNetworkConnection connection, ErrorInformer errorInformer)
@@ -363,10 +353,9 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public void addConnectionObserver(ConnectionObserver observer)
     {
-        if(protocolSupportsDomainTopologyChange())
+        if(protocolSupportsDomainDisconnect())
         {
-            // NOOP if not
-            domainDiscoveryTopologyChangedHandler.addConnectionObserver(observer);
+            connectionObserverHandler.addConnectionObserver(observer);
         }
     }
 
@@ -463,8 +452,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public boolean isInterestedIn(CasualNWMessageType type)
     {
-        return  protocolSupportsDomainDisconnect() && type == CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST ||
-                protocolSupportsDomainTopologyChange() && type == CasualNWMessageType.DOMAIN_DISCOVERY_TOPOLOGY_UPDATE;
+        return (protocolSupportsDomainDisconnect() && type == CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST) ||
+                (protocolSupportsDomainTopologyChange() && type == CasualNWMessageType.DOMAIN_DISCOVERY_TOPOLOGY_UPDATE);
 
     }
 
@@ -475,12 +464,19 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         final T msg = message.getMessage();
         if(msg instanceof DomainDisconnectRequestMessage requestMessage)
         {
-            domainDisconnectHandler.domainDisconnected(DomainDisconnectReplyInfo.of(message.getCorrelationId(), requestMessage.getExecution()));
+            try
+            {
+                domainDisconnectHandler.domainDisconnected(DomainDisconnectReplyInfo.of(message.getCorrelationId(), requestMessage.getExecution()));
+            }
+            finally
+            {
+                connectionObserverHandler.notifyDomainDisconnected(domainId);
+            }
         }
         else if(msg instanceof DomainDiscoveryTopologyUpdateMessage)
         {
             // note, we do not care about the data just that we got the actual message
-            domainDiscoveryTopologyChangedHandler.notifyTopologyChanged(domainId);
+            connectionObserverHandler.notifyTopologyChanged(domainId);
         }
         else
         {

@@ -22,7 +22,9 @@ import se.laz.casual.api.conversation.Duplex
 import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.xa.XID
+import se.laz.casual.jca.ConnectionObserver
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
@@ -33,6 +35,7 @@ import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.conversation.Request
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallRequestMessage
 import spock.lang.Shared
 import spock.lang.Specification
@@ -489,5 +492,64 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         NettyNetworkConnection.of(ci, null)
         then:
         thrown(NullPointerException)
+    }
+
+    def 'message interest follows the negotiated protocol: #protocolVersion'()
+    {
+        given:
+        instance.setProtocolVersion(protocolVersion)
+
+        expect:
+        instance.isInterestedIn(CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST) == domainDisconnect
+        instance.isInterestedIn(CasualNWMessageType.DOMAIN_DISCOVERY_TOPOLOGY_UPDATE) == topologyUpdate
+
+        where:
+        protocolVersion                 | domainDisconnect | topologyUpdate
+        ProtocolVersion.VERSION_1_0     | false            | false
+        ProtocolVersion.VERSION_1_1     | true             | false
+        ProtocolVersion.VERSION_1_2     | true             | true
+    }
+
+    def 'domain disconnect is recorded before observers are notified for protocol 1.1'()
+    {
+        given:
+        instance.setProtocolVersion(ProtocolVersion.VERSION_1_1)
+        DomainDisconnectHandler disconnectHandler = DomainDisconnectHandler.of(channel, casualDomainId)
+        disconnectHandler.setDomainDisconnectReplyFunction(ignored -> {})
+        ConnectionObserver observer = Mock(ConnectionObserver)
+        instance.setConnectionHandler(disconnectHandler)
+        instance.addConnectionObserver(observer)
+        CasualNWMessage<DomainDisconnectRequestMessage> message = CasualNWMessageImpl.of(
+                UUID.randomUUID(),
+                DomainDisconnectRequestMessage.of(UUID.randomUUID()))
+
+        when:
+        instance.handleMessage(message)
+
+        then:
+        1 * observer.domainDisconnected(casualDomainId) >> {
+            assert instance.isDomainDisconnecting()
+        }
+    }
+
+    def 'domain disconnect observers are notified when sending the reply fails'()
+    {
+        given:
+        instance.setProtocolVersion(ProtocolVersion.VERSION_1_1)
+        DomainDisconnectHandler disconnectHandler = Mock(DomainDisconnectHandler)
+        ConnectionObserver observer = Mock(ConnectionObserver)
+        instance.setConnectionHandler(disconnectHandler)
+        instance.addConnectionObserver(observer)
+        CasualNWMessage<DomainDisconnectRequestMessage> message = CasualNWMessageImpl.of(
+                UUID.randomUUID(),
+                DomainDisconnectRequestMessage.of(UUID.randomUUID()))
+
+        when:
+        instance.handleMessage(message)
+
+        then:
+        1 * disconnectHandler.domainDisconnected(_) >> { throw new IllegalStateException('Reply failed') }
+        1 * observer.domainDisconnected(casualDomainId)
+        thrown(IllegalStateException)
     }
 }
