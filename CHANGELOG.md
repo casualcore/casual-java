@@ -1,6 +1,29 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.7.1] - 2026-10-13
+
+### feat: expose domain disconnect to connection listeners ([#222](https://github.com/casualcore/casual-java/issues/222))
+Notify connection observers when a domain disconnects
+
+Connection observers previously received topology updates but were not
+notified when a remote domain started disconnecting. Callers therefore
+continued using the connection until a later validation cycle or service
+call detected the disconnect.
+
+This change adds a domain-disconnect callback to `ConnectionObserver`.
+When a `DOMAIN_DISCONNECT_REQUEST` arrives, the network connection
+records the disconnect before notifying observers with the remote domain
+ID. An observer failure is logged and does not prevent other observers
+from receiving the event.
+
+Observer registration follows the negotiated protocol capabilities:
+
+- Protocol 1.0 does not register observers because it supports neither
+event.
+- Protocol 1.1 supports domain-disconnect notifications.
+- Protocol 1.2 and later also support topology-update notifications.
+
 ## [3.7.0] - 2026-10-06
 
 ### feat: reverse outbound ([#216](https://github.com/casualcore/casual-java/issues/216))
