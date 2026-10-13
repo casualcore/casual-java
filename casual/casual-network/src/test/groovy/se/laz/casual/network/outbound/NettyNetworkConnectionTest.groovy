@@ -527,7 +527,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         instance.handleMessage(message)
 
         then:
-        1 * observer.domainDisconnected(casualDomainId) >> {
+        1 * observer.domainIsDisconnecting(casualDomainId) >> {
             assert instance.isDomainDisconnecting()
         }
     }
@@ -549,7 +549,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
 
         then:
         1 * disconnectHandler.domainDisconnected(_) >> { throw new IllegalStateException('Reply failed') }
-        1 * observer.domainDisconnected(casualDomainId)
+        1 * observer.domainIsDisconnecting(casualDomainId)
         thrown(IllegalStateException)
     }
 }

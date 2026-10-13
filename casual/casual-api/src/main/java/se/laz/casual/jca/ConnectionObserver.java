@@ -27,5 +27,5 @@ public interface ConnectionObserver
      *
      * @param domainId the remote domain that starts disconnecting
      */
-    void domainDisconnected(DomainId domainId);
+    void domainIsDisconnecting(DomainId domainId);
 }

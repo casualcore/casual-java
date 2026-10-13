@@ -45,8 +45,8 @@ class ConnectionObserverHandlerTest extends Specification
       instance.notifyDomainDisconnected(domainId)
 
       then:
-      1 * observerOne.domainDisconnected(domainId)
-      1 * observerTwo.domainDisconnected(domainId)
+      1 * observerOne.domainIsDisconnecting(domainId)
+      1 * observerTwo.domainIsDisconnecting(domainId)
    }
 
    def 'a failing observer does not prevent remaining observers from being notified'()
@@ -63,8 +63,8 @@ class ConnectionObserverHandlerTest extends Specification
       instance.notifyDomainDisconnected(domainId)
 
       then:
-      1 * failingObserver.domainDisconnected(domainId) >> { throw new IllegalStateException('Observer failed') }
-      1 * healthyObserver.domainDisconnected(domainId)
+      1 * failingObserver.domainIsDisconnecting(domainId) >> { throw new IllegalStateException('Observer failed') }
+      1 * healthyObserver.domainIsDisconnecting(domainId)
       noExceptionThrown()
    }
 }

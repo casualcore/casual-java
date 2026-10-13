@@ -60,7 +60,7 @@ public final class ConnectionObserverHandler
     {
         notifyObservers(
                 Objects.requireNonNull(domainId, "domainId must not be null"),
-                observer -> observer.topologyChanged(domainId));
+                observer -> observer.topologyChanged(domainId), ConnectionEventType.TOPOLOGY_CHANGED);
     }
 
     /**
@@ -73,10 +73,10 @@ public final class ConnectionObserverHandler
     {
         notifyObservers(
                 Objects.requireNonNull(domainId, "domainId must not be null"),
-                observer -> observer.domainDisconnected(domainId));
+                observer -> observer.domainIsDisconnecting(domainId), ConnectionEventType.DOMAIN_IS_DISCONNECTING);
     }
 
-    private void notifyObservers(DomainId domainId, Consumer<ConnectionObserver> notification)
+    private void notifyObservers(DomainId domainId, Consumer<ConnectionObserver> notification, ConnectionEventType eventType)
     {
         for (ConnectionObserver observer : observers)
         {
@@ -86,7 +86,7 @@ public final class ConnectionObserverHandler
             }
             catch (RuntimeException e)
             {
-                LOG.log(Level.WARNING, e, () -> "Connection observer notification failed for domain: " + domainId);
+                LOG.log(Level.WARNING, e, () -> "Connection observer notification " + eventType + " failed for domain: " + domainId);
             }
         }
     }
