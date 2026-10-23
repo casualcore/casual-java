@@ -38,12 +38,21 @@ public class ConfigurationFileReader
     {
         Configuration configuration = readFile( filename );
 
+        populateNetworkProtocolValidation( configuration.getStrictDataValidation() );
         populateDomain( configuration.getDomain() );
         populateInbound( configuration.getInbound() );
         populateOutbound( configuration.getOutbound() );
         populateReverseInbound( configuration.getReverseInbound() );
         populateReverseOutbound( configuration.getReverseOutbound() );
         populateEventServer( configuration.getEventServer() );
+    }
+
+    private void populateNetworkProtocolValidation(Boolean strictDataValidation )
+    {
+        if( strictDataValidation != null )
+        {
+            store.put( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION, strictDataValidation );
+        }
     }
 
     private void populateDomain( Domain domain )

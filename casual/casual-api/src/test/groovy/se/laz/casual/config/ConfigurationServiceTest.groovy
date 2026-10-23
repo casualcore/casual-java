@@ -75,6 +75,19 @@ class ConfigurationServiceTest extends Specification
       epoll
    }
 
+    def "Environment strict data validation overrides the configuration file"()
+    {
+        when:
+        withEnvironmentVariable( ConfigurationOptions.CASUAL_CONFIG_FILE.getName(), "src/test/resources/casual-config-strict-data-validation-disabled.json" )
+                .and( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION.getName(), "true" )
+                .execute( {
+                    ConfigurationService.reload()
+                } )
+
+        then:
+        ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION )
+    }
+
     def "Get configuration where file not found, throws ConfigurationException."()
     {
         when:

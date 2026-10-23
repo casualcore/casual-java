@@ -23,6 +23,7 @@ public class ConfigurationDefaults
     public static final Mode INBOUND_STARTUP_MODE_DEFAULT = Mode.IMMEDIATE;
     public static final List<String> INBOUND_START_SERVICES_DEFAULT = Collections.emptyList();
     public static final Boolean NETWORK_ENABLE_LOGHANDLER_DEFAULT = false;
+    public static final Boolean NETWORK_PROTOCOL_STRICT_DATA_VALIDATION_DEFAULT = true;
     public static final String NETTY_LOGGING_LEVEL_DEFAULT = "INFO";
     public static final Boolean USE_EPOLL_DEFAULT = false;
     public static final Long INBOUND_STARTUP_INITIAL_DELAY_DEFAULT = 0L;
@@ -66,6 +67,7 @@ public class ConfigurationDefaults
         store.put( ConfigurationOptions.CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER, NETWORK_ENABLE_LOGHANDLER_DEFAULT );
         store.put( ConfigurationOptions.CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER, NETWORK_ENABLE_LOGHANDLER_DEFAULT );
         store.put( ConfigurationOptions.CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER, NETWORK_ENABLE_LOGHANDLER_DEFAULT );
+        store.put( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION, NETWORK_PROTOCOL_STRICT_DATA_VALIDATION_DEFAULT );
 
         store.put( ConfigurationOptions.CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL, NETTY_LOGGING_LEVEL_DEFAULT );
         store.put( ConfigurationOptions.CASUAL_INBOUND_NETTY_LOGGING_LEVEL, NETTY_LOGGING_LEVEL_DEFAULT );
