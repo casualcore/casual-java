@@ -29,6 +29,7 @@ dependencies {
   testImplementation libs.spock_core
   testImplementation libs.byte_buddy
   testImplementation libs.spock_junit4
+  testImplementation libs.junit_platform_launcher
 
   // for static analysis
   compileOnly libs.spotbugs

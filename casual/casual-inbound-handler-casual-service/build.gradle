@@ -26,6 +26,7 @@ dependencies {
   testImplementation libs.spock_core
   testImplementation libs.byte_buddy
   testImplementation libs.objenesis
+  testImplementation libs.junit_platform_launcher
   testRuntimeOnly project(":casual:casual-inbound-handler-fielded-buffer" )
 
   // for static analysis

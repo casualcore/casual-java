@@ -1,6 +1,12 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.7.2] - 2026-10-23
+
+### feat: produce less artifacts when publishing to maven central ([#226](https://github.com/casualcore/casual-java/issues/226))
+This is done by bumping gradle to the latest version: 9.8.2
+
+
 ## [3.7.1] - 2026-10-13
 
 ### feat: expose domain disconnect to connection listeners ([#222](https://github.com/casualcore/casual-java/issues/222))
