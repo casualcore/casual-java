@@ -17,16 +17,21 @@ public class DecoderReaderValidator
     }
 
     /**
-     * Verifies that a decoder reads all available network data when strict validation is enabled.
+     * Verifies that a decoder reads all available network data when strict network validation is enabled.
      *
      * @param currentOffset number of bytes that the decoder reads.
      * @param dataLength number of bytes available to the decoder.
-     * @throws CasualProtocolException if strict validation is enabled and the decoder does not read all available data.
+     * @throws CasualProtocolException if strict network validation is enabled and the decoder does not read all available data.
      */
     public static void throwIfDataNotFullyRead( int currentOffset, int dataLength )
     {
-        if( !ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION ) )
+        Boolean strictNetworkValidation = ConfigurationService.getConfiguration(
+                ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION);
+
+        if( Boolean.FALSE.equals( strictNetworkValidation ) )
         {
+            // the reason for this is interoperability with older versions where
+            // some messages contain 8 trailing bytes
             return;
         }
         if( currentOffset != dataLength )

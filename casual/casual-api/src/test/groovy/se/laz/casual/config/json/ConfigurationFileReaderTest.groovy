@@ -18,7 +18,7 @@ import static se.laz.casual.config.ConfigurationDefaults.EXECUTOR_NUMBER_OF_THRE
 import static se.laz.casual.config.ConfigurationDefaults.INBOUND_STARTUP_INITIAL_DELAY_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.INBOUND_STARTUP_MODE_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.INBOUND_START_SERVICES_DEFAULT
-import static se.laz.casual.config.ConfigurationDefaults.NETWORK_PROTOCOL_STRICT_DATA_VALIDATION_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.NETWORK_PROTOCOL_STRICT_VALIDATION_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.REVERSE_INBOUND_CONNECTION_MAX_BACKOFF_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.REVERSE_INBOUND_CONNECTION_POOL_SIZE_DEFAULT
@@ -74,7 +74,7 @@ class ConfigurationFileReaderTest extends Specification
         "casual-config-domain-info-null.json"         || DOMAIN_NAME_DEFAULT
     }
 
-    def "Read file strict data validation, store updated"()
+    def "Read file strict network validation, store updated"()
     {
         given:
         String file = "src/test/resources/" + filename
@@ -83,12 +83,12 @@ class ConfigurationFileReaderTest extends Specification
         instance.populateStoreFromFile( file )
 
         then:
-        store.get( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION ) == expected
+        store.get( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION ) == expected
 
         where:
         filename                                             || expected
-        "casual-config-empty.json"                           || NETWORK_PROTOCOL_STRICT_DATA_VALIDATION_DEFAULT
-        "casual-config-strict-data-validation-disabled.json" || false
+        "casual-config-empty.json"                              || NETWORK_PROTOCOL_STRICT_VALIDATION_DEFAULT
+        "casual-config-strict-network-validation-disabled.json" || false
     }
     
     def "Read file event server, store updated"()

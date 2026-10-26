@@ -17,7 +17,7 @@ If the environment variable is also not set, then the defaults are used, as list
 | `CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER`             | Enable logging for outbound network                                                   | false                                     |                                          |
 | `CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER`              | Enable logging for inbound network                                                    | false                                     |                                          |
 | `CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER`      | Enable logging for reverse inbound network.                                           | false                                     |                                          |
-| `CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION`        | Controls whether decoders require all data in each network message to be read. If you interact with older casual-java versions that pad service call requests, set this option to `false`. | true | `true`, `false` |
+| `CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION`             | Controls whether decoders require all data in each network message to be read. If you interact with older casual-java versions that pad service call requests, set this option to `false`. | true | `true`, `false` |
 | `CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL`                   | The logging level for the outbound logging handler.                                   | `INFO`                                    | `ERROR`,`WARN`, `INFO`, `DEBUG`, `TRACE` |
 | `CASUAL_INBOUND_NETTY_LOGGING_LEVEL`                    | The logging level for the inbound logging handler.                                    | `INFO`                                    | `ERROR`,`WARN`, `INFO`, `DEBUG`, `TRACE` |
 | `CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL`            | The logging level for the reverse inbound logging handler.                            | `INFO`                                    | `ERROR`,`WARN`, `INFO`, `DEBUG`, `TRACE` |
@@ -86,12 +86,12 @@ Inbound epoll is also enabled - default false. Initial delay of inbound server i
 
 ### Strict network data validation
 
-Casual requires decoders to read all network message data by default. If you interact with older casual-java versions that pad service call requests, disable strict data validation:
+Casual requires decoders to read all network message data by default. If you interact with older casual-java versions that pad service call requests, disable strict network validation:
 
 ```json
 {
-  "strictDataValidation": false
+  "strictNetworkValidation": false
 }
 ```
 
-The `strictDataValidation` property is equivalent to the `CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION` environment variable. Environment variables take precedence over values in `casual-config.json`.
+The `strictNetworkValidation` property is equivalent to the `CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION` environment variable. Environment variables take precedence over values in `casual-config.json`.

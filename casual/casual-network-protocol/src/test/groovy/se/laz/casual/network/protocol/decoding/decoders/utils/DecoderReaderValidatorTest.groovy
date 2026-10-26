@@ -13,22 +13,22 @@ import spock.lang.Specification
 
 class DecoderReaderValidatorTest extends Specification
 {
-    boolean originalStrictDataValidation
+    boolean originalStrictNetworkValidation
 
     def setup()
     {
-        originalStrictDataValidation = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION )
+        originalStrictNetworkValidation = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION )
     }
 
     def cleanup()
     {
-        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION, originalStrictDataValidation )
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION, originalStrictNetworkValidation )
     }
 
-    def "matching data length passes regardless of strict validation: #strictValidation"()
+    def "matching data length passes regardless of strict network validation: #strictNetworkValidation"()
     {
         given:
-        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION, strictValidation )
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION, strictNetworkValidation )
 
         when:
         DecoderReaderValidator.throwIfDataNotFullyRead( 10, 10 )
@@ -37,13 +37,13 @@ class DecoderReaderValidatorTest extends Specification
         noExceptionThrown()
 
         where:
-        strictValidation << [true, false]
+        strictNetworkValidation << [true, false]
     }
 
-    def "strict validation rejects unread data"()
+    def "strict network validation rejects unread data"()
     {
         given:
-        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION, true )
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION, true )
 
         when:
         DecoderReaderValidator.throwIfDataNotFullyRead( 8, 10 )
@@ -52,10 +52,10 @@ class DecoderReaderValidatorTest extends Specification
         thrown(CasualProtocolException)
     }
 
-    def "disabled strict validation permits unread data"()
+    def "disabled strict network validation permits unread data"()
     {
         given:
-        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION, false )
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION, false )
 
         when:
         DecoderReaderValidator.throwIfDataNotFullyRead( 8, 10 )

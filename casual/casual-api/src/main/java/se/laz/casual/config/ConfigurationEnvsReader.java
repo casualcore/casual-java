@@ -54,7 +54,7 @@ public class ConfigurationEnvsReader
 
     private void populateNetworkProtocolValidation()
     {
-        storeBooleanIfPresent( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION );
+        storeBooleanIfPresent( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION );
     }
 
     private void populateOutbound()

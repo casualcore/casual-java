@@ -38,7 +38,7 @@ public class ConfigurationFileReader
     {
         Configuration configuration = readFile( filename );
 
-        populateNetworkProtocolValidation( configuration.getStrictDataValidation() );
+        populateNetworkProtocolValidation( configuration.getStrictNetworkValidation() );
         populateDomain( configuration.getDomain() );
         populateInbound( configuration.getInbound() );
         populateOutbound( configuration.getOutbound() );
@@ -47,11 +47,11 @@ public class ConfigurationFileReader
         populateEventServer( configuration.getEventServer() );
     }
 
-    private void populateNetworkProtocolValidation(Boolean strictDataValidation )
+    private void populateNetworkProtocolValidation( Boolean strictNetworkValidation )
     {
-        if( strictDataValidation != null )
+        if( strictNetworkValidation != null )
         {
-            store.put( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION, strictDataValidation );
+            store.put( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION, strictNetworkValidation );
         }
     }
 

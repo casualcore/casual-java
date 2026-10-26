@@ -19,7 +19,7 @@ class ConfigurationTest extends Specification
     EventServer eventServer = EventServer.newBuilder().build()
     boolean epoll = true
     boolean unmanaged = true
-    boolean strictDataValidation = false
+    boolean strictNetworkValidation = false
 
     Configuration instance
 
@@ -27,7 +27,7 @@ class ConfigurationTest extends Specification
     {
         instance = Configuration.newBuilder().withUseEpoll( epoll )
                 .withUnmanaged( unmanaged )
-                .withStrictDataValidation( strictDataValidation )
+                .withStrictNetworkValidation( strictNetworkValidation )
                 .withEventServer( eventServer )
                 .withReverseInbound( reverseInbounds )
                 .withReverseOutbound( reverseOutbounds )
@@ -42,7 +42,7 @@ class ConfigurationTest extends Specification
         expect:
         instance.getUseEpoll(  ) == epoll
         instance.getUnmanaged(  ) == unmanaged
-        instance.getStrictDataValidation() == strictDataValidation
+        instance.getStrictNetworkValidation() == strictNetworkValidation
         instance.getInbound( ) == inbound
         instance.getOutbound(  ) == outbound
         instance.getReverseInbound( ) == reverseInbounds
@@ -81,7 +81,7 @@ class ConfigurationTest extends Specification
         actual.contains( domain.toString(  ) )
         actual.contains( "" +  epoll )
         actual.contains( "" + unmanaged )
-        actual.contains( "" + strictDataValidation )
+        actual.contains( "" + strictNetworkValidation )
     }
 
     def "Json roundtrip check."()

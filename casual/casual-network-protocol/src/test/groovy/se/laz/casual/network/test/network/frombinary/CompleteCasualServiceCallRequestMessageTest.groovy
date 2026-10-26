@@ -27,7 +27,7 @@ import java.nio.ByteBuffer
 
 class CompleteCasualServiceCallRequestMessageTest extends Specification
 {
-    boolean originalStrictDataValidation
+    boolean originalStrictNetworkValidation
 
     @Shared
     String resource = '/protocol/b64/message.service.call.request.1000.3100.b64'
@@ -76,7 +76,7 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
 
     def setup()
     {
-        originalStrictDataValidation = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION )
+        originalStrictNetworkValidation = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION )
     }
 
     def "get header"()
@@ -176,7 +176,7 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
     def "decode service call request produced by a legacy sender using #protocolVersion"()
     {
         given:
-        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION, false )
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION, false )
         LocalByteChannel legacySource = new LocalByteChannel()
         legacySource.write(ByteBuffer.wrap(legacyNetworkData))
         LocalByteChannel currentSource = new LocalByteChannel()
@@ -198,10 +198,10 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
         legacyPaddedDataProtocolVersion_1003_1004 | dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_4
     }
 
-    def "strict data validation rejects a service call request produced by a legacy sender"()
+    def "strict network validation rejects a service call request produced by a legacy sender"()
     {
         given:
-        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION, true )
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION, true )
         LocalByteChannel source = new LocalByteChannel()
         source.write(ByteBuffer.wrap(legacyPaddedData_1000_1001_1002))
 
@@ -214,6 +214,6 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
 
     def cleanup()
     {
-        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_DATA_VALIDATION, originalStrictDataValidation )
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION, originalStrictNetworkValidation )
     }
 }
