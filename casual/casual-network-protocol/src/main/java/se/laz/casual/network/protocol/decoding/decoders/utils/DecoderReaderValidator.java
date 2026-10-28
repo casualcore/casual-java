@@ -25,10 +25,8 @@ public class DecoderReaderValidator
      */
     public static void throwIfDataNotFullyRead( int currentOffset, int dataLength )
     {
-        Boolean strictNetworkValidation = ConfigurationService.getConfiguration(
-                ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION);
-
-        if( Boolean.FALSE.equals( strictNetworkValidation ) )
+        if( Boolean.FALSE.equals( ConfigurationService.getConfiguration(
+                ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION) ) )
         {
             // the reason for this is interoperability with older versions where
             // some messages contain 8 trailing bytes
