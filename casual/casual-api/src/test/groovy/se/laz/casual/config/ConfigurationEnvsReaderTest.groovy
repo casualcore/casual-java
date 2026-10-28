@@ -18,6 +18,7 @@ import static se.laz.casual.config.ConfigurationDefaults.INBOUND_STARTUP_INITIAL
 import static se.laz.casual.config.ConfigurationDefaults.INBOUND_STARTUP_MODE_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.NETTY_LOGGING_LEVEL_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.NETWORK_ENABLE_LOGHANDLER_DEFAULT
+import static se.laz.casual.config.ConfigurationDefaults.NETWORK_PROTOCOL_STRICT_VALIDATION_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.OUTBOUND_MANAGED_EXECUTOR_SERVICE_NAME_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.SHUTDOWN_QUIET_PERIOD_DEFAULT
 import static se.laz.casual.config.ConfigurationDefaults.SHUTDOWN_TIMEOUT_DEFAULT
@@ -104,6 +105,26 @@ class ConfigurationEnvsReaderTest extends Specification
         ""      | ""       | ""      || NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT
         " "     | " "      | " "     || NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT
         null    | null     | null    || NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT | NETWORK_ENABLE_LOGHANDLER_DEFAULT
+    }
+
+    def "With network protocol strict validation env"()
+    {
+        when:
+        SystemLambda.withEnvironmentVariable( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION.getName(), configuredValue ).execute {
+            instance.populateStoreFromEnvs()
+        }
+        boolean actual = store.get( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION )
+
+        then:
+        actual == expected
+
+        where:
+        configuredValue || expected
+        "true"          || true
+        "false"         || false
+        ""              || NETWORK_PROTOCOL_STRICT_VALIDATION_DEFAULT
+        " "             || NETWORK_PROTOCOL_STRICT_VALIDATION_DEFAULT
+        null             || NETWORK_PROTOCOL_STRICT_VALIDATION_DEFAULT
     }
 
     def "With netty log levels envs"()

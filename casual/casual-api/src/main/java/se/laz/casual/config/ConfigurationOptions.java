@@ -24,6 +24,7 @@ public class ConfigurationOptions
     public static final ConfigurationOption<Boolean> CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER = new ConfigurationOption<>( "CASUAL_NETWORK_OUTBOUND_ENABLE_LOGHANDLER" );
     public static final ConfigurationOption<Boolean> CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER = new ConfigurationOption<>( "CASUAL_NETWORK_INBOUND_ENABLE_LOGHANDLER" );
     public static final ConfigurationOption<Boolean> CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER = new ConfigurationOption<>( "CASUAL_NETWORK_REVERSE_INBOUND_ENABLE_LOGHANDLER" );
+    public static final ConfigurationOption<Boolean> CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION = new ConfigurationOption<>( "CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION" );
     public static final ConfigurationOption<String> CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL = new ConfigurationOption<>( "CASUAL_OUTBOUND_NETTY_LOGGING_LEVEL" );
     public static final ConfigurationOption<String> CASUAL_INBOUND_NETTY_LOGGING_LEVEL = new ConfigurationOption<>( "CASUAL_INBOUND_NETTY_LOGGING_LEVEL" );
     public static final ConfigurationOption<String> CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL = new ConfigurationOption<>( "CASUAL_REVERSE_INBOUND_NETTY_LOGGING_LEVEL" );

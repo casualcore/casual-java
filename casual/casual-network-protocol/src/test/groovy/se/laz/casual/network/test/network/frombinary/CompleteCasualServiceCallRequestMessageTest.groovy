@@ -8,6 +8,9 @@ package se.laz.casual.network.test.network.frombinary
 
 import se.laz.casual.api.buffer.CasualHeaders
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
+import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException
+import se.laz.casual.config.ConfigurationOptions
+import se.laz.casual.config.ConfigurationService
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder
 import se.laz.casual.network.protocol.decoding.CasualNetworkTestReader
@@ -24,6 +27,8 @@ import java.nio.ByteBuffer
 
 class CompleteCasualServiceCallRequestMessageTest extends Specification
 {
+    boolean originalStrictNetworkValidation
+
     @Shared
     String resource = '/protocol/b64/message.service.call.request.1000.3100.b64'
 
@@ -34,6 +39,12 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
     String resourceProtocolVersion_1005 = '/protocol/b64/message.service.call.request.1005.3104.b64'
 
     @Shared
+    String legacyPaddedResourceProtocolVersion_1000_1001_1002 = '/protocol/b64/message.service.call.request.1000.3100.legacy-padding.b64'
+
+    @Shared
+    String legacyPaddedResourceProtocolVersion_1003_1004 = '/protocol/b64/message.service.call.request.1003.3102.legacy-padding.b64'
+
+    @Shared
     byte[] data
 
     @Shared
@@ -42,15 +53,30 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
     @Shared
     byte[] dataProtocolVersion_1005
 
+    @Shared
+    byte[] legacyPaddedData_1000_1001_1002
+
+    @Shared
+    byte[] legacyPaddedDataProtocolVersion_1003_1004
+
     def setupSpec()
     {
         data = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resource))
         dataProtocolVersion_1003 = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersion_1003))
         dataProtocolVersion_1005 = Base64.getDecoder().decode(ResourceLoader.getResourceAsByteArray(resourceProtocolVersion_1005))
+        legacyPaddedData_1000_1001_1002 = Base64.getMimeDecoder().decode(ResourceLoader.getResourceAsByteArray(legacyPaddedResourceProtocolVersion_1000_1001_1002))
+        legacyPaddedDataProtocolVersion_1003_1004 = Base64.getMimeDecoder().decode(ResourceLoader.getResourceAsByteArray(legacyPaddedResourceProtocolVersion_1003_1004))
         then:
         data != null
         dataProtocolVersion_1003 != null
         dataProtocolVersion_1005 != null
+        legacyPaddedData_1000_1001_1002 != null
+        legacyPaddedDataProtocolVersion_1003_1004 != null
+    }
+
+    def setup()
+    {
+        originalStrictNetworkValidation = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION )
     }
 
     def "get header"()
@@ -145,5 +171,49 @@ class CompleteCasualServiceCallRequestMessageTest extends Specification
         dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_3 | CasualHeaders.empty(  )
         dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_4 | CasualHeaders.empty(  )
         dataProtocolVersion_1005 | ProtocolVersion.VERSION_1_5 | CasualHeaders.newBuilder().addAll( ["a:foo", "b:bar", "c:baz"] ).build(  )
+    }
+
+    def "decode service call request produced by a legacy sender using #protocolVersion"()
+    {
+        given:
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION, false )
+        LocalByteChannel legacySource = new LocalByteChannel()
+        legacySource.write(ByteBuffer.wrap(legacyNetworkData))
+        LocalByteChannel currentSource = new LocalByteChannel()
+        currentSource.write(ByteBuffer.wrap(currentNetworkData))
+
+        when:
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> legacyMessage = CasualNetworkTestReader.read(legacySource, protocolVersion)
+        CasualNWMessageImpl<CasualServiceCallRequestMessage> currentMessage = CasualNetworkTestReader.read(currentSource, protocolVersion)
+
+        then:
+        legacyMessage.message == currentMessage.message
+
+        where:
+        legacyNetworkData                         | currentNetworkData       | protocolVersion
+        legacyPaddedData_1000_1001_1002           | data                     | ProtocolVersion.VERSION_1_0
+        legacyPaddedData_1000_1001_1002           | data                     | ProtocolVersion.VERSION_1_1
+        legacyPaddedData_1000_1001_1002           | data                     | ProtocolVersion.VERSION_1_2
+        legacyPaddedDataProtocolVersion_1003_1004 | dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_3
+        legacyPaddedDataProtocolVersion_1003_1004 | dataProtocolVersion_1003 | ProtocolVersion.VERSION_1_4
+    }
+
+    def "strict network validation rejects a service call request produced by a legacy sender"()
+    {
+        given:
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION, true )
+        LocalByteChannel source = new LocalByteChannel()
+        source.write(ByteBuffer.wrap(legacyPaddedData_1000_1001_1002))
+
+        when:
+        CasualNetworkTestReader.read(source, ProtocolVersion.VERSION_1_0)
+
+        then:
+        thrown(CasualProtocolException)
+    }
+
+    def cleanup()
+    {
+        ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION, originalStrictNetworkValidation )
     }
 }

@@ -1,6 +1,20 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.7.3] - 2026-10-28
+
+### feat: fix padding bug backwards compatibility  ([#227](https://github.com/casualcore/casual-java/issues/227))
+*  configurable strict network validation for decoded messages.
+
+Strict validation is enabled by default. 
+
+When interacting with casual-java 3.4.4 or earlier, set
+`strictNetworkValidation` to `false` because those
+versions add eight trailing bytes to service call requests.
+
+The setting is available through `casual-config.json` and the
+`CASUAL_NETWORK_PROTOCOL_STRICT_VALIDATION` environment variable.
+
 ## [3.7.2] - 2026-10-23
 
 ### feat: produce less artifacts when publishing to maven central ([#226](https://github.com/casualcore/casual-java/issues/226))

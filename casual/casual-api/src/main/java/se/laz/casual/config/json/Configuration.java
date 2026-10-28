@@ -21,6 +21,7 @@ class Configuration
     private final EventServer eventServer;
     private final Boolean useEpoll;
     private final Boolean unmanaged;
+    private final Boolean strictNetworkValidation;
 
     private Configuration( Builder builder )
     {
@@ -32,6 +33,7 @@ class Configuration
         this.eventServer = builder.eventServer;
         this.useEpoll = builder.useEpoll;
         this.unmanaged = builder.unmanaged;
+        this.strictNetworkValidation = builder.strictNetworkValidation;
     }
 
     public Inbound getInbound()
@@ -74,6 +76,11 @@ class Configuration
         return unmanaged;
     }
 
+    public Boolean getStrictNetworkValidation()
+    {
+        return strictNetworkValidation;
+    }
+
     @Override
     public boolean equals( Object o )
     {
@@ -86,13 +93,17 @@ class Configuration
             return false;
         }
         Configuration that = (Configuration) o;
-        return Objects.equals( inbound, that.inbound ) && Objects.equals( domain, that.domain ) && Objects.equals( outbound, that.outbound ) && Objects.equals( reverseInbound, that.reverseInbound ) && Objects.equals( reverseOutbound, that.reverseOutbound ) && Objects.equals( eventServer, that.eventServer ) && Objects.equals( useEpoll, that.useEpoll ) && Objects.equals( unmanaged, that.unmanaged );
+        return Objects.equals( inbound, that.inbound ) && Objects.equals( domain, that.domain ) &&
+                Objects.equals( outbound, that.outbound ) && Objects.equals( reverseInbound, that.reverseInbound ) &&
+                Objects.equals( reverseOutbound, that.reverseOutbound ) && Objects.equals( eventServer, that.eventServer ) &&
+                Objects.equals( useEpoll, that.useEpoll ) &&
+                Objects.equals( unmanaged, that.unmanaged ) && Objects.equals( strictNetworkValidation, that.strictNetworkValidation );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( inbound, domain, outbound, reverseInbound, reverseOutbound, eventServer, useEpoll, unmanaged );
+        return Objects.hash( inbound, domain, outbound, reverseInbound, reverseOutbound, eventServer, useEpoll, unmanaged, strictNetworkValidation );
     }
 
     @Override
@@ -107,6 +118,7 @@ class Configuration
                 ", eventServer=" + eventServer +
                 ", useEpoll=" + useEpoll +
                 ", unmanaged=" + unmanaged +
+                ", strictNetworkValidation=" + strictNetworkValidation +
                 '}';
     }
 
@@ -124,6 +136,7 @@ class Configuration
                 .withEventServer( src.getEventServer() )
                 .withUseEpoll( src.getUseEpoll() )
                 .withUnmanaged( src.getUnmanaged() )
+                .withStrictNetworkValidation( src.getStrictNetworkValidation() )
                 .withDomain( src.getDomain() );
     }
 
@@ -137,6 +150,7 @@ class Configuration
         private EventServer eventServer;
         private Boolean useEpoll;
         private Boolean unmanaged;
+        private Boolean strictNetworkValidation;
 
         public Builder withInbound( Inbound inbound )
         {
@@ -183,6 +197,12 @@ class Configuration
         public Builder withUnmanaged( Boolean unmanaged )
         {
             this.unmanaged = unmanaged;
+            return this;
+        }
+
+        public Builder withStrictNetworkValidation( Boolean strictNetworkValidation )
+        {
+            this.strictNetworkValidation = strictNetworkValidation;
             return this;
         }
 
