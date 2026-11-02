@@ -41,7 +41,7 @@ class CasualMessageHandlerTest extends Specification
     def 'ok'()
     {
         setup:
-        CompletableFuture<CasualNWMessage<CasualNWMessage<CasualServiceCallReplyMessage>>> f = new CompletableFuture<>()
+        CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> f = new CompletableFuture<>()
         CasualNWMessage<CasualServiceCallReplyMessage> msg = createReplyMessage()
         correlator.put(corrid, f)
         when:
