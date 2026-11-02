@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 public class JsonBuffer implements CasualBuffer
 {
     private static final long serialVersionUID = 1L;
+    @SuppressWarnings("serial") // Runtime collection implementations are serializable.
     private final List<byte[]> payload;
     private final CasualHeaders headers;
 

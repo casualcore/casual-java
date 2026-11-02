@@ -30,6 +30,7 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
     private static final ServiceBuffer EMPTY_INSTANCE = new ServiceBuffer("", new ArrayList<>(), CasualHeaders.empty() );
     private static final ServiceBuffer NULL_INSTANCE = new ServiceBuffer("NULL", new ArrayList<>(), CasualHeaders.empty() );
     private final String type;
+    @SuppressWarnings("serial") // Runtime collection implementations are serializable.
     private final List<byte[]> payload;
     private final CasualHeaders headers;
 
