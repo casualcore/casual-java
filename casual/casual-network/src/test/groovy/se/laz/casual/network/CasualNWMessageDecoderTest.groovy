@@ -8,6 +8,7 @@ package se.laz.casual.network
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.netty.channel.embedded.EmbeddedChannel
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
@@ -17,6 +18,8 @@ import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
 import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
+import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpdateMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import spock.lang.Shared
 import spock.lang.Specification
@@ -71,6 +74,46 @@ class CasualNWMessageDecoderTest extends Specification
         decoder.decode(null, crapBody, out)
         then:
         thrown(CasualDecoderException)
+    }
+
+    def 'connect reply establishes protocol before decoding a following topology update'()
+    {
+        given:
+        UUID domainId = UUID.randomUUID()
+        ProtocolVersionValueHolder valueHolder = ProtocolVersionValueHolder.of()
+        CasualNWMessage<CasualDomainConnectReplyMessage> connectReply = CasualNWMessageImpl.of(
+                UUID.randomUUID(),
+                CasualDomainConnectReplyMessage.createBuilder()
+                        .withExecution(UUID.randomUUID())
+                        .withDomainId(domainId)
+                        .withDomainName('remote-domain')
+                        .withProtocolVersion(ProtocolVersion.VERSION_1_5.version)
+                        .build())
+        CasualNWMessage<DomainDiscoveryTopologyUpdateMessage> topologyUpdate = CasualNWMessageImpl.of(
+                UUID.randomUUID(),
+                DomainDiscoveryTopologyUpdateMessage.createBuilder()
+                        .withExecution(UUID.randomUUID())
+                        .withDomainsSize(1)
+                        .withDomainId(domainId)
+                        .withDomainName('remote-domain')
+                        .build())
+        ByteBuf frames = Unpooled.buffer()
+        [connectReply, topologyUpdate].each { message ->
+            message.toNetworkBytes().each(frames::writeBytes)
+        }
+        EmbeddedChannel channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder))
+
+        when:
+        channel.writeInbound(frames)
+
+        then:
+        valueHolder.get() == ProtocolVersion.VERSION_1_5
+        channel.readInbound() == connectReply
+        channel.readInbound() == topologyUpdate
+        channel.readInbound() == null
+
+        cleanup:
+        channel.finishAndReleaseAll()
     }
 
     def createReplyMessage()

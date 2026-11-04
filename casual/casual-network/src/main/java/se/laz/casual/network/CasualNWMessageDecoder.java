@@ -14,6 +14,7 @@ import se.laz.casual.network.inbound.ProtocolVersionValueHolder;
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.laz.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
 
 import java.util.List;
@@ -75,7 +76,12 @@ public class CasualNWMessageDecoder extends ByteToMessageDecoder
         {
             byte[] messageBytes = new byte[(int)header.getPayloadSize()];
             in.readBytes(messageBytes);
-            return Optional.of( CasualMessageDecoder.read(messageBytes, header, protocolVersionValueHolder) );
+            CasualNWMessage<?> message = CasualMessageDecoder.read(messageBytes, header, protocolVersionValueHolder);
+            if(message.getMessage() instanceof CasualDomainConnectReplyMessage connectReply)
+            {
+                protocolVersionValueHolder.accept(ProtocolVersion.unmarshall(connectReply.getProtocolVersion()));
+            }
+            return Optional.of(message);
         }
         catch(Exception e)
         {

@@ -95,7 +95,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator);
         ProtocolVersionValueHolder protocolVersionValueHolder =  ProtocolVersionValueHolder.of();
         Channel ch = init(ci, workerGroup, messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), protocolVersionValueHolder);
-        return handshake(ci, ch, correlator, conversationMessageStorage, messageHandler, protocolVersionValueHolder, errorInformer);
+        return handshake(ci, ch, correlator, conversationMessageStorage, messageHandler, errorInformer);
     }
 
     /**
@@ -125,11 +125,11 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator);
         ProtocolVersionValueHolder protocolVersionValueHolder = ProtocolVersionValueHolder.of();
         setupPipeline(channel, ci, messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), protocolVersionValueHolder);
-        return handshake(ci, channel, correlator, conversationMessageStorage, messageHandler, protocolVersionValueHolder, errorInformer);
+        return handshake(ci, channel, correlator, conversationMessageStorage, messageHandler, errorInformer);
     }
 
     private static NettyNetworkConnection handshake(NettyConnectionInformation ci, Channel ch, Correlator correlator, ConversationMessageStorage conversationMessageStorage,
-                                                    CasualMessageHandler messageHandler, ProtocolVersionValueHolder protocolVersionValueHolder, ErrorInformer errorInformer)
+                                                    CasualMessageHandler messageHandler, ErrorInformer errorInformer)
     {
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
@@ -137,7 +137,6 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         try
         {
             DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
-            protocolVersionValueHolder.accept(networkConnection.protocolVersion);
             networkConnection.setDomainId(id);
             if(networkConnection.protocolSupportsDomainDisconnect())
             {
@@ -186,7 +185,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return b.connect(ci.getAddress()).syncUninterruptibly().channel();
     }
 
-    // note: setupPipeline( is used both in normal and reverse outbound, reverse outbound does not call init as it does not initiate a connection
+    // Both normal and reverse outbound use the same decoder. The decoder stores the negotiated protocol
+    // version while decoding the connect reply, before it can decode a subsequent message.
     private static void setupPipeline(SocketChannel ch, NettyConnectionInformation ci, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, ProtocolVersionValueHolder protocolVersionValueHolder)
     {
         ch.pipeline().addLast(CasualNWMessageDecoder.of(protocolVersionValueHolder), CasualNWMessageEncoder.of(), messageHandler, conversationMessageHandler, exceptionHandler);

@@ -65,6 +65,7 @@ class CasualMessageListenerImplTest extends Specification
 {
     @Shared CasualMessageListener instance
     @Shared EmbeddedChannel channel
+    EmbeddedChannel clientChannel
     @Shared WorkManager workManager
     @Shared XATerminator xaTerminator
 
@@ -85,6 +86,7 @@ class CasualMessageListenerImplTest extends Specification
         inboundHandler = TestInboundHandler.of()
         valueHolder = ProtocolVersionValueHolder.of()
         channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), inboundHandler)
+        clientChannel = new EmbeddedChannel(CasualNWMessageDecoder.of(ProtocolVersionValueHolder.of()))
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )
         xid = createXid()
@@ -92,6 +94,7 @@ class CasualMessageListenerImplTest extends Specification
 
     def cleanup()
     {
+        clientChannel.finishAndReleaseAll()
         InboundDeactivatedContext.clear()
         ConfigurationService.reload(  )
     }
@@ -111,8 +114,7 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.domainConnectRequest(message, channel, valueHolder)
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualDomainConnectReplyMessage> reply = inboundHandler.getMsg()
+        CasualNWMessage<CasualDomainConnectReplyMessage> reply = readOutboundMessage()
 
         then:
         reply != null
@@ -168,8 +170,8 @@ class CasualMessageListenerImplTest extends Specification
         {
             return null
         }
-        channel.writeInbound(encodedMessage)
-        return inboundHandler.getMsg()
+        clientChannel.writeInbound(encodedMessage)
+        return clientChannel.readInbound()
     }
 
     def "DomainDiscoveryRequest"()
