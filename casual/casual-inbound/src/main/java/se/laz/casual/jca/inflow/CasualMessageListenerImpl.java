@@ -81,6 +81,18 @@ public class CasualMessageListenerImpl implements CasualMessageListener
         Long matchedProtocolVersion = ProtocolMatcher.match(message.getMessage().getProtocols());
         log.info(() -> "domainConnectRequest(). matched protocol version: " + ProtocolVersion.unmarshall(matchedProtocolVersion));
         protocolVersion.accept(ProtocolVersion.unmarshall(matchedProtocolVersion));
+
+        String domainName = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME );
+        UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId();
+        CasualDomainConnectReplyMessage reply = CasualDomainConnectReplyMessage.createBuilder()
+                                                                               .withDomainId( domainId )
+                                                                               .withDomainName( domainName )
+                                                                               .withExecution( message.getMessage().getExecution() )
+                                                                               .withProtocolVersion(matchedProtocolVersion)
+                                                                               .build();
+        CasualNWMessage<CasualDomainConnectReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
+        channel.writeAndFlush(replyMessage);
+
         if(matchedProtocolVersion >= ProtocolVersion.VERSION_1_1.getVersion())
         {
             // should be notified when RA is deactivated
@@ -94,16 +106,6 @@ public class CasualMessageListenerImpl implements CasualMessageListener
             InboundTopologyUpdateContext.sendTopologyUpdate(message.getMessage().getExecution());
             InboundTopologyUpdateContext.add(channel);
         }
-        String domainName = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME );
-        UUID domainId = ConfigurationService.getConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID ).getId();
-        CasualDomainConnectReplyMessage reply = CasualDomainConnectReplyMessage.createBuilder()
-                                                                               .withDomainId( domainId )
-                                                                               .withDomainName( domainName )
-                                                                               .withExecution( message.getMessage().getExecution() )
-                                                                               .withProtocolVersion(matchedProtocolVersion)
-                                                                               .build();
-        CasualNWMessage<CasualDomainConnectReplyMessage> replyMessage = CasualNWMessageImpl.of( message.getCorrelationId(), reply );
-        channel.writeAndFlush(replyMessage);
     }
 
     @Override
