@@ -133,17 +133,12 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     {
         NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
         ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
+        messageHandler.setConnectReplyHandler(reply -> networkConnection.initializeFromConnectReply(reply, messageHandler));
         boolean handshakeCompleted = false;
         try
         {
-            DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
-            networkConnection.setDomainId(id);
-            if(networkConnection.protocolSupportsDomainDisconnect())
-            {
-                messageHandler.setMessageListener(networkConnection);
-                networkConnection.setConnectionHandler(DomainDisconnectHandler.of(networkConnection.channel, networkConnection.getDomainId()));
-            }
-            LOG.finest(() -> networkConnection + " outbound connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()) + " with domainId: " + id);
+            networkConnection.requestDomainConnect(ci.getDomainId(), ci.getDomainName());
+            LOG.finest(() -> networkConnection + " outbound connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()) + " with domainId: " + networkConnection.getDomainId());
             handshakeCompleted = true;
             return networkConnection;
         }
@@ -374,7 +369,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return protocolVersion.supportsDomainTopologyChange();
     }
 
-    private DomainId throwIfProtocolVersionNotSupportedByEIS(final UUID domainId, final String domainName)
+    private void requestDomainConnect(final UUID domainId, final String domainName)
     {
         CasualDomainConnectRequestMessage requestMessage = CasualDomainConnectRequestMessage.createBuilder()
                                                                                             .withExecution(UUID.randomUUID())
@@ -386,16 +381,28 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         LOG.finest(() -> "about to send handshake: " + this);
         CompletableFuture<CasualNWMessage<CasualDomainConnectReplyMessage>> replyEnvelopeFuture = request(nwMessage);
         LOG.finest(() -> "handshake sent: " + this);
-        CasualNWMessage<CasualDomainConnectReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
+        replyEnvelopeFuture.join();
         LOG.finest(() -> "received handshake reply: " + this);
+    }
+
+    private void initializeFromConnectReply(CasualDomainConnectReplyMessage reply, CasualMessageHandler messageHandler)
+    {
         long actualProtocolVersion = ProtocolVersion.supportedVersionNumbers()
                                                               .stream()
-                                                              .filter(version -> version == replyEnvelope.getMessage().getProtocolVersion())
+                                                              .filter(version -> version == reply.getProtocolVersion())
                                                               .findFirst()
-                                                              .orElseThrow(() -> new CasualConnectionException("wanted one of protocol versions " + ProtocolVersion.supportedVersionNumbers() + " but it is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion()));
+                                                              .orElseThrow(() -> new CasualConnectionException("wanted one of protocol versions " + ProtocolVersion.supportedVersionNumbers() + " but it is not supported by casual.\n Casual suggested protocol version " + reply.getProtocolVersion()));
         setProtocolVersion(ProtocolVersion.unmarshall(actualProtocolVersion));
+        setDomainId(DomainId.of(reply.getDomainId()));
+        // Protocol 1.1 introduces domain disconnect, and protocol 1.2 introduces topology
+        // updates. Installing the listener for protocol 1.1 and later therefore covers
+        // every supported unsolicited message.
+        if(protocolSupportsDomainDisconnect())
+        {
+            setConnectionHandler(DomainDisconnectHandler.of(channel, getDomainId()));
+            messageHandler.setMessageListener(this);
+        }
         LOG.info(() -> "using protocol version: " + protocolVersion + " asked for: " + ProtocolVersion.supportedVersions());
-        return DomainId.of(replyEnvelope.getMessage().getDomainId());
     }
 
 

@@ -66,3 +66,8 @@ $connectionDefinitionNode/config-properties=NetworkConnectionPoolSize:add(value=
 
 Note that each physical network connection is multiplexing on its own since we are running on top of Netty.
 We recommend that you use a NetworkConnectionPoolSize of 1 for most cases.
+
+## Connection handshake
+
+Normal outbound and reverse outbound use the same domain-connect handshake after establishing a TCP channel. See
+[Outbound handshake](outbound-handshake.md) for the handshake sequence and initialization guarantees.

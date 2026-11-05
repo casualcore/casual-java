@@ -33,6 +33,7 @@ import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.inbound.ProtocolVersionValueHolder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.conversation.Request
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage
@@ -508,6 +509,33 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         ProtocolVersion.VERSION_1_0     | false            | false
         ProtocolVersion.VERSION_1_1     | true             | false
         ProtocolVersion.VERSION_1_2     | true             | true
+    }
+
+    def 'connect reply initializes unsolicited handling for protocol: #protocolVersion'()
+    {
+        given:
+        UUID remoteDomainId = UUID.randomUUID()
+        CasualMessageHandler messageHandler = Mock()
+        CasualDomainConnectReplyMessage reply = CasualDomainConnectReplyMessage.createBuilder()
+                .withExecution(UUID.randomUUID())
+                .withDomainId(remoteDomainId)
+                .withDomainName('remote-domain')
+                .withProtocolVersion(protocolVersion.version)
+                .build()
+
+        when:
+        instance.initializeFromConnectReply(reply, messageHandler)
+
+        then:
+        instance.getProtocolVersion() == protocolVersion
+        instance.getDomainId() == DomainId.of(remoteDomainId)
+        listenerRegistrations * messageHandler.setMessageListener(instance)
+
+        where:
+        protocolVersion                 | listenerRegistrations
+        ProtocolVersion.VERSION_1_0     | 0
+        ProtocolVersion.VERSION_1_1     | 1
+        ProtocolVersion.VERSION_1_2     | 1
     }
 
     def 'domain disconnect is recorded before observers are notified for protocol 1.1'()

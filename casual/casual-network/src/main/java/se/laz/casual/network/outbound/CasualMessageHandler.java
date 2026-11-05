@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -10,8 +10,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType;
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMessage<?>>
@@ -20,6 +22,7 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
     private final Correlator correlator;
 
     private CasualOutboundMessageListener messageListener;
+    private volatile Consumer<CasualDomainConnectReplyMessage> connectReplyHandler;
 
     private CasualMessageHandler(final Correlator correlator)
     {
@@ -38,10 +41,29 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
         this.messageListener = messageListener;
     }
 
+    void setConnectReplyHandler(Consumer<CasualDomainConnectReplyMessage> connectReplyHandler)
+    {
+        if(this.connectReplyHandler != null)
+        {
+            throw new IllegalStateException("connect reply handler already set");
+        }
+        this.connectReplyHandler = Objects.requireNonNull(connectReplyHandler, "connectReplyHandler can not be null");
+    }
+
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final CasualNWMessage<?> msg)
     {
         LOG.finest(() -> String.format("reply: %s", LogTool.asLogEntry(msg)));
+        if(msg.getMessage() instanceof CasualDomainConnectReplyMessage connectReply)
+        {
+            Consumer<CasualDomainConnectReplyMessage> handler = connectReplyHandler;
+            if(handler == null)
+            {
+                throw new IllegalStateException("domain connect reply received without a pending handshake");
+            }
+            connectReplyHandler = null;
+            handler.accept(connectReply);
+        }
         if(isConversationalMessage(msg.getType()))
         {
             // pass along the pipeline to the next handler
