@@ -14,11 +14,9 @@ import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.xa.XID
-import se.laz.casual.jca.DomainId
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
-import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpdateMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import spock.lang.Shared
 import spock.lang.Specification
@@ -57,40 +55,23 @@ class CasualMessageHandlerTest extends Specification
         r == msg
     }
 
-    def 'connect reply initializes the domain before a following topology update'()
+    def 'connect reply completes as a correlated response'()
     {
         given:
         Correlator localCorrelator = Mock()
         CasualOutboundMessageListener listener = Mock()
         CasualMessageHandler handler = CasualMessageHandler.of(localCorrelator)
         UUID remoteDomainId = UUID.randomUUID()
-        DomainId initializedDomainId
         handler.setMessageListener(listener)
         CasualNWMessage<CasualDomainConnectReplyMessage> connectReply = createConnectReply(remoteDomainId)
-        CasualNWMessage<DomainDiscoveryTopologyUpdateMessage> topologyUpdate = CasualNWMessageImpl.of(
-                UUID.randomUUID(),
-                DomainDiscoveryTopologyUpdateMessage.createBuilder()
-                        .withExecution(UUID.randomUUID())
-                        .withDomainsSize(1)
-                        .withDomainId(UUID.randomUUID())
-                        .withDomainName('remote-domain')
-                        .build())
 
         when:
         handler.channelRead0(null, connectReply)
-        handler.channelRead0(null, topologyUpdate)
 
         then:
-        1 * listener.domainConnected(DomainId.of(remoteDomainId)) >> { DomainId domainId ->
-            initializedDomainId = domainId
-        }
         1 * listener.isInterestedIn(CasualNWMessageType.DOMAIN_CONNECT_REPLY) >> false
-        1 * localCorrelator.complete(connectReply) >> {
-            assert initializedDomainId == DomainId.of(remoteDomainId)
-        }
-        1 * listener.isInterestedIn(CasualNWMessageType.DOMAIN_DISCOVERY_TOPOLOGY_UPDATE) >> true
-        1 * listener.handleMessage(topologyUpdate)
-        0 * localCorrelator.complete(topologyUpdate)
+        1 * localCorrelator.complete(connectReply)
+        0 * listener.handleMessage(_)
     }
 
     private static CasualNWMessage<CasualDomainConnectReplyMessage> createConnectReply(UUID remoteDomainId)

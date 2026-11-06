@@ -27,6 +27,7 @@ import io.netty.channel.embedded.EmbeddedChannel
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.outbound.NettyNetworkConnection
+import se.laz.casual.network.outbound.DomainIdValueHolder
 import se.laz.casual.jca.Address
 import se.laz.casual.jca.CasualResourceAdapterException
 import se.laz.casual.network.outbound.NetworkListener
@@ -502,6 +503,8 @@ class NetworkConnectionPoolTest extends Specification
          .withDomainName('test-domain')
          .withCorrelator(correlator)
          .build()
+      DomainIdValueHolder domainIdValueHolder = DomainIdValueHolder.of()
+      domainIdValueHolder.accept(domainA)
       NettyNetworkConnection physicalConnection = new NettyNetworkConnection(
          ci,
          correlator,
@@ -509,10 +512,9 @@ class NetworkConnectionPoolTest extends Specification
          ConversationMessageStorageImpl.of(),
          { Mock(ExecutorService) },
          { ProtocolVersion.VERSION_1_2 },
+         domainIdValueHolder,
          errorInformer
       )
-      // would happen during normal construction
-      physicalConnection.setDomainId(domainA)
       channel.closeFuture().addListener({ f ->
          NettyNetworkConnection.handleClose(physicalConnection, errorInformer)
       })
