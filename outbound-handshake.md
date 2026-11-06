@@ -6,9 +6,9 @@ opens the channel, while reverse outbound accepts a channel opened by a reverse 
 ## Connection establishment
 
 - Normal outbound opens the TCP channel and performs the handshake on the calling thread.
-- Reverse outbound accepts the TCP channel and schedules the handshake on the managed executor. The handshake must not block the Netty event
+- Reverse outbound accepts the TCP channel and schedules the handshake using an executor. The handshake must not block the Netty event
   loop that decodes its reply. After the handshake completes, reverse outbound passes the initialized connection to the configured connection
-  consumer, which adds it to the network pool.
+  consumer, which adds it to the virtual network pool.
 
 ## Handshake sequence
 
@@ -22,8 +22,8 @@ The handshake establishes the peer domain ID and negotiated protocol version bef
 5. `CasualMessageHandler` passes the peer domain ID to the listener before it completes the correlated request.
 6. `NettyNetworkConnection` stores the peer domain ID. For protocol version 1.1 and later, it also installs domain-disconnect handling. The
    connection reads the selected protocol version from the holder and does not store a second copy.
-7. The installed listener declines the connect reply, and `CasualMessageHandler` passes the reply to the correlator, which completes the
-   handshake request.
+7. Because `DOMAIN_CONNECT_REPLY` is a correlated response rather than an unsolicited message, `CasualMessageHandler` passes it to the
+   correlator, which completes the handshake request.
 8. The waiting handshake thread resumes and makes the initialized connection available to its consumer.
 
 ```mermaid
