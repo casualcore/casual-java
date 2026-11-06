@@ -12,6 +12,7 @@ import se.laz.casual.network.outbound.CorrelatorImpl
 import se.laz.casual.network.outbound.Correlator
 import se.laz.casual.network.outbound.ConversationMessageStorageImpl
 import se.laz.casual.network.connection.CasualConnectionException
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.jca.CasualRequestInfo
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualManagedConnection
@@ -507,6 +508,7 @@ class NetworkConnectionPoolTest extends Specification
          channel,
          ConversationMessageStorageImpl.of(),
          { Mock(ExecutorService) },
+         { ProtocolVersion.VERSION_1_2 },
          errorInformer
       )
       // would happen during normal construction

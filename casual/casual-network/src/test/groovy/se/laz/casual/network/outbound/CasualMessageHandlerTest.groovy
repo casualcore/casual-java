@@ -14,6 +14,7 @@ import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.xa.XID
+import se.laz.casual.jca.DomainId
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
@@ -44,6 +45,7 @@ class CasualMessageHandlerTest extends Specification
     def 'ok'()
     {
         setup:
+        instance.setMessageListener(Mock(CasualOutboundMessageListener))
         CompletableFuture<CasualNWMessage<CasualNWMessage<CasualServiceCallReplyMessage>>> f = new CompletableFuture<>()
         CasualNWMessage<CasualServiceCallReplyMessage> msg = createReplyMessage()
         correlator.put(corrid, f)
@@ -55,18 +57,16 @@ class CasualMessageHandlerTest extends Specification
         r == msg
     }
 
-    def 'connect reply initialization installs listener before a following topology update'()
+    def 'connect reply initializes the domain before a following topology update'()
     {
         given:
         Correlator localCorrelator = Mock()
         CasualOutboundMessageListener listener = Mock()
         CasualMessageHandler handler = CasualMessageHandler.of(localCorrelator)
-        boolean initialized = false
-        handler.setConnectReplyHandler({ reply ->
-            initialized = true
-            handler.setMessageListener(listener)
-        })
-        CasualNWMessage<CasualDomainConnectReplyMessage> connectReply = createConnectReply()
+        UUID remoteDomainId = UUID.randomUUID()
+        DomainId initializedDomainId
+        handler.setMessageListener(listener)
+        CasualNWMessage<CasualDomainConnectReplyMessage> connectReply = createConnectReply(remoteDomainId)
         CasualNWMessage<DomainDiscoveryTopologyUpdateMessage> topologyUpdate = CasualNWMessageImpl.of(
                 UUID.randomUUID(),
                 DomainDiscoveryTopologyUpdateMessage.createBuilder()
@@ -81,34 +81,25 @@ class CasualMessageHandlerTest extends Specification
         handler.channelRead0(null, topologyUpdate)
 
         then:
+        1 * listener.domainConnected(DomainId.of(remoteDomainId)) >> { DomainId domainId ->
+            initializedDomainId = domainId
+        }
         1 * listener.isInterestedIn(CasualNWMessageType.DOMAIN_CONNECT_REPLY) >> false
         1 * localCorrelator.complete(connectReply) >> {
-            assert initialized
+            assert initializedDomainId == DomainId.of(remoteDomainId)
         }
         1 * listener.isInterestedIn(CasualNWMessageType.DOMAIN_DISCOVERY_TOPOLOGY_UPDATE) >> true
         1 * listener.handleMessage(topologyUpdate)
         0 * localCorrelator.complete(topologyUpdate)
     }
 
-    def 'connect reply without a pending handshake fails'()
-    {
-        given:
-        CasualMessageHandler handler = CasualMessageHandler.of(Mock(Correlator))
-
-        when:
-        handler.channelRead0(null, createConnectReply())
-
-        then:
-        thrown(IllegalStateException)
-    }
-
-    private static CasualNWMessage<CasualDomainConnectReplyMessage> createConnectReply()
+    private static CasualNWMessage<CasualDomainConnectReplyMessage> createConnectReply(UUID remoteDomainId)
     {
         return CasualNWMessageImpl.of(
                 UUID.randomUUID(),
                 CasualDomainConnectReplyMessage.createBuilder()
                         .withExecution(UUID.randomUUID())
-                        .withDomainId(UUID.randomUUID())
+                        .withDomainId(remoteDomainId)
                         .withDomainName('remote-domain')
                         .withProtocolVersion(ProtocolVersion.VERSION_1_5.version)
                         .build())

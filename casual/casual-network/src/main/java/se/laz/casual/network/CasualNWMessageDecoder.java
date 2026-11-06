@@ -79,7 +79,12 @@ public class CasualNWMessageDecoder extends ByteToMessageDecoder
             CasualNWMessage<?> message = CasualMessageDecoder.read(messageBytes, header, protocolVersionValueHolder);
             if(message.getMessage() instanceof CasualDomainConnectReplyMessage connectReply)
             {
-                protocolVersionValueHolder.accept(ProtocolVersion.unmarshall(connectReply.getProtocolVersion()));
+                ProtocolVersion protocolVersion = ProtocolVersion.unmarshall(connectReply.getProtocolVersion());
+                if(!protocolVersion.isSupported())
+                {
+                    throw new ProtocolVersionException(() -> "Protocol version is not supported: " + protocolVersion);
+                }
+                protocolVersionValueHolder.accept(protocolVersion);
             }
             return Optional.of(message);
         }
