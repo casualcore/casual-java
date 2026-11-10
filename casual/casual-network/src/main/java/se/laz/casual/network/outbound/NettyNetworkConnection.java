@@ -76,8 +76,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         this.channel = channel;
         this.conversationMessageStorage = conversationMessageStorage;
         this.executorServiceSupplier = executorServiceSupplier;
-        this.protocolVersionSupplier = Objects.requireNonNull(protocolVersionSupplier, "protocolVersionSupplier can not be null");
-        this.domainIdValueHolder = Objects.requireNonNull(domainIdSupplier, "domainIdSupplier can not be null");
+        this.protocolVersionSupplier = protocolVersionSupplier;
+        this.domainIdValueHolder = domainIdSupplier;
         this.domainDisconnectHandler = DomainDisconnectHandler.of(channel, this.domainIdValueHolder);
         this.errorInformer = errorInformer;
     }
