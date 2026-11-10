@@ -117,7 +117,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
      * @return the connected network connection after a successful handshake
      * @throws NullPointerException if any argument is {@code null}
      */
-    public static NettyNetworkConnection ofAcceptedChannel(final SocketChannel channel, final NettyConnectionInformation ci, final NetworkListener networkListener)
+    public static NettyNetworkConnection ofAcceptedChannel(final Channel channel, final NettyConnectionInformation ci, final NetworkListener networkListener)
     {
         Objects.requireNonNull(channel, "channel can not be null");
         Objects.requireNonNull(ci, "connection info can not be null");
@@ -187,7 +187,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 
     // Both normal and reverse outbound use the same decoder. The decoder stores the negotiated protocol
     // version and peer domain ID while decoding the connect reply, before it can decode a subsequent message.
-    private static void setupPipeline(SocketChannel ch, NettyConnectionInformation ci, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, ProtocolVersionValueHolder protocolVersionValueHolder, DomainIdValueHolder domainIdValueHolder)
+    private static void setupPipeline(Channel ch, NettyConnectionInformation ci, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, ProtocolVersionValueHolder protocolVersionValueHolder, DomainIdValueHolder domainIdValueHolder)
     {
         ch.pipeline().addLast(CasualNWMessageDecoder.of(protocolVersionValueHolder, domainIdValueHolder), CasualNWMessageEncoder.of(), messageHandler, conversationMessageHandler, exceptionHandler);
         if(ci.isLogHandlerEnabled())
