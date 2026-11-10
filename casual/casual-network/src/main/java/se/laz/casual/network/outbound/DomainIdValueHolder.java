@@ -10,6 +10,7 @@ import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolExcep
 import se.laz.casual.jca.DomainId;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -18,11 +19,11 @@ import java.util.function.Supplier;
  *
  * <p>This class safely publishes the domain ID between the Netty event-loop thread and
  * connection users. You can set the value once and read it after the connect reply has
- * been decoded.
+ * been decoded. This class is thread-safe.
  */
 public final class DomainIdValueHolder implements Supplier<DomainId>, Consumer<DomainId>
 {
-    private volatile DomainId domainId;
+    private final AtomicReference<DomainId> domainId = new AtomicReference<>();
 
     private DomainIdValueHolder()
     {}
@@ -46,11 +47,12 @@ public final class DomainIdValueHolder implements Supplier<DomainId>, Consumer<D
     @Override
     public DomainId get()
     {
-        if(domainId == null)
+        DomainId currentDomainId = domainId.get();
+        if(currentDomainId == null)
         {
             throw new CasualProtocolException("fatal: domain id not set - should never be used in a context where it has not already been set");
         }
-        return domainId;
+        return currentDomainId;
     }
 
     /**
@@ -64,18 +66,17 @@ public final class DomainIdValueHolder implements Supplier<DomainId>, Consumer<D
     public void accept(DomainId domainId)
     {
         Objects.requireNonNull(domainId, "domainId can not be null");
-        if(this.domainId != null)
+        if(!this.domainId.compareAndSet(null, domainId))
         {
             throw new CasualProtocolException("domain id already set");
         }
-        this.domainId = domainId;
     }
 
     @Override
     public String toString()
     {
         return "DomainIdValueHolder{" +
-                "domainId=" + domainId +
+                "domainId=" + domainId.get() +
                 '}';
     }
 }
