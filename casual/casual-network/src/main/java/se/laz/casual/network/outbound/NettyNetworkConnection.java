@@ -66,6 +66,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     private final DomainDisconnectHandler domainDisconnectHandler;
     private final ConnectionObserverHandler connectionObserverHandler = ConnectionObserverHandler.of();
 
+    // 8 > 7 parameters used
+    @SuppressWarnings("java:S107")
     private NettyNetworkConnection(BaseConnectionInformation ci,
                                    Correlator correlator,
                                    Channel channel,
@@ -135,6 +137,8 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return handshake(ci, channel, correlator, conversationMessageStorage, messageHandler, protocolVersionValueHolder::get, domainIdValueHolder, errorInformer);
     }
 
+    // 8 > 7 parameters used
+    @SuppressWarnings("java:S107")
     private static NettyNetworkConnection handshake(NettyConnectionInformation ci, Channel ch, Correlator correlator, ConversationMessageStorage conversationMessageStorage,
                                                     CasualMessageHandler messageHandler, Supplier<ProtocolVersion> protocolVersionSupplier,
                                                     DomainIdValueHolder domainIdValueHolder, ErrorInformer errorInformer)
@@ -146,6 +150,10 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         boolean handshakeCompleted = false;
         try
         {
+            // Note:
+            // Protocol version and domain id are set in the decoder ( using the domain connect reply).
+            // This guarantees that those are always set and visible to all threads with the correct information.
+            // Unsolicited messages, such as topology changed or domain disconnect, can only ever be decoded after the domain connect reply has been decoded.
             networkConnection.requestDomainConnect(ci.getDomainId(), ci.getDomainName());
             LOG.info(() -> "using protocol version: " + networkConnection.getProtocolVersion() + " asked for: " + ProtocolVersion.supportedVersions());
             LOG.finest(() -> networkConnection + " outbound connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()) + " with domainId: " + networkConnection.getDomainId());
