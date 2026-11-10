@@ -6,7 +6,6 @@
 package se.laz.casual.jca.pool
 
 import java.util.concurrent.ExecutorService
-import se.laz.casual.network.outbound.NettyConnectionInformation
 import se.laz.casual.network.outbound.ErrorInformer
 import se.laz.casual.network.outbound.CorrelatorImpl
 import se.laz.casual.network.outbound.Correlator
@@ -497,16 +496,9 @@ class NetworkConnectionPoolTest extends Specification
       Correlator correlator = CorrelatorImpl.of()
       CasualConnectionException networkFailure = new CasualConnectionException('network connection is gone')
       ErrorInformer errorInformer = ErrorInformer.of(networkFailure)
-      NettyConnectionInformation ci = NettyConnectionInformation.createBuilder()
-         .withAddress(new InetSocketAddress(7771))
-         .withDomainId(UUID.randomUUID())
-         .withDomainName('test-domain')
-         .withCorrelator(correlator)
-         .build()
       DomainIdValueHolder domainIdValueHolder = DomainIdValueHolder.of()
       domainIdValueHolder.accept(domainA)
       NettyNetworkConnection physicalConnection = new NettyNetworkConnection(
-         ci,
          correlator,
          channel,
          ConversationMessageStorageImpl.of(),
