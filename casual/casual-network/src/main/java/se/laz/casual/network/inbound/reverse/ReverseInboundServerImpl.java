@@ -77,7 +77,7 @@ public class ReverseInboundServerImpl implements ReverseInboundServer
 
     private static Channel init(final InetSocketAddress address, final ReverseInboundMessageHandler messageHandler, ReverseInboundExceptionHandler exceptionHandler, boolean enableLogHandler, Class<? extends Channel> channelClass, ProtocolVersionValueHolder protocolVersionValueHolder)
     {
-        EventLoopGroup workerGroup = EventLoopFactory.getInstance(EventLoopClient.REVERSE);
+        EventLoopGroup workerGroup = EventLoopFactory.getInstance(EventLoopClient.REVERSE_INBOUND);
         Bootstrap b = new Bootstrap()
                 .group(workerGroup)
                 .channel(channelClass)

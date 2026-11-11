@@ -24,7 +24,7 @@ public final class EventLoopFactory
     {
         INSTANCES = new ConcurrentHashMap<>();
         INSTANCES.put(EventLoopClient.OUTBOUND, createEventLoopGroup());
-        INSTANCES.put(EventLoopClient.REVERSE, createEventLoopGroup());
+        INSTANCES.put(EventLoopClient.REVERSE_INBOUND, createEventLoopGroup());
         INSTANCES.put(EventLoopClient.REVERSE_OUTBOUND, createEventLoopGroup());
         INSTANCES.put(EventLoopClient.REVERSE_OUTBOUND_BOSS_GROUP, createBossEventLoopGroup());
     }
