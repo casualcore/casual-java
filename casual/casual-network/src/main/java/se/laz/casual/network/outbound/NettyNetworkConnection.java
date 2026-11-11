@@ -144,7 +144,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
             // Unsolicited messages, such as topology changed or domain disconnect, can only ever be decoded after the domain connect reply has been decoded.
             networkConnection.requestDomainConnect(connectionInformation.getDomainId(), connectionInformation.getDomainName());
             LOG.info(() -> "using protocol version: " + networkConnection.getProtocolVersion() + " asked for: " + ProtocolVersion.supportedVersions());
-            LOG.finest(() -> networkConnection + " outbound connected to: " + new InetSocketAddress(connectionInformation.getAddress().getHostName(), connectionInformation.getAddress().getPort()) + " with domainId: " + networkConnection.getDomainId());
+            LOG.finest(() -> networkConnection + " outbound connected to: " + new InetSocketAddress( connectionInformation.getAddress().getHostName(), connectionInformation.getAddress().getPort()) + " with domainId: " + networkConnection.getDomainId());
             handshakeCompleted = true;
             return networkConnection;
         }

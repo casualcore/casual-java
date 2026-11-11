@@ -567,4 +567,89 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         return new NettyNetworkConnection(correlator, channel, conversationMessageStorage,
                 {Mock(ManagedExecutorService)}, protocolVersionValueHolder, domainIdValueHolder, errorInformer)
     }
+
+    def 'protocol version supported by EIS'()
+    {
+        given:
+        DomainId expectedDomainId = DomainId.of( domainId )
+
+        CompletableFuture<Void> f1 = replyWithSetVersion( version, domainId )
+        NetworkListener listener = Mock(NetworkListener)
+
+        when:
+        CompletableFuture<NettyNetworkConnection> f = CompletableFuture.supplyAsync( ()-> {
+            return NettyNetworkConnection.ofAcceptedChannel( channel, ci, listener )
+        } as Supplier<Void>)
+
+
+        f1.join(  )
+        instance = f.join(  )
+
+        then:
+        noExceptionThrown(  )
+        instance.getProtocolVersion(  ) == expected
+        instance.getDomainId(  ) == expectedDomainId
+
+        where:
+        version                                  | domainId            || expected
+        ProtocolVersion.VERSION_1_0.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_0
+        ProtocolVersion.VERSION_1_1.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_1
+        ProtocolVersion.VERSION_1_2.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_2
+        ProtocolVersion.VERSION_1_3.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_3
+        ProtocolVersion.VERSION_1_4.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_4
+        ProtocolVersion.VERSION_1_5.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_5
+    }
+
+    def 'protocol version not supported by EIS'()
+    {
+        given:
+        CompletableFuture<Void> f1 = replyWithSetVersion( 1006, UUID.randomUUID(  ) )
+        NetworkListener listener = Mock(NetworkListener)
+
+        when:
+        CompletableFuture<NettyNetworkConnection> f = CompletableFuture.supplyAsync( ()-> {
+            return NettyNetworkConnection.ofAcceptedChannel( channel, ci, listener )
+        } as Supplier<Void>)
+
+
+        f1.join(  )
+        try
+        {
+            f.join(  )
+        }
+        catch( CompletionException e )
+        {
+            throw e.getCause(  )
+        }
+
+        then:
+        thrown( CasualConnectionException )
+        instance.getProtocolVersion(  ) == null
+        instance.getDomainId(  ) != null
+    }
+
+    CompletableFuture<Void> replyWithSetVersion( long version, UUID domainId )
+    {
+        return CompletableFuture.supplyAsync( ()->{
+            while( channel.outboundMessages(  ).size(  ) == 0 )
+            {
+                sleep( 1L )
+            }
+            UUID uid = ((CorrelatorImpl)correlator).@requests.keySet(  ).stream(  ).findFirst(  )
+                    .orElseThrow( ()-> new IllegalStateException("There should have been a message to take.") )
+            CasualNWMessageImpl<CasualDomainConnectReplyMessage> replyMessage = createDomainConnectReplyMessage( uid, domainId, version )
+            channel.writeOneInbound(replyMessage)
+        } as Supplier<Void> )
+    }
+
+    def createDomainConnectReplyMessage( UUID id, UUID domainId, long protocolVersion )
+    {
+        CasualDomainConnectReplyMessage message = CasualDomainConnectReplyMessage.createBuilder()
+                .withExecution(UUID.randomUUID())
+                .withDomainId(domainId)
+                .withDomainName( "test-domain" )
+                .withProtocolVersion( protocolVersion )
+                .build()
+        return CasualNWMessageImpl.of(id, message)
+    }
 }
