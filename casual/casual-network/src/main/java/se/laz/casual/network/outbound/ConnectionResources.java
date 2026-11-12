@@ -10,7 +10,6 @@ import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.inbound.ProtocolVersionValueHolder;
 
 import java.util.Objects;
-import static se.laz.casual.network.outbound.NettyNetworkConnection.NETWORK_CONNECTION_GONE;
 
 /**
  * Groups the resources used while constructing one outbound connection.
@@ -48,7 +47,7 @@ record ConnectionResources(NettyConnectionInformation connectionInformation,
     static ConnectionResources create(NettyConnectionInformation connectionInformation, NetworkListener networkListener)
     {
         ErrorInformer errorInformer =
-                ErrorInformer.of(new CasualConnectionException(NETWORK_CONNECTION_GONE));
+                ErrorInformer.of(new CasualConnectionException("network connection is gone"));
         errorInformer.addListener(networkListener);
 
         Correlator correlator = connectionInformation.getCorrelator();

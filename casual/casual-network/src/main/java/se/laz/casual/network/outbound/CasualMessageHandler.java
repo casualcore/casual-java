@@ -50,7 +50,7 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
         }
         if(messageListener.isInterestedIn(msg.getType()))
         {
-            // For messages that does not originate from our side
+            // For messages that do not originate from our side
             // For instance, topology changed and domain disconnect
             // Since we did not initiate - we can not correlate
             messageListener.handleMessage(msg);

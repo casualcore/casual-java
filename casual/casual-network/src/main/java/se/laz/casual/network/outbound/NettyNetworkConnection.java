@@ -52,7 +52,6 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 {
     private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
-    static final String NETWORK_CONNECTION_GONE = "network connection is gone";
     private final Correlator correlator;
     private final ConversationMessageStorage conversationMessageStorage;
     private final Channel channel;
@@ -206,7 +205,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         // always complete any outstanding requests exceptionally
         // both when the casual domain goes away or when the owner of the network connection
         // closes us, the client, directly
-        connection.correlator.completeAllExceptionally(new CasualConnectionException(NETWORK_CONNECTION_GONE));
+        connection.correlator.completeAllExceptionally(errorInformer.getException());
         if(connection.connected.get())
         {
             // only inform on casual disconnect

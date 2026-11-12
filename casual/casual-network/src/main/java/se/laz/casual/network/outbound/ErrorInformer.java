@@ -46,4 +46,8 @@ public class ErrorInformer
         }
     }
 
+    public CasualConnectionException getException()
+    {
+        return exception;
+    }
 }
