@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.outbound
 
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
@@ -23,9 +25,11 @@ import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
+import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable
 import se.laz.casual.api.xa.XID
 import se.laz.casual.jca.ConnectionObserver
 import se.laz.casual.jca.DomainId
+import se.laz.casual.network.CasualDecoderException
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.ProtocolVersion
@@ -571,85 +575,155 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'protocol version supported by EIS'()
     {
         given:
-        DomainId expectedDomainId = DomainId.of( domainId )
-
-        CompletableFuture<Void> f1 = replyWithSetVersion( version, domainId )
+        EmbeddedChannel acceptedChannel = new EmbeddedChannel()
+        HandshakeCorrelator handshakeCorrelator = new HandshakeCorrelator()
+        NettyConnectionInformation connectionInformation = createConnectionInformation(handshakeCorrelator)
         NetworkListener listener = Mock(NetworkListener)
+        CompletableFuture<NettyNetworkConnection> connection = startHandshake(
+                acceptedChannel, connectionInformation, listener)
 
         when:
-        CompletableFuture<NettyNetworkConnection> f = CompletableFuture.supplyAsync( ()-> {
-            return NettyNetworkConnection.ofAcceptedChannel( channel, ci, listener )
-        } as Supplier<Void>)
-
-
-        f1.join(  )
-        instance = f.join(  )
+        replyToHandshake(acceptedChannel, handshakeCorrelator, version, domainId)
+        NettyNetworkConnection networkConnection = awaitHandshake(connection)
 
         then:
-        noExceptionThrown(  )
-        instance.getProtocolVersion(  ) == expected
-        instance.getDomainId(  ) == expectedDomainId
+        networkConnection.getProtocolVersion() == expected
+        networkConnection.getDomainId() == DomainId.of(domainId)
+
+        cleanup:
+        acceptedChannel.finishAndReleaseAll()
 
         where:
-        version                                  | domainId            || expected
-        ProtocolVersion.VERSION_1_0.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_0
-        ProtocolVersion.VERSION_1_1.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_1
-        ProtocolVersion.VERSION_1_2.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_2
-        ProtocolVersion.VERSION_1_3.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_3
-        ProtocolVersion.VERSION_1_4.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_4
-        ProtocolVersion.VERSION_1_5.getVersion() | UUID.randomUUID(  ) || ProtocolVersion.VERSION_1_5
+        version                                  | domainId           || expected
+        ProtocolVersion.VERSION_1_0.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_0
+        ProtocolVersion.VERSION_1_1.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_1
+        ProtocolVersion.VERSION_1_2.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_2
+        ProtocolVersion.VERSION_1_3.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_3
+        ProtocolVersion.VERSION_1_4.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_4
+        ProtocolVersion.VERSION_1_5.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_5
     }
 
     def 'protocol version not supported by EIS'()
     {
         given:
-        CompletableFuture<Void> f1 = replyWithSetVersion( 1006, UUID.randomUUID(  ) )
+        EmbeddedChannel acceptedChannel = new EmbeddedChannel()
+        HandshakeCorrelator handshakeCorrelator = new HandshakeCorrelator()
+        NettyConnectionInformation connectionInformation = createConnectionInformation(handshakeCorrelator)
         NetworkListener listener = Mock(NetworkListener)
+        CompletableFuture<NettyNetworkConnection> connection = startHandshake(
+                acceptedChannel, connectionInformation, listener)
 
         when:
-        CompletableFuture<NettyNetworkConnection> f = CompletableFuture.supplyAsync( ()-> {
-            return NettyNetworkConnection.ofAcceptedChannel( channel, ci, listener )
-        } as Supplier<Void>)
-
-
-        f1.join(  )
-        try
-        {
-            f.join(  )
-        }
-        catch( CompletionException e )
-        {
-            throw e.getCause(  )
-        }
+        replyToHandshake(acceptedChannel, handshakeCorrelator, 1006, UUID.randomUUID())
+        awaitHandshake(connection)
 
         then:
-        thrown( CasualConnectionException )
-        instance.getProtocolVersion(  ) == null
-        instance.getDomainId(  ) != null
+        thrown(CasualDecoderException)
+
+        cleanup:
+        acceptedChannel.finishAndReleaseAll()
     }
 
-    CompletableFuture<Void> replyWithSetVersion( long version, UUID domainId )
+    private static CompletableFuture<NettyNetworkConnection> startHandshake(
+            EmbeddedChannel channel,
+            NettyConnectionInformation connectionInformation,
+            NetworkListener listener)
     {
-        return CompletableFuture.supplyAsync( ()->{
-            while( channel.outboundMessages(  ).size(  ) == 0 )
-            {
-                sleep( 1L )
-            }
-            UUID uid = ((CorrelatorImpl)correlator).@requests.keySet(  ).stream(  ).findFirst(  )
-                    .orElseThrow( ()-> new IllegalStateException("There should have been a message to take.") )
-            CasualNWMessageImpl<CasualDomainConnectReplyMessage> replyMessage = createDomainConnectReplyMessage( uid, domainId, version )
-            channel.writeOneInbound(replyMessage)
-        } as Supplier<Void> )
+        return CompletableFuture.supplyAsync({
+            NettyNetworkConnection.ofAcceptedChannel(channel, connectionInformation, listener)
+        } as Supplier<NettyNetworkConnection>)
     }
 
-    def createDomainConnectReplyMessage( UUID id, UUID domainId, long protocolVersion )
+    private static NettyNetworkConnection awaitHandshake(
+            CompletableFuture<NettyNetworkConnection> connection)
+    {
+        try
+        {
+            return connection.get(5, TimeUnit.SECONDS)
+        }
+        catch(ExecutionException e)
+        {
+            throw e.getCause()
+        }
+    }
+
+    private static void replyToHandshake(
+            EmbeddedChannel channel,
+            HandshakeCorrelator correlator,
+            long protocolVersion,
+            UUID domainId)
+    {
+        UUID correlationId = correlator.awaitCorrelationId()
+        CasualNWMessage<CasualDomainConnectReplyMessage> reply =
+                createDomainConnectReplyMessage(correlationId, domainId, protocolVersion)
+        ByteBuf frame = Unpooled.buffer()
+        reply.toNetworkBytes().each(frame::writeBytes)
+        channel.writeInbound(frame)
+    }
+
+    private static CasualNWMessage<CasualDomainConnectReplyMessage> createDomainConnectReplyMessage(
+            UUID id,
+            UUID domainId,
+            long protocolVersion)
     {
         CasualDomainConnectReplyMessage message = CasualDomainConnectReplyMessage.createBuilder()
                 .withExecution(UUID.randomUUID())
                 .withDomainId(domainId)
-                .withDomainName( "test-domain" )
-                .withProtocolVersion( protocolVersion )
+                .withDomainName('test-domain')
+                .withProtocolVersion(protocolVersion)
                 .build()
         return CasualNWMessageImpl.of(id, message)
+    }
+
+    private static NettyConnectionInformation createConnectionInformation(Correlator correlator)
+    {
+        return NettyConnectionInformation.createBuilder()
+                .withAddress(new InetSocketAddress(3712))
+                .withDomainId(UUID.randomUUID())
+                .withDomainName('testDomain')
+                .withCorrelator(correlator)
+                .build()
+    }
+
+    private static final class HandshakeCorrelator implements Correlator
+    {
+        private final Correlator delegate = CorrelatorImpl.of()
+        private final CompletableFuture<UUID> correlationId = new CompletableFuture<>()
+
+        UUID awaitCorrelationId()
+        {
+            return correlationId.get(5, TimeUnit.SECONDS)
+        }
+
+        @Override
+        void put(UUID id, CompletableFuture<?> future)
+        {
+            delegate.put(id, future)
+            correlationId.complete(id)
+        }
+
+        @Override
+        boolean isEmpty()
+        {
+            return delegate.isEmpty()
+        }
+
+        @Override
+        void completeExceptionally(List<UUID> ids, Exception exception)
+        {
+            delegate.completeExceptionally(ids, exception)
+        }
+
+        @Override
+        void completeAllExceptionally(Exception exception)
+        {
+            delegate.completeAllExceptionally(exception)
+        }
+
+        @Override
+        <T extends CasualNetworkTransmittable> void complete(CasualNWMessage<T> message)
+        {
+            delegate.complete(message)
+        }
     }
 }
