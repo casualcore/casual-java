@@ -8,6 +8,9 @@ package se.laz.casual.network
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
+import io.netty.channel.embedded.EmbeddedChannel
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
@@ -15,11 +18,18 @@ import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.xa.XID
+import se.laz.casual.jca.DomainId
 import se.laz.casual.network.inbound.ProtocolVersionValueHolder
+import se.laz.casual.network.outbound.DomainIdValueHolder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
+import se.laz.casual.network.protocol.messages.domain.DomainDiscoveryTopologyUpdateMessage
+import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.util.concurrent.atomic.AtomicBoolean
 
 class CasualNWMessageDecoderTest extends Specification
 {
@@ -71,6 +81,100 @@ class CasualNWMessageDecoderTest extends Specification
         decoder.decode(null, crapBody, out)
         then:
         thrown(CasualDecoderException)
+    }
+
+    def 'connect reply establishes protocol before decoding a following topology update'()
+    {
+        given:
+        UUID domainId = UUID.randomUUID()
+        ProtocolVersionValueHolder valueHolder = ProtocolVersionValueHolder.of()
+        CasualNWMessage<CasualDomainConnectReplyMessage> connectReply = CasualNWMessageImpl.of(
+                UUID.randomUUID(),
+                CasualDomainConnectReplyMessage.createBuilder()
+                        .withExecution(UUID.randomUUID())
+                        .withDomainId(domainId)
+                        .withDomainName('remote-domain')
+                        .withProtocolVersion(ProtocolVersion.VERSION_1_5.version)
+                        .build())
+        CasualNWMessage<DomainDiscoveryTopologyUpdateMessage> topologyUpdate = CasualNWMessageImpl.of(
+                UUID.randomUUID(),
+                DomainDiscoveryTopologyUpdateMessage.createBuilder()
+                        .withExecution(UUID.randomUUID())
+                        .withDomainsSize(1)
+                        .withDomainId(domainId)
+                        .withDomainName('remote-domain')
+                        .build())
+        ByteBuf frames = Unpooled.buffer()
+        [connectReply, topologyUpdate].each { message ->
+            message.toNetworkBytes().each(frames::writeBytes)
+        }
+        EmbeddedChannel channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder))
+
+        when:
+        channel.writeInbound(frames)
+
+        then:
+        valueHolder.get() == ProtocolVersion.VERSION_1_5
+        channel.readInbound() == connectReply
+        channel.readInbound() == topologyUpdate
+        channel.readInbound() == null
+
+        cleanup:
+        channel.finishAndReleaseAll()
+    }
+
+    def 'connect reply establishes protocol and domain before decoding a following domain disconnect'()
+    {
+        given:
+        UUID domainId = UUID.randomUUID()
+        ProtocolVersionValueHolder protocolVersionValueHolder = ProtocolVersionValueHolder.of()
+        DomainIdValueHolder domainIdValueHolder = DomainIdValueHolder.of()
+        CasualNWMessage<CasualDomainConnectReplyMessage> connectReply = CasualNWMessageImpl.of(
+                UUID.randomUUID(),
+                CasualDomainConnectReplyMessage.createBuilder()
+                        .withExecution(UUID.randomUUID())
+                        .withDomainId(domainId)
+                        .withDomainName('remote-domain')
+                        .withProtocolVersion(ProtocolVersion.VERSION_1_5.version)
+                        .build())
+        CasualNWMessage<DomainDisconnectRequestMessage> domainDisconnect = CasualNWMessageImpl.of(
+                UUID.randomUUID(),
+                DomainDisconnectRequestMessage.of(UUID.randomUUID()))
+        ByteBuf frames = Unpooled.buffer()
+        [connectReply, domainDisconnect].each { message ->
+            message.toNetworkBytes().each(frames::writeBytes)
+        }
+        AtomicBoolean stateEstablishedBeforeDisconnect = new AtomicBoolean()
+        ChannelInboundHandlerAdapter stateObserver = new ChannelInboundHandlerAdapter() {
+            @Override
+            void channelRead(ChannelHandlerContext context, Object message)
+            {
+                if(message == domainDisconnect)
+                {
+                    stateEstablishedBeforeDisconnect.set(
+                            protocolVersionValueHolder.get() == ProtocolVersion.VERSION_1_5
+                                    && domainIdValueHolder.get() == DomainId.of(domainId))
+                }
+                context.fireChannelRead(message)
+            }
+        }
+        EmbeddedChannel channel = new EmbeddedChannel(
+                CasualNWMessageDecoder.of(protocolVersionValueHolder, domainIdValueHolder),
+                stateObserver)
+
+        when:
+        channel.writeInbound(frames)
+
+        then:
+        protocolVersionValueHolder.get() == ProtocolVersion.VERSION_1_5
+        domainIdValueHolder.get() == DomainId.of(domainId)
+        stateEstablishedBeforeDisconnect.get()
+        channel.readInbound() == connectReply
+        channel.readInbound() == domainDisconnect
+        channel.readInbound() == null
+
+        cleanup:
+        channel.finishAndReleaseAll()
     }
 
     def createReplyMessage()

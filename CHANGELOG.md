@@ -1,6 +1,31 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.7.4] - 2026-11-13
+
+### fix: outbound set protocol version and domain id when decoding domain connect reply ([#231](https://github.com/casualcore/casual-java/issues/231))
+Casual supports unsolicited topology-change and domain-disconnect
+messages that do not originate from an outbound request. A peer can
+therefore send a domain-connect reply immediately followed by either
+message.
+
+Previously, the Netty event loop could decode the following frame before
+the handshake thread stored the negotiated protocol version and peer
+domain ID. This race could cause the next frame to be handled without
+the required connection state.
+
+The decoder now stores the protocol version and domain ID while decoding
+the domain-connect reply, before it publishes the reply downstream.
+Because Netty processes frames in order for each channel, every
+subsequent frame observes the initialized connection state.
+
+This change applies to both standard and reverse outbound connections.
+It also simplifies the shared outbound connection setup and makes the
+domain ID holder atomically enforce its write-once contract.
+
+---------
+
+
 ## [3.7.3] - 2026-10-28
 
 ### feat: fix padding bug backwards compatibility  ([#227](https://github.com/casualcore/casual-java/issues/227))

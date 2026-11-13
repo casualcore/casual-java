@@ -12,9 +12,11 @@ import se.laz.casual.api.buffer.type.ServiceBuffer
 import se.laz.casual.api.flags.ErrorState
 import se.laz.casual.api.flags.TransactionState
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
+import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
 import se.laz.casual.api.xa.XID
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
 import se.laz.casual.network.protocol.messages.service.CasualServiceCallReplyMessage
 import spock.lang.Shared
 import spock.lang.Specification
@@ -41,6 +43,7 @@ class CasualMessageHandlerTest extends Specification
     def 'ok'()
     {
         setup:
+        instance.setMessageListener(Mock(CasualOutboundMessageListener))
         CompletableFuture<CasualNWMessage<CasualNWMessage<CasualServiceCallReplyMessage>>> f = new CompletableFuture<>()
         CasualNWMessage<CasualServiceCallReplyMessage> msg = createReplyMessage()
         correlator.put(corrid, f)
@@ -50,6 +53,37 @@ class CasualMessageHandlerTest extends Specification
         then:
         noExceptionThrown()
         r == msg
+    }
+
+    def 'connect reply completes as a correlated response'()
+    {
+        given:
+        Correlator localCorrelator = Mock()
+        CasualOutboundMessageListener listener = Mock()
+        CasualMessageHandler handler = CasualMessageHandler.of(localCorrelator)
+        UUID remoteDomainId = UUID.randomUUID()
+        handler.setMessageListener(listener)
+        CasualNWMessage<CasualDomainConnectReplyMessage> connectReply = createConnectReply(remoteDomainId)
+
+        when:
+        handler.channelRead0(null, connectReply)
+
+        then:
+        1 * listener.isInterestedIn(CasualNWMessageType.DOMAIN_CONNECT_REPLY) >> false
+        1 * localCorrelator.complete(connectReply)
+        0 * listener.handleMessage(_)
+    }
+
+    private static CasualNWMessage<CasualDomainConnectReplyMessage> createConnectReply(UUID remoteDomainId)
+    {
+        return CasualNWMessageImpl.of(
+                UUID.randomUUID(),
+                CasualDomainConnectReplyMessage.createBuilder()
+                        .withExecution(UUID.randomUUID())
+                        .withDomainId(remoteDomainId)
+                        .withDomainName('remote-domain')
+                        .withProtocolVersion(ProtocolVersion.VERSION_1_5.version)
+                        .build())
     }
 
     def createReplyMessage()

@@ -28,11 +28,11 @@ class EventLoopFactoryTest extends Specification
         ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_OUTBOUND_UNMANAGED, true )
 
         outboundEventLoopGroup = EventLoopFactory.getInstance( EventLoopClient.OUTBOUND )
-        reverseEventLoopGroup = EventLoopFactory.getInstance( EventLoopClient.REVERSE )
+        reverseEventLoopGroup = EventLoopFactory.getInstance( EventLoopClient.REVERSE_INBOUND )
 
         then:
         outboundEventLoopGroup != reverseEventLoopGroup
         outboundEventLoopGroup == EventLoopFactory.getInstance( EventLoopClient.OUTBOUND )
-        reverseEventLoopGroup == EventLoopFactory.getInstance( EventLoopClient.REVERSE )
+        reverseEventLoopGroup == EventLoopFactory.getInstance( EventLoopClient.REVERSE_INBOUND )
     }
 }

@@ -6,6 +6,8 @@
 
 package se.laz.casual.network.outbound
 
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
@@ -23,16 +25,20 @@ import se.laz.casual.api.flags.AtmiFlags
 import se.laz.casual.api.flags.Flag
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage
 import se.laz.casual.api.network.protocol.messages.CasualNWMessageType
+import se.laz.casual.api.network.protocol.messages.CasualNetworkTransmittable
 import se.laz.casual.api.xa.XID
 import se.laz.casual.jca.ConnectionObserver
 import se.laz.casual.jca.DomainId
+import se.laz.casual.network.CasualDecoderException
 import se.laz.casual.network.CasualNWMessageDecoder
 import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.inbound.ProtocolVersionValueHolder
+import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.conversation.Request
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryReplyMessage
 import se.laz.casual.network.protocol.messages.domain.CasualDomainDiscoveryRequestMessage
 import se.laz.casual.network.protocol.messages.domain.DomainDisconnectRequestMessage
@@ -62,6 +68,8 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     @Shared ConversationMessageStorage conversationMessageStorage
     @Shared EmbeddedChannel channel
     @Shared DomainId casualDomainId = DomainId.of(UUID.randomUUID())
+    @Shared DomainIdValueHolder domainIdValueHolder
+    @Shared ErrorInformer errorInformer
     private boolean casualDisconnected = false;
 
     def setup()
@@ -78,13 +86,15 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         def conversationMessageHandler = ConversationMessageHandler.of(conversationMessageStorage)
         ProtocolVersionValueHolder valueHolder = ProtocolVersionValueHolder.of()
         valueHolder.accept(ProtocolVersion.VERSION_1_2)
-        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), conversationMessageHandler, ExceptionHandler.of(correlator, Mock(OnNetworkError)))
-        instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, {testExecutorService}, Mock(ErrorInformer))
-        instance.setDomainId(casualDomainId)
-        DomainDisconnectHandler disconnectHandler = Mock(DomainDisconnectHandler){
-           hasDomainBeenDisconnected() >> false
-        }
-        instance.setConnectionHandler(disconnectHandler)
+        domainIdValueHolder = DomainIdValueHolder.of()
+        domainIdValueHolder.accept(casualDomainId)
+        CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator)
+        ExceptionHandler exceptionHandler = ExceptionHandler.of(correlator, Mock(OnNetworkError))
+        errorInformer = Mock(ErrorInformer)
+        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), messageHandler, conversationMessageHandler, exceptionHandler)
+        instance = new NettyNetworkConnection(correlator, channel, conversationMessageStorage,
+                {testExecutorService}, valueHolder, domainIdValueHolder, errorInformer)
+        messageHandler.setMessageListener(instance)
     }
 
     def 'Of with a null connection info throws NullPointerException.'()
@@ -138,7 +148,6 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'ping ponging a domain discovery request message'()
     {
         setup:
-        instance.setProtocolVersion(ProtocolVersion.VERSION_1_3)
         CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> requestMessage = createDomainDiscoveryRequestMessage()
         CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> replyMessage = createDomainDiscoveryReplyMessage(ProtocolVersion.VERSION_1_3)
         when:
@@ -154,7 +163,6 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'tpacall TPNOREPLY'()
     {
        setup:
-       instance.setProtocolVersion(ProtocolVersion.VERSION_1_2)
        CasualNWMessageImpl<CasualServiceCallRequestMessage> requestMessage = createServiceCallRequestMessage(true, false)
        when:
        instance.requestNoReply(requestMessage)
@@ -219,8 +227,8 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         setup:
         def channel = Mock(Channel)
         1 * channel.close()
-        instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, {Mock(ManagedExecutorService)}, Mock(ErrorInformer))
-        instance.setDomainId(casualDomainId)
+        instance = new NettyNetworkConnection(correlator, channel, conversationMessageStorage,
+                {Mock(ManagedExecutorService)}, {ProtocolVersion.VERSION_1_2}, domainIdValueHolder, errorInformer)
         when:
         instance.close()
         then:
@@ -234,8 +242,8 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         ProtocolVersionValueHolder valueHolder = ProtocolVersionValueHolder.of()
         valueHolder.accept(ProtocolVersion.VERSION_1_2)
         def channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), CasualMessageHandler.of(correlator), ExceptionHandler.of(correlator, Mock(OnNetworkError)))
-        instance = new NettyNetworkConnection(ci, correlator, channel, conversationMessageStorage, {Mock(ManagedExecutorService)}, Mock(ErrorInformer))
-        instance.setDomainId(casualDomainId)
+        instance = new NettyNetworkConnection(correlator, channel, conversationMessageStorage,
+                {Mock(ManagedExecutorService)}, {ProtocolVersion.VERSION_1_2}, domainIdValueHolder, errorInformer)
         ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException("connection gone"))
         errorInformer.addListener(this)
         def future = channel.closeFuture().addListener({ f -> se.laz.casual.network.outbound.NettyNetworkConnection.handleClose(instance, errorInformer) })
@@ -284,12 +292,8 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         onNetworkError.notifyListenerIfNotConnected(channel) >> {
             networkError = true
         }
-        def localInstance = new NettyNetworkConnection(ci, correlator, channel, Mock(ConversationMessageStorage), {Mock(ManagedExecutorService)}, Mock(ErrorInformer))
-        localInstance.setProtocolVersion(ProtocolVersion.VERSION_1_2)
-        DomainDisconnectHandler disconnectHandler = Mock(DomainDisconnectHandler){
-           hasDomainBeenDisconnected() >> false
-        }
-        localInstance.setConnectionHandler(disconnectHandler)
+        def localInstance = new NettyNetworkConnection(correlator, channel, conversationMessageStorage,
+                {Mock(ManagedExecutorService)}, {ProtocolVersion.VERSION_1_2}, domainIdValueHolder, errorInformer)
         CasualNWMessageImpl<CasualDomainDiscoveryRequestMessage> requestMessage = createDomainDiscoveryRequestMessage()
         when:
         localInstance.request(requestMessage)
@@ -497,7 +501,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'message interest follows the negotiated protocol: #protocolVersion'()
     {
         given:
-        instance.setProtocolVersion(protocolVersion)
+        instance = createConnectionForProtocol(protocolVersion)
 
         expect:
         instance.isInterestedIn(CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST) == domainDisconnect
@@ -510,14 +514,24 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         ProtocolVersion.VERSION_1_2     | true             | true
     }
 
+    def 'domain id comes from the connection value holder for protocol: #protocolVersion'()
+    {
+        given:
+        instance = createConnectionForProtocol(protocolVersion)
+
+        expect:
+        instance.getProtocolVersion() == protocolVersion
+        instance.getDomainId() == casualDomainId
+
+        where:
+        protocolVersion << [ProtocolVersion.VERSION_1_0, ProtocolVersion.VERSION_1_1, ProtocolVersion.VERSION_1_2]
+    }
+
     def 'domain disconnect is recorded before observers are notified for protocol 1.1'()
     {
         given:
-        instance.setProtocolVersion(ProtocolVersion.VERSION_1_1)
-        DomainDisconnectHandler disconnectHandler = DomainDisconnectHandler.of(channel, casualDomainId)
-        disconnectHandler.setDomainDisconnectReplyFunction(ignored -> {})
+        instance = createConnectionForProtocol(ProtocolVersion.VERSION_1_1)
         ConnectionObserver observer = Mock(ConnectionObserver)
-        instance.setConnectionHandler(disconnectHandler)
         instance.addConnectionObserver(observer)
         CasualNWMessage<DomainDisconnectRequestMessage> message = CasualNWMessageImpl.of(
                 UUID.randomUUID(),
@@ -535,10 +549,9 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
     def 'domain disconnect observers are notified when sending the reply fails'()
     {
         given:
-        instance.setProtocolVersion(ProtocolVersion.VERSION_1_1)
-        DomainDisconnectHandler disconnectHandler = Mock(DomainDisconnectHandler)
+        instance = createConnectionForProtocol(ProtocolVersion.VERSION_1_1)
         ConnectionObserver observer = Mock(ConnectionObserver)
-        instance.setConnectionHandler(disconnectHandler)
+        instance.@domainDisconnectHandler.setDomainDisconnectReplyFunction { throw new IllegalStateException('Reply failed') }
         instance.addConnectionObserver(observer)
         CasualNWMessage<DomainDisconnectRequestMessage> message = CasualNWMessageImpl.of(
                 UUID.randomUUID(),
@@ -548,8 +561,170 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         instance.handleMessage(message)
 
         then:
-        1 * disconnectHandler.domainDisconnected(_) >> { throw new IllegalStateException('Reply failed') }
         1 * observer.domainIsDisconnecting(casualDomainId)
         thrown(IllegalStateException)
+    }
+
+    private NettyNetworkConnection createConnectionForProtocol(ProtocolVersion protocolVersion)
+    {
+        ProtocolVersionValueHolder protocolVersionValueHolder = ProtocolVersionValueHolder.of()
+        protocolVersionValueHolder.accept(protocolVersion)
+        return new NettyNetworkConnection(correlator, channel, conversationMessageStorage,
+                {Mock(ManagedExecutorService)}, protocolVersionValueHolder, domainIdValueHolder, errorInformer)
+    }
+
+    def 'protocol version supported by EIS'()
+    {
+        given:
+        EmbeddedChannel acceptedChannel = new EmbeddedChannel()
+        HandshakeCorrelator handshakeCorrelator = new HandshakeCorrelator()
+        NettyConnectionInformation connectionInformation = createConnectionInformation(handshakeCorrelator)
+        NetworkListener listener = Mock(NetworkListener)
+        CompletableFuture<NettyNetworkConnection> connection = startHandshake(
+                acceptedChannel, connectionInformation, listener)
+
+        when:
+        replyToHandshake(acceptedChannel, handshakeCorrelator, version, domainId)
+        NettyNetworkConnection networkConnection = awaitHandshake(connection)
+
+        then:
+        networkConnection.getProtocolVersion() == expected
+        networkConnection.getDomainId() == DomainId.of(domainId)
+
+        cleanup:
+        acceptedChannel.finishAndReleaseAll()
+
+        where:
+        version                                  | domainId           || expected
+        ProtocolVersion.VERSION_1_0.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_0
+        ProtocolVersion.VERSION_1_1.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_1
+        ProtocolVersion.VERSION_1_2.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_2
+        ProtocolVersion.VERSION_1_3.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_3
+        ProtocolVersion.VERSION_1_4.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_4
+        ProtocolVersion.VERSION_1_5.getVersion() | UUID.randomUUID()  || ProtocolVersion.VERSION_1_5
+    }
+
+    def 'protocol version not supported by EIS'()
+    {
+        given:
+        EmbeddedChannel acceptedChannel = new EmbeddedChannel()
+        HandshakeCorrelator handshakeCorrelator = new HandshakeCorrelator()
+        NettyConnectionInformation connectionInformation = createConnectionInformation(handshakeCorrelator)
+        NetworkListener listener = Mock(NetworkListener)
+        CompletableFuture<NettyNetworkConnection> connection = startHandshake(
+                acceptedChannel, connectionInformation, listener)
+
+        when:
+        replyToHandshake(acceptedChannel, handshakeCorrelator, 1006, UUID.randomUUID())
+        awaitHandshake(connection)
+
+        then:
+        thrown(CasualDecoderException)
+
+        cleanup:
+        acceptedChannel.finishAndReleaseAll()
+    }
+
+    private static CompletableFuture<NettyNetworkConnection> startHandshake(
+            EmbeddedChannel channel,
+            NettyConnectionInformation connectionInformation,
+            NetworkListener listener)
+    {
+        return CompletableFuture.supplyAsync({
+            NettyNetworkConnection.ofAcceptedChannel(channel, connectionInformation, listener)
+        } as Supplier<NettyNetworkConnection>)
+    }
+
+    private static NettyNetworkConnection awaitHandshake(
+            CompletableFuture<NettyNetworkConnection> connection)
+    {
+        try
+        {
+            return connection.get(5, TimeUnit.SECONDS)
+        }
+        catch(ExecutionException e)
+        {
+            throw e.getCause()
+        }
+    }
+
+    private static void replyToHandshake(
+            EmbeddedChannel channel,
+            HandshakeCorrelator correlator,
+            long protocolVersion,
+            UUID domainId)
+    {
+        UUID correlationId = correlator.awaitCorrelationId()
+        CasualNWMessage<CasualDomainConnectReplyMessage> reply =
+                createDomainConnectReplyMessage(correlationId, domainId, protocolVersion)
+        ByteBuf frame = Unpooled.buffer()
+        CasualMessageEncoder.write(frame, reply)
+        channel.writeInbound(frame)
+    }
+
+    private static CasualNWMessage<CasualDomainConnectReplyMessage> createDomainConnectReplyMessage(
+            UUID id,
+            UUID domainId,
+            long protocolVersion)
+    {
+        CasualDomainConnectReplyMessage message = CasualDomainConnectReplyMessage.createBuilder()
+                .withExecution(UUID.randomUUID())
+                .withDomainId(domainId)
+                .withDomainName('test-domain')
+                .withProtocolVersion(protocolVersion)
+                .build()
+        return CasualNWMessageImpl.of(id, message)
+    }
+
+    private static NettyConnectionInformation createConnectionInformation(Correlator correlator)
+    {
+        return NettyConnectionInformation.createBuilder()
+                .withAddress(new InetSocketAddress(3712))
+                .withDomainId(UUID.randomUUID())
+                .withDomainName('testDomain')
+                .withCorrelator(correlator)
+                .build()
+    }
+
+    private static final class HandshakeCorrelator implements Correlator
+    {
+        private final Correlator delegate = CorrelatorImpl.of()
+        private final CompletableFuture<UUID> correlationId = new CompletableFuture<>()
+
+        UUID awaitCorrelationId()
+        {
+            return correlationId.get(5, TimeUnit.SECONDS)
+        }
+
+        @Override
+        void put(UUID id, CompletableFuture<?> future)
+        {
+            delegate.put(id, future)
+            correlationId.complete(id)
+        }
+
+        @Override
+        boolean isEmpty()
+        {
+            return delegate.isEmpty()
+        }
+
+        @Override
+        void completeExceptionally(List<UUID> ids, Exception exception)
+        {
+            delegate.completeExceptionally(ids, exception)
+        }
+
+        @Override
+        void completeAllExceptionally(Exception exception)
+        {
+            delegate.completeAllExceptionally(exception)
+        }
+
+        @Override
+        <T extends CasualNetworkTransmittable> void complete(CasualNWMessage<T> message)
+        {
+            delegate.complete(message)
+        }
     }
 }

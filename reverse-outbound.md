@@ -57,6 +57,9 @@ A remote reverse inbound connection is initiated to a reverse outbound configure
 the domain connect request handshake. This is similar to a standard outbound connection, only `casual-jca` does not initiate the network 
 connection, rather it listens for incoming network connections. 
 
+Normal outbound and reverse outbound use the same handshake after establishing the TCP channel. See
+[Outbound handshake](outbound-handshake.md) for the handshake sequence and initialization guarantees.
+
 Once the handshake completes, `NetworkPoolHandler` adds the connection to a named reverse outbound network connection pool keyed by the 
 configured `name`.
 

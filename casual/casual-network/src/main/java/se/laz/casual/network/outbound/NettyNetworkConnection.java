@@ -29,7 +29,6 @@ import se.laz.casual.network.LogLevelProvider;
 import se.laz.casual.network.ProtocolVersion;
 import se.laz.casual.network.connection.CasualConnectionException;
 import se.laz.casual.network.connection.DomainDisconnectedException;
-import se.laz.casual.network.inbound.ProtocolVersionValueHolder;
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl;
 import se.laz.casual.network.protocol.messages.conversation.Request;
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
@@ -53,49 +52,47 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 {
     private static final Logger LOG = Logger.getLogger(NettyNetworkConnection.class.getName());
     private static final String LOG_HANDLER_NAME = "logHandler";
-    private static final String NETWORK_CONNECTION_GONE = "network connection is gone";
-    private final BaseConnectionInformation ci;
     private final Correlator correlator;
     private final ConversationMessageStorage conversationMessageStorage;
     private final Channel channel;
     private final AtomicBoolean connected = new AtomicBoolean(true);
     private final Supplier<ExecutorService> executorServiceSupplier;
+    private final Supplier<ProtocolVersion> protocolVersionSupplier;
+    private final Supplier<DomainId> domainIdValueHolder;
     private final ErrorInformer errorInformer;
-    private DomainId domainId;
-    private ProtocolVersion protocolVersion;
-    private DomainDisconnectHandler domainDisconnectHandler;
+    private final DomainDisconnectHandler domainDisconnectHandler;
     private final ConnectionObserverHandler connectionObserverHandler = ConnectionObserverHandler.of();
 
-    private NettyNetworkConnection(BaseConnectionInformation ci,
-                                   Correlator correlator,
+    private NettyNetworkConnection(Correlator correlator,
                                    Channel channel,
                                    ConversationMessageStorage conversationMessageStorage,
                                    Supplier<ExecutorService> executorServiceSupplier,
+                                   Supplier<ProtocolVersion> protocolVersionSupplier,
+                                   Supplier<DomainId> domainIdSupplier,
                                    ErrorInformer errorInformer)
     {
-        this.ci = ci;
         this.correlator = correlator;
         this.channel = channel;
         this.conversationMessageStorage = conversationMessageStorage;
         this.executorServiceSupplier = executorServiceSupplier;
+        this.protocolVersionSupplier = protocolVersionSupplier;
+        this.domainIdValueHolder = domainIdSupplier;
+        this.domainDisconnectHandler = DomainDisconnectHandler.of(channel, this.domainIdValueHolder);
         this.errorInformer = errorInformer;
     }
 
-    public static NettyNetworkConnection of(final NettyConnectionInformation ci, final NetworkListener networkListener)
+    public static NettyNetworkConnection of(final NettyConnectionInformation connectionInformation, final NetworkListener networkListener)
     {
-        Objects.requireNonNull(ci, "connection info can not be null");
+        Objects.requireNonNull(connectionInformation, "connection info can not be null");
         Objects.requireNonNull(networkListener, "network listener can not be null");
-        ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException(NETWORK_CONNECTION_GONE));
-        errorInformer.addListener(networkListener);
-        EventLoopGroup workerGroup = EventLoopFactory.getInstance(EventLoopClient.OUTBOUND);
-        Correlator correlator = ci.getCorrelator();
-        ConversationMessageStorage conversationMessageStorage = ConversationMessageStorageImpl.of();
-        OnNetworkError onNetworkError = channel -> NetworkErrorHandler.notifyListenersIfNotConnected(channel, errorInformer);
-        ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of( conversationMessageStorage);
-        CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator);
-        ProtocolVersionValueHolder protocolVersionValueHolder =  ProtocolVersionValueHolder.of();
-        Channel ch = init(ci, workerGroup, messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), protocolVersionValueHolder);
-        return handshake(ci, ch, correlator, conversationMessageStorage, messageHandler, protocolVersionValueHolder, errorInformer);
+
+        ConnectionResources resources = ConnectionResources.create(connectionInformation, networkListener);
+
+        EventLoopGroup workerGroup =
+                EventLoopFactory.getInstance(EventLoopClient.OUTBOUND);
+
+        Channel channel = init(workerGroup, resources);
+        return handshake(channel, resources);
     }
 
     /**
@@ -106,45 +103,47 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
      * it from the channel's event-loop thread.
      *
      * @param channel the established channel to use
-     * @param ci the outbound connection information
+     * @param connectionInformation the outbound connection information
      * @param networkListener the listener to notify if the network connection closes unexpectedly
      * @return the connected network connection after a successful handshake
      * @throws NullPointerException if any argument is {@code null}
      */
-    public static NettyNetworkConnection ofAcceptedChannel(final SocketChannel channel, final NettyConnectionInformation ci, final NetworkListener networkListener)
+    public static NettyNetworkConnection ofAcceptedChannel(final Channel channel, final NettyConnectionInformation connectionInformation, final NetworkListener networkListener)
     {
         Objects.requireNonNull(channel, "channel can not be null");
-        Objects.requireNonNull(ci, "connection info can not be null");
+        Objects.requireNonNull(connectionInformation, "connection info can not be null");
         Objects.requireNonNull(networkListener, "network listener can not be null");
-        ErrorInformer errorInformer = ErrorInformer.of(new CasualConnectionException(NETWORK_CONNECTION_GONE));
-        errorInformer.addListener(networkListener);
-        Correlator correlator = ci.getCorrelator();
-        ConversationMessageStorage conversationMessageStorage = ConversationMessageStorageImpl.of();
-        OnNetworkError onNetworkError = ch -> NetworkErrorHandler.notifyListenersIfNotConnected(ch, errorInformer);
-        ConversationMessageHandler conversationMessageHandler = ConversationMessageHandler.of(conversationMessageStorage);
-        CasualMessageHandler messageHandler = CasualMessageHandler.of(correlator);
-        ProtocolVersionValueHolder protocolVersionValueHolder = ProtocolVersionValueHolder.of();
-        setupPipeline(channel, ci, messageHandler, conversationMessageHandler, ExceptionHandler.of(correlator, onNetworkError), protocolVersionValueHolder);
-        return handshake(ci, channel, correlator, conversationMessageStorage, messageHandler, protocolVersionValueHolder, errorInformer);
+
+        ConnectionResources resources =
+                ConnectionResources.create(connectionInformation, networkListener);
+
+        setupPipeline(channel, resources);
+        return handshake(channel, resources);
     }
 
-    private static NettyNetworkConnection handshake(NettyConnectionInformation ci, Channel ch, Correlator correlator, ConversationMessageStorage conversationMessageStorage,
-                                                    CasualMessageHandler messageHandler, ProtocolVersionValueHolder protocolVersionValueHolder, ErrorInformer errorInformer)
+    private static NettyNetworkConnection handshake(Channel channel, ConnectionResources connectionResources)
     {
-        NettyNetworkConnection networkConnection = new NettyNetworkConnection(ci, correlator, ch, conversationMessageStorage, JEEConcurrencyFactory::getManagedExecutorService, errorInformer);
-        ch.closeFuture().addListener(f -> handleClose(networkConnection, errorInformer));
+        NettyNetworkConnection networkConnection = new NettyNetworkConnection(
+                connectionResources.connectionInformation().getCorrelator(),
+                channel,
+                connectionResources.conversationMessageStorage(),
+                JEEConcurrencyFactory::getManagedExecutorService,
+                connectionResources.protocolVersionValueHolder(),
+                connectionResources.domainIdValueHolder(),
+                connectionResources.errorInformer());
+        channel.closeFuture().addListener(f -> handleClose(networkConnection, connectionResources.errorInformer()));
+        connectionResources.messageHandler().setMessageListener(networkConnection);
         boolean handshakeCompleted = false;
         try
         {
-            DomainId id = networkConnection.throwIfProtocolVersionNotSupportedByEIS(ci.getDomainId(), ci.getDomainName());
-            protocolVersionValueHolder.accept(networkConnection.protocolVersion);
-            networkConnection.setDomainId(id);
-            if(networkConnection.protocolSupportsDomainDisconnect())
-            {
-                messageHandler.setMessageListener(networkConnection);
-                networkConnection.setConnectionHandler(DomainDisconnectHandler.of(networkConnection.channel, networkConnection.getDomainId()));
-            }
-            LOG.finest(() -> networkConnection + " outbound connected to: " + new InetSocketAddress(ci.getAddress().getHostName(), ci.getAddress().getPort()) + " with domainId: " + id);
+            NettyConnectionInformation connectionInformation = connectionResources.connectionInformation();
+            // Note:
+            // Protocol version and domain id are set in the decoder ( using the domain connect reply).
+            // This guarantees that those are always set and visible to all threads with the correct information.
+            // Unsolicited messages, such as topology changed or domain disconnect, can only ever be decoded after the domain connect reply has been decoded.
+            networkConnection.requestDomainConnect(connectionInformation.getDomainId(), connectionInformation.getDomainName());
+            LOG.info(() -> "using protocol version: " + networkConnection.getProtocolVersion() + " asked for: " + ProtocolVersion.supportedVersions());
+            LOG.finest(() -> networkConnection + " outbound connected to: " + new InetSocketAddress(connectionInformation.getAddress().getHostName(), connectionInformation.getAddress().getPort()) + " with domainId: " + networkConnection.getDomainId());
             handshakeCompleted = true;
             return networkConnection;
         }
@@ -160,39 +159,37 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public ProtocolVersion getProtocolVersion()
     {
-        return protocolVersion;
+        return protocolVersionSupplier.get();
     }
 
-    private void setProtocolVersion(ProtocolVersion protocolVersion)
+    private static Channel init(EventLoopGroup workerGroup, ConnectionResources resources)
     {
-        this.protocolVersion = protocolVersion;
-    }
-
-    private static Channel init(NettyConnectionInformation ci, final EventLoopGroup workerGroup, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, ProtocolVersionValueHolder protocolVersionValueHolder)
-    {
+        NettyConnectionInformation connectionInformation = resources.connectionInformation();
         Bootstrap b = new Bootstrap()
-            .group(workerGroup)
-            .channel(ci.getChannelClass())
-            .option(ChannelOption.SO_KEEPALIVE, true)
-            .handler(new ChannelInitializer<SocketChannel>()
-            {
-                @Override
-                protected void initChannel(SocketChannel ch)
+                .group(workerGroup)
+                .channel(connectionInformation.getChannelClass())
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .handler(new ChannelInitializer<SocketChannel>()
                 {
-                    setupPipeline(ch, ci, messageHandler, conversationMessageHandler, exceptionHandler, protocolVersionValueHolder);
-                }
-            });
-        LOG.finest(() -> "about to connect to: " + ci.getAddress());
-        return b.connect(ci.getAddress()).syncUninterruptibly().channel();
+                    @Override
+                    protected void initChannel(SocketChannel ch)
+                    {
+                        setupPipeline(ch, resources);
+                    }
+                });
+        LOG.finest(() -> "about to connect to: " + connectionInformation.getAddress());
+        return b.connect(connectionInformation.getAddress()).syncUninterruptibly().channel();
     }
 
-    // note: setupPipeline( is used both in normal and reverse outbound, reverse outbound does not call init as it does not initiate a connection
-    private static void setupPipeline(SocketChannel ch, NettyConnectionInformation ci, final CasualMessageHandler messageHandler, ConversationMessageHandler conversationMessageHandler, ExceptionHandler exceptionHandler, ProtocolVersionValueHolder protocolVersionValueHolder)
+    // Both normal and reverse outbound use the same decoder. The decoder stores the negotiated protocol
+    // version and peer domain ID while decoding the connect reply, before it can decode a subsequent message.
+    private static void setupPipeline(Channel channel, ConnectionResources connectionResources)
     {
-        ch.pipeline().addLast(CasualNWMessageDecoder.of(protocolVersionValueHolder), CasualNWMessageEncoder.of(), messageHandler, conversationMessageHandler, exceptionHandler);
-        if(ci.isLogHandlerEnabled())
+        channel.pipeline().addLast(CasualNWMessageDecoder.of(connectionResources.protocolVersionValueHolder(), connectionResources.domainIdValueHolder()),
+                CasualNWMessageEncoder.of(), connectionResources.messageHandler(), connectionResources.conversationMessageHandler(), connectionResources.exceptionHandler());
+        if(connectionResources.connectionInformation().isLogHandlerEnabled())
         {
-            ch.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.OUTBOUND_LOGGING_LEVEL));
+            channel.pipeline().addFirst(LOG_HANDLER_NAME, new LoggingHandler(LogLevelProvider.OUTBOUND_LOGGING_LEVEL));
             LOG.info(() -> "outbound network log handler enabled, using netty logging level: " + LogLevelProvider.OUTBOUND_LOGGING_LEVEL);
         }
     }
@@ -203,18 +200,12 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         return protocolSupportsDomainDisconnect() && domainDisconnectHandler.hasDomainBeenDisconnected();
     }
 
-    private void setConnectionHandler(DomainDisconnectHandler domainDisconnectHandler)
-    {
-        Objects.requireNonNull(domainDisconnectHandler, "domainDisconnectHandler can not be null");
-        this.domainDisconnectHandler = domainDisconnectHandler;
-    }
-
     private static void handleClose(final NettyNetworkConnection connection, ErrorInformer errorInformer)
     {
         // always complete any outstanding requests exceptionally
         // both when the casual domain goes away or when the owner of the network connection
         // closes us, the client, directly
-        connection.correlator.completeAllExceptionally(new CasualConnectionException(NETWORK_CONNECTION_GONE));
+        connection.correlator.completeAllExceptionally(errorInformer.getException());
         if(connection.connected.get())
         {
             // only inform on casual disconnect
@@ -284,13 +275,12 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
 
     private <X extends CasualNetworkTransmittable> void preRequest(CasualNWMessage<X> message)
     {
-        // note: null check because it may be that we have not finished the connection phase
-        // and thus no protocolVersion has yet been set
-        if(null != protocolVersion
+        // The domain-connect request is sent before the decoder receives the negotiated protocol version.
+        if(message.getType() != CasualNWMessageType.DOMAIN_CONNECT_REQUEST
            && hasDomainBeenDisconnectedAndRequestIsNotXAMessage(message))
         {
             // new service calls are not ok when domain has been disconnected
-            throw new DomainDisconnectedException("Domain: " + domainId + " has disconnected, only XA calls allowed");
+            throw new DomainDisconnectedException("Domain: " + getDomainId() + " has disconnected, only XA calls allowed");
         }
         LOG.finest(() -> String.format("request: %s", LogTool.asLogEntry(message)) + "\n using " + this);
     }
@@ -347,7 +337,7 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public DomainId getDomainId()
     {
-        return domainId;
+        return domainIdValueHolder.get();
     }
 
     @Override
@@ -359,22 +349,17 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         }
     }
 
-    private void setDomainId(DomainId domainId)
-    {
-        this.domainId = domainId;
-    }
-
     private boolean protocolSupportsDomainDisconnect()
     {
-        return protocolVersion.supportsDomainDisconnect();
+        return getProtocolVersion().supportsDomainDisconnect();
     }
 
     private boolean protocolSupportsDomainTopologyChange()
     {
-        return protocolVersion.supportsDomainTopologyChange();
+        return getProtocolVersion().supportsDomainTopologyChange();
     }
 
-    private DomainId throwIfProtocolVersionNotSupportedByEIS(final UUID domainId, final String domainName)
+    private void requestDomainConnect(final UUID domainId, final String domainName)
     {
         CasualDomainConnectRequestMessage requestMessage = CasualDomainConnectRequestMessage.createBuilder()
                                                                                             .withExecution(UUID.randomUUID())
@@ -386,18 +371,9 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
         LOG.finest(() -> "about to send handshake: " + this);
         CompletableFuture<CasualNWMessage<CasualDomainConnectReplyMessage>> replyEnvelopeFuture = request(nwMessage);
         LOG.finest(() -> "handshake sent: " + this);
-        CasualNWMessage<CasualDomainConnectReplyMessage> replyEnvelope = replyEnvelopeFuture.join();
+        replyEnvelopeFuture.join();
         LOG.finest(() -> "received handshake reply: " + this);
-        long actualProtocolVersion = ProtocolVersion.supportedVersionNumbers()
-                                                              .stream()
-                                                              .filter(version -> version == replyEnvelope.getMessage().getProtocolVersion())
-                                                              .findFirst()
-                                                              .orElseThrow(() -> new CasualConnectionException("wanted one of protocol versions " + ProtocolVersion.supportedVersionNumbers() + " but it is not supported by casual.\n Casual suggested protocol version " + replyEnvelope.getMessage().getProtocolVersion()));
-        setProtocolVersion(ProtocolVersion.unmarshall(actualProtocolVersion));
-        LOG.info(() -> "using protocol version: " + protocolVersion + " asked for: " + ProtocolVersion.supportedVersions());
-        return DomainId.of(replyEnvelope.getMessage().getDomainId());
     }
-
 
     @Override
     public boolean equals(Object o)
@@ -424,11 +400,9 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     public String toString()
     {
         return "NettyNetworkConnection{" +
-                "ci=" + ci +
                 "correlator=" + correlator +
                 ", channel=" + channel +
-                ", domainId=" + domainId +
-                ", protocolVersion=" + protocolVersion +
+                ", domainId=" + domainIdValueHolder +
                 '}';
     }
 
@@ -452,9 +426,12 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
     @Override
     public boolean isInterestedIn(CasualNWMessageType type)
     {
-        return (protocolSupportsDomainDisconnect() && type == CasualNWMessageType.DOMAIN_DISCONNECT_REQUEST) ||
-                (protocolSupportsDomainTopologyChange() && type == CasualNWMessageType.DOMAIN_DISCOVERY_TOPOLOGY_UPDATE);
-
+        return switch(type)
+        {
+            case DOMAIN_DISCONNECT_REQUEST -> protocolSupportsDomainDisconnect();
+            case DOMAIN_DISCOVERY_TOPOLOGY_UPDATE -> protocolSupportsDomainTopologyChange();
+            default -> false;
+        };
     }
 
     @Override
@@ -470,13 +447,13 @@ public class NettyNetworkConnection implements NetworkConnection, ConversationCl
             }
             finally
             {
-                connectionObserverHandler.notifyDomainDisconnected(domainId);
+                connectionObserverHandler.notifyDomainDisconnected(getDomainId());
             }
         }
         else if(msg instanceof DomainDiscoveryTopologyUpdateMessage)
         {
             // note, we do not care about the data just that we got the actual message
-            connectionObserverHandler.notifyTopologyChanged(domainId);
+            connectionObserverHandler.notifyTopologyChanged(getDomainId());
         }
         else
         {

@@ -15,14 +15,9 @@ import java.util.function.Supplier;
 
 public class ProtocolVersionValueHolder implements Supplier<ProtocolVersion>, Consumer<ProtocolVersion>
 {
-    /**
-     * Volatile since we need to ensure visibility of the protocol version across threads ( Inbound, Reverse Inbound, Outbound)
-     * For example Inbound:
-     *  - The protocol version is written on one Netty thread (from the thread pool) when a DOMAIN_CONNECT_REQUEST message is received and handled by the message handler.
-     *  - It is read from potentially a different Netty thread when decoding subsequent incoming messages in the Netty decoder.
-     *  - Volatile ensures that the write is immediately visible to all threads holding a reference to this holder, preventing stale reads due to CPU caching / memory ordering.
-     */
-
+    // The decoder or message handler writes the negotiated version on a Netty event-loop thread.
+    // Connection and decoding work can read it from another thread. Volatile safely publishes
+    // the version to every thread that holds this shared holder.
     private volatile ProtocolVersion protocolVersion;
 
     private ProtocolVersionValueHolder()
@@ -38,10 +33,9 @@ public class ProtocolVersionValueHolder implements Supplier<ProtocolVersion>, Co
     {
         if(null == protocolVersion)
         {
-            // Either protocol version is set in the outbound network connection after the handshake has been carried out OR
-            // for inbound, when decoding the domain connect request message, we resolve the protocol version there and set it
-            // For reverse inbound, this works exactly the same way as for inbound.
-            // Thus, this should NEVER EVER HAPPEN
+            // Outbound decoding stores the version from the domain-connect reply. Inbound and
+            // reverse inbound handling store it from the domain-connect request. Any later read
+            // without a value indicates that the connection handshake ordering is broken.
             throw new CasualProtocolException("fatal: protocol version not set - should never be used in a context where it has not already been set");
         }
         return protocolVersion;

@@ -30,8 +30,6 @@ import se.laz.casual.jca.DomainId
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceMetaData
 import se.laz.casual.jca.inbound.handler.service.casual.CasualServiceRegistry
 import se.laz.casual.jca.inflow.work.CasualServiceCallWork
-import se.laz.casual.network.CasualNWMessageDecoder
-import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.InboundDeactivatedContext
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.inbound.ProtocolVersionValueHolder
@@ -74,7 +72,6 @@ class CasualMessageListenerImplTest extends Specification
     @Shared UUID execution = UUID.randomUUID()
     @Shared Xid xid
     @Shared String serviceName = "echo"
-    @Shared TestInboundHandler inboundHandler
     ProtocolVersionValueHolder valueHolder
 
     def setup()
@@ -82,9 +79,8 @@ class CasualMessageListenerImplTest extends Specification
         ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_DOMAIN_ID, DomainId.of( domainId ) )
         ConfigurationService.setConfiguration( ConfigurationOptions.CASUAL_DOMAIN_NAME, domainName )
         instance = new CasualMessageListenerImpl()
-        inboundHandler = TestInboundHandler.of()
         valueHolder = ProtocolVersionValueHolder.of()
-        channel = new EmbeddedChannel(CasualNWMessageDecoder.of(valueHolder), CasualNWMessageEncoder.of(), inboundHandler)
+        channel = new EmbeddedChannel()
         workManager = Mock( WorkManager )
         xaTerminator = Mock( XATerminator )
         xid = createXid()
@@ -92,6 +88,7 @@ class CasualMessageListenerImplTest extends Specification
 
     def cleanup()
     {
+        channel.finishAndReleaseAll()
         InboundDeactivatedContext.clear()
         ConfigurationService.reload(  )
     }
@@ -111,8 +108,7 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.domainConnectRequest(message, channel, valueHolder)
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualDomainConnectReplyMessage> reply = inboundHandler.getMsg()
+        CasualNWMessage<CasualDomainConnectReplyMessage> reply = readOutboundMessage()
 
         then:
         reply != null
@@ -163,13 +159,7 @@ class CasualMessageListenerImplTest extends Specification
 
     private CasualNWMessage readOutboundMessage()
     {
-        Object encodedMessage = channel.readOutbound()
-        if(encodedMessage == null)
-        {
-            return null
-        }
-        channel.writeInbound(encodedMessage)
-        return inboundHandler.getMsg()
+        return channel.readOutbound() as CasualNWMessage
     }
 
     def "DomainDiscoveryRequest"()
@@ -196,8 +186,7 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.domainDiscoveryRequest( message, channel, ProtocolVersion.VERSION_1_3 )
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualDomainDiscoveryReplyMessage> reply = inboundHandler.getMsg()
+        CasualNWMessage<CasualDomainDiscoveryReplyMessage> reply = readOutboundMessage()
 
         then:
         reply != null
@@ -427,8 +416,7 @@ class CasualMessageListenerImplTest extends Specification
         inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
         instance.prepareRequest(message, channel, xaTerminator, inboundTransactionRegistry)
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
+        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = readOutboundMessage()
 
         then:
         1 * xaTerminator.prepare( xid ) >> {
@@ -460,8 +448,7 @@ class CasualMessageListenerImplTest extends Specification
        inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
        when:
        instance.prepareRequest(message, channel, xaTerminator, inboundTransactionRegistry)
-       channel.writeInbound(channel.outboundMessages().element())
-       CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
+       CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = readOutboundMessage()
 
        then:
        1 * xaTerminator.prepare( xid ) >> {
@@ -493,8 +480,7 @@ class CasualMessageListenerImplTest extends Specification
       inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
       when:
       instance.prepareRequest(message, channel, xaTerminator, inboundTransactionRegistry)
-      channel.writeInbound(channel.outboundMessages().element())
-      CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
+      CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = readOutboundMessage()
 
       then:
       1 * xaTerminator.prepare( xid ) >> {
@@ -526,8 +512,7 @@ class CasualMessageListenerImplTest extends Specification
         inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
         instance.prepareRequest(message, channel, xaTerminator, inboundTransactionRegistry)
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
+        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = readOutboundMessage()
 
         then:
         1 * xaTerminator.prepare( xid ) >> {
@@ -552,8 +537,7 @@ class CasualMessageListenerImplTest extends Specification
 
         when:
         instance.prepareRequest(message, channel, xaTerminator, registry)
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = inboundHandler.getMsg()
+        CasualNWMessage<CasualTransactionResourcePrepareReplyMessage> reply = readOutboundMessage()
 
         then:
         1 * xaTerminator.prepare(xid) >> { throw new XAException(errorCode) }
@@ -583,8 +567,7 @@ class CasualMessageListenerImplTest extends Specification
         inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
         instance.commitRequest(message, channel, xaTerminator, inboundTransactionRegistry)
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
+        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = readOutboundMessage()
 
         then:
         1 * xaTerminator.commit( xid, false )
@@ -614,8 +597,7 @@ class CasualMessageListenerImplTest extends Specification
         inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
         instance.commitRequest(message, channel, xaTerminator, inboundTransactionRegistry)
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
+        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = readOutboundMessage()
 
         then:
         1 * xaTerminator.commit( xid, true )
@@ -645,8 +627,7 @@ class CasualMessageListenerImplTest extends Specification
         inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
         instance.commitRequest(message, channel, xaTerminator, inboundTransactionRegistry)
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = inboundHandler.getMsg()
+        CasualNWMessage<CasualTransactionResourceCommitReplyMessage> reply = readOutboundMessage()
 
         then:
         1 * xaTerminator.commit( xid, false ) >> {
@@ -678,8 +659,7 @@ class CasualMessageListenerImplTest extends Specification
         inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
         instance.requestRollback(message, channel, xaTerminator, inboundTransactionRegistry)
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = inboundHandler.getMsg()
+        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = readOutboundMessage()
 
         then:
         1 * xaTerminator.rollback( xid )
@@ -709,8 +689,7 @@ class CasualMessageListenerImplTest extends Specification
         inboundTransactionRegistry.add(channel.id(), XidKey.of(xid))
         when:
         instance.requestRollback(message, channel, xaTerminator, inboundTransactionRegistry)
-        channel.writeInbound(channel.outboundMessages().element())
-        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = inboundHandler.getMsg()
+        CasualNWMessage<CasualTransactionResourceRollbackReplyMessage> reply = readOutboundMessage()
 
         then:
         1 * xaTerminator.rollback( xid ) >> {

@@ -10,30 +10,60 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import se.laz.casual.api.network.protocol.messages.CasualNWMessage;
+import se.laz.casual.jca.DomainId;
 import se.laz.casual.network.inbound.ProtocolVersionValueHolder;
+import se.laz.casual.network.outbound.DomainIdValueHolder;
 import se.laz.casual.network.protocol.decoding.CasualMessageDecoder;
 import se.laz.casual.network.protocol.decoding.decoders.CasualNWMessageHeaderDecoder;
 import se.laz.casual.network.protocol.messages.CasualNWMessageHeader;
+import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage;
 import se.laz.casual.network.protocol.messages.parseinfo.MessageHeaderSizes;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class CasualNWMessageDecoder extends ByteToMessageDecoder
 {
     private final ProtocolVersionValueHolder protocolVersionValueHolder;
+    private final DomainIdValueHolder domainIdValueHolder;
     private enum State{
         READ_HEADER, READ_PAYLOAD
     }
     private CasualNWMessageHeader header;
     private State state = State.READ_HEADER;
-    private CasualNWMessageDecoder(ProtocolVersionValueHolder protocolVersionValueHolder)
+    private CasualNWMessageDecoder(ProtocolVersionValueHolder protocolVersionValueHolder, DomainIdValueHolder domainIdValueHolder)
     {
-        this.protocolVersionValueHolder = protocolVersionValueHolder;
+        this.protocolVersionValueHolder = Objects.requireNonNull(protocolVersionValueHolder, "protocolVersionValueHolder can not be null");
+        this.domainIdValueHolder = Objects.requireNonNull(domainIdValueHolder, "domainIdValueHolder can not be null");
     }
+
+    /**
+     * Creates a decoder for an inbound connection that does not receive domain-connect replies.
+     *
+     * @param protocolVersionValueHolder the connection's protocol version holder
+     * @return a decoder that stores the negotiated protocol version
+     * @throws NullPointerException if {@code protocolVersionValueHolder} is {@code null}
+     */
     public static CasualNWMessageDecoder of(ProtocolVersionValueHolder protocolVersionValueHolder)
     {
-        return new CasualNWMessageDecoder(protocolVersionValueHolder);
+        return new CasualNWMessageDecoder(protocolVersionValueHolder, DomainIdValueHolder.of());
+    }
+
+    /**
+     * Creates a decoder for an outbound connection.
+     *
+     * <p>When the decoder receives a domain-connect reply, it stores the negotiated protocol
+     * version and peer domain ID before it publishes the decoded message downstream.
+     *
+     * @param protocolVersionValueHolder the connection's protocol version holder
+     * @param domainIdValueHolder the connection's peer domain ID holder
+     * @return a decoder that stores the negotiated protocol version and peer domain ID
+     * @throws NullPointerException if either holder is {@code null}
+     */
+    public static CasualNWMessageDecoder of(ProtocolVersionValueHolder protocolVersionValueHolder, DomainIdValueHolder domainIdValueHolder)
+    {
+        return new CasualNWMessageDecoder(protocolVersionValueHolder, domainIdValueHolder);
     }
 
     @Override
@@ -75,7 +105,18 @@ public class CasualNWMessageDecoder extends ByteToMessageDecoder
         {
             byte[] messageBytes = new byte[(int)header.getPayloadSize()];
             in.readBytes(messageBytes);
-            return Optional.of( CasualMessageDecoder.read(messageBytes, header, protocolVersionValueHolder) );
+            CasualNWMessage<?> message = CasualMessageDecoder.read(messageBytes, header, protocolVersionValueHolder);
+            if(message.getMessage() instanceof CasualDomainConnectReplyMessage connectReply)
+            {
+                ProtocolVersion protocolVersion = ProtocolVersion.unmarshall(connectReply.getProtocolVersion());
+                if(!protocolVersion.isSupported())
+                {
+                    throw new ProtocolVersionException(() -> "Protocol version is not supported: " + protocolVersion);
+                }
+                protocolVersionValueHolder.accept(protocolVersion);
+                domainIdValueHolder.accept(DomainId.of(connectReply.getDomainId()));
+            }
+            return Optional.of(message);
         }
         catch(Exception e)
         {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, The casual project. All rights reserved.
+ * Copyright (c) 2017 - 2026, The casual project. All rights reserved.
  *
  * This software is licensed under the MIT license, https://opensource.org/licenses/MIT
  */
@@ -48,8 +48,11 @@ public class CasualMessageHandler extends SimpleChannelInboundHandler<CasualNWMe
             ctx.fireChannelRead(msg);
             return;
         }
-        if(null != messageListener && messageListener.isInterestedIn(msg.getType()))
+        if(messageListener.isInterestedIn(msg.getType()))
         {
+            // For messages that do not originate from our side
+            // For instance, topology changed and domain disconnect
+            // Since we did not initiate - we can not correlate
             messageListener.handleMessage(msg);
             return;
         }

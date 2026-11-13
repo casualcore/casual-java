@@ -6,12 +6,12 @@
 package se.laz.casual.jca.pool
 
 import java.util.concurrent.ExecutorService
-import se.laz.casual.network.outbound.NettyConnectionInformation
 import se.laz.casual.network.outbound.ErrorInformer
 import se.laz.casual.network.outbound.CorrelatorImpl
 import se.laz.casual.network.outbound.Correlator
 import se.laz.casual.network.outbound.ConversationMessageStorageImpl
 import se.laz.casual.network.connection.CasualConnectionException
+import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.jca.CasualRequestInfo
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualManagedConnection
@@ -26,6 +26,7 @@ import io.netty.channel.embedded.EmbeddedChannel
 import se.laz.casual.internal.network.NetworkConnection
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.outbound.NettyNetworkConnection
+import se.laz.casual.network.outbound.DomainIdValueHolder
 import se.laz.casual.jca.Address
 import se.laz.casual.jca.CasualResourceAdapterException
 import se.laz.casual.network.outbound.NetworkListener
@@ -495,22 +496,17 @@ class NetworkConnectionPoolTest extends Specification
       Correlator correlator = CorrelatorImpl.of()
       CasualConnectionException networkFailure = new CasualConnectionException('network connection is gone')
       ErrorInformer errorInformer = ErrorInformer.of(networkFailure)
-      NettyConnectionInformation ci = NettyConnectionInformation.createBuilder()
-         .withAddress(new InetSocketAddress(7771))
-         .withDomainId(UUID.randomUUID())
-         .withDomainName('test-domain')
-         .withCorrelator(correlator)
-         .build()
+      DomainIdValueHolder domainIdValueHolder = DomainIdValueHolder.of()
+      domainIdValueHolder.accept(domainA)
       NettyNetworkConnection physicalConnection = new NettyNetworkConnection(
-         ci,
          correlator,
          channel,
          ConversationMessageStorageImpl.of(),
          { Mock(ExecutorService) },
+         { ProtocolVersion.VERSION_1_2 },
+         domainIdValueHolder,
          errorInformer
       )
-      // would happen during normal construction
-      physicalConnection.setDomainId(domainA)
       channel.closeFuture().addListener({ f ->
          NettyNetworkConnection.handleClose(physicalConnection, errorInformer)
       })

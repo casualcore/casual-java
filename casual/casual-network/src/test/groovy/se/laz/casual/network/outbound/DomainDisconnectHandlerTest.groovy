@@ -22,7 +22,8 @@ class DomainDisconnectHandlerTest extends Specification
       Consumer<DomainDisconnectReplyInfo> domainDisconnectReplyFunction = { it ->
          1 * it.accept(replyInfo)
       }
-      DomainDisconnectHandler instance = DomainDisconnectHandler.of(Mock(Channel), DomainId.of(UUID.randomUUID()))
+      DomainId domainId = DomainId.of(UUID.randomUUID())
+      DomainDisconnectHandler instance = DomainDisconnectHandler.of(Mock(Channel), { domainId })
       instance.setDomainDisconnectReplyFunction {domainDisconnectReplyFunction}
       when:
       instance.domainDisconnected(replyInfo)

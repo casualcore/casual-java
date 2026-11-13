@@ -14,6 +14,7 @@ import se.laz.casual.network.protocol.messages.domain.DomainDisconnectReplyMessa
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,20 +23,31 @@ public class DomainDisconnectHandler
     private static final Logger LOG = Logger.getLogger(DomainDisconnectHandler.class.getName());
     private final AtomicBoolean domainDisconnected = new AtomicBoolean(false);
     private final Channel channel;
-    private final DomainId domainId;
+    private final Supplier<DomainId> domainIdSupplier;
     private Consumer<DomainDisconnectReplyInfo> domainDisconnectReplyFunction;
 
-    private DomainDisconnectHandler(Channel channel, DomainId domainId)
+    private DomainDisconnectHandler(Channel channel, Supplier<DomainId> domainIdSupplier)
     {
         this.channel = channel;
-        this.domainId = domainId;
+        this.domainIdSupplier = domainIdSupplier;
     }
 
-    public static DomainDisconnectHandler of(Channel channel, DomainId domainId)
+    /**
+     * Creates a handler for domain-disconnect requests.
+     *
+     * <p>The handler evaluates {@code domainIdSupplier} only after the decoder has processed the
+     * domain-connect reply.
+     *
+     * @param channel the channel used to send the domain-disconnect reply
+     * @param domainIdSupplier the connected peer's domain ID supplier
+     * @return a domain-disconnect handler
+     * @throws NullPointerException if {@code channel} or {@code domainIdSupplier} is {@code null}
+     */
+    public static DomainDisconnectHandler of(Channel channel, Supplier<DomainId> domainIdSupplier)
     {
         Objects.requireNonNull(channel, "channel can not be null");
-        Objects.requireNonNull(domainId, "domainId can not be null");
-        return new DomainDisconnectHandler(channel, domainId);
+        Objects.requireNonNull(domainIdSupplier, "domainIdSupplier can not be null");
+        return new DomainDisconnectHandler(channel, domainIdSupplier);
     }
 
     public void setDomainDisconnectReplyFunction(Consumer<DomainDisconnectReplyInfo> domainDisconnectReplyFunction)
@@ -68,7 +80,7 @@ public class DomainDisconnectHandler
             cf.addListener(v -> {
                 if(!v.isSuccess()){
                     LOG.log(Level.INFO, v.cause(),
-                            () -> "failed sending domain disconnect reply to domain: " + domainId + " , this means that casual sent domain disconnect and then went away before we could send domain disconnect reply - this is ok");
+                            () -> "failed sending domain disconnect reply to domain: " + domainIdSupplier.get() + " , this means that casual sent domain disconnect and then went away before we could send domain disconnect reply - this is ok");
                 }
             });
         }
@@ -77,7 +89,7 @@ public class DomainDisconnectHandler
             // if we did not manage to send the domain disconnect message it is due to the connection being gone
             // which is fine
             LOG.log(Level.INFO, e,
-                    () -> "could not send domain disconnect reply to domain: " + domainId + " , this means that casual sent domain disconnect and then went away before we could send domain disconnect reply - this is ok" );
+                    () -> "could not send domain disconnect reply to domain: " + domainIdSupplier.get() + " , this means that casual sent domain disconnect and then went away before we could send domain disconnect reply - this is ok" );
         }
     }
 
