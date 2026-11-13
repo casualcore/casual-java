@@ -35,6 +35,7 @@ import se.laz.casual.network.CasualNWMessageEncoder
 import se.laz.casual.network.ProtocolVersion
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.inbound.ProtocolVersionValueHolder
+import se.laz.casual.network.protocol.encoding.CasualMessageEncoder
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.conversation.Request
 import se.laz.casual.network.protocol.messages.domain.CasualDomainConnectReplyMessage
@@ -657,7 +658,7 @@ class NettyNetworkConnectionTest extends Specification implements NetworkListene
         CasualNWMessage<CasualDomainConnectReplyMessage> reply =
                 createDomainConnectReplyMessage(correlationId, domainId, protocolVersion)
         ByteBuf frame = Unpooled.buffer()
-        reply.toNetworkBytes().each(frame::writeBytes)
+        CasualMessageEncoder.write(frame, reply)
         channel.writeInbound(frame)
     }
 
