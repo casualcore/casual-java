@@ -21,7 +21,7 @@ sonar {
     properties {
         properties["sonar.host.url"] = 'http://localhost:9000'
         properties["sonar.verbose"] = "true"
-        properties['sonar.java.source'] = 17
+        properties['sonar.java.source'] = 21
     }
 }
 
@@ -55,6 +55,15 @@ subprojects{
   apply from: "$rootProject.projectDir/versions.gradle"
   apply plugin: 'java-library'
   apply from: "$rootProject.projectDir/publish.gradle"
+
+  java {
+    // Use JDK 21 for compilation, tests, and Javadoc even when Gradle runs on a newer JDK.
+    // This keeps Java 21 compatibility checks reproducible across build environments.
+    toolchain {
+      languageVersion = JavaLanguageVersion.of(21)
+    }
+  }
+    
   test {
     finalizedBy jacocoTestReport
     useJUnitPlatform()

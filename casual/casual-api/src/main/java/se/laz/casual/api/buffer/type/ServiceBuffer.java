@@ -5,11 +5,6 @@
  */
 
 package se.laz.casual.api.buffer.type;
-
-/**
- * Created by aleph on 2017-03-15.
- */
-
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.CasualHeaders;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
