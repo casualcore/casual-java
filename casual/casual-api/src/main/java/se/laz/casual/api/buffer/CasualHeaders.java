@@ -35,7 +35,9 @@ public class CasualHeaders implements Serializable
 
     private static final String NAME_IS_NULL = "Name is null.";
 
+    @SuppressWarnings("serial") // Runtime collection implementations are serializable.
     private final List<String> order;
+    @SuppressWarnings("serial") // Runtime collection implementations are serializable.
     private final Map<String,List<String>> entries;
 
     /**

@@ -61,6 +61,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
      *
      * @param mcf managed connection factory which created this objet.
      */
+    @SuppressWarnings("this-escape") // CasualXAResource only retains this private reference; it cannot expose it during construction.
     public CasualManagedConnection(CasualManagedConnectionFactory mcf)
     {
         this.mcf = mcf;

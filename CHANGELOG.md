@@ -1,6 +1,26 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.8.0] - 2026-11-18
+
+### feat: jdk21 ([#234](https://github.com/casualcore/casual-java/issues/234))
+This change upgrades the minimum Java version from 17 to 21.
+Applications using this release must run on Java 21 or later.
+
+The change:
+
+- Configures Java 21 source and target compatibility.
+- Updates SonarQube analysis to Java 21.
+- Upgrades the Gradle wrapper to 9.9.1.
+- Upgrades Groovy, Spock, and Byte Buddy to Java 21-compatible versions.
+- Handles the additional Java 21 compiler warnings while preserving the
+existing serialization contracts required for call-by-value
+compatibility.
+- Fixes an incorrect nested generic type in CasualMessageHandlerTest.
+
+The complete build passes when Gradle is launched with both JDK 21 and
+JDK 25.
+
 ## [3.7.4] - 2026-11-13
 
 ### fix: outbound set protocol version and domain id when decoding domain connect reply ([#231](https://github.com/casualcore/casual-java/issues/231))

@@ -16,12 +16,13 @@ import java.util.Objects;
  * Implementation of {@link FieldedData}
  * @param <T> the type
  */
-//Serializble - T will be serializable by convention.
+// Serializable values are required by convention for call-by-value compatibility.
 @SuppressWarnings("squid:S1948")
 public final class FieldedDataImpl<T> implements FieldedData<T>
 {
     private static final long serialVersionUID = 1L;
 
+    @SuppressWarnings("serial") // Serializable values are required by the FieldedData contract.
     private final T v;
     private final FieldType type;
     private FieldedDataImpl(final T v, FieldType t)

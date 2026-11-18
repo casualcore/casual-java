@@ -6,6 +6,7 @@
 
 package se.laz.casual.network.outbound
 
+
 import se.laz.casual.api.buffer.CasualBuffer
 import se.laz.casual.api.buffer.type.JsonBuffer
 import se.laz.casual.api.buffer.type.ServiceBuffer
@@ -44,7 +45,7 @@ class CasualMessageHandlerTest extends Specification
     {
         setup:
         instance.setMessageListener(Mock(CasualOutboundMessageListener))
-        CompletableFuture<CasualNWMessage<CasualNWMessage<CasualServiceCallReplyMessage>>> f = new CompletableFuture<>()
+        CompletableFuture<CasualNWMessage<CasualServiceCallReplyMessage>> f = new CompletableFuture<>()
         CasualNWMessage<CasualServiceCallReplyMessage> msg = createReplyMessage()
         correlator.put(corrid, f)
         when:

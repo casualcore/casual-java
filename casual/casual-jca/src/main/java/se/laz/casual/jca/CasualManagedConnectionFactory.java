@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
  *
  * @version $Revision: $
  */
-//Non serialisable or transient for ResourceAdapter and PrintWriter - this is as shown in Iron Jacamar so ignoring.
-@SuppressWarnings({"squid:S1948"})
+// Supported runtimes create and configure this factory directly; they do not serialize its runtime collaborators.
+@SuppressWarnings({"squid:S1948", "serial"})
 @SuppressFBWarnings("SE_BAD_FIELD")
 public class CasualManagedConnectionFactory implements ManagedConnectionFactory, ResourceAdapterAssociation, ValidatingManagedConnectionFactory
 { 

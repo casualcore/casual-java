@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 public final class FieldedTypeBuffer implements CasualBuffer
 {
     private static final long serialVersionUID = 1L;
+    @SuppressWarnings("serial") // Runtime collection implementations and field values are serializable.
     private Map<String, List<FieldedData<?>>> m;
     private boolean allowNullUseDefault = false;
     private final CasualHeaders headers;

@@ -5,11 +5,6 @@
  */
 
 package se.laz.casual.api.buffer.type;
-
-/**
- * Created by aleph on 2017-03-15.
- */
-
 import se.laz.casual.api.buffer.CasualBuffer;
 import se.laz.casual.api.buffer.CasualHeaders;
 import se.laz.casual.api.network.protocol.messages.exception.CasualProtocolException;
@@ -30,6 +25,7 @@ public final class ServiceBuffer implements CasualBuffer, Serializable
     private static final ServiceBuffer EMPTY_INSTANCE = new ServiceBuffer("", new ArrayList<>(), CasualHeaders.empty() );
     private static final ServiceBuffer NULL_INSTANCE = new ServiceBuffer("NULL", new ArrayList<>(), CasualHeaders.empty() );
     private final String type;
+    @SuppressWarnings("serial") // Runtime collection implementations are serializable.
     private final List<byte[]> payload;
     private final CasualHeaders headers;
 

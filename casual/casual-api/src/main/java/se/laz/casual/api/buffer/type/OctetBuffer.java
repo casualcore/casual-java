@@ -17,6 +17,7 @@ import java.util.Objects;
 public class OctetBuffer implements CasualBuffer
 {
     private static final long serialVersionUID = 1L;
+    @SuppressWarnings("serial") // Runtime collection implementations are serializable.
     private final List<byte[]> data;
     private final CasualHeaders headers;
 
