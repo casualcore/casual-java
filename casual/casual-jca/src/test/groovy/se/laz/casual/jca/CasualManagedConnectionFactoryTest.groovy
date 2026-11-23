@@ -339,4 +339,66 @@ class CasualManagedConnectionFactoryTest extends Specification
         pinned.getPinnedDomainId() == Optional.of(domainA)
     }
 
+    def 'equals and hashCode distinguish factories with different pool names or sizes'()
+    {
+        given:
+        CasualManagedConnectionFactory first = new CasualManagedConnectionFactory()
+        first.setResourceAdapter(ra1)
+        first.setHostName('reverse')
+        first.setPortNumber(0)
+        first.setNetworkConnectionPoolName('reverseA')
+
+        CasualManagedConnectionFactory same = new CasualManagedConnectionFactory()
+        same.setResourceAdapter(ra1)
+        same.setHostName('reverse')
+        same.setPortNumber(0)
+        same.setNetworkConnectionPoolName('reverseA')
+
+        CasualManagedConnectionFactory differentName = new CasualManagedConnectionFactory()
+        differentName.setResourceAdapter(ra1)
+        differentName.setHostName('reverse')
+        differentName.setPortNumber(0)
+        differentName.setNetworkConnectionPoolName('reverseB')
+
+        CasualManagedConnectionFactory differentSize = new CasualManagedConnectionFactory()
+        differentSize.setResourceAdapter(ra1)
+        differentSize.setHostName('reverse')
+        differentSize.setPortNumber(0)
+        differentSize.setNetworkConnectionPoolName('reverseA')
+        differentSize.setNetworkConnectionPoolSize(2)
+
+        expect:
+        first == same
+        first.hashCode() == same.hashCode()
+        first != differentName
+        first != differentSize
+    }
+
+    def 'getInvalidConnections identifies inactive and unconnected managed connections without opening network connections'()
+    {
+        given:
+        CasualManagedConnectionFactory factory = new CasualManagedConnectionFactory()
+        factory.setNetworkConnectionPoolName('reverse-bg-validation')
+
+        CasualManagedConnection activeMc = new CasualManagedConnection(factory)
+        activeMc.@networkConnection = Mock(se.laz.casual.internal.network.NetworkConnection) {
+            isActive() >> true
+        }
+
+        CasualManagedConnection inactiveMc = new CasualManagedConnection(factory)
+        inactiveMc.@networkConnection = Mock(se.laz.casual.internal.network.NetworkConnection) {
+            isActive() >> false
+        }
+
+        CasualManagedConnection unconnectedPinnedMc = new CasualManagedConnection(factory)
+        unconnectedPinnedMc.pinIfRequested(CasualRequestInfo.of(DomainId.of(UUID.randomUUID())))
+
+        when:
+        Set invalid = factory.getInvalidConnections([activeMc, inactiveMc, unconnectedPinnedMc] as Set)
+
+        then:
+        noExceptionThrown()
+        invalid == [inactiveMc, unconnectedPinnedMc] as Set
+    }
+
 }

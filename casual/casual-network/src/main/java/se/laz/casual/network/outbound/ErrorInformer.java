@@ -16,6 +16,7 @@ public class ErrorInformer
     private final CasualConnectionException exception;
     private final List<NetworkListener> networkListeners = new ArrayList<>();
     private final Object lock = new Object();
+    private boolean informed;
 
     private ErrorInformer(CasualConnectionException exception)
     {
@@ -30,20 +31,37 @@ public class ErrorInformer
 
     public void addListener(NetworkListener listener)
     {
+        Objects.requireNonNull(listener, "listener can not be null");
+        boolean alreadyInformed;
         synchronized (lock)
         {
-            networkListeners.add(listener);
+            alreadyInformed = informed;
+            if (!alreadyInformed)
+            {
+                networkListeners.add(listener);
+            }
+        }
+        if (alreadyInformed)
+        {
+            listener.disconnected(exception);
         }
     }
 
     public void inform()
     {
+        List<NetworkListener> listenersToNotify;
         synchronized (lock)
         {
-            networkListeners.forEach(listener -> listener.disconnected(exception));
+            if (informed)
+            {
+                return;
+            }
+            informed = true;
+            listenersToNotify = List.copyOf(networkListeners);
             // can only ever inform listeners once even if invoked multiple times
             networkListeners.clear();
         }
+        listenersToNotify.forEach(listener -> listener.disconnected(exception));
     }
 
     public CasualConnectionException getException()

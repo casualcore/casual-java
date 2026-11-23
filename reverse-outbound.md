@@ -28,7 +28,7 @@ Casual configuration:
 
 Wildfly application server configuration:
 
-Add a reverse outbound connections as a standard application server connection factory. 
+Add a reverse outbound connection as a standard application server connection factory.
 Configure it as a pooled outbound connection factory, ensure you set `networkConnectionPoolName` to match the reverse outbound name:
 
 ```xml
@@ -85,7 +85,7 @@ Configure your pool according to the following guidelines:
 * **`max-pool-size`:** Set this to a high value—at least equal to the total expected concurrent calls across all instances, plus extra 
 headroom for instance churn. A managed connection is not a physical socket; physical connections are managed by the reverse network pool. 
 Setting this value too low causes allocations for one instance to stall behind connections pinned to other instances.
-* **`min-pool-size`:** *MUST* be set this to `0`. Physical connections cannot be created by `casual-jca` but rather are added when remote instances connect.
+* **`min-pool-size`:** *MUST* be set to `0`. Physical connections cannot be created by `casual-jca` but rather are added when remote instances connect.
 * **`initial-pool-size`:** *MUST* be set this to `0`. As per `min-pool-size`.
 * **Background validation:** Enable background validation so the server removes managed connections pinned to disconnected instances between calls.
 

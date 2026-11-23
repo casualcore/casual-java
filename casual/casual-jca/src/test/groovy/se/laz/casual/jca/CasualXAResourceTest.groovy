@@ -411,6 +411,10 @@ class CasualXAResourceTest extends Specification
        !xaResourceOne.isSameRM(xaResourceTwo)
        xaResourceOne.isSameRM(xaResourceThree)
        !xaResourceTwo.isSameRM(xaResourceThree)
+
+       cleanup:
+       transactionResources.remove(firstAddress, xid1)
+       transactionResources.remove(firstAddress, xid2)
     }
 
     def "Prepare returns ok."()
