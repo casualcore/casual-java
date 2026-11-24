@@ -40,11 +40,6 @@ public final class CasualResourceManager
         return currentRMId.getAndIncrement();
     }
 
-    public synchronized void put(Address domainId, final Xid xid)
-    {
-        putInternal(ResourceManagerId.of(domainId), domainId, xid);
-    }
-
     /**
      * Registers a pending outbound transaction for the given resource manager.
      *
@@ -56,17 +51,12 @@ public final class CasualResourceManager
     public synchronized void put(ResourceManagerId resourceManagerId, final Xid xid)
     {
         Objects.requireNonNull(resourceManagerId, "resourceManagerId must not be null");
-        putInternal(resourceManagerId, resourceManagerId, xid);
-    }
-
-    private void putInternal(ResourceManagerId key, Object displayId, final Xid xid)
-    {
         Objects.requireNonNull(xid, "xid must not be null");
-        if(pendingRequests.getOrDefault(key, EMPTY_SET).contains(xid))
+        if(pendingRequests.getOrDefault(resourceManagerId, EMPTY_SET).contains(xid))
         {
-            throw new CasualResourceAdapterException("xid: " + xid + " already stored for domain: " + displayId);
+            throw new CasualResourceAdapterException("xid: " + xid + " already stored for domain: " + resourceManagerId);
         }
-        pendingRequests.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet()).add(xid);
+        pendingRequests.computeIfAbsent(resourceManagerId, k -> ConcurrentHashMap.newKeySet()).add(xid);
     }
 
     public synchronized boolean hasPending()
@@ -85,11 +75,6 @@ public final class CasualResourceManager
     public synchronized long getPendingTransactionCount()
     {
         return pendingRequests.values().stream().mapToLong(Set::size).sum();
-    }
-
-    public synchronized void remove(Address domainId, final Xid xid)
-    {
-        remove(ResourceManagerId.of(domainId), xid);
     }
 
     /**
@@ -111,11 +96,6 @@ public final class CasualResourceManager
                 pendingRequests.remove(resourceManagerId);
             }
         }
-    }
-
-    public boolean isPending(Address domainId, final Xid xid)
-    {
-        return isPending(ResourceManagerId.of(domainId), xid);
     }
 
     /**
