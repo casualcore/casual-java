@@ -6,7 +6,6 @@
 package se.laz.casual.jca;
 
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Identifies an outbound Casual resource manager for XA branch correlation and pending-transaction tracking.
@@ -70,12 +69,9 @@ public final class ResourceManagerId
     public static ResourceManagerId of(CasualManagedConnection connection)
     {
         Objects.requireNonNull(connection, "connection must not be null");
-        Optional<DomainId> pinnedDomainId = connection.getPinnedDomainId();
-        if (pinnedDomainId != null && pinnedDomainId.isPresent())
-        {
-            return of(pinnedDomainId.get());
-        }
-        return of(connection.getAddress());
+        return connection.getPinnedDomainId()
+                .map(ResourceManagerId::of)
+                .orElseGet(() -> of(connection.getAddress()));
     }
 
     @Override

@@ -386,17 +386,20 @@ class CasualXAResourceTest extends Specification
        def rmIdOne = 1
        Address firstAddress = Address.of('fnord', 1234)
        CasualManagedConnection casualManagedConnectionOne = Mock(CasualManagedConnection) {
+           getPinnedDomainId() >> Optional.empty()
            getAddress() >> firstAddress
        }
 
        def rmIdTwo = 2
        Address secondAddress = Address.of('foo', 1234)
        CasualManagedConnection casualManagedConnectionTwo = Mock(CasualManagedConnection) {
+           getPinnedDomainId() >> Optional.empty()
            getAddress() >> secondAddress
        }
 
        def rmIdThree = 3
        CasualManagedConnection casualManagedConnectionThree = Mock(CasualManagedConnection) {
+           getPinnedDomainId() >> Optional.empty()
            getAddress() >> firstAddress
        }
        when:
