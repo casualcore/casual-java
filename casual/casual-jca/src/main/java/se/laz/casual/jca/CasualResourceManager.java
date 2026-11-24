@@ -23,6 +23,7 @@ public final class CasualResourceManager
 {
     private static final CasualResourceManager INSTANCE = new CasualResourceManager();
     private static final Set<Xid> EMPTY_SET = Collections.emptySet();
+    private static final String RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL = "resourceManagerId must not be null";
     private final AtomicInteger currentRMId = new AtomicInteger(1);
     private final ConcurrentMap<ResourceManagerId, Set<Xid>> pendingRequests = new ConcurrentHashMap<>();
     private CasualResourceManager()
@@ -50,7 +51,7 @@ public final class CasualResourceManager
      */
     public synchronized void put(ResourceManagerId resourceManagerId, final Xid xid)
     {
-        Objects.requireNonNull(resourceManagerId, "resourceManagerId must not be null");
+        Objects.requireNonNull(resourceManagerId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
         Objects.requireNonNull(xid, "xid must not be null");
         if(pendingRequests.getOrDefault(resourceManagerId, EMPTY_SET).contains(xid))
         {
@@ -86,7 +87,7 @@ public final class CasualResourceManager
      */
     public synchronized void remove(ResourceManagerId resourceManagerId, final Xid xid)
     {
-        Objects.requireNonNull(resourceManagerId, "resourceManagerId must not be null");
+        Objects.requireNonNull(resourceManagerId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
         Set<Xid> inFlight = pendingRequests.get(resourceManagerId);
         if(inFlight != null)
         {
@@ -108,7 +109,7 @@ public final class CasualResourceManager
      */
     public boolean isPending(ResourceManagerId resourceManagerId, final Xid xid)
     {
-        Objects.requireNonNull(resourceManagerId, "resourceManagerId must not be null");
+        Objects.requireNonNull(resourceManagerId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
         return pendingRequests.getOrDefault(resourceManagerId, EMPTY_SET).contains(xid);
     }
 
