@@ -6,7 +6,6 @@
 
 package se.laz.casual.jca.pool
 
-import se.laz.casual.jca.Address
 import se.laz.casual.jca.DomainId
 import se.laz.casual.network.connection.CasualConnectionException
 import se.laz.casual.network.outbound.NetworkListener
@@ -45,11 +44,9 @@ class NetworkPoolHandlerTest extends Specification
         NetworkConnectionPool pool = NetworkPoolHandler.getInstance().getOrCreateReversePool( poolName )
 
         when: 'allocation fails since no EIS has connected yet'
-        NetworkPoolHandler.getInstance().getOrCreate(
+        NetworkPoolHandler.getInstance().getReverse(
                 poolName,
-                Address.of('asdf', 123),
                 Mock(NetworkListener),
-                1,
                 DomainId.of(UUID.randomUUID()))
 
         then: 'it throws but the reverse pool remains registered, it is filled as EIS(s) connects'
@@ -57,5 +54,21 @@ class NetworkPoolHandlerTest extends Specification
         NetworkPoolHandler.getInstance().getPool( poolName ) == pool
         pool.isReverse()
         pool.getPoolDomainIds().isEmpty()
+    }
+
+    def 'reverse lookup fails when pool is not registered without creating a pool'()
+    {
+        given:
+        def poolName = 'missing-reverse-pool'
+
+        when:
+        NetworkPoolHandler.getInstance().getReverse(
+                poolName,
+                Mock(NetworkListener),
+                DomainId.of(UUID.randomUUID()))
+
+        then:
+        thrown( CasualConnectionException )
+        NetworkPoolHandler.getInstance().getPool( poolName ) == null
     }
 }

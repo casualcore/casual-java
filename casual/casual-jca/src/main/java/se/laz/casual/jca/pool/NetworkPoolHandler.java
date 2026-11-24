@@ -15,8 +15,8 @@ import se.laz.casual.network.outbound.NetworkListener;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 // singleton is intentional
@@ -37,17 +37,22 @@ public class NetworkPoolHandler
         return instance;
     }
 
-    public NetworkConnection getOrCreate(String poolName, Address address, NetworkListener listener, int poolSize, DomainId domainId)
-    {
-        return null == domainId ? getOrCreate(poolName, address, poolSize, pool -> pool.getOrCreateConnection(address, listener))
-                : getOrCreate(poolName, address, poolSize, pool -> pool.getReverseConnection(listener, domainId));
-    }
-
-    private NetworkConnection getOrCreate(String poolName, Address address, int poolSize, Function<NetworkConnectionPool, NetworkConnection> connectionGetter)
+    /**
+     * Returns an active network connection from the named normal outbound pool, creating the pool
+     * when necessary.
+     *
+     * @param poolName the unique pool name
+     * @param address the target outbound address
+     * @param listener the listener to notify when the connection closes
+     * @param poolSize the configured network connection pool size
+     * @return an active network connection
+     */
+    public NetworkConnection getOrCreate(String poolName, Address address, NetworkListener listener, int poolSize)
     {
         try
         {
-            return connectionGetter.apply(pools.computeIfAbsent(poolName, key -> NetworkConnectionPool.of(key, address, poolSize)));
+            NetworkConnectionPool pool = pools.computeIfAbsent(poolName, key -> NetworkConnectionPool.of(key, address, poolSize));
+            return pool.getOrCreateConnection(address, listener);
         }
         catch(CasualConnectionException e)
         {
@@ -61,6 +66,30 @@ public class NetworkPoolHandler
             }
             throw e;
         }
+    }
+
+    /**
+     * Returns an active reverse outbound connection pinned to the specified remote domain.
+     *
+     * @param poolName the unique reverse pool name
+     * @param listener the listener to notify when the connection closes
+     * @param domainId the remote domain ID
+     * @return an active network connection for the remote domain
+     * @throws NullPointerException if {@code poolName}, {@code listener}, or {@code domainId} is {@code null}
+     * @throws CasualConnectionException if no reverse pool is registered for {@code poolName} or
+     *         no connection is available for {@code domainId}
+     */
+    public NetworkConnection getReverse(String poolName, NetworkListener listener, DomainId domainId)
+    {
+        Objects.requireNonNull(poolName, "poolName must not be null");
+        Objects.requireNonNull(listener, "listener must not be null");
+        Objects.requireNonNull(domainId, "domainId must not be null");
+        NetworkConnectionPool pool = pools.get(poolName);
+        if (pool == null)
+        {
+            throw new CasualConnectionException("no reverse outbound pool registered for: " + poolName);
+        }
+        return pool.getReverseConnection(listener, domainId);
     }
 
     /**
