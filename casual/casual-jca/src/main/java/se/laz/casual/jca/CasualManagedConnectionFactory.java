@@ -136,6 +136,8 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       try
       {
          CasualManagedConnection managedConnection = casualManagedConnectionProducer.createManagedConnection(this);
+         // Pin at creation time because JCA enlists the XAResource (calling isSameRM/start) before
+         // invoking getConnection(), so reverse-outbound MCs must already know their domain ID.
          managedConnection.pinIfRequested(cxRequestInfo);
          log.finest(() -> "Created a new managed connection: " + managedConnection);
          return managedConnection;

@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets
 class ReverseOutboundXAResourceTest extends Specification
 {
     String poolName
-    List<ReverseOutbound> previousReverseOutbounds
     DomainId domainA
     DomainId domainB
     Xid xidA
@@ -36,7 +35,6 @@ class ReverseOutboundXAResourceTest extends Specification
     {
         NetworkPoolHandler.getInstance().@pools.clear()
         poolName = "reverse-xa-pool-${UUID.randomUUID()}"
-        previousReverseOutbounds = ConfigurationService.getConfiguration(ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES)
         ConfigurationService.setConfiguration(
                 ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES,
                 [ReverseOutbound.newBuilder().withName(poolName).withPort(7785).build()]
@@ -76,7 +74,7 @@ class ReverseOutboundXAResourceTest extends Specification
             }
         }
         startedResources.clear()
-        ConfigurationService.setConfiguration(ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES, previousReverseOutbounds)
+        ConfigurationService.setConfiguration(ConfigurationOptions.CASUAL_REVERSE_OUTBOUND_INSTANCES, [])
         NetworkPoolHandler.getInstance().@pools.clear()
     }
 

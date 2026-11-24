@@ -35,6 +35,8 @@ public class ErrorInformer
         boolean alreadyInformed;
         synchronized (lock)
         {
+            // If inform() already ran (for example, an accepted reverse-outbound channel dropped
+            // before pool registration), notify this listener immediately.
             alreadyInformed = informed;
             if (!alreadyInformed)
             {
@@ -43,6 +45,7 @@ public class ErrorInformer
         }
         if (alreadyInformed)
         {
+            // Notify outside lock to avoid lock-ordering deadlocks with callers such as NetworkConnectionPool.
             listener.disconnected(exception);
         }
     }
@@ -61,6 +64,7 @@ public class ErrorInformer
             // can only ever inform listeners once even if invoked multiple times
             networkListeners.clear();
         }
+        // Notify outside lock so listeners that acquire pool locks cannot deadlock with addListener().
         listenersToNotify.forEach(listener -> listener.disconnected(exception));
     }
 
