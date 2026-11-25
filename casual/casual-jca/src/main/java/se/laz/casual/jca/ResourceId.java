@@ -8,21 +8,21 @@ package se.laz.casual.jca;
 import java.util.Objects;
 
 /**
- * Identifies an outbound Casual resource manager for XA branch correlation and pending-transaction tracking.
+ * Identifies an outbound Casual resource id for XA branch correlation and pending-transaction tracking.
  *
- * <p>For a normal outbound connection, the resource manager identity is the configured target
+ * <p>For a normal outbound connection, the resource identity is the configured target
  * {@link Address}. For a reverse outbound connection pinned to a connected reverse inbound peer,
  * the identity is the remote {@link DomainId}. An address-backed identity never equals a
  * domain-ID-backed identity.
  *
  * <p>This class is immutable and thread-safe.
  */
-public final class ResourceManagerId
+public final class ResourceId
 {
     private final Address address;
     private final DomainId domainId;
 
-    private ResourceManagerId(Address address, DomainId domainId)
+    private ResourceId(Address address, DomainId domainId)
     {
         this.address = address;
         this.domainId = domainId;
@@ -35,10 +35,10 @@ public final class ResourceManagerId
      * @return an address-backed resource manager identifier
      * @throws NullPointerException if {@code address} is {@code null}
      */
-    public static ResourceManagerId of(Address address)
+    public static ResourceId of(Address address)
     {
         Objects.requireNonNull(address, "address must not be null");
-        return new ResourceManagerId(address, null);
+        return new ResourceId(address, null);
     }
 
     /**
@@ -48,10 +48,10 @@ public final class ResourceManagerId
      * @return a domain-ID-backed resource manager identifier
      * @throws NullPointerException if {@code domainId} is {@code null}
      */
-    public static ResourceManagerId of(DomainId domainId)
+    public static ResourceId of(DomainId domainId)
     {
         Objects.requireNonNull(domainId, "domainId must not be null");
-        return new ResourceManagerId(null, domainId);
+        return new ResourceId(null, domainId);
     }
 
     /**
@@ -66,11 +66,11 @@ public final class ResourceManagerId
      * @throws NullPointerException if {@code connection} is {@code null}, or if an unpinned
      *         connection has no target address
      */
-    public static ResourceManagerId of(CasualManagedConnection connection)
+    public static ResourceId of(CasualManagedConnection connection)
     {
         Objects.requireNonNull(connection, "connection must not be null");
         return connection.getPinnedDomainId()
-                .map(ResourceManagerId::of)
+                .map(ResourceId::of)
                 .orElseGet(() -> of(connection.getAddress()));
     }
 
@@ -81,7 +81,7 @@ public final class ResourceManagerId
         {
             return true;
         }
-        if (!(o instanceof ResourceManagerId that))
+        if (!(o instanceof ResourceId that))
         {
             return false;
         }

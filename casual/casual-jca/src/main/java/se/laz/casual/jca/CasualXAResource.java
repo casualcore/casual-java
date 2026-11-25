@@ -80,7 +80,7 @@ public class CasualXAResource implements XAResource
     public void end(Xid xid, int flag) throws XAException
     {
         LOG.finest(()-> String.format("end, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, flag, XAFlags.unmarshall(flag)));
-        CasualResourceManager.getInstance().remove(ResourceManagerId.of(casualManagedConnection), xid);
+        CasualResourceManager.getInstance().remove(ResourceId.of(casualManagedConnection), xid);
         disassociate();
         XAFlags f = XAFlags.unmarshall(flag);
         switch(f)
@@ -117,8 +117,8 @@ public class CasualXAResource implements XAResource
     {
         if (xaResource instanceof CasualXAResource casualXAResource)
         {
-            return ResourceManagerId.of(casualXAResource.casualManagedConnection)
-                    .equals(ResourceManagerId.of(casualManagedConnection));
+            return ResourceId.of(casualXAResource.casualManagedConnection)
+                    .equals(ResourceId.of(casualManagedConnection));
         }
         return false;
     }
@@ -177,7 +177,7 @@ public class CasualXAResource implements XAResource
     {
         LOG.finest(()-> String.format("start, xid: %s (%s) flag: %d, %s ", PrettyPrinter.casualStringify(xid), xid, i, XAFlags.unmarshall(i)));
         readOnly = false;
-        ResourceManagerId rmId = ResourceManagerId.of(casualManagedConnection);
+        ResourceId rmId = ResourceId.of(casualManagedConnection);
         if(!(XAFlags.TMJOIN.getValue() == i || XAFlags.TMRESUME.getValue() == i) &&
             CasualResourceManager.getInstance().isPending(rmId, xid))
         {

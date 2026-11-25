@@ -368,6 +368,9 @@ class CasualManagedConnectionFactoryTest extends Specification
         differentSize.setNetworkConnectionPoolSize(2)
 
         expect:
+        first == first
+        first.hashCode() == first.hashCode()
+        first.hashCode() != differentName.hashCode()
         first == same
         first.hashCode() == same.hashCode()
         first != differentName

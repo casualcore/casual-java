@@ -22,7 +22,7 @@ import se.laz.casual.jca.CasualManagedConnection
 import se.laz.casual.jca.CasualManagedConnectionFactory
 import se.laz.casual.jca.CasualResourceAdapter
 import se.laz.casual.jca.CasualResourceManager
-import se.laz.casual.jca.ResourceManagerId
+import se.laz.casual.jca.ResourceId
 import se.laz.casual.network.protocol.messages.CasualNWMessageImpl
 import se.laz.casual.network.protocol.messages.conversation.Request
 import spock.lang.Shared
@@ -65,9 +65,9 @@ class CasualConversationImplTest extends Specification
       connection = new CasualManagedConnection( mcf )
       connection.networkConnection =  networkConnection
 
-      CasualResourceManager.getInstance().remove(ResourceManagerId.of(domainOne), XID.NULL_XID)
+      CasualResourceManager.getInstance().remove(ResourceId.of(domainOne), XID.NULL_XID)
       connection.getXAResource().start( XID.NULL_XID, 0 )
-      CasualResourceManager.getInstance().remove(ResourceManagerId.of(domainOne), XID.NULL_XID)
+      CasualResourceManager.getInstance().remove(ResourceId.of(domainOne), XID.NULL_XID)
 
       conversationConnectCaller = ConversationConnectCaller.of(connection)
       instance = CasualConversationImpl.of(connection, conversationDirection, corrId, conversationExecution)

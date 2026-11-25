@@ -77,8 +77,8 @@ class CasualXAResourceTest extends Specification
 
     def cleanup()
     {
-        transactionResources.remove( ResourceManagerId.of(domainOne), xid1 )
-        transactionResources.remove( ResourceManagerId.of(domainOne), xid2 )
+        transactionResources.remove( ResourceId.of(domainOne), xid1 )
+        transactionResources.remove( ResourceId.of(domainOne), xid2 )
     }
 
     def 'an enlisted branch with no service calls still sends prepare to the remote resource'()
@@ -191,7 +191,7 @@ class CasualXAResourceTest extends Specification
     def "GetCurrentXid returns value given during start."()
     {
         when:
-        transactionResources.remove( ResourceManagerId.of(domainOne), xid1 )
+        transactionResources.remove( ResourceId.of(domainOne), xid1 )
         instance.start( xid1, 0 )
 
         then:
@@ -201,7 +201,7 @@ class CasualXAResourceTest extends Specification
     def "GetCurrentXid returns null xid after end has been called."()
     {
         when:
-        transactionResources.remove( ResourceManagerId.of(domainOne), xid1 )
+        transactionResources.remove( ResourceId.of(domainOne), xid1 )
         instance.start( xid1, 0 )
         instance.end(xid1, XAFlags.TMSUCCESS.getValue())
         then:
@@ -416,8 +416,8 @@ class CasualXAResourceTest extends Specification
        !xaResourceTwo.isSameRM(xaResourceThree)
 
        cleanup:
-       transactionResources.remove(ResourceManagerId.of(firstAddress), xid1)
-       transactionResources.remove(ResourceManagerId.of(firstAddress), xid2)
+       transactionResources.remove(ResourceId.of(firstAddress), xid1)
+       transactionResources.remove(ResourceId.of(firstAddress), xid2)
     }
 
     def "Prepare returns ok."()

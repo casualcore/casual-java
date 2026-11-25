@@ -8,16 +8,19 @@ package se.laz.casual.jca
 
 import spock.lang.Specification
 
-class ResourceManagerIdTest extends Specification
+class ResourceIdTest extends Specification
 {
     def 'address-backed identifiers compare by address equality'()
     {
         given:
-        ResourceManagerId first = ResourceManagerId.of(Address.of('host-a', 7771))
-        ResourceManagerId same = ResourceManagerId.of(Address.of('host-a', 7771))
-        ResourceManagerId different = ResourceManagerId.of(Address.of('host-b', 7771))
+        ResourceId first = ResourceId.of(Address.of('host-a', 7771))
+        ResourceId same = ResourceId.of(Address.of('host-a', 7771))
+        ResourceId different = ResourceId.of(Address.of('host-b', 7771))
 
         expect:
+        first == first
+        first.hashCode() == first.hashCode()
+        first.hashCode() != different.hashCode()
         first == same
         first.hashCode() == same.hashCode()
         first != different
@@ -29,9 +32,9 @@ class ResourceManagerIdTest extends Specification
         given:
         UUID uuidA = UUID.randomUUID()
         UUID uuidB = UUID.randomUUID()
-        ResourceManagerId first = ResourceManagerId.of(DomainId.of(uuidA))
-        ResourceManagerId same = ResourceManagerId.of(DomainId.of(uuidA))
-        ResourceManagerId different = ResourceManagerId.of(DomainId.of(uuidB))
+        ResourceId first = ResourceId.of(DomainId.of(uuidA))
+        ResourceId same = ResourceId.of(DomainId.of(uuidA))
+        ResourceId different = ResourceId.of(DomainId.of(uuidB))
 
         expect:
         first == same
@@ -43,8 +46,8 @@ class ResourceManagerIdTest extends Specification
     def 'address-backed and domain-id-backed identifiers are never equal'()
     {
         given:
-        ResourceManagerId addressId = ResourceManagerId.of(Address.of('reverse', 0))
-        ResourceManagerId domainId = ResourceManagerId.of(DomainId.of(UUID.randomUUID()))
+        ResourceId addressId = ResourceId.of(Address.of('reverse', 0))
+        ResourceId domainId = ResourceId.of(DomainId.of(UUID.randomUUID()))
 
         expect:
         addressId != domainId
@@ -67,26 +70,26 @@ class ResourceManagerIdTest extends Specification
         }
 
         expect:
-        ResourceManagerId.of(pinned) == ResourceManagerId.of(domainId)
-        ResourceManagerId.of(unpinned) == ResourceManagerId.of(address)
+        ResourceId.of(pinned) == ResourceId.of(domainId)
+        ResourceId.of(unpinned) == ResourceId.of(address)
     }
 
     def 'null arguments are rejected'()
     {
         when:
-        ResourceManagerId.of((Address) null)
+        ResourceId.of((Address) null)
 
         then:
         thrown(NullPointerException)
 
         when:
-        ResourceManagerId.of((DomainId) null)
+        ResourceId.of((DomainId) null)
 
         then:
         thrown(NullPointerException)
 
         when:
-        ResourceManagerId.of((CasualManagedConnection) null)
+        ResourceId.of((CasualManagedConnection) null)
 
         then:
         thrown(NullPointerException)

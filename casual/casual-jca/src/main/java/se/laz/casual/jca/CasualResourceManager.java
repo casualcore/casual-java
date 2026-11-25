@@ -25,7 +25,7 @@ public final class CasualResourceManager
     private static final Set<Xid> EMPTY_SET = Collections.emptySet();
     private static final String RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL = "resourceManagerId must not be null";
     private final AtomicInteger currentRMId = new AtomicInteger(1);
-    private final ConcurrentMap<ResourceManagerId, Set<Xid>> pendingRequests = new ConcurrentHashMap<>();
+    private final ConcurrentMap<ResourceId, Set<Xid>> pendingRequests = new ConcurrentHashMap<>();
     private CasualResourceManager()
     {}
 
@@ -44,20 +44,20 @@ public final class CasualResourceManager
     /**
      * Registers a pending outbound transaction for the given resource manager.
      *
-     * @param resourceManagerId the resource manager identifier
+     * @param resourceId the resource manager identifier
      * @param xid the transaction identifier
      * @throws NullPointerException if {@code resourceManagerId} or {@code xid} is {@code null}
      * @throws CasualResourceAdapterException if {@code xid} is already registered for {@code resourceManagerId}
      */
-    public synchronized void put(ResourceManagerId resourceManagerId, final Xid xid)
+    public synchronized void put(ResourceId resourceId, final Xid xid)
     {
-        Objects.requireNonNull(resourceManagerId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
+        Objects.requireNonNull(resourceId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
         Objects.requireNonNull(xid, "xid must not be null");
-        if(pendingRequests.getOrDefault(resourceManagerId, EMPTY_SET).contains(xid))
+        if(pendingRequests.getOrDefault(resourceId, EMPTY_SET).contains(xid))
         {
-            throw new CasualResourceAdapterException("xid: " + xid + " already stored for domain: " + resourceManagerId);
+            throw new CasualResourceAdapterException("xid: " + xid + " already stored for domain: " + resourceId);
         }
-        pendingRequests.computeIfAbsent(resourceManagerId, k -> ConcurrentHashMap.newKeySet()).add(xid);
+        pendingRequests.computeIfAbsent(resourceId, k -> ConcurrentHashMap.newKeySet()).add(xid);
     }
 
     public synchronized boolean hasPending()
@@ -81,20 +81,20 @@ public final class CasualResourceManager
     /**
      * Removes a pending outbound transaction for the given resource manager.
      *
-     * @param resourceManagerId the resource manager identifier
+     * @param resourceId the resource manager identifier
      * @param xid the transaction identifier
      * @throws NullPointerException if {@code resourceManagerId} is {@code null}
      */
-    public synchronized void remove(ResourceManagerId resourceManagerId, final Xid xid)
+    public synchronized void remove(ResourceId resourceId, final Xid xid)
     {
-        Objects.requireNonNull(resourceManagerId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
-        Set<Xid> inFlight = pendingRequests.get(resourceManagerId);
+        Objects.requireNonNull(resourceId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
+        Set<Xid> inFlight = pendingRequests.get(resourceId);
         if(inFlight != null)
         {
             inFlight.remove(xid);
             if(inFlight.isEmpty())
             {
-                pendingRequests.remove(resourceManagerId);
+                pendingRequests.remove(resourceId);
             }
         }
     }
@@ -102,15 +102,15 @@ public final class CasualResourceManager
     /**
      * Returns whether the transaction is pending for the given resource manager.
      *
-     * @param resourceManagerId the resource manager identifier
+     * @param resourceId the resource manager identifier
      * @param xid the transaction identifier
      * @return {@code true} if {@code xid} is pending for {@code resourceManagerId}
      * @throws NullPointerException if {@code resourceManagerId} is {@code null}
      */
-    public boolean isPending(ResourceManagerId resourceManagerId, final Xid xid)
+    public boolean isPending(ResourceId resourceId, final Xid xid)
     {
-        Objects.requireNonNull(resourceManagerId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
-        return pendingRequests.getOrDefault(resourceManagerId, EMPTY_SET).contains(xid);
+        Objects.requireNonNull(resourceId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
+        return pendingRequests.getOrDefault(resourceId, EMPTY_SET).contains(xid);
     }
 
     @Override

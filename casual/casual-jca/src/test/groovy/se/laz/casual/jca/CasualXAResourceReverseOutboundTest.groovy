@@ -20,7 +20,7 @@ import javax.transaction.xa.XAResource
 import javax.transaction.xa.Xid
 import java.nio.charset.StandardCharsets
 
-class ReverseOutboundXAResourceTest extends Specification
+class CasualXAResourceReverseOutboundTest extends Specification
 {
     String poolName
     DomainId domainA
@@ -160,8 +160,8 @@ class ReverseOutboundXAResourceTest extends Specification
         CasualXAResource xaA1 = mcA1.getXAResource() as CasualXAResource
         CasualXAResource xaA2 = mcA2.getXAResource() as CasualXAResource
         CasualXAResource xaB = mcB.getXAResource() as CasualXAResource
-        ResourceManagerId rmA = ResourceManagerId.of(domainA)
-        ResourceManagerId rmB = ResourceManagerId.of(domainB)
+        ResourceId rmA = ResourceId.of(domainA)
+        ResourceId rmB = ResourceId.of(domainB)
 
         when: 'distinct branch XIDs for the same global transaction are started on two reverse outbound domains'
         xaA1.start(xidA, XAResource.TMNOFLAGS)
@@ -210,8 +210,8 @@ class ReverseOutboundXAResourceTest extends Specification
         CasualManagedConnection mcB = hostlessReverseMcf.createManagedConnection(null, CasualRequestInfo.of(domainB)) as CasualManagedConnection
         CasualXAResource xaA = mcA.getXAResource() as CasualXAResource
         CasualXAResource xaB = mcB.getXAResource() as CasualXAResource
-        ResourceManagerId rmA = ResourceManagerId.of(domainA)
-        ResourceManagerId rmB = ResourceManagerId.of(domainB)
+        ResourceId rmA = ResourceId.of(domainA)
+        ResourceId rmB = ResourceId.of(domainB)
 
         when:
         boolean sameRm = xaA.isSameRM(xaB)

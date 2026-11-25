@@ -17,7 +17,7 @@ class CasualResourceManagerTest extends Specification
 {
     @Shared CasualResourceManager instance
     @Shared Xid xid1, xid2, xid3
-    @Shared ResourceManagerId domainOne, domainTwo
+    @Shared ResourceId domainOne, domainTwo
 
     def setup()
     {
@@ -25,8 +25,8 @@ class CasualResourceManagerTest extends Specification
         xid1 = XID.of( "123".getBytes(StandardCharsets.UTF_8), "321".getBytes(StandardCharsets.UTF_8), 0 )
         xid2 = XID.of("456".getBytes(StandardCharsets.UTF_8), "654".getBytes(StandardCharsets.UTF_8), 0 )
         xid3 = XID.of( xid1 )
-        domainOne = ResourceManagerId.of(Address.of('foo', 2134))
-        domainTwo = ResourceManagerId.of(DomainId.of(UUID.randomUUID()))
+        domainOne = ResourceId.of(Address.of('foo', 2134))
+        domainTwo = ResourceId.of(DomainId.of(UUID.randomUUID()))
     }
 
     def cleanup()
