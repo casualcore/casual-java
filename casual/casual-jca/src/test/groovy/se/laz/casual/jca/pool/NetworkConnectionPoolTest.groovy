@@ -285,6 +285,26 @@ class NetworkConnectionPoolTest extends Specification
       thrown(CasualResourceAdapterException)
    }
 
+   def 'reverse connection that closed before listener registration is removed immediately'()
+   {
+      given:
+      DomainId domainId = DomainId.of(UUID.randomUUID())
+      NettyNetworkConnection alreadyClosed = Mock(NettyNetworkConnection) {
+         getDomainId() >> domainId
+         addListener(_) >> { NetworkListener listener ->
+            listener.disconnected(new CasualConnectionException('closed before registration'))
+         }
+      }
+      NetworkConnectionPool pool = NetworkConnectionPool.ofReverse('race-reverse-pool')
+
+      when:
+      pool.addConnectionForReversePool(alreadyClosed)
+
+      then:
+      1 * alreadyClosed.close()
+      pool.getPoolDomainIds().isEmpty()
+   }
+
    def 'reverse pool pinned selection'()
    {
       given: 'two connections from instance A and one from instance B'

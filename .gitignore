@@ -16,3 +16,4 @@ out/
 gradle.properties
 secret.*
 __pycache__/
+AGENTS.md

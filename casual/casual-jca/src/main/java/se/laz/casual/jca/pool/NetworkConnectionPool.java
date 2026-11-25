@@ -192,8 +192,11 @@ public class NetworkConnectionPool implements ReferenceCountedNetworkCloseListen
         synchronized (getOrCreateLock)
         {
             ReferenceCountedNetworkConnection connection = ReferenceCountedNetworkConnection.of(networkConnection, this);
-            networkConnection.addListener(exception -> closed(connection));
+            // Add before registering the close listener: if the connection closed before this call,
+            // ErrorInformer.addListener() invokes closed(connection) synchronously, which must find
+            // and remove the connection here rather than letting addConnection() re-insert it afterward.
             connections.addConnection(connection);
+            networkConnection.addListener(exception -> closed(connection));
             LOG.finest(() -> "added reverse outbound connection from domain: " + domainId + " to pool: " + poolName);
         }
     }

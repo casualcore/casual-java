@@ -1,6 +1,50 @@
 # Changelog
 This is the changelog for *casual java* and all changes are listed in this document.
 
+## [3.8.1] - 2026-11-25
+
+### fix: reverse outbound ([#241](https://github.com/casualcore/casual-java/issues/241))
+Fixes several reverse outbound edge cases in `casual-jca` and
+`casual-network`:
+
+**XA resource manager identity (`ResourceId`)**
+Introduces an immutable `ResourceId` that uses the pinned `DomainId` for
+reverse outbound connections and `Address` for normal outbound
+connections.
+`CasualXAResource` and `CasualResourceManager` now key on `ResourceId`,
+preventing distinct reverse inbound peers on the same pool from aliasing
+in `isSameRM()` or pending-XID tracking.
+
+**Pin on managed connection creation**
+`CasualManagedConnectionFactory.createManagedConnection()` now pins
+reverse outbound connections immediately via `pinIfRequested()`.
+This ensures the remote `DomainId` is set before JCA enlists the
+`XAResource`.
+
+**Reverse pool lookup**
+Splits `NetworkPoolHandler` into explicit `getOrCreate(...)` (normal
+outbound) and `getReverse(...)` (reverse outbound) methods.
+Reverse lookups no longer route through normal-pool creation or pass
+dummy address and pool-size values.
+
+**Managed connection factory equality and background validation**
+Includes `networkConnectionPoolName` and `networkConnectionPoolSize` in
+`CasualManagedConnectionFactory.equals()` and `hashCode()`.
+Adds a non-creating `CasualManagedConnection.isValid()` for
+`getInvalidConnections()`, and moves `getNetworkConnection()`'s return
+inside `networkConnectionLock`.
+
+**Disconnect-before-registration race**
+Tracks `informed` in `ErrorInformer` and notifies listeners outside
+`lock` to prevent lock-ordering deadlocks.
+`NetworkConnectionPool.addConnectionForReversePool()` now adds the
+connection before registering the close listener, so an already-closed
+reverse connection is removed immediately.
+
+**Tests and docs**
+Adds unit tests for each fix, cleans up leaked XIDs in
+`CasualXAResourceTest`, and fixes minor typos in `reverse-outbound.md`.
+
 ## [3.8.0] - 2026-11-18
 
 ### feat: jdk21 ([#234](https://github.com/casualcore/casual-java/issues/234))

@@ -90,21 +90,40 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
             {
                 networkConnection = getOrCreateFromPool();
             }
+            return networkConnection;
         }
-        return networkConnection;
+    }
+
+    /**
+     * Returns whether this managed connection currently holds an active network connection.
+     *
+     * <p>Unlike {@link #getNetworkConnection()}, this method does not allocate from the pool or
+     * open a new network connection.
+     *
+     * @return {@code true} if an active network connection is attached; {@code false} otherwise
+     */
+    public boolean isValid()
+    {
+        synchronized (networkConnectionLock)
+        {
+            return networkConnection != null && networkConnection.isActive();
+        }
     }
 
     private NetworkConnection getOrCreateFromPool()
     {
-        // Reverse pools accept connections without a configured size.
+        if (pinnedDomainId != null)
+        {
+            return NetworkPoolHandler.getInstance()
+                                     .getReverse(mcf.getNetworkConnectionPoolName(), this, pinnedDomainId);
+        }
         int poolSize = Objects.requireNonNullElse(mcf.getNetworkConnectionPoolSize(), 0);
         return NetworkPoolHandler.getInstance()
                                  .getOrCreate(
                                          mcf.getNetworkConnectionPoolName(),
                                          mcf.getAddress(),
                                          this,
-                                         poolSize,
-                                         pinnedDomainId);
+                                         poolSize);
     }
 
     /**
@@ -124,7 +143,7 @@ public class CasualManagedConnection implements ManagedConnection, NetworkListen
         }
     }
 
-    private void pinIfRequested(ConnectionRequestInfo cxRequestInfo) throws ResourceException
+    void pinIfRequested(ConnectionRequestInfo cxRequestInfo) throws ResourceException
     {
         Optional<DomainId> maybeDomainId = DomainIdExtractor.getDomainId(cxRequestInfo);
         if(maybeDomainId.isEmpty())

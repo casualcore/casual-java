@@ -136,6 +136,9 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       try
       {
          CasualManagedConnection managedConnection = casualManagedConnectionProducer.createManagedConnection(this);
+         // Pin at creation time because JCA enlists the XAResource (calling isSameRM/start) before
+         // invoking getConnection(), so reverse-outbound MCs must already know their domain ID.
+         managedConnection.pinIfRequested(cxRequestInfo);
          log.finest(() -> "Created a new managed connection: " + managedConnection);
          return managedConnection;
       }
@@ -175,7 +178,7 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       return ( (Set<?>)connectionSet ).stream()
               .filter( CasualManagedConnection.class::isInstance )
               .map( CasualManagedConnection.class::cast )
-              .filter( managedConnection -> !managedConnection.getNetworkConnection().isActive() )
+              .filter( managedConnection -> !managedConnection.isValid() )
               .collect( Collectors.toSet() );
    }
 
@@ -221,13 +224,15 @@ public class CasualManagedConnectionFactory implements ManagedConnectionFactory,
       CasualManagedConnectionFactory that = (CasualManagedConnectionFactory) o;
       return Objects.equals(ra, that.ra) &&
               Objects.equals(hostName, that.hostName) &&
-              Objects.equals(portNumber, that.portNumber);
+              Objects.equals(portNumber, that.portNumber) &&
+              Objects.equals(networkConnectionPoolName, that.networkConnectionPoolName) &&
+              Objects.equals(networkConnectionPoolSize, that.networkConnectionPoolSize);
    }
 
    @Override
    public int hashCode()
    {
-      return Objects.hash(ra, hostName, portNumber);
+      return Objects.hash(ra, hostName, portNumber, networkConnectionPoolName, networkConnectionPoolSize);
    }
 
    @Override
