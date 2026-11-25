@@ -98,7 +98,7 @@ public final class ResourceId
     public String toString()
     {
         return address != null
-                ? "ResourceManagerId{address=" + address + '}'
-                : "ResourceManagerId{domainId=" + domainId + '}';
+                ? "ResourceId{address=" + address + '}'
+                : "ResourceId{domainId=" + domainId + '}';
     }
 }

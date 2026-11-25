@@ -23,7 +23,7 @@ public final class CasualResourceManager
 {
     private static final CasualResourceManager INSTANCE = new CasualResourceManager();
     private static final Set<Xid> EMPTY_SET = Collections.emptySet();
-    private static final String RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL = "resourceManagerId must not be null";
+    private static final String RESOURCE_ID_MUST_NOT_BE_NULL = "resourceId must not be null";
     private final AtomicInteger currentRMId = new AtomicInteger(1);
     private final ConcurrentMap<ResourceId, Set<Xid>> pendingRequests = new ConcurrentHashMap<>();
     private CasualResourceManager()
@@ -51,7 +51,7 @@ public final class CasualResourceManager
      */
     public synchronized void put(ResourceId resourceId, final Xid xid)
     {
-        Objects.requireNonNull(resourceId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
+        Objects.requireNonNull(resourceId, RESOURCE_ID_MUST_NOT_BE_NULL);
         Objects.requireNonNull(xid, "xid must not be null");
         if(pendingRequests.getOrDefault(resourceId, EMPTY_SET).contains(xid))
         {
@@ -87,7 +87,7 @@ public final class CasualResourceManager
      */
     public synchronized void remove(ResourceId resourceId, final Xid xid)
     {
-        Objects.requireNonNull(resourceId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
+        Objects.requireNonNull(resourceId, RESOURCE_ID_MUST_NOT_BE_NULL);
         Set<Xid> inFlight = pendingRequests.get(resourceId);
         if(inFlight != null)
         {
@@ -109,7 +109,7 @@ public final class CasualResourceManager
      */
     public boolean isPending(ResourceId resourceId, final Xid xid)
     {
-        Objects.requireNonNull(resourceId, RESOURCE_MANAGER_ID_MUST_NOT_BE_NULL);
+        Objects.requireNonNull(resourceId, RESOURCE_ID_MUST_NOT_BE_NULL);
         return pendingRequests.getOrDefault(resourceId, EMPTY_SET).contains(xid);
     }
 
